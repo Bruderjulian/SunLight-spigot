@@ -22,6 +22,7 @@ import su.nightexpress.nightcore.util.LocationUtil;
 import su.nightexpress.nightcore.util.PDCUtil;
 import su.nightexpress.nightcore.util.random.Rnd;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.nms.SunNMS;
 
 import java.util.List;
 import java.util.Set;
@@ -30,7 +31,11 @@ public class PhysicsExplosionListener extends AbstractListener<SunLightPlugin> {
 
     private static final Set<Material> ILLEGAL_ITEMS = Sets.newHashSet(
         Material.AIR, Material.TNT, Material.SPAWNER,
-        Material.BEDROCK, Material.BARRIER, Material.FARMLAND, Material.BUDDING_AMETHYST
+        Material.BEDROCK, Material.BARRIER, Material.FARMLAND, Material.BUDDING_AMETHYST,
+        Material.INFESTED_STONE, Material.INFESTED_COBBLESTONE,
+        Material.INFESTED_STONE_BRICKS, Material.INFESTED_MOSSY_STONE_BRICKS,
+        Material.INFESTED_CRACKED_STONE_BRICKS, Material.INFESTED_CHISELED_STONE_BRICKS,
+        Material.INFESTED_DEEPSLATE
     );
 
     private final NamespacedKey physx;
@@ -59,7 +64,10 @@ public class PhysicsExplosionListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockPhysLand(EntityChangeBlockEvent event) {
         if (event.getEntity() instanceof FallingBlock fallingBlock && PDCUtil.getBoolean(fallingBlock, this.physx).isPresent()) {
-            plugin.getInternals().dropFallingContent(fallingBlock);
+            SunNMS internals = this.plugin.getInternals();
+            if (internals == null) return;
+
+            internals.dropFallingContent(fallingBlock);
             event.setCancelled(true);
         }
     }

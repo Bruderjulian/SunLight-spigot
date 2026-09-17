@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.worlds.impl;
 
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -13,14 +12,16 @@ import su.nightexpress.sunlight.module.worlds.WorldsModule;
 import su.nightexpress.sunlight.module.worlds.config.WorldsConfig;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class WorldInventories extends AbstractFileData<SunLightPlugin> {
 
-    private final WorldsModule                               module;
-    private final Map<String, Map<InventoryType, Inventory>> inventories;
+    private final WorldsModule                                    module;
+    private final Map<String, Map<InventoryType, List<ItemStack>>> inventories;
 
     public WorldInventories(@NotNull SunLightPlugin plugin, @NotNull WorldsModule module, @NotNull File file) {
         super(plugin, file);
@@ -35,10 +36,7 @@ public class WorldInventories extends AbstractFileData<SunLightPlugin> {
 
             for (String worldGroup : config.getSection(type.name())) {
                 ItemStack[] items = config.getItemsEncoded(type.name() + "." + worldGroup);
-
-                Inventory inventory = plugin.getServer().createInventory(null, type);
-                inventory.setContents(items);
-                this.getInventoryMap(worldGroup).put(type, inventory);
+                this.getInventoryMap(worldGroup).put(type, Arrays.asList(items));
             }
         }
         return true;
@@ -47,8 +45,8 @@ public class WorldInventories extends AbstractFileData<SunLightPlugin> {
     @Override
     protected void onSave(@NotNull FileConfig config) {
         this.inventories.forEach((worldGroup, groupMap) -> {
-            groupMap.forEach((type, inventory) -> {
-                config.setItemsEncoded(type.name() + "." + worldGroup, Arrays.asList(inventory.getContents()));
+            groupMap.forEach((type, items) -> {
+                config.setItemsEncoded(type.name() + "." + worldGroup, items);
             });
         });
     }
@@ -61,9 +59,7 @@ public class WorldInventories extends AbstractFileData<SunLightPlugin> {
     public void saveInventory(@NotNull Player player, @NotNull String group) {
         // Always save all inventories to avoid items losing when change settings
         for (InventoryType type : WorldsConfig.INVENTORY_SPLIT_TYPES) {
-            Inventory inventory = plugin.getServer().createInventory(null, type);
-            this.transferContent(this.getInventory(player, type), inventory);
-            this.getInventoryMap(group).put(type, inventory);
+            this.getInventoryMap(group).put(type, this.copyContents(this.getInventory(player, type).getContents()));
         }
     }
 
@@ -76,19 +72,44 @@ public class WorldInventories extends AbstractFileData<SunLightPlugin> {
         if (worldGroup == null) return;
 
         for (InventoryType type : WorldsConfig.INVENTORY_SPLIT_TYPES) {
-            Inventory inventoryHas = this.getInventory(player, type);
-            inventoryHas.clear();
-
-            Inventory inventoryNew = this.getInventoryMap(worldGroup).get(type);
-            if (inventoryNew != null) {
-                this.transferContent(inventoryNew, inventoryHas);
-            }
+            this.loadInventory(player, worldGroup, type);
         }
     }
 
+    private void loadInventory(@NotNull Player player, @NotNull String worldGroup, @NotNull InventoryType type) {
+        ItemStack[] inventoryContent = this.getInventory(player, type).getContents();
+        Arrays.fill(inventoryContent, null);
+
+        List<ItemStack> items = this.getInventoryMap(worldGroup).get(type);
+        if (items != null) {
+            for (int slot = 0; slot < items.size() && slot < inventoryContent.length; slot++) {
+                ItemStack item = items.get(slot);
+                if (item == null || item.getType().isAir()) continue;
+
+                inventoryContent[slot] = new ItemStack(item);
+            }
+        }
+
+        this.getInventory(player, type).setContents(inventoryContent);
+    }
+
     @NotNull
-    private Map<InventoryType, Inventory> getInventoryMap(@NotNull String group) {
+    private Map<InventoryType, List<ItemStack>> getInventoryMap(@NotNull String group) {
         return this.inventories.computeIfAbsent(group, k -> new HashMap<>());
+    }
+
+    @NotNull
+    private List<ItemStack> copyContents(@NotNull ItemStack[] contents) {
+        List<ItemStack> list = new ArrayList<>(contents.length);
+        for (ItemStack item : contents) {
+            if (item == null || item.getType().isAir()) {
+                list.add(null);
+            }
+            else {
+                list.add(new ItemStack(item));
+            }
+        }
+        return list;
     }
 
     @NotNull
@@ -96,12 +117,5 @@ public class WorldInventories extends AbstractFileData<SunLightPlugin> {
         if (type == InventoryType.PLAYER) return player.getInventory();
         if (type == InventoryType.ENDER_CHEST) return player.getEnderChest();
         throw new UnsupportedOperationException("Unsupported inventory type!");
-    }
-
-    private void transferContent(@NotNull Inventory from, @NotNull Inventory to) {
-        int slot = 0;
-        for (ItemStack item : from.getContents()) {
-            to.setItem(slot++, item != null ? new ItemStack(item) : new ItemStack(Material.AIR));
-        }
     }
 }

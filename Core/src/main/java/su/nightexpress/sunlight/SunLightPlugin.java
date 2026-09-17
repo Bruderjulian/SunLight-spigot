@@ -220,6 +220,11 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
             return;
         }
 
+        if (!this.isPaperServer()) {
+            this.error("SunLight requires a Paper-compatible server. Some of the features will be disabled.");
+            return;
+        }
+
         try {
             this.sunNMS = switch (Version.getCurrent()) {
                 case MC_1_21_11 -> new MC_1_21_11();
@@ -232,6 +237,16 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
 
         if (this.sunNMS == null) {
             this.error("Unable to hook into server's internals. Some of the features will be disabled.");
+        }
+    }
+
+    private boolean isPaperServer() {
+        try {
+            Class.forName("io.papermc.paper.configuration.GlobalConfiguration");
+            return true;
+        }
+        catch (ClassNotFoundException e) {
+            return false;
         }
     }
 

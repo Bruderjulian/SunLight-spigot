@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.manager.AbstractListener;
@@ -18,6 +19,14 @@ public class InventoryListener extends AbstractListener<SunLightPlugin> {
     public InventoryListener(@NotNull SunLightPlugin plugin, @NotNull WorldsModule module) {
         super(plugin);
         this.module = module;
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL)
+    public void onInventorySplitJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (this.module.getWorldGroup(player.getWorld()) == null) return;
+
+        this.module.getWorldInventory(player).loadInventory(player);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -52,6 +61,10 @@ public class InventoryListener extends AbstractListener<SunLightPlugin> {
 
         WorldInventories worldInventories = this.module.getInventoryMap().remove(playerId);
         if (worldInventories != null) {
+            String group = this.module.getWorldGroup(player.getWorld());
+            if (group != null) {
+                worldInventories.saveInventory(player, group);
+            }
             worldInventories.save();
         }
     }

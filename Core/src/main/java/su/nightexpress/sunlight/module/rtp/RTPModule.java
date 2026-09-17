@@ -169,6 +169,8 @@ public class RTPModule extends Module {
         if (world.getEnvironment() == World.Environment.NETHER) {
             int start = world.getMinHeight();
             int end = snapshot.getHighestBlockYAt(bX, bZ);
+            if (end < start) return Optional.empty();
+
             Integer found = null;
             boolean wasAir = false;
 
@@ -188,6 +190,10 @@ public class RTPModule extends Module {
         else {
             bY = snapshot.getHighestBlockYAt(bX, bZ);
         }
+
+        int minY = world.getMinHeight();
+        int maxY = world.getMaxHeight();
+        if (bY < minY || bY > maxY) return Optional.empty();
 
         Material material = snapshot.getBlockType(bX, bY, bZ);
         if (!material.isBlock() || !material.isSolid()) {
