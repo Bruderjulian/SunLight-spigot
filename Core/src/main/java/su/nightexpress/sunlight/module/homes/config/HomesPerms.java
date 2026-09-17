@@ -27,4 +27,6 @@ public class HomesPerms {
     public static final Permission BYPASS_UNSAFE_LOCATION     = BYPASS.permission("unsafe");
     public static final Permission BYPASS_CREATION_WORLDS     = BYPASS.permission("creation.worlds");
     public static final Permission BYPASS_CREATION_PROTECTION = BYPASS.permission("creation.protection");
+    public static final Permission BYPASS_COST                = BYPASS.permission("cost");
+    public static final Permission BYPASS_COOLDOWN            = BYPASS.permission("cooldown");
 }

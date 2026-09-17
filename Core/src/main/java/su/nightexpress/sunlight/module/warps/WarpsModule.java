@@ -14,6 +14,8 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.ui.inventory.action.ActionContext;
 import su.nightexpress.nightcore.util.*;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
+import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -35,6 +37,7 @@ import su.nightexpress.sunlight.teleport.TeleportContext;
 import su.nightexpress.sunlight.teleport.TeleportFlag;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.teleport.TeleportType;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -97,7 +100,7 @@ public class WarpsModule extends Module {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("warps", new WarpsCommandProvider(this.plugin, this, this.userManager));
+        this.commandRegistry.addProvider("warps", new WarpsCommandProvider(this.plugin, this, this.userManager), this);
     }
 
     @Override
@@ -269,6 +272,16 @@ public class WarpsModule extends Module {
             return false;
         }
 
+        double cost = this.settings.getCreationCost();
+        boolean charge = !force && cost > 0D && !EconomyUtils.hasBypass(player, WarpsPerms.BYPASS_COST) && EconomyUtils
+            .hasCurrency();
+
+        if (charge && !EconomyUtils.canAfford(player, cost)) {
+            this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
+                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+            return false;
+        }
+
         Path file = Path.of(this.getSystemPath() + this.getWarpsDirectory(), FileConfig.withExtension(id));
         Warp warp = new Warp(file, id);
 
@@ -276,6 +289,7 @@ public class WarpsModule extends Module {
         warp.setIcon(this.getSettings().getDefaultIcon());
         warp.setLocation(location);
         warp.save();
+        if (charge) EconomyUtils.withdraw(player, cost);
         this.loadWarp(warp);
         this.sendPrefixed(WarpsLang.WARP_CREATION_NOTIFY, player, builder -> builder.with(warp.placeholders()));
 
@@ -305,6 +319,16 @@ public class WarpsModule extends Module {
         this.plugin.getPluginManager().callEvent(event);
         if (event.isCancelled()) return false;
 
+        double cost = this.settings.getTeleportCost();
+        boolean charge = !force && cost > 0D && !EconomyUtils.hasBypass(player, WarpsPerms.BYPASS_COST) && EconomyUtils
+            .hasCurrency();
+
+        if (charge && !EconomyUtils.canAfford(player, cost)) {
+            this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
+                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+            return false;
+        }
+
         Location location = warp.getLocation();
 
         TeleportContext teleportContext = TeleportContext.builder(this, player, location)
@@ -313,6 +337,8 @@ public class WarpsModule extends Module {
             .withFlag(TeleportFlag.CENTERED)
             .withFlagIf(TeleportFlag.BYPASS_WARMUP, () -> force)
             .callback(() -> {
+                if (charge) EconomyUtils.withdraw(player, cost);
+
                 this.sendPrefixed(WarpsLang.WARP_TELEPORT_NOTIFY, player, builder -> builder.with(warp.placeholders()));
             })
             .build();

@@ -47,7 +47,7 @@ public class TextsModule extends Module {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("texts-text", new TextCommandProvider(this.plugin, this));
+        this.commandRegistry.addProvider("texts-text", new TextCommandProvider(this.plugin, this), this);
 
         this.textByIdMap.values().forEach(text -> {
             NightCommand command = NightCommand.literal(this.plugin, text.getId(), builder -> builder

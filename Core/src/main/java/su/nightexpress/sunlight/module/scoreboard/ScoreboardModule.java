@@ -77,7 +77,7 @@ public class ScoreboardModule extends Module {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("scoreboard", new ScoreboardCommand(this.plugin, this, this.userManager));
+        this.commandRegistry.addProvider("scoreboard", new ScoreboardCommand(this.plugin, this, this.userManager), this);
     }
 
     @Override

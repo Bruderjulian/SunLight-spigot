@@ -9,6 +9,7 @@ public class WarpsPerms {
     public static final PermissionTree MODULE  = Perms.detached("warps");
     public static final PermissionTree COMMAND = MODULE.branch("command");
     public static final PermissionTree WARP    = MODULE.branch("warp");
+    public static final PermissionTree BYPASS  = MODULE.branch("bypass");
 
     public static final Permission EDITOR = MODULE.permission("editor");
 
@@ -21,4 +22,7 @@ public class WarpsPerms {
     public static final Permission COMMAND_WARPS_LIST        = COMMAND.permission("warps.list");
     public static final Permission COMMAND_WARPS_LIST_OTHERS = COMMAND.permission("warps.list.others");
     public static final Permission COMMAND_WARPS_EDIT        = COMMAND.permission("warps.edit");
+
+    public static final Permission BYPASS_COST     = BYPASS.permission("cost");
+    public static final Permission BYPASS_COOLDOWN = BYPASS.permission("cooldown");
 }

@@ -70,6 +70,12 @@ public class PlayerWarpsSettings extends AbstractConfig {
         "List of worlds where warp creation is disabled."
     );
 
+    private final ConfigProperty<Double> warpsCreationCost = this.addProperty(ConfigTypes.DOUBLE, "Warp.Creation.Cost",
+        0D,
+        "Sets how much it costs (in Vault currency) to create a warp.",
+        "Set to '0' to disable."
+    );
+
     private final ConfigProperty<RankTable> warpsAmountPerRank = this.addProperty(SLConfigTypes.RANK_TABLE, "Warp.Amount_Per_Rank",
         RankTable.builder(RankTable.Mode.RANK, 0)
             .permissionPrefix("playerwarps.amount.")
@@ -166,6 +172,10 @@ public class PlayerWarpsSettings extends AbstractConfig {
 
     public int getWarpDescriptionCharacterLimit() {
         return this.warpsDescriptionMaxCharacters.get();
+    }
+
+    public double getCreationCost() {
+        return this.warpsCreationCost.get();
     }
 
     public boolean isBlacklistedWorld(@NonNull World world) {

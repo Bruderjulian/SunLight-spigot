@@ -50,6 +50,15 @@ public class Lang implements LangContainer {
         SOFT_RED.wrap("This command is one-time and you already have used it.")
     );
 
+    public static final MessageLocale COMMAND_COST_ERROR = LangEntry.builder("Generic.Command.Cost.Error").message(
+        MessageData.CHAT_NO_PREFIX,
+        SOFT_RED.wrap("You don't have enough funds to use " + WHITE.wrap(GENERIC_COMMAND) + ". Required: " + WHITE.wrap(GENERIC_AMOUNT) + ".")
+    );
+
+    public static final MessageLocale COST_ERROR_NOT_ENOUGH_FUNDS = LangEntry.builder("Generic.Cost.Error.NotEnoughFunds").chatMessage(
+        GRAY.wrap("You don't have enough funds. Required: " + WHITE.wrap(GENERIC_AMOUNT) + ".")
+    );
+
 
 
     public static final MessageLocale TELEPORT_UNSAFE_FEEDBACK = LangEntry.builder("Teleport.Unsafe.Feedback").chatMessage(

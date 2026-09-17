@@ -60,49 +60,49 @@ public class EssentialModule extends Module {
     protected void registerCommands() {
         if (this.settings.isInvulnerabilityEnabled()) {
             this.commandRegistry.addProvider("ess-invulnerability",
-                new InvulnerabilityCommandProvider(this.plugin, this, this.settings, this.userManager));
+                new InvulnerabilityCommandProvider(this.plugin, this, this.settings, this.userManager), this);
         }
         if (PermissionBridge.hasProvider()) {
-            this.commandRegistry.addProvider("staff", new StaffCommandProvider(this.plugin, this, this.settings));
+            this.commandRegistry.addProvider("staff", new StaffCommandProvider(this.plugin, this, this.settings), this);
         }
 
-        this.commandRegistry.addProvider("air", new AirCommandProvider(this.plugin, this, this.userManager));
+        this.commandRegistry.addProvider("air", new AirCommandProvider(this.plugin, this, this.userManager), this);
         this.commandRegistry.addProvider("broadcast",
-            new BroadcastCommandProvider(this.plugin, this.settings.broadcastFormat.get()));
-        this.commandRegistry.addProvider("condense", new CondenseCommandProvider(this.plugin, this));
+            new BroadcastCommandProvider(this.plugin, this.settings.broadcastFormat.get()), this);
+        this.commandRegistry.addProvider("condense", new CondenseCommandProvider(this.plugin, this), this);
         this.commandRegistry.addProvider("dimension",
-            new DimensionCommandProvider(this.plugin, this, this.userManager, this.teleportManager));
-        this.commandRegistry.addProvider("disposal", new DisposalCommandProvider(this.plugin, this, this.settings));
-        this.commandRegistry.addProvider("enchant", new EnchantCommandsProvider(this.plugin, this, this.userManager));
+            new DimensionCommandProvider(this.plugin, this, this.userManager, this.teleportManager), this);
+        this.commandRegistry.addProvider("disposal", new DisposalCommandProvider(this.plugin, this, this.settings), this);
+        this.commandRegistry.addProvider("enchant", new EnchantCommandsProvider(this.plugin, this, this.userManager), this);
         this.commandRegistry.addProvider("experience",
-            new ExperienceCommandsProvider(this.plugin, this, this.userManager));
+            new ExperienceCommandsProvider(this.plugin, this, this.userManager), this);
         this.commandRegistry.addProvider("fireticks",
-            new FireTicksCommandsProvider(this.plugin, this, this.userManager));
-        this.commandRegistry.addProvider("fly", new FlyCommandProvider(this.plugin, this, this.userManager));
-        this.commandRegistry.addProvider("flyspeed", new FlySpeedCommandProvider(this.plugin, this, this.userManager));
+            new FireTicksCommandsProvider(this.plugin, this, this.userManager), this);
+        this.commandRegistry.addProvider("fly", new FlyCommandProvider(this.plugin, this, this.userManager), this);
+        this.commandRegistry.addProvider("flyspeed", new FlySpeedCommandProvider(this.plugin, this, this.userManager), this);
         this.commandRegistry.addProvider("foodlevel",
-            new FoodLevelCommandProvider(this.plugin, this, this.settings, this.userManager));
-        this.commandRegistry.addProvider("forcerun", new ForceRunCommandProvider(this.plugin, this));
-        this.commandRegistry.addProvider("forcesay", new ForceSayCommandProvider(this.plugin, this));
-        this.commandRegistry.addProvider("gamemode", new GamemodeCommandProvider(this.plugin, this, this.userManager));
-        this.commandRegistry.addProvider("hat", new HatCommandProvider(this.plugin, this));
+            new FoodLevelCommandProvider(this.plugin, this, this.settings, this.userManager), this);
+        this.commandRegistry.addProvider("forcerun", new ForceRunCommandProvider(this.plugin, this), this);
+        this.commandRegistry.addProvider("forcesay", new ForceSayCommandProvider(this.plugin, this), this);
+        this.commandRegistry.addProvider("gamemode", new GamemodeCommandProvider(this.plugin, this, this.userManager), this);
+        this.commandRegistry.addProvider("hat", new HatCommandProvider(this.plugin, this), this);
         this.commandRegistry.addProvider("health",
-            new HealthCommandProvider(this.plugin, this, this.settings, this.userManager));
+            new HealthCommandProvider(this.plugin, this, this.settings, this.userManager), this);
         this.commandRegistry.addProvider("near",
-            new NearCommandProvider(this.plugin, this, this.settings, this.userManager));
+            new NearCommandProvider(this.plugin, this, this.settings, this.userManager), this);
         this.commandRegistry.addProvider("nickname",
-            new NickCommandsProvider(this.plugin, this, this.settings, this.userManager));
+            new NickCommandsProvider(this.plugin, this, this.settings, this.userManager), this);
         this.commandRegistry.addProvider("playerinfo",
-            new PlayerInfoCommandProvider(this.plugin, this, this.settings, this.userManager));
-        this.commandRegistry.addProvider("skull", new SkullCommandProvider(this.plugin, this));
-        this.commandRegistry.addProvider("smite", new SmiteCommandProvider(this.plugin, this));
-        this.commandRegistry.addProvider("speed", new SpeedCommandProvider(this.plugin, this, this.userManager));
-        this.commandRegistry.addProvider("suicide", new SuicideCommandProvider(this.plugin, this));
+            new PlayerInfoCommandProvider(this.plugin, this, this.settings, this.userManager), this);
+        this.commandRegistry.addProvider("skull", new SkullCommandProvider(this.plugin, this), this);
+        this.commandRegistry.addProvider("smite", new SmiteCommandProvider(this.plugin, this), this);
+        this.commandRegistry.addProvider("speed", new SpeedCommandProvider(this.plugin, this, this.userManager), this);
+        this.commandRegistry.addProvider("suicide", new SuicideCommandProvider(this.plugin, this), this);
         this.commandRegistry.addProvider("teleport",
-            new TeleportCommandsProvider(this.plugin, this, this.userManager, this.teleportManager));
-        this.commandRegistry.addProvider("time", new TimeCommandProvider(this.plugin, this, this.settings));
-        this.commandRegistry.addProvider("playertime", new PlayerTimeCommandProvider(this.plugin, this, this.settings));
-        this.commandRegistry.addProvider("weather", new WeatherCommandProvider(this.plugin, this));
+            new TeleportCommandsProvider(this.plugin, this, this.userManager, this.teleportManager), this);
+        this.commandRegistry.addProvider("time", new TimeCommandProvider(this.plugin, this, this.settings), this);
+        this.commandRegistry.addProvider("playertime", new PlayerTimeCommandProvider(this.plugin, this, this.settings), this);
+        this.commandRegistry.addProvider("weather", new WeatherCommandProvider(this.plugin, this), this);
     }
 
     @Override

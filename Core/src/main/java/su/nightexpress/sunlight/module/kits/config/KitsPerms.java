@@ -25,6 +25,6 @@ public class KitsPerms {
     public static final Permission COMMAND_RESET_KIT_COOLDOWN = COMMAND.permission("kits.resetcooldown");
     public static final Permission COMMAND_SET_KIT_COOLDOWN   = COMMAND.permission("kits.setcooldown");
 
-    public static final Permission BYPASS_COST     = BYPASS.permission("cost.money");
+    public static final Permission BYPASS_COST     = BYPASS.permission("cost");
     public static final Permission BYPASS_COOLDOWN = BYPASS.permission("cooldown");
 }

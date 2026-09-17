@@ -11,6 +11,8 @@ import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.FileUtil;
 import su.nightexpress.nightcore.util.StringUtil;
 import su.nightexpress.nightcore.util.Strings;
+import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -29,6 +31,7 @@ import su.nightexpress.sunlight.module.spawns.event.PlayerSpawnTeleportEvent;
 import su.nightexpress.sunlight.module.spawns.listener.SpawnListener;
 import su.nightexpress.sunlight.teleport.*;
 import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -80,7 +83,7 @@ public class SpawnsModule extends Module {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("spawn", new SpawnCommands(this.plugin, this, this.userManager));
+        this.commandRegistry.addProvider("spawn", new SpawnCommands(this.plugin, this, this.userManager), this);
     }
 
     @Override
@@ -266,6 +269,16 @@ public class SpawnsModule extends Module {
         plugin.getPluginManager().callEvent(event);
         if (event.isCancelled()) return false;
 
+        double cost = this.settings.getTeleportCost();
+        boolean charge = !forced && cost > 0D && !EconomyUtils.hasBypass(player, SpawnsPerms.BYPASS_COST) && EconomyUtils
+            .hasCurrency();
+
+        if (charge && !EconomyUtils.canAfford(player, cost)) {
+            if (!silent) this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
+                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+            return false;
+        }
+
         Location location = spawn.getLocation();
 
         TeleportContext teleportContext = TeleportContext.builder(this, player, location)
@@ -274,6 +287,8 @@ public class SpawnsModule extends Module {
             .withFlag(TeleportFlag.CENTERED)
             .withFlagIf(TeleportFlag.BYPASS_WARMUP, () -> forced)
             .callback(() -> {
+                if (charge) EconomyUtils.withdraw(player, cost);
+
                 if (!silent) this.sendPrefixed(SpawnsLang.SPAWN_TELEPORT_NOTIFY, player, replacer -> replacer.with(spawn
                     .placeholders()));
             })

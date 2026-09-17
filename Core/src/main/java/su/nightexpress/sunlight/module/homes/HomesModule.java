@@ -38,6 +38,7 @@ import su.nightexpress.nightcore.util.geodata.pos.BlockPos;
 import su.nightexpress.nightcore.util.geodata.pos.ExactPos;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -67,6 +68,7 @@ import su.nightexpress.sunlight.teleport.TeleportContext;
 import su.nightexpress.sunlight.teleport.TeleportFlag;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.teleport.TeleportType;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 
 public class HomesModule extends Module {
 
@@ -122,10 +124,10 @@ public class HomesModule extends Module {
     @Override
     protected void registerCommands() {
         this.commandRegistry.addProvider("homes-common",
-            new HomeCommonCommandProvider(this.plugin, this, this.userManager));
+            new HomeCommonCommandProvider(this.plugin, this, this.userManager), this);
 
         this.commandRegistry.addProvider("homes-admin",
-            new HomeAdminCommandProvider(this.plugin, this, this.userManager));
+            new HomeAdminCommandProvider(this.plugin, this, this.userManager), this);
     }
 
     @Override
@@ -385,6 +387,9 @@ public class HomesModule extends Module {
 
         Home currentHome = this.getHome(player.getUniqueId(), id);
 
+        double creationCost = this.settings.getCreationCost();
+        boolean chargeCreation = false;
+
         if (!force) {
             int maxHomesValue = this.getMaxHomesValue(player);
             int countHomes = this.countHomes(player);
@@ -409,10 +414,22 @@ public class HomesModule extends Module {
             PlayerHomeCreateEvent event = new PlayerHomeCreateEvent(player, id, location, currentHome == null);
             this.plugin.getPluginManager().callEvent(event);
             if (event.isCancelled()) return false;
+
+            if (currentHome == null) {
+                chargeCreation = creationCost > 0D && !EconomyUtils.hasBypass(player, HomesPerms.BYPASS_COST) && EconomyUtils
+                    .hasCurrency();
+
+                if (chargeCreation && !EconomyUtils.canAfford(player, creationCost)) {
+                    this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
+                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(creationCost)));
+                    return false;
+                }
+            }
         }
 
         if (currentHome == null) {
             Home created = this.createHome(id, UserInfo.of(player), location);
+            if (chargeCreation) EconomyUtils.withdraw(player, creationCost);
             if (this.countHomes(player) == 0) {
                 created.setFavorite(true);
             }
@@ -460,6 +477,15 @@ public class HomesModule extends Module {
         boolean isOwner = home.isOwner(player);
         boolean bypass = player.hasPermission(HomesPerms.BYPASS_UNSAFE_LOCATION);
 
+        double cost = this.settings.getTeleportCost();
+        boolean charge = cost > 0D && !EconomyUtils.hasBypass(player, HomesPerms.BYPASS_COST) && EconomyUtils.hasCurrency();
+
+        if (charge && !EconomyUtils.canAfford(player, cost)) {
+            this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
+                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+            return false;
+        }
+
         Location location = home.toLocation();
 
         TeleportContext teleportContext = TeleportContext.builder(this, player, location)
@@ -467,6 +493,8 @@ public class HomesModule extends Module {
             .withFlagIf(TeleportFlag.LOOK_FOR_SURFACE, () -> !isOwner && !bypass)
             .withFlagIf(TeleportFlag.AVOID_LAVA, () -> !isOwner && !bypass)
             .callback(() -> {
+                if (charge) EconomyUtils.withdraw(player, cost);
+
                 this.sendPrefixed(isOwner ? HomesLang.HOME_TELEPORT_SUCCESS : HomesLang.HOME_VISIT_SUCCESS, player,
                     builder -> builder.with(home.placeholders()));
             })

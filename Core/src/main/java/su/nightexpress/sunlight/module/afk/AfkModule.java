@@ -81,7 +81,7 @@ public class AfkModule extends Module implements AfkProvider {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("afk", new AfkCommandProvider(this.plugin, this));
+        this.commandRegistry.addProvider("afk", new AfkCommandProvider(this.plugin, this), this);
     }
 
     @Override

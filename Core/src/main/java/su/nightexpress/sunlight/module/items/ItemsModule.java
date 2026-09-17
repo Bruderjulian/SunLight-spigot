@@ -36,8 +36,8 @@ public class ItemsModule extends Module {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("item", new ItemCommandProvider(this.plugin, this, this.settings, this.userManager));
-        this.commandRegistry.addProvider("lore", new LoreCommandsProvider(this.plugin, this));
+        this.commandRegistry.addProvider("item", new ItemCommandProvider(this.plugin, this, this.settings, this.userManager), this);
+        this.commandRegistry.addProvider("lore", new LoreCommandsProvider(this.plugin, this), this);
     }
 
     @Override

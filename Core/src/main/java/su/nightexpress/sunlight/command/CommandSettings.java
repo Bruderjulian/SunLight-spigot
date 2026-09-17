@@ -14,6 +14,11 @@ public class CommandSettings extends AbstractConfig {
         "When enabled, allows to set cooldown on any of SunLight's commands."
     );
 
+    private final ConfigProperty<Boolean> costsEnabled = this.addProperty(ConfigTypes.BOOLEAN, "Commands.Costs.Enabled",
+        true,
+        "When enabled, allows to set money costs on any of SunLight's commands."
+    );
+
     private final ConfigProperty<Boolean> conflictUnregisterEnabled = this.addProperty(ConfigTypes.BOOLEAN, "Commands.Conflict-Unregister.Enabled",
         false,
         ""
@@ -26,6 +31,10 @@ public class CommandSettings extends AbstractConfig {
 
     public boolean isCooldownsEnabled() {
         return this.cooldownsEnabled.get();
+    }
+
+    public boolean isCostsEnabled() {
+        return this.costsEnabled.get();
     }
 
     public boolean isConflictUnregisterEnabled() {

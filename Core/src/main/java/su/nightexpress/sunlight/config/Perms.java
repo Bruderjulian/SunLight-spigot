@@ -11,7 +11,8 @@ public class Perms {
 
     public static final Permission COMMAND_RELOAD = ROOT_COMMAND.permission("reload");
 
-    public static final Permission BYPASS_COMMAND_COOLDOWN = ROOT_BYPASS.permission("command.cooldown");
+    public static final Permission BYPASS_COST     = ROOT_BYPASS.permission("cost");
+    public static final Permission BYPASS_COOLDOWN = ROOT_BYPASS.permission("cooldown");
 
     @NotNull
     public static PermissionTree detached(@NotNull String name) {

@@ -104,6 +104,11 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
     }
 
     @NonNull
+    public String getPermissionNamespace() {
+        return this.id;
+    }
+
+    @NonNull
     public final String getName() {
         return this.definition.name();
     }

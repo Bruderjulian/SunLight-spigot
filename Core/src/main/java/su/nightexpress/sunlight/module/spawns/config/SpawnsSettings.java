@@ -34,6 +34,12 @@ public class SpawnsSettings extends AbstractConfig {
         "Spawn permission check will be ignored for new players."
     );
 
+    private final ConfigProperty<Double> teleportCost = this.addProperty(ConfigTypes.DOUBLE, "Teleport.Cost",
+        0D,
+        "Sets how much it costs (in Vault currency) to teleport to a spawn.",
+        "Set to '0' to disable."
+    );
+
     public boolean isOverridePlayerRespawnLocation() {
         return this.overridePlayerRespawnLocation.get();
     }
@@ -50,5 +56,9 @@ public class SpawnsSettings extends AbstractConfig {
     @NotNull
     public String getNewPlayersSpawnId() {
         return this.newPlayersSpawnId.get();
+    }
+
+    public double getTeleportCost() {
+        return this.teleportCost.get();
     }
 }

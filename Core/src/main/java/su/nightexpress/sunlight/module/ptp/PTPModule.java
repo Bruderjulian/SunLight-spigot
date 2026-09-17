@@ -11,6 +11,7 @@ import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.api.event.PlayerTeleportRequestEvent;
+import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -24,6 +25,7 @@ import su.nightexpress.sunlight.module.ptp.request.TeleportMode;
 import su.nightexpress.sunlight.module.ptp.request.TeleportRequest;
 import su.nightexpress.sunlight.teleport.*;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.util.*;
 
@@ -60,7 +62,7 @@ public class PTPModule extends Module {
     }
 
     protected void registerCommands() {
-        this.commandRegistry.addProvider("ptp", new PTPCommands(this.plugin, this, this.userManager));
+        this.commandRegistry.addProvider("ptp", new PTPCommands(this.plugin, this, this.userManager), this);
     }
 
     @Override
@@ -179,12 +181,23 @@ public class PTPModule extends Module {
         Player teleporter = request.getMode() == TeleportMode.INVITE ? player : sender;
         Location destination = request.getMode() == TeleportMode.INVITE ? sender.getLocation() : player.getLocation();
 
+        double cost = this.settings.getTeleportCost();
+        boolean charge = cost > 0D && !EconomyUtils.hasBypass(teleporter, PTPPerms.BYPASS_COST) && EconomyUtils.hasCurrency();
+
+        if (charge && !EconomyUtils.canAfford(teleporter, cost)) {
+            this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, teleporter, builder -> builder
+                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+            return false;
+        }
+
         request.setExpired();
 
         TeleportContext teleportContext = TeleportContext.builder(this, teleporter, destination)
             .withFlag(TeleportFlag.LOOK_FOR_SURFACE)
             .withFlag(TeleportFlag.AVOID_LAVA)
             .callback(() -> {
+                if (charge) EconomyUtils.withdraw(teleporter, cost);
+
                 this.sendPrefixed(PTPLang.REQUEST_ACCEPT_DONE, player, builder -> builder.with(CommonPlaceholders.PLAYER.resolver(sender)));
                 this.sendPrefixed(PTPLang.REQUEST_ACCEPT_NOTIFY, sender, builder -> builder.with(CommonPlaceholders.PLAYER.resolver(player)));
             })

@@ -47,6 +47,7 @@ import su.nightexpress.sunlight.module.kits.KitsModule;
 import su.nightexpress.sunlight.module.kits.config.KitsPerms;
 import su.nightexpress.sunlight.module.kits.data.KitData;
 import su.nightexpress.sunlight.module.kits.model.Kit;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 
 public class KitsMenu extends AbstractMenu {
 
@@ -193,14 +194,14 @@ public class KitsMenu extends AbstractMenu {
         if (!kit.hasPermission(player))
             return KitStatus.NO_PERMISSION;
 
-        if (kit.hasCost() && !player.hasPermission(KitsPerms.BYPASS_COST)) {
+        if (kit.hasCost() && !EconomyUtils.hasBypass(player, KitsPerms.BYPASS_COST)) {
             double cost = kit.definition().getCost();
             double balance = EconomyBridge.api().queryBalance(player);
             if (balance < cost)
                 return KitStatus.TOO_EXPENSIVE;
         }
 
-        if (kit.hasCooldown() && !player.hasPermission(KitsPerms.BYPASS_COOLDOWN)) {
+        if (kit.hasCooldown() && !EconomyUtils.hasCooldownBypass(player, KitsPerms.BYPASS_COOLDOWN)) {
             KitData data = this.module.getKitData(player.getUniqueId(), kit.getId());
             if (data != null && !data.isCooldownExpired())
                 return KitStatus.ON_COOLDOWN;

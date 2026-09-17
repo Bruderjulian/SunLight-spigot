@@ -106,15 +106,15 @@ public class BansModule extends Module {
     @Override
     protected void registerCommands() {
         this.commandRegistry.addProvider("bans-punish",
-            new PunishmentCommandsProvider(this.plugin, this, this.userManager));
+            new PunishmentCommandsProvider(this.plugin, this, this.userManager), this);
         this.commandRegistry.addProvider("bans-pardon",
-            new PardonCommandsProvider(this.plugin, this, this.userManager));
+            new PardonCommandsProvider(this.plugin, this, this.userManager), this);
         this.commandRegistry.addProvider("bans-history",
-            new HistoryCommandsProvider(this.plugin, this, this.userManager));
-        this.commandRegistry.addProvider("bans-list", new ListCommandsProvider(this.plugin, this));
+            new HistoryCommandsProvider(this.plugin, this, this.userManager), this);
+        this.commandRegistry.addProvider("bans-list", new ListCommandsProvider(this.plugin, this), this);
 
         if (this.settings.isAltCheckerEnabled()) {
-            this.commandRegistry.addProvider("bans-alts", new AltsCommandProvider(this.plugin, this, this.userManager));
+            this.commandRegistry.addProvider("bans-alts", new AltsCommandProvider(this.plugin, this, this.userManager), this);
         }
     }
 

@@ -19,4 +19,6 @@ public class PTPPerms {
     public static final Permission COMMAND_REQUESTS_OTHERS = COMMAND.permission("toggle.others");
 
     public static final Permission BYPASS_REQUESTS_DISABLED = BYPASS.permission("requests.disabled");
+    public static final Permission BYPASS_COST              = BYPASS.permission("cost");
+    public static final Permission BYPASS_COOLDOWN          = BYPASS.permission("cooldown");
 }

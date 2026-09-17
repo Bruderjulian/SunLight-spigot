@@ -15,6 +15,18 @@ public class WarpsSettings extends AbstractConfig {
         NightItem.fromType(Material.ENDER_PEARL)
     );
 
+    protected final ConfigProperty<Double> warpCreationCost = this.addProperty(ConfigTypes.DOUBLE, "Warps.Creation.Cost",
+        0D,
+        "Sets how much it costs (in Vault currency) to create a warp.",
+        "Set to '0' to disable."
+    );
+
+    protected final ConfigProperty<Double> warpTeleportCost = this.addProperty(ConfigTypes.DOUBLE, "Warps.Teleport.Cost",
+        0D,
+        "Sets how much it costs (in Vault currency) to teleport to a warp.",
+        "Set to '0' to disable."
+    );
+
     public int getSaveInterval() {
         return this.warpSaveInterval.get();
     }
@@ -22,5 +34,13 @@ public class WarpsSettings extends AbstractConfig {
     @NonNull
     public NightItem getDefaultIcon() {
         return this.warpDefaultIcon.get().copy();
+    }
+
+    public double getCreationCost() {
+        return this.warpCreationCost.get();
+    }
+
+    public double getTeleportCost() {
+        return this.warpTeleportCost.get();
     }
 }

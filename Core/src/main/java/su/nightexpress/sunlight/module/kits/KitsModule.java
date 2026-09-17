@@ -33,6 +33,7 @@ import su.nightexpress.sunlight.module.kits.menu.KitPreviewMenu;
 import su.nightexpress.sunlight.module.kits.menu.KitsMenu;
 import su.nightexpress.sunlight.module.kits.model.Kit;
 import su.nightexpress.sunlight.module.kits.model.KitDefinition;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 import su.nightexpress.sunlight.utils.FutureUtils;
 
 import java.io.IOException;
@@ -106,7 +107,7 @@ public class KitsModule extends Module {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("kits-commons", new KitsCommandProvider(this.plugin, this, this.userManager));
+        this.commandRegistry.addProvider("kits-commons", new KitsCommandProvider(this.plugin, this, this.userManager), this);
     }
 
     @Override
@@ -267,7 +268,7 @@ public class KitsModule extends Module {
             }
 
             // Check kit money cost.
-            if (!force && kit.hasCost() && !player.hasPermission(KitsPerms.BYPASS_COST) && EconomyBridge.api()
+            if (!force && kit.hasCost() && !EconomyUtils.hasBypass(player, KitsPerms.BYPASS_COST) && EconomyBridge.api()
                 .hasVaultCurrency()) {
                 double cost = kit.definition().getCost();
                 double balance = EconomyBridge.api().queryBalance(player);
@@ -298,7 +299,7 @@ public class KitsModule extends Module {
             Players.addItem(player, leftovers.toArray(new ItemStack[0]));
             Players.dispatchCommands(player, kit.definition().getCommands());
 
-            if (!force && kit.hasCooldown() && !player.hasPermission(KitsPerms.BYPASS_COOLDOWN)) {
+            if (!force && kit.hasCooldown() && !EconomyUtils.hasCooldownBypass(player, KitsPerms.BYPASS_COOLDOWN)) {
                 kitData.setCooldownDate(TimeUtil.createFutureTimestamp(kit.definition().getCooldown()));
                 kitData.markDirty();
             }

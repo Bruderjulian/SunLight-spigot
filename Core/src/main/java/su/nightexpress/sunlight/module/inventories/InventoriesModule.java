@@ -40,11 +40,11 @@ public class InventoriesModule extends Module {
     @Override
     protected void registerCommands() {
         if (this.internals != null) {
-            this.commandRegistry.addProvider("container", new ContainerCommandProvider(this.plugin, this, this.internals));
+            this.commandRegistry.addProvider("container", new ContainerCommandProvider(this.plugin, this, this.internals), this);
         }
 
-        this.commandRegistry.addProvider("enderchest", new EnderchestCommandsProvider(this.plugin, this, this.userManager, this.internals));
-        this.commandRegistry.addProvider("inventory", new InventoryCommandProvider(this.plugin, this, this.userManager, this.internals));
+        this.commandRegistry.addProvider("enderchest", new EnderchestCommandsProvider(this.plugin, this, this.userManager, this.internals), this);
+        this.commandRegistry.addProvider("inventory", new InventoryCommandProvider(this.plugin, this, this.userManager, this.internals), this);
     }
 
     @Override

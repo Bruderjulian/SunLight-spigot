@@ -75,6 +75,7 @@ public abstract class AbstractCommandProvider implements CommandProvider {
                 config.set(defPath + ".Enabled", definition.enabled());
                 config.setStringArray(defPath + ".Aliases", definition.aliases());
                 config.set(defPath + ".Cooldown", definition.cooldown());
+                config.set(defPath + ".Cost", definition.cost());
             }
         });
 
@@ -86,8 +87,9 @@ public abstract class AbstractCommandProvider implements CommandProvider {
             boolean enabled = config.getBoolean(defPath + ".Enabled");
             String[] aliases = config.getStringArray(defPath + ".Aliases");
             int cooldown = config.getInt(defPath + ".Cooldown");
+            double cost = config.getDouble(defPath + ".Cost");
 
-            this.literals.put(LowerCase.INTERNAL.apply(sId), new LiteralDefinition(enabled, aliases, cooldown));
+            this.literals.put(LowerCase.INTERNAL.apply(sId), new LiteralDefinition(enabled, aliases, cooldown, cost));
         });
     }
 
@@ -130,7 +132,7 @@ public abstract class AbstractCommandProvider implements CommandProvider {
     }
 
     protected void registerLiteral(@NonNull String id, boolean enabled, @NonNull String[] aliases, @NonNull Consumer<LiteralNodeBuilder> consumer) {
-        this.defaultLiterals.put(LowerCase.INTERNAL.apply(id), new LiteralDefinition(enabled, aliases, 0));
+        this.defaultLiterals.put(LowerCase.INTERNAL.apply(id), new LiteralDefinition(enabled, aliases, 0, 0D));
         this.literalBuilders.put(LowerCase.INTERNAL.apply(id), consumer);
     }
 

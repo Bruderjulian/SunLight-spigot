@@ -3,6 +3,7 @@ package su.nightexpress.sunlight.module.backlocation.config;
 import su.nightexpress.nightcore.configuration.AbstractConfig;
 import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
+import su.nightexpress.sunlight.module.backlocation.data.LocationType;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -61,4 +62,20 @@ public class BackLocationSettings extends AbstractConfig {
         Set.of("my_custom_world"),
         "Sets worlds to where players can't teleport back to the death location unless they have the '%s' permission.".formatted(BackLocationPerms.BYPASS_DEATH_WORLDS.getName())
     );
+
+    public final ConfigProperty<Double> previousCost = this.addProperty(ConfigTypes.DOUBLE, "Location.Previous.Cost",
+        0D,
+        "Sets how much it costs (in Vault currency) to teleport to the previous location.",
+        "Set to '0' to disable."
+    );
+
+    public final ConfigProperty<Double> deathCost = this.addProperty(ConfigTypes.DOUBLE, "Location.Death.Cost",
+        0D,
+        "Sets how much it costs (in Vault currency) to teleport to the death location.",
+        "Set to '0' to disable."
+    );
+
+    public double getTeleportCost(LocationType type) {
+        return type == LocationType.PREVIOUS ? this.previousCost.get() : this.deathCost.get();
+    }
 }

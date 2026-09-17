@@ -25,4 +25,6 @@ public class PlayerWarpsPerms {
     public static final Permission BYPASS_CREATION_WORLD = BYPASS.permission("creation.world");
     public static final Permission BYPASS_PRICE          = BYPASS.permission("price");
     public static final Permission BYPASS_OWNERSHIP      = BYPASS.permission("ownership");
+    public static final Permission BYPASS_COST           = BYPASS.permission("cost");
+    public static final Permission BYPASS_COOLDOWN       = BYPASS.permission("cooldown");
 }

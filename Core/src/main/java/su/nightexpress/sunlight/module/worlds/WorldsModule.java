@@ -107,7 +107,7 @@ public class WorldsModule extends Module {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("worlds", new WorldCommands(this.plugin, this));
+        this.commandRegistry.addProvider("worlds", new WorldCommands(this.plugin, this), this);
     }
 
     @Override

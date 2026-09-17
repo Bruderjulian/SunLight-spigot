@@ -11,6 +11,8 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
+import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -24,6 +26,7 @@ import su.nightexpress.sunlight.module.backlocation.data.LocationType;
 import su.nightexpress.sunlight.module.backlocation.data.StoredLocation;
 import su.nightexpress.sunlight.module.backlocation.listener.BackLocationListener;
 import su.nightexpress.sunlight.teleport.*;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,12 +66,18 @@ public class BackLocationModule extends Module {
         root.merge(BackLocationPerms.ROOT);
     }
 
+    @Override
+    @NotNull
+    public String getPermissionNamespace() {
+        return "backlocation";
+    }
+
     protected void registerCommands() {
         if (this.settings.cacheTeleports.get()) {
-            this.commandRegistry.addProvider("back", new BackCommandProvider(this.plugin, this, this.userManager));
+            this.commandRegistry.addProvider("back", new BackCommandProvider(this.plugin, this, this.userManager), this);
         }
         if (this.settings.cacheDeaths.get()) {
-            this.commandRegistry.addProvider("deathback", new DeathBackCommandProvider(this.plugin, this, this.userManager));
+            this.commandRegistry.addProvider("deathback", new DeathBackCommandProvider(this.plugin, this, this.userManager), this);
         }
     }
 
@@ -206,9 +215,22 @@ public class BackLocationModule extends Module {
         }
 
         TeleportType teleportType = type == LocationType.DEATH ? TeleportType.DEATH_LOCATION : TeleportType.PREVIOUS_LOCATION;
+
+        double cost = this.settings.getTeleportCost(type);
+        boolean charge = cost > 0D && !EconomyUtils.hasBypass(player, BackLocationPerms.BYPASS_COST) && EconomyUtils
+            .hasCurrency();
+
+        if (charge && !EconomyUtils.canAfford(player, cost)) {
+            if (!silent) this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
+                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+            return false;
+        }
+
         TeleportContext teleportContext = TeleportContext.builder(this, player, location)
             .withFlag(TeleportFlag.KEEP_DIRECTION)
             .callback(() -> {
+                if (charge) EconomyUtils.withdraw(player, cost);
+
                 if (!silent) this.sendPrefixed(isPrevious ? BackLocationLang.PREVIOUS_TELEPORT_NOTIFY : BackLocationLang.DEATH_TELEPORT_NOTIFY, player);
             })
             .build();

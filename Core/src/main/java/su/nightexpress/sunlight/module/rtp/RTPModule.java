@@ -10,6 +10,8 @@ import su.nightexpress.nightcore.util.Lists;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.random.Rnd;
+import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -20,6 +22,7 @@ import su.nightexpress.sunlight.module.rtp.config.RTPPerms;
 import su.nightexpress.sunlight.module.rtp.config.RTPSettings;
 import su.nightexpress.sunlight.module.rtp.model.LookupRange;
 import su.nightexpress.sunlight.teleport.*;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.util.Optional;
 import java.util.Set;
@@ -53,7 +56,7 @@ public class RTPModule extends Module {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("rtp", new RTPCommandProvider(this.plugin, this));
+        this.commandRegistry.addProvider("rtp", new RTPCommandProvider(this.plugin, this), this);
     }
 
     @Override
@@ -97,11 +100,22 @@ public class RTPModule extends Module {
 
         Location destination = location.clone();
 
+        double cost = this.settings.getTeleportCost();
+        boolean charge = cost > 0D && !EconomyUtils.hasBypass(player, RTPPerms.BYPASS_COST) && EconomyUtils.hasCurrency();
+
+        if (charge && !EconomyUtils.canAfford(player, cost)) {
+            this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
+                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+            return false;
+        }
+
         TeleportContext teleportContext = TeleportContext.builder(this, player, destination)
             .withFlag(TeleportFlag.CENTERED)
             .withFlag(TeleportFlag.KEEP_DIRECTION)
             .withFlag(TeleportFlag.AVOID_LAVA)
             .callback(() -> {
+                if (charge) EconomyUtils.withdraw(player, cost);
+
                 this.sendPrefixed(RTPLang.RANDOM_LOCATION_TELEPORT_SUCCESS, player, builder -> builder.with(CommonPlaceholders.LOCATION.resolver(destination)));
             })
             .build();

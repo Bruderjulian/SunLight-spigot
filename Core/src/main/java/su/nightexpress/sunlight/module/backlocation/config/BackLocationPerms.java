@@ -18,4 +18,6 @@ public class BackLocationPerms {
     public static final Permission BYPASS_PREVIOUS_WORLDS = BYPASS.permission("previous.worlds");
     public static final Permission BYPASS_PREVIOUS_CAUSES = BYPASS.permission("previous.causes");
     public static final Permission BYPASS_DEATH_WORLDS    = BYPASS.permission("death.worlds");
+    public static final Permission BYPASS_COST            = BYPASS.permission("cost");
+    public static final Permission BYPASS_COOLDOWN        = BYPASS.permission("cooldown");
 }

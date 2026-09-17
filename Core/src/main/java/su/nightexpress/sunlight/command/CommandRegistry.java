@@ -5,12 +5,14 @@ import org.bukkit.command.PluginIdentifiableCommand;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.commands.Commands;
 import su.nightexpress.nightcore.commands.NodeExecutor;
 import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
 import su.nightexpress.nightcore.commands.command.NightCommand;
 import su.nightexpress.nightcore.commands.tree.LiteralNode;
 import su.nightexpress.nightcore.config.FileConfig;
+import su.nightexpress.nightcore.integration.currency.EconomyBridge;
 import su.nightexpress.nightcore.manager.SimpleManager;
 import su.nightexpress.nightcore.util.CommandUtil;
 import su.nightexpress.nightcore.util.LowerCase;
@@ -24,8 +26,9 @@ import su.nightexpress.sunlight.command.provider.CommandProvider;
 import su.nightexpress.sunlight.command.provider.definition.HubDefinition;
 import su.nightexpress.sunlight.command.provider.definition.LiteralDefinition;
 import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.config.Perms;
+import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.util.*;
 
@@ -34,12 +37,14 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     private final CommandSettings settings;
 
     private final Map<String, CommandProvider> providers;
+    private final Map<String, Module>          providerModules;
     private final Set<NightCommand>            commands;
 
     public CommandRegistry(@NotNull SunLightPlugin plugin) {
         super(plugin);
         this.settings = new CommandSettings();
         this.providers = new LinkedHashMap<>();
+        this.providerModules = new HashMap<>();
         this.commands = new HashSet<>();
     }
 
@@ -54,10 +59,20 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
         this.commands.forEach(NightCommand::unregister);
         this.commands.clear();
         this.providers.clear();
+        this.providerModules.clear();
     }
 
     public void addProvider(@NotNull String id, @NotNull CommandProvider provider) {
-        this.providers.put(LowerCase.INTERNAL.apply(id), provider);
+        this.addProvider(id, provider, null);
+    }
+
+    public void addProvider(@NotNull String id, @NotNull CommandProvider provider, @Nullable Module module) {
+        String key = LowerCase.INTERNAL.apply(id);
+        this.providers.put(key, provider);
+
+        if (module != null) {
+            this.providerModules.put(key, module);
+        }
     }
 
     private void registerCommands() {
@@ -69,6 +84,8 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
             provider.registerDefaults();
             provider.load(config);
 
+            Module module = this.providerModules.get(providerId);
+
             provider.getLiteralBuilders().forEach((nodeId, consumer) -> {
                 LiteralDefinition literalDefinition = provider.getLiteralDefinitions().get(nodeId);
                 if (literalDefinition == null || !literalDefinition.enabled()) return;
@@ -76,8 +93,12 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
                 this.register(NightCommand.literal(this.plugin, literalDefinition.aliases(), builder -> {
                     consumer.accept(builder);
 
+                    if (this.settings.isCostsEnabled()) {
+                        this.wrapExecutorWithCost(providerId, nodeId, literalDefinition, builder, module);
+                    }
+
                     if (this.settings.isCooldownsEnabled()) {
-                        this.wrapExecutorWithCooldown(providerId, nodeId, literalDefinition, builder);
+                        this.wrapExecutorWithCooldown(providerId, nodeId, literalDefinition, builder, module);
                     }
                 }));
             });
@@ -129,7 +150,35 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
         return new HashSet<>(this.providers.values());
     }
 
-    private void wrapExecutorWithCooldown(@NotNull String providerId, @NotNull String nodeId, @NotNull LiteralDefinition definition, @NotNull LiteralNodeBuilder builder) {
+    private void wrapExecutorWithCost(@NotNull String providerId, @NotNull String nodeId, @NotNull LiteralDefinition definition, @NotNull LiteralNodeBuilder builder, @Nullable Module module) {
+        NodeExecutor executor = builder.getExecutor(); // Original executor set by the provider implementation.
+
+        double cost = definition.cost();
+
+        builder.executes((context, arguments) -> {
+            Player player = context.getPlayer();
+
+            boolean charge = cost > 0D && player != null && !EconomyUtils.hasBypass(player, module)
+                && EconomyBridge.api().hasVaultCurrency();
+
+            if (charge && !EconomyUtils.canAfford(player, cost)) {
+                Lang.COMMAND_COST_ERROR.message().sendWith(player, replacer -> replacer
+                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost))
+                    .with(SLPlaceholders.GENERIC_COMMAND, () -> "/" + context.getInput())
+                );
+                return false;
+            }
+
+            boolean result = executor.run(context, arguments);
+            if (result && charge) {
+                EconomyUtils.withdraw(player, cost);
+            }
+
+            return result;
+        });
+    }
+
+    private void wrapExecutorWithCooldown(@NotNull String providerId, @NotNull String nodeId, @NotNull LiteralDefinition definition, @NotNull LiteralNodeBuilder builder, @Nullable Module module) {
         NodeExecutor executor = builder.getExecutor(); // Original executor set by the provider implementation.
 
         int cooldown = definition.cooldown();
@@ -139,7 +188,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
             SunUser user = player == null ? null : this.plugin.getUserManager().getOrFetch(player);
             CommandKey key = new CommandKey(providerId, nodeId);
 
-            if (cooldown != 0 && user != null && !player.hasPermission(Perms.BYPASS_COMMAND_COOLDOWN)) {
+            if (cooldown != 0 && user != null && !EconomyUtils.hasCooldownBypass(player, module)) {
                 Long expireDate = user.getCommandCooldown(key);
                 if (expireDate != null && !TimeUtil.isPassed(expireDate)) {
                     (expireDate < 0 ? Lang.COMMAND_COOLDOWN_ONE_TIME : Lang.COMMAND_COOLDOWN_DEFAULT).message().sendWith(player, replacer -> replacer

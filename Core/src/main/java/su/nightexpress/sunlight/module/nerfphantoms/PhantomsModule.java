@@ -44,7 +44,7 @@ public class PhantomsModule extends Module {
     }
 
     protected void registerCommands() {
-        this.commandRegistry.addProvider("nophantom", new PhantomsCommandProvider(this.plugin, this, this.userManager));
+        this.commandRegistry.addProvider("nophantom", new PhantomsCommandProvider(this.plugin, this, this.userManager), this);
     }
 
     @Override

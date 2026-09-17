@@ -95,6 +95,18 @@ public class HomesSettings extends AbstractConfig {
         "Use '-1' for unlimited amount."
     );
 
+    private final ConfigProperty<Double> creationCost = this.addProperty(ConfigTypes.DOUBLE, "Creation.Cost",
+        0D,
+        "Sets how much it costs (in Vault currency) to create a new home.",
+        "Set to '0' to disable."
+    );
+
+    private final ConfigProperty<Double> teleportCost = this.addProperty(ConfigTypes.DOUBLE, "Teleport.Cost",
+        0D,
+        "Sets how much it costs (in Vault currency) to teleport to a home.",
+        "Set to '0' to disable."
+    );
+
     public int getDataSaveInterval() {
         return this.dataSaveInterval.get();
     }
@@ -144,5 +156,13 @@ public class HomesSettings extends AbstractConfig {
     @NotNull
     public RankTable getHomesByRankAmount() {
         return this.homesPerRank.get();
+    }
+
+    public double getCreationCost() {
+        return this.creationCost.get();
+    }
+
+    public double getTeleportCost() {
+        return this.teleportCost.get();
     }
 }

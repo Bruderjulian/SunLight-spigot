@@ -16,4 +16,7 @@ public class SpawnsPerms {
     public static final Permission COMMAND_SPAWNS_TELEPORT        = COMMAND.permission("spawns.teleport");
     public static final Permission COMMAND_SPAWNS_TELEPORT_OTHERS = COMMAND.permission("spawns.teleport.others");
     public static final Permission COMMAND_SPAWNS_EDITOR          = COMMAND.permission("spawns.editor");
+
+    public static final Permission BYPASS_COST     = BYPASS.permission("cost");
+    public static final Permission BYPASS_COOLDOWN = BYPASS.permission("cooldown");
 }

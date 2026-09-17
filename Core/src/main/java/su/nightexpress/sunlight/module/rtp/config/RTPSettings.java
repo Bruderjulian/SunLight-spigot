@@ -46,6 +46,12 @@ public class RTPSettings extends AbstractConfig {
         "Per-world RTP range configuration."
     );
 
+    private final ConfigProperty<Double> teleportCost = this.addProperty(ConfigTypes.DOUBLE, "Teleport.Cost",
+        0D,
+        "Sets how much it costs (in Vault currency) to teleport to a random location.",
+        "Set to '0' to disable."
+    );
+
     public boolean isFallbackEnabled() {
         return this.fallbackEnabled.get();
     }
@@ -70,5 +76,9 @@ public class RTPSettings extends AbstractConfig {
     @NotNull
     public Map<String, LookupRange> getLookupRangesMap() {
         return this.lookupRanges.get();
+    }
+
+    public double getTeleportCost() {
+        return this.teleportCost.get();
     }
 }

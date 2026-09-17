@@ -19,7 +19,6 @@ import org.jspecify.annotations.Nullable;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
-import su.nightexpress.nightcore.integration.currency.EconomyBridge;
 import su.nightexpress.nightcore.ui.inventory.action.ActionContext;
 import su.nightexpress.nightcore.user.UserInfo;
 import su.nightexpress.nightcore.util.FileUtil;
@@ -28,6 +27,7 @@ import su.nightexpress.nightcore.util.StringUtil;
 import su.nightexpress.nightcore.util.Strings;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -60,6 +60,7 @@ import su.nightexpress.sunlight.teleport.TeleportContext;
 import su.nightexpress.sunlight.teleport.TeleportFlag;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.teleport.TeleportType;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 
 public class PlayerWarpsModule extends Module {
 
@@ -128,7 +129,7 @@ public class PlayerWarpsModule extends Module {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("playerwarps", new PlayerWarpsCommands(this.plugin, this, this.userManager));
+        this.commandRegistry.addProvider("playerwarps", new PlayerWarpsCommands(this.plugin, this, this.userManager), this);
     }
 
     @Override
@@ -382,6 +383,16 @@ public class PlayerWarpsModule extends Module {
             return false;
         }
 
+        double cost = this.settings.getCreationCost();
+        boolean charge = !force && cost > 0D && !EconomyUtils.hasBypass(player, PlayerWarpsPerms.BYPASS_COST) && EconomyUtils
+            .hasCurrency();
+
+        if (charge && !EconomyUtils.canAfford(player, cost)) {
+            this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
+                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+            return false;
+        }
+
         Path file = Path.of(this.getSystemPath() + this.getWarpsDirectory(), FileConfig.withExtension(id));
         PlayerWarp warp = new PlayerWarp(file, id);
 
@@ -392,6 +403,7 @@ public class PlayerWarpsModule extends Module {
         warp.setIcon(this.getSettings().getDefaultIcon());
         warp.setLocation(location);
         warp.save();
+        if (charge) EconomyUtils.withdraw(player, cost);
         this.loadWarp(warp);
         this.sendPrefixed(PlayerWarpsLang.WARP_CREATION_NOTIFY, player, builder -> builder.with(warp.placeholders()));
 
@@ -417,16 +429,14 @@ public class PlayerWarpsModule extends Module {
             return false;
         }
 
-        if (warp.hasPrice() && !player.hasPermission(PlayerWarpsPerms.BYPASS_PRICE) && !warp.isOwner(player)) {
-            double price = warp.getPrice();
+        double price = warp.getPrice();
+        boolean chargePrice = warp.hasPrice() && !warp.isOwner(player) && !EconomyUtils.hasBypass(player, PlayerWarpsPerms.BYPASS_PRICE) && EconomyUtils
+            .hasCurrency();
 
-            if (EconomyBridge.getEconomyBalance(player) < price) {
-                this.sendPrefixed(PlayerWarpsLang.WARP_JUMP_INSUFFICIENT_FUNDS, player, builder -> builder.with(warp
-                    .placeholders()));
-                return false;
-            }
-
-            EconomyBridge.withdrawEconomy(player, price);
+        if (chargePrice && !EconomyUtils.canAfford(player, price)) {
+            this.sendPrefixed(PlayerWarpsLang.WARP_JUMP_INSUFFICIENT_FUNDS, player, builder -> builder.with(warp
+                .placeholders()));
+            return false;
         }
 
         PlayerWarpTeleportEvent event = new PlayerWarpTeleportEvent(player, warp);
@@ -440,6 +450,8 @@ public class PlayerWarpsModule extends Module {
             .withFlag(TeleportFlag.CENTERED)
             .withFlagIf(TeleportFlag.BYPASS_WARMUP, () -> force)
             .callback(() -> {
+                if (chargePrice) EconomyUtils.withdraw(player, price);
+
                 if (!warp.isOwner(player)) {
                     warp.addVisitCount(); // TODO Per player cooldown
                     warp.markDirty();
