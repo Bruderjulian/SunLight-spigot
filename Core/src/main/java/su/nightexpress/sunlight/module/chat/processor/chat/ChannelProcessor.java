@@ -6,7 +6,6 @@ import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
-import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.module.chat.ChatModule;
 import su.nightexpress.sunlight.module.chat.cache.UserChatCache;
@@ -40,10 +39,9 @@ public class ChannelProcessor implements MessageProcessor {
         // Check channel cooldown.
         if (cache.hasChannelCooldown(channel.getId())) {
             context.cancel();
-            module.sendPrefixed(ChatLang.CHANNEL_MESSAGE_COOLDOWN, player, builder -> builder
-                .with(SLPlaceholders.GENERIC_TIME, () -> TimeFormats.formatDuration(cache.getChannelCooldownTimestamp(
-                    channel.getId()), TimeFormatType.LITERAL))
-            );
+            int cooldown = channel.getAccessibility().messageCooldowns().getSmallest(player);
+            String remaining = TimeFormats.formatDuration(cache.getChannelCooldownTimestamp(channel.getId()), TimeFormatType.LITERAL);
+            module.sendChannelCooldownNotice(player, channel, remaining, cooldown);
             return;
         }
 
@@ -81,7 +79,7 @@ public class ChannelProcessor implements MessageProcessor {
         if (!player.hasPermission(ChatPerms.BYPASS_CHANNEL_COOLDOWN)) {
             UserChatCache cache = context.getCache();
             ChatChannel channel = context.getChannel();
-            int cooldown = channel.getAccessibility().messageCooldown();
+            int cooldown = channel.getAccessibility().messageCooldowns().getSmallest(player);
             if (cooldown <= 0) return;
 
             cache.setChannelCooldown(channel.getId(), cooldown);

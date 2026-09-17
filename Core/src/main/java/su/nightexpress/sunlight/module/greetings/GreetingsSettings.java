@@ -50,6 +50,20 @@ public class GreetingsSettings extends AbstractConfig {
         "- " + Plugins.PLACEHOLDER_API
     );
 
+    private final ConfigProperty<Map<String, GreetingMessage>> firstJoinMessages = this.addProperty(ConfigTypes.forMapWithLowerKeys(MESSAGE_CONFIG_TYPE),
+        "Messages.First_Join",
+        getDefaultFirstJoins(),
+        "Create custom first-join messages here. Shown instead of regular join messages when a player joins for the first time.",
+        "[*] Falls back to regular join messages if no first-join message is applicable.",
+        "[>] Text Formations: " + SLPlaceholders.URL_WIKI_TEXT,
+        "[>] Placeholders to use in messages:",
+        "- " + CommonPlaceholders.PLAYER_NAME + " -> Player name.",
+        "- " + CommonPlaceholders.PLAYER_DISPLAY_NAME + " -> Player display (custom) name.",
+        "- " + CommonPlaceholders.PLAYER_PREFIX + " -> Player prefix (from permissions plugin).",
+        "- " + CommonPlaceholders.PLAYER_SUFFIX + " -> Player name (from permissions plugin).",
+        "- " + Plugins.PLACEHOLDER_API
+    );
+
     @NotNull
     private static Map<String, GreetingMessage> getDefaultJoins() {
         Map<String, GreetingMessage> map = new HashMap<>();
@@ -69,9 +83,19 @@ public class GreetingsSettings extends AbstractConfig {
     }
 
     @NotNull
+    private static Map<String, GreetingMessage> getDefaultFirstJoins() {
+        Map<String, GreetingMessage> map = new HashMap<>();
+
+        map.put(DEFAULT, new GreetingMessage(0, GRAY.wrap("[" + GREEN.wrap("+") + "]" + " " + PLAYER_PREFIX + PLAYER_DISPLAY_NAME + YELLOW.wrap(" joined for the first time!")), Set.of(WILDCARD)));
+
+        return map;
+    }
+
+    @NotNull
     public Map<String, GreetingMessage> getMessages(@NotNull MessageType type) {
         return switch (type) {
             case JOIN -> this.getJoinMessages();
+            case FIRST_JOIN -> this.getFirstJoinMessages();
             case QUIT -> this.getQuitMessages();
         };
     }
@@ -79,6 +103,11 @@ public class GreetingsSettings extends AbstractConfig {
     @NotNull
     public Map<String, GreetingMessage> getJoinMessages() {
         return this.joinMessages.get();
+    }
+
+    @NotNull
+    public Map<String, GreetingMessage> getFirstJoinMessages() {
+        return this.firstJoinMessages.get();
     }
 
     @NotNull

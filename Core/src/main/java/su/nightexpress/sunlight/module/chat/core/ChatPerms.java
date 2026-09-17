@@ -39,6 +39,11 @@ public class ChatPerms {
     public static final Permission COMMAND_REPLY                       = COMMAND.permission("conversations.reply");
     public static final Permission COMMAND_TELL                        = COMMAND.permission("conversations.send");
 
+    public static final Permission COMMAND_MAIL_ROOT  = COMMAND.permission("mail.root");
+    public static final Permission COMMAND_MAIL_SEND  = COMMAND.permission("mail.send");
+    public static final Permission COMMAND_MAIL_READ  = COMMAND.permission("mail.read");
+    public static final Permission COMMAND_MAIL_CLEAR = COMMAND.permission("mail.clear");
+
     public static final Permission BYPASS_CONVERSATIONS_DISABLED = BYPASS.permission("conversations.disabled");
     public static final Permission BYPASS_MENTION_COOLDOWN       = BYPASS.permission("mention.cooldown");
     public static final Permission BYPASS_MENTION_AMOUNT         = BYPASS.permission("mention.amount");

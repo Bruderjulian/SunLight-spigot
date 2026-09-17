@@ -62,7 +62,13 @@ public class GreetingsModule extends Module {
 
     public void handleJoinEvent(@NotNull PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        this.setEventMessage(player, MessageType.JOIN, component -> EventUtils.getAdapter().setJoinMessage(event, component));
+
+        MessageType type = MessageType.JOIN;
+        if (this.userManager.getOrFetch(player).isFirstTimeJoined() && this.getAvailableMessage(player, MessageType.FIRST_JOIN) != null) {
+            type = MessageType.FIRST_JOIN;
+        }
+
+        this.setEventMessage(player, type, component -> EventUtils.getAdapter().setJoinMessage(event, component));
     }
 
     public void handleQuitEvent(@NotNull PlayerQuitEvent event) {
@@ -94,6 +100,11 @@ public class GreetingsModule extends Module {
     @Nullable
     public GreetingMessage getJoinMessage(@NotNull Player player) {
         return this.getAvailableMessage(player, MessageType.JOIN);
+    }
+
+    @Nullable
+    public GreetingMessage getFirstJoinMessage(@NotNull Player player) {
+        return this.getAvailableMessage(player, MessageType.FIRST_JOIN);
     }
 
     @Nullable

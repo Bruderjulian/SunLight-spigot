@@ -23,6 +23,9 @@ import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.module.inventories.InventoriesModule;
 import su.nightexpress.sunlight.module.inventories.InventoriesPerms;
+import su.nightexpress.sunlight.module.inventories.dialog.InventoryDialogKeys;
+import su.nightexpress.sunlight.module.inventories.dialog.impl.InventoryClearDialog.ClearRequest;
+import su.nightexpress.sunlight.module.inventories.dialog.impl.InventoryClearDialog.ClearType;
 import su.nightexpress.sunlight.nms.SunNMS;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.ItemStackUtils;
@@ -189,16 +192,28 @@ public class InventoryCommandProvider extends AbstractCommandProvider {
 
     private boolean clearInventory(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
         return this.loadPlayerAndRunInMainThread(context, arguments, this.module, this.userManager, target -> {
-            this.getInventory(context, target).ifPresent(inventory -> {
-                inventory.clear();
+            boolean self = context.getSender() == target;
+            boolean confirm = this.module.isClearConfirmationRequired() && (self || !this.module.isClearConfirmSelfOnly());
 
-                if (context.getSender() != target) {
-                    this.module.sendPrefixed(MESSAGE_CLEAR_FEEDBACK, context.getSender(), builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
-                }
-                if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                    this.module.sendPrefixed(MESSAGE_CLEAR_NOTIFY, target);
-                }
-            });
+            if (confirm && context.getSender() instanceof Player viewer) {
+                this.plugin.showDialog(viewer, InventoryDialogKeys.CLEAR,
+                    new ClearRequest(target, ClearType.INVENTORY), () -> this.doClearInventory(context, target));
+                return;
+            }
+            this.doClearInventory(context, target);
+        });
+    }
+
+    private void doClearInventory(@NotNull CommandContext context, @NotNull Player target) {
+        this.getInventory(context, target).ifPresent(inventory -> {
+            inventory.clear();
+
+            if (context.getSender() != target) {
+                this.module.sendPrefixed(MESSAGE_CLEAR_FEEDBACK, context.getSender(), builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
+            }
+            if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
+                this.module.sendPrefixed(MESSAGE_CLEAR_NOTIFY, target);
+            }
         });
     }
 

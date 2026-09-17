@@ -15,6 +15,8 @@ public class ExtrasPerms {
     public static final Permission COMMAND_SIT_OTHERS        = COMMAND.permission("sit.others");
     public static final Permission COMMAND_CHEST_SORT        = COMMAND.permission("chestsort");
     public static final Permission COMMAND_CHEST_SORT_OTHERS = COMMAND.permission("chestsort.others");
+    public static final Permission COMMAND_GOD               = COMMAND.permission("god");
+    public static final Permission COMMAND_GOD_OTHERS        = COMMAND.permission("god.others");
 
     public static final Permission SIGNS_COLOR  = MODULE.permission("signs.color");
     public static final Permission ANVILS_COLOR = MODULE.permission("anvils.color");

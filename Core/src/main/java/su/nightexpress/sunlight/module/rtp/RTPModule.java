@@ -14,6 +14,7 @@ import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
+import su.nightexpress.sunlight.hook.protection.ProtectionManager;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleContext;
 import su.nightexpress.sunlight.module.rtp.command.RTPCommandProvider;
@@ -30,12 +31,14 @@ import java.util.Set;
 public class RTPModule extends Module {
 
     private final TeleportManager teleportManager;
-    private final RTPSettings settings;
+    private final RTPSettings     settings;
+    private final ProtectionManager protectionManager;
 
     public RTPModule(@NotNull ModuleContext context, @NotNull TeleportManager teleportManager) {
         super(context);
         this.teleportManager = teleportManager;
         this.settings = new RTPSettings();
+        this.protectionManager = new ProtectionManager(() -> this.settings.isProtectionIgnoreGlobalRegion());
     }
 
     @Override
@@ -86,8 +89,9 @@ public class RTPModule extends Module {
         Location location = null;
 
         while (errorCount < maxErrors) {
-            location = this.pickLocation(world, lookupRange).orElse(null);
-            if (location != null) {
+            Optional<Location> picked = this.pickLocation(world, lookupRange);
+            if (picked.isPresent() && !this.isProtected(picked.get())) {
+                location = picked.get();
                 break;
             }
             errorCount++;
@@ -126,6 +130,17 @@ public class RTPModule extends Module {
     @Nullable
     public LookupRange getWorldRange(@NotNull String name) {
         return this.settings.getLookupRangesMap().get(LowerCase.INTERNAL.apply(name));
+    }
+
+    public boolean isProtected(@NotNull Location location) {
+        if (!this.settings.isProtectionEnabled()) return false;
+
+        return this.protectionManager.isProtected(location, this.settings.getProtectionIgnoredHooks());
+    }
+
+    @NotNull
+    public ProtectionManager getProtectionManager() {
+        return this.protectionManager;
     }
 
     @NotNull

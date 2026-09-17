@@ -219,6 +219,42 @@ public class ChatSettings extends AbstractConfig {
     );
 
 
+    private final ConfigProperty<Boolean> mailEnabled = this.addProperty(ConfigTypes.BOOLEAN, "Mail.Enabled",
+        true,
+        "Enables the Mail feature allowing players to send messages to offline players.",
+        "Mails are delivered when the recipient joins the server."
+    );
+
+    private final ConfigProperty<Integer> mailMaxInbox = this.addProperty(ConfigTypes.INT, "Mail.Max-Inbox",
+        10,
+        "Sets how many unread mails a player can have. New mails are rejected when the inbox is full.",
+        "[>] Set 0 for unlimited."
+    );
+
+    private final ConfigProperty<Integer> mailExpiryDays = this.addProperty(ConfigTypes.INT, "Mail.Expiry-Days",
+        30,
+        "Sets how many days unread mails are stored before being purged.",
+        "[>] Set 0 to disable expiry."
+    );
+
+    private final ConfigProperty<String> mailTablePrefix = this.addProperty(ConfigTypes.STRING, "Mail.Table-Prefix",
+        "sunlight_mails",
+        "Sets the prefix for the mail database table.",
+        "[Case #1] Use different prefixes on different servers to isolate data from one another.",
+        "[Case #2] Use the same prefix across multiple servers to synchronize data between them."
+    );
+
+    private final ConfigProperty<String> mailFormat = this.addProperty(ConfigTypes.STRING, "Mail.Format",
+        LIGHT_PURPLE.wrap("[Mail]") + " " + SOFT_PINK.wrap(PLAYER_DISPLAY_NAME + ": ") + GRAY.wrap(
+            SLPlaceholders.GENERIC_MESSAGE),
+        "Format for delivered mails.",
+        "[>] Built-in Placeholders:",
+        "- " + PLAYER_NAME + " - Sender name.",
+        "- " + PLAYER_DISPLAY_NAME + " - Sender display (custom) name. Falls back to the sender name for offline senders.",
+        "- " + SLPlaceholders.GENERIC_MESSAGE + " - Mail message."
+    );
+
+
     private final ConfigProperty<Boolean> mentionsEnabled = this.addProperty(ConfigTypes.BOOLEAN, "Mentions.Enabled",
         true,
         "If enabled, this allows players to mention (tag) other players or entire groups in the chat."
@@ -529,6 +565,29 @@ public class ChatSettings extends AbstractConfig {
     @NonNull
     public NightSound getConversationOutgoingSound() {
         return this.conversationSoundOutgoing.get();
+    }
+
+
+    public boolean isMailEnabled() {
+        return this.mailEnabled.get();
+    }
+
+    public int getMailMaxInbox() {
+        return this.mailMaxInbox.get();
+    }
+
+    public int getMailExpiryDays() {
+        return this.mailExpiryDays.get();
+    }
+
+    @NonNull
+    public String getMailTablePrefix() {
+        return this.mailTablePrefix.get();
+    }
+
+    @NonNull
+    public String getMailFormat() {
+        return this.mailFormat.get();
     }
 
 

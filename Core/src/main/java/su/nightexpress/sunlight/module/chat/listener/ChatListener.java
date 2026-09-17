@@ -24,6 +24,7 @@ public class ChatListener extends AbstractListener<SunLightPlugin> {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         this.module.autoJoinChannels(player);
+        this.module.deliverMails(player);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

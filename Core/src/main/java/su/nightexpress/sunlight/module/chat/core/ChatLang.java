@@ -38,6 +38,10 @@ public class ChatLang implements LangContainer {
     public static final TextLocale COMMAND_CLEAR_CHAT_DESC = LangEntry.builder("Chat.Command.ClearChat.Desc").text("Clear chat.");
     public static final TextLocale COMMAND_ME_DESC         = LangEntry.builder("Chat.Command.Me.Desc").text("Show action in chat.");
     public static final TextLocale COMMAND_TELL_DESC       = LangEntry.builder("Chat.Command.Tell.Desc").text("Send private message.");
+    public static final TextLocale COMMAND_MAIL_ROOT_DESC  = LangEntry.builder("Chat.Command.Mail.Root.Desc").text("Mail commands.");
+    public static final TextLocale COMMAND_MAIL_SEND_DESC  = LangEntry.builder("Chat.Command.Mail.Send.Desc").text("Send mail to a player.");
+    public static final TextLocale COMMAND_MAIL_READ_DESC  = LangEntry.builder("Chat.Command.Mail.Read.Desc").text("Read your mails.");
+    public static final TextLocale COMMAND_MAIL_CLEAR_DESC = LangEntry.builder("Chat.Command.Mail.Clear.Desc").text("Delete your mails.");
     public static final TextLocale COMMAND_SPY_MODE_TOGGLE_DESC   = LangEntry.builder("Chat.Command.SpyMode.Toggle.Desc").text("Toggle " + GENERIC_TYPE + " spy.");
     public static final TextLocale COMMAND_SPY_MODE_ON_DESC   = LangEntry.builder("Chat.Command.SpyMode.On.Desc").text("Enable " + GENERIC_TYPE + " spy.");
     public static final TextLocale COMMAND_SPY_MODE_OFF_DESC   = LangEntry.builder("Chat.Command.SpyMode.Off.Desc").text("Disable " + GENERIC_TYPE + " spy.");
@@ -157,6 +161,40 @@ public class ChatLang implements LangContainer {
 
     public static final MessageLocale CONVERSATIONS_TOGGLE_NOTIFY = LangEntry.builder("Chat.Command.TogglePM.Toggle.Notify").chatMessage(
         GRAY.wrap("Your conversations have been set on " + WHITE.wrap(GENERIC_STATE) + ".")
+    );
+
+
+    public static final MessageLocale MAIL_SEND_SUCCESS = LangEntry.builder("Chat.Command.Mail.Send.Done").chatMessage(
+        Sound.BLOCK_NOTE_BLOCK_BELL,
+        GRAY.wrap("Your mail has been sent to " + ORANGE.wrap(GENERIC_NAME) + ".")
+    );
+
+    public static final MessageLocale MAIL_SEND_ERROR_UNKNOWN = LangEntry.builder("Chat.Command.Mail.Send.Error.Unknown").chatMessage(
+        Sound.ENTITY_VILLAGER_NO,
+        GRAY.wrap(SOFT_RED.wrap(GENERIC_NAME) + " has never played on this server.")
+    );
+
+    public static final MessageLocale MAIL_SEND_ERROR_SELF = LangEntry.builder("Chat.Command.Mail.Send.Error.Self").chatMessage(
+        Sound.ENTITY_VILLAGER_NO,
+        GRAY.wrap("You can not send mails to yourself.")
+    );
+
+    public static final MessageLocale MAIL_SEND_ERROR_FULL = LangEntry.builder("Chat.Command.Mail.Send.Error.Full").chatMessage(
+        Sound.ENTITY_VILLAGER_NO,
+        GRAY.wrap(ORANGE.wrap(GENERIC_NAME) + "'s inbox is full.")
+    );
+
+    public static final MessageLocale MAIL_NOTIFY = LangEntry.builder("Chat.Mail.Notify").chatMessage(
+        Sound.BLOCK_NOTE_BLOCK_BELL,
+        GRAY.wrap("You have " + ORANGE.wrap(GENERIC_AMOUNT) + " unread mail(s). Use " + ORANGE.wrap("/mail read") + " to read them.")
+    );
+
+    public static final MessageLocale MAIL_READ_EMPTY = LangEntry.builder("Chat.Command.Mail.Read.Empty").chatMessage(
+        GRAY.wrap("You have no mails.")
+    );
+
+    public static final MessageLocale MAIL_CLEAR_DONE = LangEntry.builder("Chat.Command.Mail.Clear.Done").chatMessage(
+        GRAY.wrap("Your mails have been deleted.")
     );
 
     public static final MessageLocale CONVERSATIONS_TOGGLE_FEEDBACK = LangEntry.builder("Chat.Command.TogglePM.Toggle.Target").chatMessage(

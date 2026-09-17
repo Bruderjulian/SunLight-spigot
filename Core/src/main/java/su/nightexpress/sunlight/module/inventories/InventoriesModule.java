@@ -11,6 +11,8 @@ import su.nightexpress.sunlight.module.ModuleContext;
 import su.nightexpress.sunlight.module.inventories.command.ContainerCommandProvider;
 import su.nightexpress.sunlight.module.inventories.command.EnderchestCommandsProvider;
 import su.nightexpress.sunlight.module.inventories.command.InventoryCommandProvider;
+import su.nightexpress.sunlight.module.inventories.dialog.InventoryDialogKeys;
+import su.nightexpress.sunlight.module.inventories.dialog.impl.InventoryClearDialog;
 import su.nightexpress.sunlight.nms.SunNMS;
 
 public class InventoriesModule extends Module {
@@ -24,7 +26,9 @@ public class InventoriesModule extends Module {
 
     @Override
     protected void loadModule(@NotNull FileConfig config) throws ModuleLoadException {
+        config.initializeOptions(InventoriesSettings.class);
 
+        this.dialogRegistry.register(InventoryDialogKeys.CLEAR, InventoryClearDialog::new);
     }
 
     @Override
@@ -50,5 +54,13 @@ public class InventoriesModule extends Module {
     @Override
     public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
 
+    }
+
+    public boolean isClearConfirmationRequired() {
+        return InventoriesSettings.CLEAR_REQUIRE_CONFIRMATION.get();
+    }
+
+    public boolean isClearConfirmSelfOnly() {
+        return InventoriesSettings.CLEAR_CONFIRM_SELF_ONLY.get();
     }
 }

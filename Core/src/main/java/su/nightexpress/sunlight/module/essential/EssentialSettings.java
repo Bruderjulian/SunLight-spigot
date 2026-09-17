@@ -9,6 +9,7 @@ import su.nightexpress.nightcore.configuration.ConfigTypes;
 import su.nightexpress.nightcore.util.Lists;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.Plugins;
+import su.nightexpress.sunlight.utils.Direction;
 
 import java.util.List;
 import java.util.Map;
@@ -126,6 +127,27 @@ public class EssentialSettings extends AbstractConfig {
         "Player entry format.",
         "[*] Text Formations Guide: " + URL_WIKI_TEXT,
         "[*] Placeholders: '%s', '%s', '%s'".formatted(GENERIC_DISTANCE, GENERIC_DIRECTION, Plugins.PLACEHOLDER_API)
+    );
+
+    public final ConfigProperty<Boolean> nearUseArrows = this.addProperty(ConfigTypes.BOOLEAN, "Near.Format.Use_Arrows",
+        true,
+        "If enabled, the '%s' placeholder in the entry format will display direction arrows instead of localized direction names.".formatted(GENERIC_DIRECTION)
+    );
+
+    public final ConfigProperty<Map<String, String>> nearDirectionArrows = this.addProperty(ConfigTypes.forMapWithLowerKeys(ConfigTypes.STRING),
+        "Near.Direction_Arrows",
+        Map.of(
+            Direction.NORTH.name(), "↑",
+            Direction.NORTH_EAST.name(), "↗",
+            Direction.EAST.name(), "→",
+            Direction.SOUTH_EAST.name(), "↘",
+            Direction.SOUTH.name(), "↓",
+            Direction.SOUTH_WEST.name(), "↙",
+            Direction.WEST.name(), "←",
+            Direction.NORTH_WEST.name(), "↖",
+            Direction.HERE.name(), "•"
+        ),
+        "Direction arrow glyphs used by the '%s' placeholder when '%s' is enabled.".formatted(GENERIC_DIRECTION, "Near.Format.Use_Arrows")
     );
 
     public final ConfigProperty<Integer> nickMinLength = this.addProperty(ConfigTypes.INT, "Nick.Length.Min", 3);

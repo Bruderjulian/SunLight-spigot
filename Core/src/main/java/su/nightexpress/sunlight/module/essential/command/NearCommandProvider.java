@@ -12,6 +12,7 @@ import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.NumberUtil;
+import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.Replacer;
@@ -83,8 +84,17 @@ public class NearCommandProvider extends AbstractCommandProvider {
         return Replacer.create()
             .replace(forPlayerWithPAPI(nearby.player()))
             .replace(GENERIC_DISTANCE, () -> NumberUtil.format(nearby.distance()))
-            .replace(GENERIC_DIRECTION, () -> Lang.DIRECTION.getLocalized(nearby.direction()))
+            .replace(GENERIC_DIRECTION, () -> this.getDirectionText(nearby.direction()))
             .apply(this.settings.nearEntryFormat.get());
+    }
+
+    @NotNull
+    private String getDirectionText(@NotNull Direction direction) {
+        if (this.settings.nearUseArrows.get()) {
+            String arrow = this.settings.nearDirectionArrows.get().get(LowerCase.INTERNAL.apply(direction.name()));
+            if (arrow != null) return arrow;
+        }
+        return Lang.DIRECTION.getLocalized(direction);
     }
 
     private boolean showNearbyPlayers(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {

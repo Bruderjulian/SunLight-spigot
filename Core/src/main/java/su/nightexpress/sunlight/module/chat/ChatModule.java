@@ -1,5 +1,6 @@
 package su.nightexpress.sunlight.module.chat;
 
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.jetbrains.annotations.NotNull;
@@ -8,6 +9,7 @@ import su.nightexpress.nightcore.bridge.chat.UniversalChatEvent;
 import su.nightexpress.nightcore.bridge.chat.UniversalChatEventHandler;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
+import su.nightexpress.nightcore.user.UserInfo;
 import su.nightexpress.nightcore.util.FileUtil;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.Plugins;
@@ -36,6 +38,9 @@ import su.nightexpress.sunlight.module.chat.discord.DiscordHandler;
 import su.nightexpress.sunlight.module.chat.event.PlayerPrivateMessageEvent;
 import su.nightexpress.sunlight.module.chat.format.FormatDefinition;
 import su.nightexpress.sunlight.module.chat.listener.ChatListener;
+import su.nightexpress.sunlight.module.chat.mail.MailCommandProvider;
+import su.nightexpress.sunlight.module.chat.mail.MailData;
+import su.nightexpress.sunlight.module.chat.mail.MailDataManager;
 import su.nightexpress.sunlight.module.chat.processor.ChatProcessor;
 import su.nightexpress.sunlight.module.chat.processor.chat.ChannelProcessor;
 import su.nightexpress.sunlight.module.chat.processor.chat.DiscordProcessor;
@@ -53,6 +58,7 @@ import su.nightexpress.sunlight.module.chat.spy.SpyType;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserProperty;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
+import su.nightexpress.sunlight.utils.FutureUtils;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -60,6 +66,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -76,6 +84,7 @@ public class ChatModule extends Module {
     private SpyLogger      spyLogger;
     private ReportHandler  reportHandler;
     private DiscordHandler discordHandler;
+    private MailDataManager mailDataManager;
 
     public ChatModule(@NotNull ModuleContext context) {
         super(context);
@@ -91,6 +100,7 @@ public class ChatModule extends Module {
 
         this.loadMentions();
         this.loadConversations();
+        this.loadMail();
         this.loadChannels();
         this.loadWordFilter();
         this.loadSpy();
@@ -126,6 +136,8 @@ public class ChatModule extends Module {
             this.reportHandler.unload();
             this.reportHandler = null;
         }
+
+        this.mailDataManager = null;
     }
 
     @Override
@@ -150,6 +162,11 @@ public class ChatModule extends Module {
         if (this.settings.isConversationsEnabled()) {
             this.commandRegistry.addProvider("chat-conversations",
                 new ConversationCommandProvider(this.plugin, this, this.userManager), this);
+        }
+
+        if (this.settings.isMailEnabled()) {
+            this.commandRegistry.addProvider("chat-mail",
+                new MailCommandProvider(this.plugin, this, this.userManager), this);
         }
 
         if (this.settings.isMentionsEnabled()) {
@@ -194,6 +211,16 @@ public class ChatModule extends Module {
         if (!this.settings.isConversationsEnabled()) return;
 
         UserPropertyRegistry.register(ChatProperties.CONVERSATIONS);
+    }
+
+    private void loadMail() {
+        if (!this.settings.isMailEnabled()) return;
+
+        this.mailDataManager = new MailDataManager(this.dataHandler);
+        this.mailDataManager.init(this.settings.getMailTablePrefix());
+        this.mailDataManager.purgeOldEntries(TimeUnit.DAYS.toMillis(this.settings.getMailExpiryDays()));
+
+        this.plugin.getServer().getOnlinePlayers().forEach(this::deliverMails);
     }
 
     private void loadChannels() {
@@ -571,6 +598,95 @@ public class ChatModule extends Module {
         }
 
         event.setMessage(context.getMessage());
+    }
+
+    @Nullable
+    public MailDataManager getMailDataManager() {
+        return this.mailDataManager;
+    }
+
+    public void sendMail(@NotNull Player sender, @NotNull UserInfo recipient, @NotNull String message) {
+        if (this.mailDataManager == null) return;
+
+        Player online = Players.getPlayer(recipient.id());
+        if (online != null) {
+            this.sendPrivateMessage(sender, online, message);
+            return;
+        }
+
+        CompletableFuture.supplyAsync(() -> {
+            List<MailData> inbox = this.mailDataManager.getMails(recipient.id());
+            int max = this.settings.getMailMaxInbox();
+            if (max > 0 && inbox.size() >= max) return false;
+
+            this.mailDataManager.insertMail(new MailData(UUID.randomUUID(), sender.getUniqueId(), sender.getName(),
+                recipient.id(), message, System.currentTimeMillis()));
+            return true;
+        }).thenAcceptAsync(stored -> {
+            if (stored) {
+                this.sendPrefixed(ChatLang.MAIL_SEND_SUCCESS, sender,
+                    builder -> builder.with(SLPlaceholders.GENERIC_NAME, recipient::name));
+            }
+            else {
+                this.sendPrefixed(ChatLang.MAIL_SEND_ERROR_FULL, sender,
+                    builder -> builder.with(SLPlaceholders.GENERIC_NAME, recipient::name));
+            }
+        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+    }
+
+    public void readMails(@NotNull Player player) {
+        if (this.mailDataManager == null) return;
+
+        CompletableFuture.supplyAsync(() -> this.mailDataManager.getMails(player.getUniqueId())).thenAcceptAsync(mails -> {
+            if (mails.isEmpty()) {
+                this.sendPrefixed(ChatLang.MAIL_READ_EMPTY, player);
+                return;
+            }
+            this.printMails(player, mails);
+            this.mailDataManager.deleteMails(player.getUniqueId());
+        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+    }
+
+    public void clearMails(@NotNull Player player) {
+        if (this.mailDataManager == null) return;
+
+        CompletableFuture.runAsync(() -> this.mailDataManager.deleteMails(player.getUniqueId()))
+            .thenRunAsync(() -> this.sendPrefixed(ChatLang.MAIL_CLEAR_DONE, player), this.plugin::runTask)
+            .whenComplete(FutureUtils::printStacktrace);
+    }
+
+    public void deliverMails(@NotNull Player player) {
+        if (this.mailDataManager == null) return;
+
+        CompletableFuture.supplyAsync(() -> this.mailDataManager.getMails(player.getUniqueId())).thenAcceptAsync(mails -> {
+            if (mails.isEmpty()) return;
+
+            this.printMails(player, mails);
+            this.sendPrefixed(ChatLang.MAIL_NOTIFY, player,
+                builder -> builder.with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(mails.size())));
+            this.mailDataManager.deleteMails(player.getUniqueId());
+        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+    }
+
+    private void printMails(@NotNull Player player, @NotNull List<MailData> mails) {
+        String format = this.settings.getMailFormat();
+        mails.forEach(mail -> {
+            String text = PlaceholderContext.builder()
+                .with(CommonPlaceholders.PLAYER_NAME, mail::getSenderName)
+                .with(CommonPlaceholders.PLAYER_DISPLAY_NAME, mail::getSenderName)
+                .with(SLPlaceholders.GENERIC_MESSAGE, mail::getMessage)
+                .build().apply(format);
+            Players.sendMessage(player, text);
+        });
+    }
+
+    public void sendChannelCooldownNotice(@NotNull Player player, @NotNull ChatChannel channel, @NotNull String remaining, int totalSeconds) {        String text = PlaceholderContext.builder()
+            .with(SLPlaceholders.GENERIC_TIME, () -> remaining)
+            .with(SLPlaceholders.GENERIC_COOLDOWN, () -> String.valueOf(totalSeconds))
+            .build().apply(channel.getAccessibility().cooldownMessage());
+
+        Players.sendMessage(player, this.definition.prefix() + text);
+        player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1F, 1F);
     }
 
     public boolean sendPrivateMessage(@NotNull Player player, @NotNull Player target, @NotNull String message) {

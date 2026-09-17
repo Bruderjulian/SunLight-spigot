@@ -31,14 +31,18 @@ public class DeathMessagesSettings extends AbstractConfig {
         ConfigTypes.forMap(str -> BukkitThing.getByString(RegistryType.DAMAGE_TYPE, str), BukkitThing::getAsString, DEATH_MESSAGE_CONFIG_TYPE),
         "Messages.Damage-Type",
         getDefaultsByType(),
-        ""
+        "Death messages by damage type.",
+        "Each entry has a 'Messages' list (used always) and an optional 'Messages_By_Player' list,",
+        "used instead when the death was caused by another player (e.g. an anvil placed by a player)."
     );
 
     private final ConfigProperty<Map<EntityType, DeathMessage>> entityTypeMessages = this.addProperty(
         ConfigTypes.forMap(str -> BukkitThing.getByString(RegistryType.ENTITY_TYPE, str), BukkitThing::getAsString, DEATH_MESSAGE_CONFIG_TYPE),
         "Messages.Causing-Entity",
         getDefaultsByEntity(),
-        ""
+        "Death messages by causing/direct entity type. Takes priority over damage type messages.",
+        "Each entry has a 'Messages' list (used always) and an optional 'Messages_By_Player' list,",
+        "used instead when the causing entity is (or belongs to) another player."
     );
 
     @NotNull
@@ -74,7 +78,10 @@ public class DeathMessagesSettings extends AbstractConfig {
         map.put(DamageType.ARROW, DeathMessage.simple(GRAY.enclose(swords + LIGHT_RED.enclose(PLAYER_DISPLAY_NAME) + " was shot by a " + LIGHT_RED.enclose(GENERIC_SOURCE) + ".")));
         map.put(DamageType.PLAYER_ATTACK, DeathMessage.simple(GRAY.enclose(swords + LIGHT_RED.enclose(GENERIC_SOURCE) + " killed " + LIGHT_RED.enclose(PLAYER_DISPLAY_NAME) + ".")));
         map.put(DamageType.FALL, DeathMessage.simple(GRAY.enclose(skull + LIGHT_RED.enclose(PLAYER_DISPLAY_NAME) + " fell from a high spot.")));
-        map.put(DamageType.FALLING_ANVIL, DeathMessage.simple(GRAY.enclose(skull + LIGHT_RED.enclose(PLAYER_DISPLAY_NAME) + " was unable to hold an Anvil.")));
+        map.put(DamageType.FALLING_ANVIL, new DeathMessage(
+            Lists.newList(GRAY.enclose(skull + LIGHT_RED.enclose(PLAYER_DISPLAY_NAME) + " was unable to hold an Anvil.")),
+            Lists.newList(GRAY.enclose(skull + LIGHT_RED.enclose(PLAYER_DISPLAY_NAME) + " was squashed by " + LIGHT_RED.enclose(GENERIC_SOURCE) + "."))
+        ));
         map.put(DamageType.FLY_INTO_WALL, DeathMessage.simple(GRAY.enclose(skull + LIGHT_RED.enclose(PLAYER_DISPLAY_NAME) + " exceeded the speed limit with elytras.")));
         map.put(DamageType.IN_FIRE, DeathMessage.simple(GRAY.enclose(skull + LIGHT_RED.enclose(PLAYER_DISPLAY_NAME) + " burned to the ground.")));
         map.put(DamageType.ON_FIRE, DeathMessage.simple(GRAY.enclose(skull + LIGHT_RED.enclose(PLAYER_DISPLAY_NAME) + " burned to the ground.")));

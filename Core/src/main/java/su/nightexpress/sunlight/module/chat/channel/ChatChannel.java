@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
+import su.nightexpress.nightcore.util.rankmap.IntRankMap;
 import su.nightexpress.sunlight.module.chat.core.ChatPerms;
 
 import java.nio.file.Path;
@@ -60,7 +61,8 @@ public class ChatChannel implements PlaceholderResolvable {
         boolean autoJoin = ChannelSchema.AUTO_JOIN.resolveWithDefaults(config);
         boolean permissionToListen = ChannelSchema.PERMISSION_TO_LISTEN.resolveWithDefaults(config);
         boolean permissionToSpeak = ChannelSchema.PERMISSION_TO_SPEAK.resolveWithDefaults(config);
-        int messageCooldown = ChannelSchema.MESSAGE_COOLDOWN.resolveWithDefaults(config);
+        IntRankMap messageCooldowns = ChannelSchema.MESSAGE_COOLDOWN.resolveWithDefaults(config);
+        String cooldownMessage = ChannelSchema.MESSAGE_COOLDOWN_MESSAGE.resolveWithDefaults(config);
 
         ChannelDistanceType distanceType = ChannelSchema.DISTANCE_TYPE.resolveWithDefaults(config);
         double distanceRange = ChannelSchema.DISTANCE_RANGE.resolveWithDefaults(config);
@@ -72,7 +74,7 @@ public class ChatChannel implements PlaceholderResolvable {
         String prefixValue = ChannelSchema.PREFIX_VALUE.resolveWithDefaults(config);
 
         ChannelDisplay display = new ChannelDisplay(name, format);
-        ChannelAccessibility accessibility = new ChannelAccessibility(autoJoin, permissionToListen, permissionToSpeak, messageCooldown);
+        ChannelAccessibility accessibility = new ChannelAccessibility(autoJoin, permissionToListen, permissionToSpeak, messageCooldowns, cooldownMessage);
         ChannelDistance distance = new ChannelDistance(distanceType, distanceRange);
         ChannelCommand command = new ChannelCommand(false, "");//new ChannelCommand(commandEnabled, commandAlias);
         ChannelPrefix prefix = new ChannelPrefix(prefixEnabled, prefixValue);
@@ -99,7 +101,8 @@ public class ChatChannel implements PlaceholderResolvable {
         ChannelSchema.AUTO_JOIN.writeValue(config, this.accessibility.autoJoin());
         ChannelSchema.PERMISSION_TO_LISTEN.writeValue(config, this.accessibility.permissionToListen());
         ChannelSchema.PERMISSION_TO_SPEAK.writeValue(config, this.accessibility.permissionToSpeak());
-        ChannelSchema.MESSAGE_COOLDOWN.writeValue(config, this.accessibility.messageCooldown());
+        ChannelSchema.MESSAGE_COOLDOWN.writeValue(config, this.accessibility.messageCooldowns());
+        ChannelSchema.MESSAGE_COOLDOWN_MESSAGE.writeValue(config, this.accessibility.cooldownMessage());
 
         ChannelSchema.DISTANCE_TYPE.writeValue(config, this.distance.type());
         ChannelSchema.DISTANCE_RANGE.writeValue(config, this.distance.range());

@@ -1,10 +1,13 @@
 package su.nightexpress.sunlight.module.chat.channel;
 
 import org.jetbrains.annotations.NotNull;
+import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.configuration.ConfigProperty;
+import su.nightexpress.nightcore.configuration.ConfigType;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
 import su.nightexpress.nightcore.util.Enums;
 import su.nightexpress.nightcore.util.Plugins;
+import su.nightexpress.nightcore.util.rankmap.IntRankMap;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.module.chat.ChatDefaults;
 
@@ -52,10 +55,28 @@ public class ChannelSchema {
         "If enabled, only players with the channel permission are able to speak in this channel."
     );
 
-    public static final ConfigProperty<Integer> MESSAGE_COOLDOWN = ConfigProperty.of(ConfigTypes.INT, "Message_Cooldown",
-        1,
-        "Sets per-player message cooldown (in seconds) for this channel.",
+    public static final String DEFAULT_COOLDOWN_MESSAGE = GRAY.wrap("Please wait " + ORANGE.wrap(SLPlaceholders.GENERIC_TIME) + " before send another message.");
+
+    public static final ConfigProperty<IntRankMap> MESSAGE_COOLDOWN = ConfigProperty.of(
+        ConfigType.of(ChannelSchema::readCooldowns, (FileConfig config, String path, IntRankMap map) -> map.write(config, path)),
+        "Message_Cooldown",
+        IntRankMap.ranked(1),
+        "Sets per-player message cooldown (in seconds) for this channel, based on player's rank or permissions.",
+        "Example:",
+        "Message_Cooldown:",
+        "  default: 3",
+        "  vip: 2",
+        "  elite: 1",
+        "  moderator: 0",
         "[>] Set 0 to disable."
+    );
+
+    public static final ConfigProperty<String> MESSAGE_COOLDOWN_MESSAGE = ConfigProperty.of(ConfigTypes.STRING, "Message_Cooldown_Message",
+        DEFAULT_COOLDOWN_MESSAGE,
+        "Message sent to a player when they try to chat during the channel cooldown.",
+        "[>] Placeholders:",
+        "- " + SLPlaceholders.GENERIC_TIME + " -> Remaining cooldown time.",
+        "- " + SLPlaceholders.GENERIC_COOLDOWN + " -> Total cooldown time for the player's rank."
     );
 
 
@@ -97,12 +118,20 @@ public class ChannelSchema {
     );
 
     @NotNull
+    private static IntRankMap readCooldowns(@NotNull FileConfig config, @NotNull String path) {
+        int legacy = config.getInt(path, -1);
+        if (legacy >= 0) return IntRankMap.ranked(legacy);
+
+        return IntRankMap.read(config, path);
+    }
+
+    @NotNull
     public static List<ChatChannel> getDefaultChannels() {
         List<ChatChannel> channels = new ArrayList<>();
 
         channels.add(ChatChannel.create(ChatDefaults.DEFAULT_LOCAL_CHANNEL_ID,
             new ChannelDisplay(SOFT_AQUA.wrap("Local"), ChatDefaults.DEFAULT_CHANNEL_FORMAT),
-            new ChannelAccessibility(true, false, false, 1),
+            new ChannelAccessibility(true, false, false, IntRankMap.ranked(1), DEFAULT_COOLDOWN_MESSAGE),
             new ChannelDistance(ChannelDistanceType.RANGE, 100),
             new ChannelCommand(true, "localchat"),
             new ChannelPrefix(true, ":")
@@ -110,7 +139,7 @@ public class ChannelSchema {
 
         channels.add(ChatChannel.create("world",
             new ChannelDisplay(ORANGE.wrap("World"), ChatDefaults.DEFAULT_CHANNEL_FORMAT),
-            new ChannelAccessibility(true, false, false, 3),
+            new ChannelAccessibility(true, false, false, IntRankMap.ranked(3), DEFAULT_COOLDOWN_MESSAGE),
             new ChannelDistance(ChannelDistanceType.WORLD_WIDE, -1),
             new ChannelCommand(true, "worldchat"),
             new ChannelPrefix(true, ".")
@@ -118,7 +147,7 @@ public class ChannelSchema {
 
         channels.add(ChatChannel.create("global",
             new ChannelDisplay(ORANGE.wrap("Global"), ChatDefaults.DEFAULT_CHANNEL_FORMAT),
-            new ChannelAccessibility(true, false, false, 3),
+            new ChannelAccessibility(true, false, false, IntRankMap.ranked(3), DEFAULT_COOLDOWN_MESSAGE),
             new ChannelDistance(ChannelDistanceType.SERVER_WIDE, -1),
             new ChannelCommand(true, "globalchat"),
             new ChannelPrefix(true, "!")
@@ -126,7 +155,7 @@ public class ChannelSchema {
 
         channels.add(ChatChannel.create("trade",
             new ChannelDisplay(GREEN.wrap("Trade"), ChatDefaults.DEFAULT_CHANNEL_FORMAT),
-            new ChannelAccessibility(true, false, true, 30),
+            new ChannelAccessibility(true, false, true, IntRankMap.ranked(30), DEFAULT_COOLDOWN_MESSAGE),
             new ChannelDistance(ChannelDistanceType.SERVER_WIDE, -1),
             new ChannelCommand(true, "tradechat"),
             new ChannelPrefix(true, "$")
@@ -135,7 +164,7 @@ public class ChannelSchema {
         channels.add(ChatChannel.create(
             "staff",
             new ChannelDisplay(SOFT_RED.wrap("Staff"), ChatDefaults.DEFAULT_CHANNEL_FORMAT),
-            new ChannelAccessibility(true, true, true, 0),
+            new ChannelAccessibility(true, true, true, IntRankMap.ranked(0), DEFAULT_COOLDOWN_MESSAGE),
             new ChannelDistance(ChannelDistanceType.SERVER_WIDE, -1),
             new ChannelCommand(true, "staffchat"),
             new ChannelPrefix(true, "#")
@@ -149,7 +178,7 @@ public class ChannelSchema {
         return ChatChannel.create(
             ChatDefaults.DEFAULT_CHANNEL_ID,
             new ChannelDisplay(WHITE.wrap("Default"), SLPlaceholders.GENERIC_FORMAT),
-            new ChannelAccessibility(true, false, false, 0),
+            new ChannelAccessibility(true, false, false, IntRankMap.ranked(0), DEFAULT_COOLDOWN_MESSAGE),
             new ChannelDistance(ChannelDistanceType.SERVER_WIDE, -1),
             new ChannelCommand(false, ""),
             new ChannelPrefix(false, "")

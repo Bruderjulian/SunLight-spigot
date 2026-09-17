@@ -7,6 +7,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
@@ -22,6 +23,7 @@ import su.nightexpress.nightcore.util.text.tag.TagPool;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.module.extras.ExtrasModule;
+import su.nightexpress.sunlight.module.extras.ExtrasProperties;
 import su.nightexpress.sunlight.module.extras.config.ExtrasConfig;
 import su.nightexpress.sunlight.module.extras.config.ExtrasPerms;
 
@@ -97,6 +99,28 @@ public class ExtrasGenericListener extends AbstractListener<SunLightPlugin> {
             event.setKeepInventory(true);
             event.getDrops().clear();
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onGodTarget(EntityTargetEvent event) {
+        if (!ExtrasConfig.GOD_ENABLED.get()) return;
+        if (!(event.getTarget() instanceof Player player)) return;
+        if (!this.isGod(player)) return;
+
+        event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onGodDamage(EntityDamageEvent event) {
+        if (!ExtrasConfig.GOD_ENABLED.get()) return;
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!this.isGod(player)) return;
+
+        event.setCancelled(true);
+    }
+
+    private boolean isGod(@NotNull Player player) {
+        return this.plugin.getUserManager().getOrFetch(player).getPropertyOrDefault(ExtrasProperties.GOD);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
