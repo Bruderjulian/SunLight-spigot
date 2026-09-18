@@ -52,13 +52,13 @@ public class GodCommandProvider extends AbstractCommandProvider {
             if (context.getSender() != target) {
                 this.module.sendPrefixed(ExtrasLang.COMMAND_GOD_TARGET, context.getSender(), builder -> builder
                     .with(CommonPlaceholders.PLAYER.resolver(target))
-                    .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state))
+                    .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.getEnabledOrDisabled(state))
                 );
             }
 
             if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
                 this.module.sendPrefixed(ExtrasLang.COMMAND_GOD_NOTIFY, target, builder -> builder
-                    .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state))
+                    .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.getEnabledOrDisabled(state))
                 );
             }
         });

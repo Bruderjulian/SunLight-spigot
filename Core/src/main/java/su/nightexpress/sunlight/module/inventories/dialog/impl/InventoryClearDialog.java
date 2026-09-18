@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.inventories.dialog.impl;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import su.nightexpress.nightcore.bridge.dialog.wrap.WrappedDialog;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.DialogElementLocale;
@@ -22,7 +22,7 @@ public class InventoryClearDialog extends Dialog<InventoryClearDialog.ClearReque
         ENDER_CHEST
     }
 
-    public record ClearRequest(@NotNull Player target, @NotNull ClearType type) {
+    public record ClearRequest(@NonNull Player target, @NonNull ClearType type) {
 
     }
 
@@ -42,7 +42,7 @@ public class InventoryClearDialog extends Dialog<InventoryClearDialog.ClearReque
     );
 
     @Override
-    @NotNull
+    @NonNull
     public WrappedDialog create(@NonNull Player viewer, @NonNull ClearRequest request) {
         DialogElementLocale body = request.type() == ClearType.INVENTORY ? BODY_INVENTORY : BODY_ENDER_CHEST;
 
