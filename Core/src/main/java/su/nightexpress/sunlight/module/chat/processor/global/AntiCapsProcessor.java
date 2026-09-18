@@ -17,17 +17,17 @@ import su.nightexpress.sunlight.module.chat.processor.ChatProcessor;
 public class AntiCapsProcessor implements ChatProcessor<ChatContext> {
 
     @Override
-    public void preProcess(@NonNull ChatModule module, @NonNull ChatContext context) {
+    public void preProcess( ChatModule module,  ChatContext context) {
         context.setMessage(this.moderateUpperCase(module, context.getMessage()));
     }
 
     @Override
-    public void postProcess(@NonNull ChatModule module, @NonNull ChatContext context) {
+    public void postProcess( ChatModule module,  ChatContext context) {
 
     }
 
-    @NonNull
-    private String moderateUpperCase(@NonNull ChatModule module, @NonNull String message) {
+    
+    private String moderateUpperCase( ChatModule module,  String message) {
         String[] words = message.split(" ");
 
         int totalUpperCase = 0;
@@ -75,7 +75,7 @@ public class AntiCapsProcessor implements ChatProcessor<ChatContext> {
         return builder.toString();
     }
 
-    private static int countUpperCaseLetters(@NonNull String string) {
+    private static int countUpperCaseLetters( String string) {
         int count = 0;
 
         for (char c : string.toCharArray()) {

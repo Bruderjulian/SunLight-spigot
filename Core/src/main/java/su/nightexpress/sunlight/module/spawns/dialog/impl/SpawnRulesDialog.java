@@ -42,13 +42,13 @@ public class SpawnRulesDialog extends Dialog<Spawn> {
 
     private final Function<Spawn, SpawnRule> ruleFunction;
 
-    public SpawnRulesDialog(@NonNull Function<Spawn, SpawnRule> ruleFunction) {
+    public SpawnRulesDialog( Function<Spawn, SpawnRule> ruleFunction) {
         this.ruleFunction = ruleFunction;
     }
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull Spawn spawn) {
+    
+    public WrappedDialog create( Player player,  Spawn spawn) {
         return Dialogs.builder()
             .base(DialogBases.builder(TITLE)
                 .body(DialogBodies.plainMessage(BODY))

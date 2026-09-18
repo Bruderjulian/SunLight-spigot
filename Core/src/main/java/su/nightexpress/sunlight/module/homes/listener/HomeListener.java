@@ -15,7 +15,7 @@ public class HomeListener extends AbstractListener<SunLightPlugin> {
 
     private final HomesModule module;
 
-    public HomeListener(@NotNull SunLightPlugin plugin, @NotNull HomesModule module) {
+    public HomeListener(SunLightPlugin plugin, HomesModule module) {
         super(plugin);
         this.module = module;
     }

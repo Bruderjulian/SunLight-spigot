@@ -32,10 +32,10 @@ import java.util.*;
 public class PTPModule extends Module {
 
     private final TeleportManager teleportManager;
-    private final PTPSettings                      settings;
+    private final PTPSettings settings;
     private final Map<UUID, List<TeleportRequest>> requestsMap;
 
-    public PTPModule(@NotNull ModuleContext context, @NotNull TeleportManager teleportManager) {
+    public PTPModule(ModuleContext context, TeleportManager teleportManager) {
         super(context);
         this.teleportManager = teleportManager;
         this.settings = new PTPSettings();
@@ -43,7 +43,7 @@ public class PTPModule extends Module {
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         this.settings.load(config);
         this.plugin.injectLang(PTPLang.class);
         UserPropertyRegistry.register(PTPProperties.TELEPORT_REQUESTS);
@@ -57,7 +57,7 @@ public class PTPModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(PTPPerms.MODULE);
     }
 
@@ -66,69 +66,61 @@ public class PTPModule extends Module {
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("ptp_requests_enabled", (player, payload) -> {
             return CoreLang.STATE_YES_NO.get(this.isRequestsEnabled(player));
         });
     }
 
-    @NotNull
     public Map<UUID, List<TeleportRequest>> getRequestsMap() {
         return this.requestsMap;
     }
 
-    @NotNull
-    public List<TeleportRequest> getRequests(@NotNull Player player) {
+    public List<TeleportRequest> getRequests(Player player) {
         return this.getRequests(player.getUniqueId());
     }
 
-    @NotNull
-    public List<TeleportRequest> getRequests(@NotNull UUID playerId) {
+    public List<TeleportRequest> getRequests(UUID playerId) {
         List<TeleportRequest> requests = this.requestsMap.computeIfAbsent(playerId, k -> new ArrayList<>());
         requests.removeIf(TeleportRequest::isExpired);
 
         return requests;
     }
 
-    @Nullable
-    public TeleportRequest getPlayerRequest(@NotNull Player player, @NotNull String name) {
+    public TeleportRequest getPlayerRequest(Player player, String name) {
         return this.getPlayerRequest(player.getUniqueId(), name);
     }
 
-    @Nullable
-    public TeleportRequest getPlayerRequest(@NotNull UUID playerId, @NotNull String name) {
+    public TeleportRequest getPlayerRequest(UUID playerId, String name) {
         return this.getRequests(playerId).stream().filter(request -> request.isSender(name)).findFirst().orElse(null);
     }
 
-    @Nullable
-    public TeleportRequest getLatest(@NotNull Player player) {
+    public TeleportRequest getLatest(Player player) {
         return this.getLatest(player.getUniqueId());
     }
 
-    @Nullable
-    public TeleportRequest getLatest(@NotNull UUID playerId) {
+    public TeleportRequest getLatest(UUID playerId) {
         List<TeleportRequest> requests = this.getRequests(playerId);
         return requests.isEmpty() ? null : requests.getLast();
     }
 
-    public void clearRequests(@NotNull Player player) {
+    public void clearRequests(Player player) {
         this.clearRequests(player.getUniqueId());
     }
 
-    public void clearRequests(@NotNull UUID playerId) {
+    public void clearRequests(UUID playerId) {
         this.requestsMap.remove(playerId);
     }
 
-
-    public boolean isRequestsEnabled(@NotNull Player player) {
+    public boolean isRequestsEnabled(Player player) {
         return this.userManager.getOrFetch(player).getPropertyOrDefault(PTPProperties.TELEPORT_REQUESTS);
     }
 
-
-    public boolean sendRequest(@NotNull Player sender, @NotNull Player target, @NotNull TeleportMode mode) {
+    public boolean sendRequest(Player sender, Player target, TeleportMode mode) {
         // Check if 'accepter' disaled requests so request should be declined.
         if (!this.isRequestsEnabled(target) && !sender.hasPermission(PTPPerms.BYPASS_REQUESTS_DISABLED)) {
-            this.sendPrefixed(PTPLang.REQUEST_SEND_ERROR_DISABLED, sender, builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
+            this.sendPrefixed(PTPLang.REQUEST_SEND_ERROR_DISABLED, sender,
+                    builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
             return false;
         }
 
@@ -137,8 +129,8 @@ public class PTPModule extends Module {
         TeleportRequest requestHas = this.getPlayerRequest(target, sender.getName());
         if (requestHas != null && !requestHas.isExpired()) {
             this.sendPrefixed(PTPLang.REQUEST_SEND_ERROR_COOLDOWN, sender, builder -> builder
-                .with(SLPlaceholders.GENERIC_TIME, () -> TimeFormats.formatDuration(requestHas.getExpireDate(), TimeFormatType.LITERAL))
-            );
+                    .with(SLPlaceholders.GENERIC_TIME,
+                            () -> TimeFormats.formatDuration(requestHas.getExpireDate(), TimeFormatType.LITERAL)));
             return false;
         }
 
@@ -146,26 +138,28 @@ public class PTPModule extends Module {
 
         PlayerTeleportRequestEvent eventTeleport = new PlayerTeleportRequestEvent(request);
         plugin.getPluginManager().callEvent(eventTeleport);
-        if (eventTeleport.isCancelled()) return false;
+        if (eventTeleport.isCancelled())
+            return false;
 
         this.getRequests(target).add(request);
 
-        this.sendPrefixed(mode == TeleportMode.REQUEST ? PTPLang.REQUEST_NOTIFY : PTPLang.INVITE_NOTIFY, target, builder -> builder
-            .with(CommonPlaceholders.PLAYER.resolver(sender)));
+        this.sendPrefixed(mode == TeleportMode.REQUEST ? PTPLang.REQUEST_NOTIFY : PTPLang.INVITE_NOTIFY, target,
+                builder -> builder
+                        .with(CommonPlaceholders.PLAYER.resolver(sender)));
 
-        this.sendPrefixed(mode == TeleportMode.REQUEST ? PTPLang.REQUEST_SENT : PTPLang.INVITE_SENT, sender, builder -> builder
-            .with(CommonPlaceholders.PLAYER.resolver(target)));
+        this.sendPrefixed(mode == TeleportMode.REQUEST ? PTPLang.REQUEST_SENT : PTPLang.INVITE_SENT, sender,
+                builder -> builder
+                        .with(CommonPlaceholders.PLAYER.resolver(target)));
 
         if (this.plugin.afkProvider().map(afkProvider -> afkProvider.isAfk(target)).orElse(false)) {
             this.sendPrefixed(PTPLang.REQUEST_SEND_TARGET_AFK, sender, builder -> builder
-                .with(CommonPlaceholders.PLAYER.resolver(target))
-            );
+                    .with(CommonPlaceholders.PLAYER.resolver(target)));
         }
 
         return true;
     }
 
-    public boolean accept(@NotNull Player player, @Nullable String name) {
+    public boolean accept(Player player, String name) {
         TeleportRequest request = name == null ? this.getLatest(player) : this.getPlayerRequest(player, name);
         if (request == null) {
             this.sendPrefixed(PTPLang.REQUEST_ACCEPT_NOTHING, player);
@@ -182,31 +176,35 @@ public class PTPModule extends Module {
         Location destination = request.getMode() == TeleportMode.INVITE ? sender.getLocation() : player.getLocation();
 
         double cost = this.settings.getTeleportCost();
-        boolean charge = cost > 0D && !EconomyUtils.hasBypass(teleporter, PTPPerms.BYPASS_COST) && EconomyUtils.hasCurrency();
+        boolean charge = cost > 0D && !EconomyUtils.hasBypass(teleporter, PTPPerms.BYPASS_COST)
+                && EconomyUtils.hasCurrency();
 
         if (charge && !EconomyUtils.canAfford(teleporter, cost)) {
             this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, teleporter, builder -> builder
-                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
             return false;
         }
 
         request.setExpired();
 
         TeleportContext teleportContext = TeleportContext.builder(this, teleporter, destination)
-            .withFlag(TeleportFlag.LOOK_FOR_SURFACE)
-            .withFlag(TeleportFlag.AVOID_LAVA)
-            .callback(() -> {
-                if (charge) EconomyUtils.withdraw(teleporter, cost);
+                .withFlag(TeleportFlag.LOOK_FOR_SURFACE)
+                .withFlag(TeleportFlag.AVOID_LAVA)
+                .callback(() -> {
+                    if (charge)
+                        EconomyUtils.withdraw(teleporter, cost);
 
-                this.sendPrefixed(PTPLang.REQUEST_ACCEPT_DONE, player, builder -> builder.with(CommonPlaceholders.PLAYER.resolver(sender)));
-                this.sendPrefixed(PTPLang.REQUEST_ACCEPT_NOTIFY, sender, builder -> builder.with(CommonPlaceholders.PLAYER.resolver(player)));
-            })
-            .build();
+                    this.sendPrefixed(PTPLang.REQUEST_ACCEPT_DONE, player,
+                            builder -> builder.with(CommonPlaceholders.PLAYER.resolver(sender)));
+                    this.sendPrefixed(PTPLang.REQUEST_ACCEPT_NOTIFY, sender,
+                            builder -> builder.with(CommonPlaceholders.PLAYER.resolver(player)));
+                })
+                .build();
 
         return this.teleportManager.teleport(teleportContext, TeleportType.PTP);
     }
 
-    public boolean decline(@NotNull Player player, @Nullable String name) {
+    public boolean decline(Player player, String name) {
         TeleportRequest request = name == null ? this.getLatest(player) : this.getPlayerRequest(player, name);
         if (request == null) {
             this.sendPrefixed(PTPLang.REQUEST_ACCEPT_NOTHING, player);
@@ -221,8 +219,10 @@ public class PTPModule extends Module {
 
         request.setExpired();
 
-        this.sendPrefixed(PTPLang.REQUEST_DECLINE_DONE, player, builder -> builder.with(CommonPlaceholders.PLAYER.resolver(sender)));
-        this.sendPrefixed(PTPLang.REQUEST_DECLINE_NOTIFY, sender, builder -> builder.with(CommonPlaceholders.PLAYER.resolver(player)));
+        this.sendPrefixed(PTPLang.REQUEST_DECLINE_DONE, player,
+                builder -> builder.with(CommonPlaceholders.PLAYER.resolver(sender)));
+        this.sendPrefixed(PTPLang.REQUEST_DECLINE_NOTIFY, sender,
+                builder -> builder.with(CommonPlaceholders.PLAYER.resolver(player)));
 
         return true;
     }

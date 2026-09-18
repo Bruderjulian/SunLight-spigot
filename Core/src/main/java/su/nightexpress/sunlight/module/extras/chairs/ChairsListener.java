@@ -27,26 +27,33 @@ public class ChairsListener extends AbstractListener<SunLightPlugin> {
 
     private final ChairsManager chairsManager;
 
-    public ChairsListener(@NotNull SunLightPlugin plugin, @NotNull ChairsManager chairsManager) {
+    public ChairsListener(SunLightPlugin plugin, ChairsManager chairsManager) {
         super(plugin);
         this.chairsManager = chairsManager;
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onChairsEnterRightClick(PlayerInteractEvent e) {
-        if (e.useInteractedBlock() == Event.Result.DENY) return;
-        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (e.getHand() != EquipmentSlot.HAND) return;
-        if (e.getBlockFace() == BlockFace.DOWN) return;
+        if (e.useInteractedBlock() == Event.Result.DENY)
+            return;
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK)
+            return;
+        if (e.getHand() != EquipmentSlot.HAND)
+            return;
+        if (e.getBlockFace() == BlockFace.DOWN)
+            return;
 
         Player player = e.getPlayer();
-        if (player.isSneaking()) return;
+        if (player.isSneaking())
+            return;
 
         Block block = e.getClickedBlock();
-        if (block == null || !ChairsManager.isChair(block)) return;
+        if (block == null || !ChairsManager.isChair(block))
+            return;
 
         SunUser user = plugin.getUserManager().getOrFetch(player);
-        if (!ChairsManager.isChairsEnabled(user)) return;
+        if (!ChairsManager.isChairsEnabled(user))
+            return;
 
         if (player.getLocation().distance(LocationUtil.getCenter(block.getLocation())) >= 2D) {
             return;
@@ -54,15 +61,18 @@ public class ChairsListener extends AbstractListener<SunLightPlugin> {
 
         // Stop sit if player is building something over "chair" blocks.
         ItemStack item = e.getItem();
-        if (item != null && item.getType().isBlock()) return;
+        if (item != null && item.getType().isBlock())
+            return;
 
         this.chairsManager.sitPlayer(player, block);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChairsLeaveDismount(EntityDismountEvent e) {
-        if (!(e.getEntity() instanceof Player player)) return;
-        if (!(e.getDismounted() instanceof ArmorStand stand)) return;
+        if (!(e.getEntity() instanceof Player player))
+            return;
+        if (!(e.getDismounted() instanceof ArmorStand stand))
+            return;
 
         this.chairsManager.standUp(player, stand, false);
     }

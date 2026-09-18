@@ -14,7 +14,7 @@ import su.nightexpress.sunlight.module.chat.processor.MessageProcessor;
 public class FormatProcessor implements MessageProcessor {
 
     @Override
-    public void preProcess(@NonNull ChatModule module, @NonNull MessageContext context) {
+    public void preProcess( ChatModule module,  MessageContext context) {
         Player player = context.getPlayer();
 
         PlaceholderContext componentContext = PlaceholderContext.builder()
@@ -43,12 +43,12 @@ public class FormatProcessor implements MessageProcessor {
     }
 
     @Override
-    public void postProcess(@NonNull ChatModule module, @NonNull MessageContext context) {
+    public void postProcess( ChatModule module,  MessageContext context) {
 
     }
 
-    @NonNull
-    private static String oneSpace(@NonNull String str) {
+    
+    private static String oneSpace( String str) {
         return str.trim().replaceAll("\\s+", " ");
     }
 }

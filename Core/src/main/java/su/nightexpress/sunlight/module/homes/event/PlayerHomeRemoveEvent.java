@@ -11,9 +11,9 @@ public class PlayerHomeRemoveEvent extends Event {
     public static final HandlerList HANDLER_LIST = new HandlerList();
 
     private final Player player;
-    private final Home   home;
+    private final Home home;
 
-    public PlayerHomeRemoveEvent(@NotNull Player player, @NotNull Home home) {
+    public PlayerHomeRemoveEvent(Player player, Home home) {
         this.player = player;
         this.home = home;
     }
@@ -22,18 +22,15 @@ public class PlayerHomeRemoveEvent extends Event {
         return HANDLER_LIST;
     }
 
-    @NotNull
     @Override
     public HandlerList getHandlers() {
         return HANDLER_LIST;
     }
 
-    @NotNull
     public Player getPlayer() {
         return player;
     }
 
-    @NotNull
     public Home getHome() {
         return home;
     }

@@ -28,12 +28,12 @@ public class VanishModule extends Module implements VanishProvider {
 
     private BossBar vanishIndicator;
 
-    public VanishModule(@NotNull ModuleContext context) {
+    public VanishModule(ModuleContext context) {
         super(context);
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         config.initializeOptions(VanishConfig.class);
         this.plugin.injectLang(VanishLang.class);
         UserPropertyRegistry.register(VANISH);
@@ -60,7 +60,7 @@ public class VanishModule extends Module implements VanishProvider {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(VanishPerms.MODULE);
     }
 
@@ -70,7 +70,7 @@ public class VanishModule extends Module implements VanishProvider {
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("vanish_state", (player, payload) -> {
             return CoreLang.STATE_YES_NO.get(this.userManager.getOrFetch(player).getPropertyOrDefault(VANISH));
         });
@@ -78,30 +78,32 @@ public class VanishModule extends Module implements VanishProvider {
 
     private void updateOnlinePlayers() {
         Players.getOnline().forEach(player -> {
-            if (!this.isVanished(player)) return;
+            if (!this.isVanished(player))
+                return;
 
             this.vanish(player, true);
         });
     }
 
     @Override
-    public boolean isVanished(@NotNull Player player) {
+    public boolean isVanished(Player player) {
         SunUser user = this.plugin.getUserManager().getOrFetch(player);
         return user.getPropertyOrDefault(VANISH);
     }
 
-    public void vanish(@NotNull Player player, boolean isVanished) {
+    public void vanish(Player player, boolean isVanished) {
         // TODO Add meta "vanished" configurable
         for (Player other : this.plugin.getServer().getOnlinePlayers()) {
             if (isVanished) {
                 if (!other.hasPermission(VanishPerms.BYPASS_SEE)) {
                     other.hidePlayer(this.plugin, player);
                 }
-                if (this.vanishIndicator != null) this.vanishIndicator.addPlayer(player);
-            }
-            else {
+                if (this.vanishIndicator != null)
+                    this.vanishIndicator.addPlayer(player);
+            } else {
                 other.showPlayer(this.plugin, player);
-                if (this.vanishIndicator != null) this.vanishIndicator.removePlayer(player);
+                if (this.vanishIndicator != null)
+                    this.vanishIndicator.removePlayer(player);
             }
         }
     }

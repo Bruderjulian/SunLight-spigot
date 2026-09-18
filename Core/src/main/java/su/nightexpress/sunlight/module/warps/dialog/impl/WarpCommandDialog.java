@@ -53,13 +53,13 @@ public class WarpCommandDialog extends Dialog<Warp> {
 
     private final WarpsModule module;
 
-    public WarpCommandDialog(@NonNull WarpsModule module) {
+    public WarpCommandDialog( WarpsModule module) {
         this.module = module;
     }
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull Warp warp) {
+    
+    public WrappedDialog create( Player player,  Warp warp) {
         return Dialogs.builder()
             .base(DialogBases.builder(TITLE)
                 .body(DialogBodies.plainMessage(BODY))

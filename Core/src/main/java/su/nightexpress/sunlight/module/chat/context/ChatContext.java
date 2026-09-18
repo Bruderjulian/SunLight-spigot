@@ -8,14 +8,14 @@ import su.nightexpress.sunlight.module.chat.cache.UserChatCache;
 
 public abstract class ChatContext {
 
-    protected final Player        player;
+    protected final Player player;
     protected final UserChatCache cache;
-    protected final String        originalMessage;
+    protected final String originalMessage;
 
-    protected String  message;
+    protected String message;
     protected boolean cancelled;
 
-    public ChatContext(@NotNull Player player, @NotNull UserChatCache cache, @NotNull String originalMessage) {
+    public ChatContext(Player player, UserChatCache cache, String originalMessage) {
         this.player = player;
         this.cache = cache;
         this.originalMessage = originalMessage;
@@ -31,32 +31,27 @@ public abstract class ChatContext {
         this.cancelled = true;
     }
 
-    @Nullable
     public abstract CachedContent getLastContent();
 
-    public abstract void setLastContent(@NotNull String message, long lifeTime);
+    public abstract void setLastContent(String message, long lifeTime);
 
-    @NotNull
     public Player getPlayer() {
         return this.player;
     }
 
-    @NotNull
     public UserChatCache getCache() {
         return this.cache;
     }
 
-    @NotNull
     public String getOriginalMessage() {
         return this.originalMessage;
     }
 
-    @NotNull
     public String getMessage() {
         return this.message;
     }
 
-    public void setMessage(@NotNull String message) {
+    public void setMessage(String message) {
         this.message = message;
     }
 }

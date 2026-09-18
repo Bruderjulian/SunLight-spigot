@@ -12,7 +12,7 @@ public class DeathMessagesListener extends AbstractListener<SunLightPlugin> {
 
     private final DeathMessagesModule module;
 
-    public DeathMessagesListener(@NotNull SunLightPlugin plugin, @NotNull DeathMessagesModule module) {
+    public DeathMessagesListener(SunLightPlugin plugin, DeathMessagesModule module) {
         super(plugin);
         this.module = module;
     }
@@ -24,7 +24,8 @@ public class DeathMessagesListener extends AbstractListener<SunLightPlugin> {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onAnvilPlace(BlockPlaceEvent event) {
-        if (!event.getBlock().getType().name().contains("ANVIL")) return;
+        if (!event.getBlock().getType().name().contains("ANVIL"))
+            return;
 
         this.module.trackAnvilPlacement(event.getBlock().getLocation(), event.getPlayer());
     }

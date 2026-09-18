@@ -7,31 +7,27 @@ import org.bukkit.Location;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.sunlight.api.PortableContainer;
 
 public interface SunNMS {
 
-    @NonNull
-    Object fineChatPacket(@NonNull Object packet);
+    Object fineChatPacket(
+            Object packet);
 
-    @NonNull
-    Player loadPlayerData(@NonNull UUID id, @NonNull String name);
+    Player loadPlayerData(UUID id, String name);
 
-    @NonNull
-    Inventory getPlayerInventory(@NonNull Player player);
+    Inventory getPlayerInventory(Player player);
 
-    void openPlayerInventory(@NonNull Player player, @NonNull Player owner);
+    void openPlayerInventory(Player player, Player owner);
 
-    @NonNull
-    Inventory getPlayerEnderChest(@NonNull Player player);
+    Inventory getPlayerEnderChest(Player player);
 
-    void setGameMode(@NonNull Player player, @NonNull GameMode mode);
+    void setGameMode(Player player, GameMode mode);
 
-    void teleport(@NonNull Player player, @NonNull Location location);
+    void teleport(Player player, Location location);
 
-    void openContainer(@NonNull Player player, @NonNull PortableContainer menuType);
+    void openContainer(Player player, PortableContainer menuType);
 
-    void dropFallingContent(@NonNull FallingBlock fallingBlock);
+    void dropFallingContent(FallingBlock fallingBlock);
 }

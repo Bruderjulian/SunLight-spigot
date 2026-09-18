@@ -20,7 +20,7 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
 
     private final SunNMS internals;
 
-    public TeleportManager(@NonNull SunLightPlugin plugin, @Nullable SunNMS internals) {
+    public TeleportManager(SunLightPlugin plugin, SunNMS internals) {
         super(plugin);
         this.internals = internals;
     }
@@ -35,21 +35,24 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
 
     }
 
-    public boolean teleport(@NonNull TeleportContext context, @NonNull TeleportType type) {
+    public boolean teleport(TeleportContext context, TeleportType type) {
         SunlightPlayerTeleportEvent event = new SunlightPlayerTeleportEvent(context, type);
         this.plugin.getPluginManager().callEvent(event);
-        if (event.isIntercepted()) return true;
-        if (event.isCancelled()) return false;
+        if (event.isIntercepted())
+            return true;
+        if (event.isCancelled())
+            return false;
 
         return this.move(context);
     }
 
-    public boolean move(@NonNull TeleportContext context) {
+    public boolean move(TeleportContext context) {
         Location destination = this.getDestination(context);
         if (destination == null) {
-            context.getModule().sendPrefixed(context.hasSender() ? Lang.TELEPORT_UNSAFE_FEEDBACK : Lang.TELEPORT_UNSAFE_NOTIFY, context.getExecutor(), builder -> builder
-                .with(CommonPlaceholders.PLAYER.resolver(context.getTarget()))
-            );
+            context.getModule().sendPrefixed(
+                    context.hasSender() ? Lang.TELEPORT_UNSAFE_FEEDBACK : Lang.TELEPORT_UNSAFE_NOTIFY,
+                    context.getExecutor(), builder -> builder
+                            .with(CommonPlaceholders.PLAYER.resolver(context.getTarget())));
             return false;
         }
 
@@ -58,7 +61,7 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
         return this.moveExact(context);
     }
 
-    public boolean moveExact(@NonNull TeleportContext context) {
+    public boolean moveExact(TeleportContext context) {
         Player player = context.getTarget();
         Location location = context.getDestination();
 
@@ -66,8 +69,7 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
             if (!player.teleport(location)) {
                 return false;
             }
-        }
-        else {
+        } else {
             if (this.internals == null) {
                 context.getModule().sendPrefixed(Lang.TELEPORT_NO_OFFLINE_HANDLER_FEEDBACK, context.getExecutor());
                 return false;
@@ -81,13 +83,14 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
         return true;
     }
 
-    @Nullable
-    private Location getDestination(@NonNull TeleportContext context) {
+    private Location getDestination(TeleportContext context) {
         Location destination = context.getDestination();
-        if (!context.hasFlags()) return destination;
+        if (!context.hasFlags())
+            return destination;
 
         World world = destination.getWorld();
-        if (world == null) return null;
+        if (world == null)
+            return null;
 
         Location location = destination.clone();
 
@@ -98,10 +101,12 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
 
             while (true) {
                 Block relative = block.getRelative(face);
-                if (isSolidBlock(relative) == needSolid) break;
+                if (isSolidBlock(relative) == needSolid)
+                    break;
 
                 int y = relative.getY();
-                if (y < world.getMinHeight() || y > world.getMaxHeight()) return null;
+                if (y < world.getMinHeight() || y > world.getMaxHeight())
+                    return null;
 
                 block = relative;
             }
@@ -131,7 +136,7 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
         return location;
     }
 
-    private static boolean isSolidBlock(@NonNull Block block) {
+    private static boolean isSolidBlock(Block block) {
         return !block.isEmpty() && block.getType().isSolid();
     }
 }

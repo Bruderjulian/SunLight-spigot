@@ -19,22 +19,21 @@ public class ClearChatCommandProvider extends AbstractCommandProvider {
 
     private final ChatModule module;
 
-    public ClearChatCommandProvider(@NotNull SunLightPlugin plugin, @NotNull ChatModule module) {
+    public ClearChatCommandProvider(SunLightPlugin plugin, ChatModule module) {
         super(plugin);
         this.module = module;
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("clearchat", true, new String[]{"clearchat"}, builder -> builder
-            .description(ChatLang.COMMAND_CLEAR_CHAT_DESC)
-            .permission(ChatPerms.COMMAND_CLEARCHAT)
-            .executes(this::clearChat)
-            .withFlags(CommandArguments.FLAG_SILENT)
-        );
+        this.registerLiteral("clearchat", true, new String[] { "clearchat" }, builder -> builder
+                .description(ChatLang.COMMAND_CLEAR_CHAT_DESC)
+                .permission(ChatPerms.COMMAND_CLEARCHAT)
+                .executes(this::clearChat)
+                .withFlags(CommandArguments.FLAG_SILENT));
     }
 
-    private boolean clearChat(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean clearChat(CommandContext context, ParsedArguments arguments) {
         Collection<? extends Player> players = this.plugin.getServer().getOnlinePlayers();
 
         for (int i = 0; i < 100; i++) {
@@ -43,7 +42,7 @@ public class ClearChatCommandProvider extends AbstractCommandProvider {
 
         if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
             this.module.broadcastPrefixed(ChatLang.CLEAR_CHAT_NOTIFY, replacer -> replacer.with(
-                SLPlaceholders.GENERIC_NAME, () -> SLUtils.getSenderName(context.getSender())));
+                    SLPlaceholders.GENERIC_NAME, () -> SLUtils.getSenderName(context.getSender())));
         }
         return true;
     }

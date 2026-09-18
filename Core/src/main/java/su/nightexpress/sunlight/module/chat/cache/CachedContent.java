@@ -6,8 +6,8 @@ import su.nightexpress.nightcore.util.TimeUtil;
 public class CachedContent {
 
     private final String content;
-    private final long   creationTimestamp;
-    private final long   expirationTimestamp;
+    private final long creationTimestamp;
+    private final long expirationTimestamp;
 
     private int count;
 
@@ -18,8 +18,7 @@ public class CachedContent {
         this.count = 1;
     }
 
-    @NotNull
-    public static CachedContent create(@NotNull String content, long lifeTime) {
+    public static CachedContent create(String content, long lifeTime) {
         return new CachedContent(content, System.currentTimeMillis(), TimeUtil.createFutureTimestamp(lifeTime));
     }
 
@@ -31,7 +30,6 @@ public class CachedContent {
         return TimeUtil.isPassed(this.expirationTimestamp);
     }
 
-    @NotNull
     public String content() {
         return this.content;
     }

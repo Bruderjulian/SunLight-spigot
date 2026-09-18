@@ -31,23 +31,24 @@ public class FlySpeedCommandProvider extends AbstractCommandProvider {
 
     // TODO Per speed permission
 
-    private static final Permission PERMISSION        = EssentialPerms.COMMAND.permission("flyspeed");
+    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("flyspeed");
     private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("flyspeed.others");
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.FlySpeed.Desc").text("Change fly speed.");
 
-    private static final MessageLocale MESSAGE_SET_NOTIFY = LangEntry.builder("Command.FlySpeed.Done.Notify").chatMessage(
-        GRAY.wrap("Your fly speed has been set to " + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + ".")
-    );
+    private static final MessageLocale MESSAGE_SET_NOTIFY = LangEntry.builder("Command.FlySpeed.Done.Notify")
+            .chatMessage(
+                    GRAY.wrap("Your fly speed has been set to " + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + "."));
 
-    private static final MessageLocale MESSAGE_SET_FEEDBACK = LangEntry.builder("Command.FlySpeed.Done.Target").chatMessage(
-        GRAY.wrap("You have set " + WHITE.wrap(PLAYER_DISPLAY_NAME) + "'s fly speed to " + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + ".")
-    );
+    private static final MessageLocale MESSAGE_SET_FEEDBACK = LangEntry.builder("Command.FlySpeed.Done.Target")
+            .chatMessage(
+                    GRAY.wrap("You have set " + WHITE.wrap(PLAYER_DISPLAY_NAME) + "'s fly speed to "
+                            + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + "."));
 
     private final EssentialModule module;
     private final UserManager userManager;
 
-    public FlySpeedCommandProvider(@NotNull SunLightPlugin plugin, @NotNull EssentialModule module, @NotNull UserManager userManager) {
+    public FlySpeedCommandProvider(SunLightPlugin plugin, EssentialModule module, UserManager userManager) {
         super(plugin);
         this.module = module;
         this.userManager = userManager;
@@ -55,20 +56,19 @@ public class FlySpeedCommandProvider extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("flyspeed", true, new String[]{"flyspeed"}, builder -> builder
-            .description(DESCRIPTION)
-            .permission(PERMISSION)
-            .withArguments(
-                Arguments.integer(CommandArguments.VALUE, 1)
-                    .suggestions((reader, context) -> IntStream.range(1, SPEEDS_AMOUNT + 1).boxed().map(String::valueOf).toList()),
-                Arguments.playerName(CommandArguments.PLAYER).permission(PERMISSION_OTHERS).optional()
-            )
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes(this::setFlySpeed)
-        );
+        this.registerLiteral("flyspeed", true, new String[] { "flyspeed" }, builder -> builder
+                .description(DESCRIPTION)
+                .permission(PERMISSION)
+                .withArguments(
+                        Arguments.integer(CommandArguments.VALUE, 1)
+                                .suggestions((reader, context) -> IntStream.range(1, SPEEDS_AMOUNT + 1).boxed()
+                                        .map(String::valueOf).toList()),
+                        Arguments.playerName(CommandArguments.PLAYER).permission(PERMISSION_OTHERS).optional())
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes(this::setFlySpeed));
     }
 
-    private boolean setFlySpeed(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean setFlySpeed(CommandContext context, ParsedArguments arguments) {
         return this.loadPlayerOrSenderAndRunInMainThread(context, arguments, this.module, this.userManager, target -> {
             int speed = Math.clamp(arguments.getInt(CommandArguments.VALUE), 1, SPEEDS_AMOUNT);
 
@@ -78,15 +78,13 @@ public class FlySpeedCommandProvider extends AbstractCommandProvider {
 
             if (context.getSender() != target) {
                 this.module.sendPrefixed(MESSAGE_SET_FEEDBACK, context.getSender(), builder -> builder
-                    .with(CommonPlaceholders.PLAYER.resolver(target))
-                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(speed))
-                );
+                        .with(CommonPlaceholders.PLAYER.resolver(target))
+                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(speed)));
             }
 
             if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
                 this.module.sendPrefixed(MESSAGE_SET_NOTIFY, target, builder -> builder
-                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(speed))
-                );
+                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(speed)));
             }
         });
     }

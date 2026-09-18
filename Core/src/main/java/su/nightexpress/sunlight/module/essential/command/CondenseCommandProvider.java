@@ -31,40 +31,41 @@ import static su.nightexpress.sunlight.SLPlaceholders.*;
 
 public class CondenseCommandProvider extends AbstractCommandProvider {
 
-    private static final Permission PERMISSION  = EssentialPerms.COMMAND.permission("condense");
-    private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Condense.Desc").text("Condense items into blocks.");
+    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("condense");
+    private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Condense.Desc")
+            .text("Condense items into blocks.");
 
-    private static final MessageLocale MESSAGE_NOTHING = LangEntry.builder("Command.Condense.Error.Nothing").chatMessage(
-        Sound.ENTITY_VILLAGER_NO,
-        GRAY.wrap("Nothing to condense.")
-    );
+    private static final MessageLocale MESSAGE_NOTHING = LangEntry.builder("Command.Condense.Error.Nothing")
+            .chatMessage(
+                    Sound.ENTITY_VILLAGER_NO,
+                    GRAY.wrap("Nothing to condense."));
 
-    private static final MessageLocale MESSAGE_NOT_ENOUGH = LangEntry.builder("Command.Condense.Error.NotEnough").chatMessage(
-        GRAY.wrap("Not enough items to convert " + RED.wrap(GENERIC_SOURCE) + " to " + RED.wrap(GENERIC_RESULT) + ". Need at least " + RED.wrap(GENERIC_AMOUNT) + ".")
-    );
+    private static final MessageLocale MESSAGE_NOT_ENOUGH = LangEntry.builder("Command.Condense.Error.NotEnough")
+            .chatMessage(
+                    GRAY.wrap("Not enough items to convert " + RED.wrap(GENERIC_SOURCE) + " to "
+                            + RED.wrap(GENERIC_RESULT) + ". Need at least " + RED.wrap(GENERIC_AMOUNT) + "."));
 
     private static final MessageLocale MESSAGE_DONE = LangEntry.builder("Command.Condense.Done").chatMessage(
-        GRAY.wrap("Converted " + SOFT_YELLOW.wrap("x" + GENERIC_TOTAL + " " + GENERIC_SOURCE) + " to " + SOFT_YELLOW.wrap("x" + GENERIC_AMOUNT + " " + GENERIC_RESULT) + ".")
-    );
+            GRAY.wrap("Converted " + SOFT_YELLOW.wrap("x" + GENERIC_TOTAL + " " + GENERIC_SOURCE) + " to "
+                    + SOFT_YELLOW.wrap("x" + GENERIC_AMOUNT + " " + GENERIC_RESULT) + "."));
 
     private final EssentialModule module;
 
-    public CondenseCommandProvider(@NotNull SunLightPlugin plugin, @NotNull EssentialModule module) {
+    public CondenseCommandProvider(SunLightPlugin plugin, EssentialModule module) {
         super(plugin);
         this.module = module;
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("condense", true, new String[]{"condense"}, builder -> builder
-            .description(DESCRIPTION)
-            .permission(PERMISSION)
-            .playerOnly()
-            .executes(this::execute)
-        );
+        this.registerLiteral("condense", true, new String[] { "condense" }, builder -> builder
+                .description(DESCRIPTION)
+                .permission(PERMISSION)
+                .playerOnly()
+                .executes(this::execute));
     }
 
-    private boolean execute(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean execute(CommandContext context, ParsedArguments arguments) {
         Player player = context.getPlayerOrThrow();
 
         boolean done = false;
@@ -72,7 +73,8 @@ public class CondenseCommandProvider extends AbstractCommandProvider {
 
         // Put materials to set to avoid duplicates and 'double' converts
         for (ItemStack userItem : player.getInventory().getContents()) {
-            if (userItem == null || userItem.getType().isAir()) continue;
+            if (userItem == null || userItem.getType().isAir())
+                continue;
             userItems.add(userItem.getType());
         }
 
@@ -84,25 +86,29 @@ public class CondenseCommandProvider extends AbstractCommandProvider {
 
             Iterator<Recipe> iter = plugin.getServer().recipeIterator();
 
-            Label_Recipe:
-            while (iter.hasNext()) {
+            Label_Recipe: while (iter.hasNext()) {
                 Recipe recipe = iter.next();
-                if (!(recipe instanceof ShapedRecipe shapedRecipe)) continue;
+                if (!(recipe instanceof ShapedRecipe shapedRecipe))
+                    continue;
 
                 Collection<ItemStack> recipeItems = shapedRecipe.getIngredientMap().values();
 
                 // Only 'cuboid' crafts.
                 String[] shape = shapedRecipe.getShape();
-                if (shape.length < 2) continue;
+                if (shape.length < 2)
+                    continue;
                 for (String line : shape) {
-                    if (line.length() != shape.length) continue Label_Recipe;
+                    if (line.length() != shape.length)
+                        continue Label_Recipe;
                 }
 
                 // Check for same ingredients
                 int amountPerRecipe = 0;
                 for (ItemStack srcItem : recipeItems) {
-                    if (srcItem == null || srcItem.getType().isAir()) continue;
-                    if (!srcItem.isSimilar(userItem)) continue Label_Recipe;
+                    if (srcItem == null || srcItem.getType().isAir())
+                        continue;
+                    if (!srcItem.isSimilar(userItem))
+                        continue Label_Recipe;
 
                     amountPerRecipe += srcItem.getAmount();
                 }
@@ -115,7 +121,7 @@ public class CondenseCommandProvider extends AbstractCommandProvider {
             }
 
             // Check for valid recipe
-            if (amountPerCraft <= 1/* || recipeResult == null*/) {
+            if (amountPerCraft <= 1/* || recipeResult == null */) {
                 continue;
             }
 
@@ -127,10 +133,9 @@ public class CondenseCommandProvider extends AbstractCommandProvider {
                 int finalAmountPerCraft = amountPerCraft;
                 ItemStack finalRecipeResult = recipeResult;
                 this.module.sendPrefixed(MESSAGE_NOT_ENOUGH, context.getSender(), builder -> builder
-                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(finalAmountPerCraft))
-                    .with(SLPlaceholders.GENERIC_SOURCE, () -> ItemUtil.getItemName(userItem))
-                    .with(SLPlaceholders.GENERIC_RESULT, () -> ItemUtil.getItemName(finalRecipeResult))
-                );
+                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(finalAmountPerCraft))
+                        .with(SLPlaceholders.GENERIC_SOURCE, () -> ItemUtil.getItemName(userItem))
+                        .with(SLPlaceholders.GENERIC_RESULT, () -> ItemUtil.getItemName(finalRecipeResult)));
                 continue;
             }
 
@@ -142,11 +147,10 @@ public class CondenseCommandProvider extends AbstractCommandProvider {
             ItemStack finalRecipeResult1 = recipeResult;
             int finalAmountPerCraft1 = amountPerCraft;
             this.module.sendPrefixed(MESSAGE_DONE, context.getSender(), builder -> builder
-                .with(SLPlaceholders.GENERIC_SOURCE, () -> ItemUtil.getItemName(userItem))
-                .with(SLPlaceholders.GENERIC_RESULT, () -> ItemUtil.getItemName(finalRecipeResult1))
-                .with(SLPlaceholders.GENERIC_TOTAL, () -> String.valueOf(amountCraftCan * finalAmountPerCraft1))
-                .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(amountCraftMin * amountCraftCan))
-            );
+                    .with(SLPlaceholders.GENERIC_SOURCE, () -> ItemUtil.getItemName(userItem))
+                    .with(SLPlaceholders.GENERIC_RESULT, () -> ItemUtil.getItemName(finalRecipeResult1))
+                    .with(SLPlaceholders.GENERIC_TOTAL, () -> String.valueOf(amountCraftCan * finalAmountPerCraft1))
+                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(amountCraftMin * amountCraftCan)));
             done = true;
         }
 

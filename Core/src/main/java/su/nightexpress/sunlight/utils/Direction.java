@@ -17,11 +17,10 @@ public enum Direction {
 
     private final BlockFace bukkit;
 
-    Direction(@NotNull BlockFace bukkit) {
+    Direction(BlockFace bukkit) {
         this.bukkit = bukkit;
     }
 
-    @NotNull
     public BlockFace toBukkit() {
         return this.bukkit;
     }

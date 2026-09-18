@@ -3,9 +3,6 @@ package su.nightexpress.sunlight;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
-
 import su.nightexpress.nightcore.NightPlugin;
 import su.nightexpress.nightcore.commands.Commands;
 import su.nightexpress.nightcore.commands.command.NightCommand;
@@ -65,7 +62,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
     private static SunlightAPI api;
 
     private CommandRegistry commandRegistry;
-    private ModuleRegistry  moduleRegistry;
+    private ModuleRegistry moduleRegistry;
 
     private DataHandler dataHandler;
     private UserManager userManager;
@@ -74,7 +71,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
 
     private SunNMS sunNMS;
 
-    @NonNull
     public static SunlightAPI getAPI() {
         return api;
     }
@@ -84,10 +80,10 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
     }
 
     @Override
-    @NonNull
+
     protected PluginDetails getDefaultDetails() {
-        return PluginDetails.create("SunLight", new String[]{"sunlight", "sl"})
-            .setConfigClass(Config.class);
+        return PluginDetails.create("SunLight", new String[] { "sunlight", "sl" })
+                .setConfigClass(Config.class);
     }
 
     @Override
@@ -119,14 +115,16 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
         this.teleportManager = new TeleportManager(this, this.sunNMS);
         this.teleportManager.setup();
 
-        /*if (this.moduleRegistry.isCompleted()) {
-            this.info("Reloading all modules...");
-            this.moduleRegistry.reload();
-        }
-        else {*/
-        //this.info("Initializing modules...");
+        /*
+         * if (this.moduleRegistry.isCompleted()) {
+         * this.info("Reloading all modules...");
+         * this.moduleRegistry.reload();
+         * }
+         * else {
+         */
+        // this.info("Initializing modules...");
         this.loadModules();
-        //}
+        // }
 
         this.commandRegistry.setup();
         this.registerCommands();
@@ -143,11 +141,16 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
             PlaceholderHook.shutdown();
         }
 
-        if (this.moduleRegistry != null) this.moduleRegistry.clear();
-        if (this.dialogRegistry != null) this.dialogRegistry.clear();
-        if (this.userManager != null) this.userManager.shutdown();
-        if (this.dataHandler != null) this.dataHandler.shutdown();
-        if (this.commandRegistry != null) this.commandRegistry.shutdown();
+        if (this.moduleRegistry != null)
+            this.moduleRegistry.clear();
+        if (this.dialogRegistry != null)
+            this.dialogRegistry.clear();
+        if (this.userManager != null)
+            this.userManager.shutdown();
+        if (this.dataHandler != null)
+            this.dataHandler.shutdown();
+        if (this.commandRegistry != null)
+            this.commandRegistry.shutdown();
     }
 
     @Override
@@ -159,54 +162,57 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
         ModuleLoader loader = new ModuleLoader(this, this.moduleRegistry);
 
         loader.register(ModuleId.WORLDS, ModuleDefinition.named("Worlds"),
-            context -> new WorldsModule(context, this.teleportManager));
+                context -> new WorldsModule(context, this.teleportManager));
 
         loader.register(ModuleId.AFK, ModuleDefinition.named("AFK"), AfkModule::new);
         loader.register(ModuleId.BANS, ModuleDefinition.named("Bans"), BansModule::new);
         loader.register(ModuleId.BACK_LOCATION, ModuleDefinition.named("Back"),
-            context -> new BackLocationModule(context, this.teleportManager));
+                context -> new BackLocationModule(context, this.teleportManager));
         loader.register(ModuleId.CUSTOM_TEXT, ModuleDefinition.named("Custom Text"), TextsModule::new);
         loader.register(ModuleId.CHAT, ModuleDefinition.named("Chat"), ChatModule::new);
         loader.register(ModuleId.DEATH_MESSAGES, ModuleDefinition.named("Death Messages"), DeathMessagesModule::new);
         loader.register(ModuleId.ESSENTIAL, ModuleDefinition.named("Essential"),
-            context -> new EssentialModule(context, this.teleportManager));
+                context -> new EssentialModule(context, this.teleportManager));
         loader.register(ModuleId.EXTRAS, ModuleDefinition.named("Extras"), ExtrasModule::new);
         loader.register(ModuleId.GREETINGS, ModuleDefinition.named("Greetings"), GreetingsModule::new);
         loader.register(ModuleId.HOMES, ModuleDefinition.named("Homes"),
-            context -> new HomesModule(context, this.teleportManager));
+                context -> new HomesModule(context, this.teleportManager));
         loader.register(ModuleId.INVENTORIES, ModuleDefinition.named("Inventories"),
-            context -> new InventoriesModule(context, this.sunNMS));
+                context -> new InventoriesModule(context, this.sunNMS));
         loader.register(ModuleId.ITEMS, ModuleDefinition.named("Items"), ItemsModule::new);
         loader.register(ModuleId.KITS, ModuleDefinition.named("Kits"), KitsModule::new);
         loader.register(ModuleId.NAME_TAGS, ModuleDefinition.named("Nametags"), NametagsModule::new,
-            LoadCondition::packetLibrary);
+                LoadCondition::packetLibrary);
         loader.register(ModuleId.NERF_PHANTOMS, ModuleDefinition.named("Nerf Phantoms"), PhantomsModule::new);
         loader.register(ModuleId.PLAYER_WARPS, ModuleDefinition.named("Player Warps"),
-            context -> new PlayerWarpsModule(context, this.teleportManager));
+                context -> new PlayerWarpsModule(context, this.teleportManager));
         loader.register(ModuleId.PTP, ModuleDefinition.named("PTP"),
-            context -> new PTPModule(context, this.teleportManager));
+                context -> new PTPModule(context, this.teleportManager));
         loader.register(ModuleId.RTP, ModuleDefinition.named("RTP"),
-            context -> new RTPModule(context, this.teleportManager));
+                context -> new RTPModule(context, this.teleportManager));
         loader.register(ModuleId.SCHEDULER, ModuleDefinition.named("Scheduler"), SchedulerModule::new);
         loader.register(ModuleId.SPAWNS, ModuleDefinition.named("Spawn"),
-            context -> new SpawnsModule(context, this.teleportManager));
+                context -> new SpawnsModule(context, this.teleportManager));
         loader.register(ModuleId.VANISH, ModuleDefinition.named("Vanish"), VanishModule::new);
         loader.register(ModuleId.WARMUPS, ModuleDefinition.named("Warmups"),
-            context -> new WarmupsModule(context, this.teleportManager));
+                context -> new WarmupsModule(context, this.teleportManager));
         loader.register(ModuleId.WARPS, ModuleDefinition.named("Warps"),
-            context -> new WarpsModule(context, this.teleportManager));
+                context -> new WarpsModule(context, this.teleportManager));
 
-        //loader.register(ModuleId.SPAWNERS, ModuleDefinition.named("Spawners"), SpawnersModule::new);
-        //loader.register(ModuleId.SOCIALS, ModuleDefinition.named("Socials"), SocialsModule::new);
+        // loader.register(ModuleId.SPAWNERS, ModuleDefinition.named("Spawners"),
+        // SpawnersModule::new);
+        // loader.register(ModuleId.SOCIALS, ModuleDefinition.named("Socials"),
+        // SocialsModule::new);
 
         loader.loadAll();
     }
 
     @Override
-    @NonNull
-    public ModuleContext createModuleContext(@NonNull String id, @NonNull Path path,
-                                             @NonNull ModuleDefinition definition) {
-        return new ModuleContext(this, this.dataHandler, this.userManager, this.commandRegistry, this.dialogRegistry, id, path, definition);
+
+    public ModuleContext createModuleContext(String id, Path path,
+            ModuleDefinition definition) {
+        return new ModuleContext(this, this.dataHandler, this.userManager, this.commandRegistry, this.dialogRegistry,
+                id, path, definition);
     }
 
     private void setupInternalNMS() {
@@ -225,8 +231,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
                 case MC_1_21_11 -> new MC_1_21_11();
                 default -> new NMSv26p1();
             };
-        }
-        catch (Exception | NoClassDefFoundError e) {
+        } catch (Exception | NoClassDefFoundError e) {
             e.printStackTrace();
         }
 
@@ -239,26 +244,23 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
         try {
             Class.forName("io.papermc.paper.configuration.GlobalConfiguration");
             return true;
-        }
-        catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             return false;
         }
     }
 
     private void registerCommands() {
         this.rootCommand = NightCommand.forPlugin(this, builder -> builder
-            .branch(Commands.literal("reload")
-                .description(CoreLang.COMMAND_RELOAD_DESC)
-                .permission(Perms.COMMAND_RELOAD)
-                .executes((context, arguments) -> {
-                    this.doReload(context.getSender());
-                    return true;
-                })
-            )
-        );
+                .branch(Commands.literal("reload")
+                        .description(CoreLang.COMMAND_RELOAD_DESC)
+                        .permission(Perms.COMMAND_RELOAD)
+                        .executes((context, arguments) -> {
+                            this.doReload(context.getSender());
+                            return true;
+                        })));
     }
 
-    private void registerPermissions(@NonNull PermissionTree tree) {
+    private void registerPermissions(PermissionTree tree) {
         tree.toList().forEach(permission -> {
             if (this.getPluginManager().getPermission(permission.getName()) == null) {
                 this.getPluginManager().addPermission(permission);
@@ -266,49 +268,42 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
         });
     }
 
-    @NonNull
     public DataHandler getData() {
         return this.dataHandler;
     }
 
-    @NonNull
     public UserManager getUserManager() {
         return userManager;
     }
 
-    @NonNull
     public ModuleRegistry getModuleRegistry() {
         return this.moduleRegistry;
     }
 
-    @Nullable
     public SunNMS getInternals() {
         return this.sunNMS;
     }
 
-    @NonNull
     public Optional<SunNMS> internals() {
         return Optional.ofNullable(this.sunNMS);
     }
 
-    @NonNull
     public CommandRegistry getCommandRegistry() {
         return this.commandRegistry;
     }
 
-    @NonNull
     public TeleportManager getTeleportManager() {
         return this.teleportManager;
     }
 
     @Override
-    @NonNull
+
     public Optional<? extends AfkProvider> afkProvider() {
         return this.moduleRegistry.byType(AfkModule.class);
     }
 
     @Override
-    @NonNull
+
     public Optional<? extends VanishProvider> vanishProvider() {
         return this.moduleRegistry.byType(VanishModule.class);
     }

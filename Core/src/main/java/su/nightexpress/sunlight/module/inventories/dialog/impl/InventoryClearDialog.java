@@ -22,7 +22,7 @@ public class InventoryClearDialog extends Dialog<InventoryClearDialog.ClearReque
         ENDER_CHEST
     }
 
-    public record ClearRequest(@NonNull Player target, @NonNull ClearType type) {
+    public record ClearRequest( Player target,  ClearType type) {
 
     }
 
@@ -42,8 +42,8 @@ public class InventoryClearDialog extends Dialog<InventoryClearDialog.ClearReque
     );
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player viewer, @NonNull ClearRequest request) {
+    
+    public WrappedDialog create( Player viewer,  ClearRequest request) {
         DialogElementLocale body = request.type() == ClearType.INVENTORY ? BODY_INVENTORY : BODY_ENDER_CHEST;
 
         return Dialogs.builder()

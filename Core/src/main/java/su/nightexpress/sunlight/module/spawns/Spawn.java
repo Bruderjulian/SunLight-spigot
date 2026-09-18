@@ -22,19 +22,19 @@ public class Spawn implements PlaceholderResolvable {
     private final String id;
     private final Path file;
 
-    private String    name;
-    private ExactPos  blockPos;
-    private String    worldName;
+    private String name;
+    private ExactPos blockPos;
+    private String worldName;
     private NightItem icon;
-    private boolean   permissionRequired;
-    private int       priority;
+    private boolean permissionRequired;
+    private int priority;
     private SpawnRule loginRule;
     private SpawnRule respawnRule;
 
     private World world;
     private boolean dirty;
 
-    public Spawn(@NotNull String id, @NotNull Path file) {
+    public Spawn(String id, Path file) {
         this.id = id;
         this.file = file;
     }
@@ -43,11 +43,12 @@ public class Spawn implements PlaceholderResolvable {
         FileConfig.load(this.file).edit(this::load);
     }
 
-    public boolean load(@NotNull FileConfig config) {
+    public boolean load(FileConfig config) {
         String locationStr = config.getString("Location");
         if (locationStr != null) {
             String[] split = locationStr.split(",");
-            if (split.length != 6) return false;
+            if (split.length != 6)
+                return false;
 
             String world = split[5];
             ExactPos pos = ExactPos.deserialize(locationStr);
@@ -84,12 +85,13 @@ public class Spawn implements PlaceholderResolvable {
 
         this.setLoginRule(SpawnRule.read(config, "Rules.Login"));
         this.setRespawnRule(SpawnRule.read(config, "Rules.Respawn"));
-        
+
         return true;
     }
 
     public void saveIfDirty() {
-        if (!this.dirty) return;
+        if (!this.dirty)
+            return;
 
         this.save();
         this.markClean();
@@ -99,7 +101,7 @@ public class Spawn implements PlaceholderResolvable {
         FileConfig.load(this.file).edit(this::writeToFile);
     }
 
-    public void writeToFile(@NotNull FileConfig config) {
+    public void writeToFile(FileConfig config) {
         config.set("Name", this.name);
         config.set("World", this.worldName);
         config.set("Icon", this.icon);
@@ -111,26 +113,27 @@ public class Spawn implements PlaceholderResolvable {
     }
 
     @Override
-    @NotNull
+
     public PlaceholderResolver placeholders() {
         return SpawnsPlaceholders.SPAWN.resolver(this);
     }
 
-    public boolean isAvailableForRespawn(@NotNull Player player) {
+    public boolean isAvailableForRespawn(Player player) {
         return this.hasPermission(player) && this.respawnRule.isApplicable(player);
     }
 
-    public boolean isAvailableForJoin(@NotNull Player player) {
+    public boolean isAvailableForJoin(Player player) {
         return this.hasPermission(player) && this.loginRule.isApplicable(player);
     }
 
-    public boolean hasPermission(@NotNull Player player) {
-        if (!this.isPermissionRequired()) return true;
+    public boolean hasPermission(Player player) {
+        if (!this.isPermissionRequired())
+            return true;
 
         return SpawnsPerms.SPAWN.hasChildAccess(player, this.getId());
     }
 
-    public boolean isWorld(@NotNull World world) {
+    public boolean isWorld(World world) {
         return this.worldName.equalsIgnoreCase(world.getName());
     }
 
@@ -139,7 +142,7 @@ public class Spawn implements PlaceholderResolvable {
         return world != null && this.activate(world);
     }
 
-    public boolean activate(@NotNull World world) {
+    public boolean activate(World world) {
         if (this.isWorld(world)) {
             this.world = world;
             return true;
@@ -155,23 +158,24 @@ public class Spawn implements PlaceholderResolvable {
         return this.world != null;
     }
 
-    @NotNull
     public World getWorld() {
-        if (!this.isActive()) throw new IllegalStateException("Spawn is not active!");
+        if (!this.isActive())
+            throw new IllegalStateException("Spawn is not active!");
 
         return this.world;
     }
 
-    @NotNull
     public Location getLocation() {
-        if (!this.isActive()) throw new IllegalStateException("Spawn is not active!");
+        if (!this.isActive())
+            throw new IllegalStateException("Spawn is not active!");
 
         return this.blockPos.toLocation(this.world);
     }
 
-    public void setLocation(@NotNull Location location) {
+    public void setLocation(Location location) {
         World locWorld = location.getWorld();
-        if (locWorld == null) return;
+        if (locWorld == null)
+            return;
 
         this.worldName = locWorld.getName();
         this.blockPos = ExactPos.from(location);
@@ -189,41 +193,35 @@ public class Spawn implements PlaceholderResolvable {
         this.dirty = false;
     }
 
-    @NotNull
     public String getId() {
         return this.id;
     }
 
-    @NotNull
     public Path getFile() {
         return this.file;
     }
 
-    @NotNull
     public String getWorldName() {
         return worldName;
     }
 
-    @NotNull
     public ExactPos getBlockPos() {
         return this.blockPos;
     }
 
-    @NotNull
     public String getName() {
         return this.name;
     }
 
-    public void setName(@NotNull String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    @NotNull
     public NightItem getIcon() {
         return this.icon.copy();
     }
 
-    public void setIcon(@NotNull NightItem icon) {
+    public void setIcon(NightItem icon) {
         this.icon = icon.copy();
     }
 
@@ -243,21 +241,19 @@ public class Spawn implements PlaceholderResolvable {
         this.priority = priority;
     }
 
-    @NotNull
     public SpawnRule getLoginRule() {
         return this.loginRule;
     }
 
-    public void setLoginRule(@NotNull SpawnRule loginRule) {
+    public void setLoginRule(SpawnRule loginRule) {
         this.loginRule = loginRule;
     }
 
-    @NotNull
     public SpawnRule getRespawnRule() {
         return this.respawnRule;
     }
 
-    public void setRespawnRule(@NotNull SpawnRule respawnRule) {
+    public void setRespawnRule(SpawnRule respawnRule) {
         this.respawnRule = respawnRule;
     }
 }

@@ -61,15 +61,15 @@ public class NMSv26p1 implements SunNMS {
         Inventory.class, ServerPlayer.class, net.minecraft.world.inventory.MenuType.class);
 
     @Override
-    public void dropFallingContent(@NonNull FallingBlock fallingBlock) {
+    public void dropFallingContent( FallingBlock fallingBlock) {
         CraftFallingBlock craftBlock = (CraftFallingBlock) fallingBlock;
         FallingBlockEntity nmsBlock = craftBlock.getHandle();
 
         nmsBlock.spawnAtLocation((ServerLevel) nmsBlock.level(), nmsBlock.getBlockState().getBlock());
     }
 
-    @NonNull
-    public Object fineChatPacket(@NonNull Object packet) {
+    
+    public Object fineChatPacket( Object packet) {
         ClientboundPlayerChatPacket chatPacket = (ClientboundPlayerChatPacket) packet;
         Component component = chatPacket.unsignedContent() == null ? Component.literal(chatPacket.body()
             .content()) : chatPacket.unsignedContent();
@@ -84,8 +84,8 @@ public class NMSv26p1 implements SunNMS {
     }
 
     @Override
-    @NonNull
-    public Player loadPlayerData(@NonNull UUID id, @NonNull String name) {
+    
+    public Player loadPlayerData( UUID id,  String name) {
         CraftServer craftServer = (CraftServer) Bukkit.getServer();
         DedicatedServer server = craftServer.getServer();
         DedicatedPlayerList playerList = craftServer.getHandle();
@@ -110,7 +110,7 @@ public class NMSv26p1 implements SunNMS {
     }
 
     @Override
-    public void setGameMode(@NonNull Player player, org.bukkit.@NonNull GameMode mode) {
+    public void setGameMode( Player player, org.bukkit. GameMode mode) {
         CraftPlayer craftPlayer = (CraftPlayer) player;
         ServerPlayer serverPlayer = craftPlayer.getHandle();
 
@@ -122,7 +122,7 @@ public class NMSv26p1 implements SunNMS {
     }
 
     @Override
-    public void teleport(@NonNull Player player, @NonNull Location location) {
+    public void teleport( Player player,  Location location) {
         CraftPlayer craftPlayer = (CraftPlayer) player;
         ServerPlayer serverPlayer = craftPlayer.getHandle();
         serverPlayer.setPosRaw(location.getX(), location.getY(), location.getZ());
@@ -134,19 +134,19 @@ public class NMSv26p1 implements SunNMS {
     }
 
     @Override
-    @NonNull
-    public Inventory getPlayerEnderChest(@NonNull Player player) {
+    
+    public Inventory getPlayerEnderChest( Player player) {
         return new PlayerEnderChest((CraftPlayer) player).getInventory();
     }
 
     @Override
-    @NonNull
-    public Inventory getPlayerInventory(@NonNull Player player) {
+    
+    public Inventory getPlayerInventory( Player player) {
         return new PlayerInventory((CraftPlayer) player).getInventory();
     }
 
     @Override
-    public void openPlayerInventory(@NonNull Player player, @NonNull Player owner) {
+    public void openPlayerInventory( Player player,  Player owner) {
         Inventory inventory = this.getPlayerInventory(owner);  // Patched CraftInventory used here to prevent inventory type & size mismatch.
         CraftPlayer craftPlayer = (CraftPlayer) player;
         ServerPlayer serverPlayer = craftPlayer.getHandle();
@@ -159,14 +159,14 @@ public class NMSv26p1 implements SunNMS {
     }
 
     @Override
-    public void openContainer(@NonNull Player player, @NonNull PortableContainer menuType) {
+    public void openContainer( Player player,  PortableContainer menuType) {
         AbstractContainerMenu menu = this.createContainer(menuType, player);
 
         player.openInventory(menu.getBukkitView());
     }
 
-    @NonNull
-    private AbstractContainerMenu createContainer(@NonNull PortableContainer type, @NonNull Player player) {
+    
+    private AbstractContainerMenu createContainer( PortableContainer type,  Player player) {
         CraftPlayer craftPlayer = (CraftPlayer) player;
         ServerPlayer nmsPlayer = craftPlayer.getHandle();
         int contId = nmsPlayer.nextContainerCounter();

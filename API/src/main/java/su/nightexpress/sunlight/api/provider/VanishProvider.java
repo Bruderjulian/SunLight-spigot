@@ -5,5 +5,5 @@ import org.jspecify.annotations.NonNull;
 
 public interface VanishProvider {
 
-    boolean isVanished(@NonNull Player player);
+    boolean isVanished( Player player);
 }

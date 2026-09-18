@@ -31,24 +31,25 @@ import su.nightexpress.sunlight.user.UserManager;
 
 public class MentionProcessor implements MessageProcessor {
 
-    private final Pattern                  pattern;
-    private final UserManager              userManager;
+    private final Pattern pattern;
+    private final UserManager userManager;
     private final Map<String, ChatMention> mentions;
 
-    public MentionProcessor(@NonNull Pattern pattern, @NonNull UserManager userManager) {
+    public MentionProcessor(Pattern pattern, UserManager userManager) {
         this.pattern = pattern;
         this.userManager = userManager;
         this.mentions = new HashMap<>();
     }
 
     @Override
-    public void preProcess(@NonNull ChatModule module, @NonNull MessageContext context) {
+    public void preProcess(ChatModule module, MessageContext context) {
         Player player = context.getPlayer();
         UserChatCache cache = context.getCache();
         String format = context.getFormat();
 
-        int mentionsLimit = player.hasPermission(ChatPerms.BYPASS_MENTION_AMOUNT) ? -1 : module.getSettings()
-            .getMentionsLimit();
+        int mentionsLimit = player.hasPermission(ChatPerms.BYPASS_MENTION_AMOUNT) ? -1
+                : module.getSettings()
+                        .getMentionsLimit();
         int mentionsCount = 0;
 
         Matcher matcher = this.pattern.matcher(format);
@@ -83,10 +84,9 @@ public class MentionProcessor implements MessageProcessor {
 
             if (cache.hasMentionCooldown(mentionName)) {
                 module.sendPrefixed(ChatLang.MENTION_ERROR_COOLDOWN, player, replacer -> replacer
-                    .with(SLPlaceholders.GENERIC_TIME, () -> TimeFormats.formatDuration(cache
-                        .getMentionCooldownTimestamp(mentionName), TimeFormatType.LITERAL))
-                    .with(SLPlaceholders.GENERIC_NAME, () -> mentionName)
-                );
+                        .with(SLPlaceholders.GENERIC_TIME, () -> TimeFormats.formatDuration(cache
+                                .getMentionCooldownTimestamp(mentionName), TimeFormatType.LITERAL))
+                        .with(SLPlaceholders.GENERIC_NAME, () -> mentionName));
                 appendRaw.run();
                 continue;
             }
@@ -102,7 +102,7 @@ public class MentionProcessor implements MessageProcessor {
     }
 
     @Override
-    public void postProcess(@NonNull ChatModule module, @NonNull MessageContext context) {
+    public void postProcess(ChatModule module, MessageContext context) {
         Player player = context.getPlayer();
         Set<Player> targets = new HashSet<>();
 
@@ -125,17 +125,19 @@ public class MentionProcessor implements MessageProcessor {
         });
 
         module.sendPrefixed(ChatLang.MENTION_NOTIFY, targets, replacer -> replacer.with(CommonPlaceholders.PLAYER
-            .resolver(context.getPlayer())));
+                .resolver(context.getPlayer())));
     }
 
-    @Nullable
-    private ChatMention getMention(@NonNull ChatModule module, @NonNull MessageContext context, @NonNull String name) {
+    private ChatMention getMention(ChatModule module, MessageContext context, String name) {
         ChatMention mention = module.getSettings().getCustomMentions().get(LowerCase.INTERNAL.apply(name));
-        if (mention != null) return mention;
+        if (mention != null)
+            return mention;
 
         Player player = Bukkit.getPlayerExact(name);
-        if (player == null) return null;
-        if (!context.getViewers().contains(player)) return null;
+        if (player == null)
+            return null;
+        if (!context.getViewers().contains(player))
+            return null;
 
         String format = CommonPlaceholders.PLAYER.replacer(player).apply(module.getSettings().getMentionsFormat());
 

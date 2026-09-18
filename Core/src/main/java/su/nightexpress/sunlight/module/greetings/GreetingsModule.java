@@ -28,13 +28,13 @@ public class GreetingsModule extends Module {
 
     private final GreetingsSettings settings;
 
-    public GreetingsModule(@NotNull ModuleContext context) {
+    public GreetingsModule(ModuleContext context) {
         super(context);
         this.settings = new GreetingsSettings();
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) throws ModuleLoadException {
+    protected void loadModule(FileConfig config) throws ModuleLoadException {
         this.settings.load(config);
 
         this.addListener(new GreetingsListener(this.plugin, this));
@@ -46,12 +46,12 @@ public class GreetingsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
 
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 
@@ -60,23 +60,25 @@ public class GreetingsModule extends Module {
 
     }
 
-    public void handleJoinEvent(@NotNull PlayerJoinEvent event) {
+    public void handleJoinEvent(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
         MessageType type = MessageType.JOIN;
-        if (this.userManager.getOrFetch(player).isFirstTimeJoined() && this.getAvailableMessage(player, MessageType.FIRST_JOIN) != null) {
+        if (this.userManager.getOrFetch(player).isFirstTimeJoined()
+                && this.getAvailableMessage(player, MessageType.FIRST_JOIN) != null) {
             type = MessageType.FIRST_JOIN;
         }
 
         this.setEventMessage(player, type, component -> EventUtils.getAdapter().setJoinMessage(event, component));
     }
 
-    public void handleQuitEvent(@NotNull PlayerQuitEvent event) {
+    public void handleQuitEvent(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        this.setEventMessage(player, MessageType.QUIT, component -> EventUtils.getAdapter().setQuitMessage(event, component));
+        this.setEventMessage(player, MessageType.QUIT,
+                component -> EventUtils.getAdapter().setQuitMessage(event, component));
     }
 
-    private void setEventMessage(@NotNull Player player, @NotNull MessageType type, @NotNull Consumer<NightComponent> consumer) {
+    private void setEventMessage(Player player, MessageType type, Consumer<NightComponent> consumer) {
         GreetingMessage message = this.getAvailableMessage(player, type);
         if (message == null) {
             consumer.accept(null);
@@ -84,40 +86,35 @@ public class GreetingsModule extends Module {
         }
 
         PlaceholderContext context = PlaceholderContext.builder()
-            .with(CommonPlaceholders.PLAYER.resolver(player))
-            .andThen(CommonPlaceholders.forPlaceholderAPI(player))
-            .build();
+                .with(CommonPlaceholders.PLAYER.resolver(player))
+                .andThen(CommonPlaceholders.forPlaceholderAPI(player))
+                .build();
 
         NightComponent component = NightMessage.parse(context.apply(message.getMessage()));
         consumer.accept(component);
     }
 
-    @NotNull
-    public Set<GreetingMessage> getMessages(@NotNull MessageType type) {
+    public Set<GreetingMessage> getMessages(MessageType type) {
         return Set.copyOf(this.settings.getMessages(type).values());
     }
 
-    @Nullable
-    public GreetingMessage getJoinMessage(@NotNull Player player) {
+    public GreetingMessage getJoinMessage(Player player) {
         return this.getAvailableMessage(player, MessageType.JOIN);
     }
 
-    @Nullable
-    public GreetingMessage getFirstJoinMessage(@NotNull Player player) {
+    public GreetingMessage getFirstJoinMessage(Player player) {
         return this.getAvailableMessage(player, MessageType.FIRST_JOIN);
     }
 
-    @Nullable
-    public GreetingMessage getQuitMessage(@NotNull Player player) {
+    public GreetingMessage getQuitMessage(Player player) {
         return this.getAvailableMessage(player, MessageType.QUIT);
     }
 
-    @Nullable
-    public GreetingMessage getAvailableMessage(@NotNull Player player, @NotNull MessageType type) {
+    public GreetingMessage getAvailableMessage(Player player, MessageType type) {
         return this.getMessages(type)
-            .stream()
-            .filter(message -> message.isApplicable(player))
-            .max(Comparator.comparingInt(GreetingMessage::getPriority))
-            .orElse(null);
+                .stream()
+                .filter(message -> message.isApplicable(player))
+                .max(Comparator.comparingInt(GreetingMessage::getPriority))
+                .orElse(null);
     }
 }

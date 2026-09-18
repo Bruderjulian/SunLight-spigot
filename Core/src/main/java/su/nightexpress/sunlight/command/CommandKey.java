@@ -2,17 +2,15 @@ package su.nightexpress.sunlight.command;
 
 import org.jetbrains.annotations.NotNull;
 
-public record CommandKey(@NotNull String providerId, @NotNull String nodeId) {
+public record CommandKey(String providerId, String nodeId) {
 
     private static final String DELIMITER = ":";
 
-    @NotNull
     public String toKeyString() {
         return this.providerId + DELIMITER + this.nodeId;
     }
 
-    @NotNull
-    public static CommandKey fromKeyString(@NotNull String string) {
+    public static CommandKey fromKeyString(String string) {
         String[] parts = string.split(DELIMITER, 2);
 
         if (parts.length < 2) {

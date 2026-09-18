@@ -20,22 +20,22 @@ import java.util.function.Supplier;
 public class SunUser extends UserTemplate {
 
     private final Map<CommandKey, Long> commandCooldowns;
-    private final Map<String, Object>   properties;
+    private final Map<String, Object> properties;
     private final Map<Class<? extends UserCacheContainer>, UserCacheContainer> caches;
 
     private final long dateCreated;
 
     private InetAddress latestAddress;
-    private boolean     firstTimeJoined;
-    private long        lastOnline;
+    private boolean firstTimeJoined;
+    private long lastOnline;
 
-    public SunUser(@NonNull UUID uuid,
-                   @NonNull String name,
-                   long dateCreated,
-                   long lastOnline,
-                   @Nullable InetAddress latestAddress,
-                   @NonNull Map<CommandKey, Long> commandCooldowns,
-                   @NonNull Map<String, Object> properties) {
+    public SunUser(UUID uuid,
+            String name,
+            long dateCreated,
+            long lastOnline,
+            InetAddress latestAddress,
+            Map<CommandKey, Long> commandCooldowns,
+            Map<String, Object> properties) {
         super(uuid, name);
 
         this.commandCooldowns = commandCooldowns;
@@ -48,7 +48,7 @@ public class SunUser extends UserTemplate {
         this.caches = new ConcurrentHashMap<>();
     }
 
-    public void updateFrom(@NonNull SunUser other) {
+    public void updateFrom(SunUser other) {
         this.commandCooldowns.clear();
         this.properties.clear();
 
@@ -56,10 +56,10 @@ public class SunUser extends UserTemplate {
         this.properties.putAll(other.properties);
     }
 
-    @NonNull
-    public <T extends UserCacheContainer> Optional<T> getCache(@NonNull Class<T> type) {
+    public <T extends UserCacheContainer> Optional<T> getCache(Class<T> type) {
         UserCacheContainer container = this.caches.get(type);
-        if (container == null) return Optional.empty();
+        if (container == null)
+            return Optional.empty();
 
         T cache = type.cast(container);
         cache.clearExpired();
@@ -67,8 +67,7 @@ public class SunUser extends UserTemplate {
         return Optional.of(cache);
     }
 
-    @NonNull
-    public <T extends UserCacheContainer> T getCacheOrCreate(@NonNull Class<T> type, @NonNull Supplier<T> supplier) {
+    public <T extends UserCacheContainer> T getCacheOrCreate(Class<T> type, Supplier<T> supplier) {
         if (this.caches.containsKey(type)) {
             return this.getCache(type).orElseThrow();
         }
@@ -79,80 +78,75 @@ public class SunUser extends UserTemplate {
         return cache;
     }
 
-    @NonNull
     public Map<String, Object> getProperties() {
         return this.properties;
     }
 
-    @NonNull
     public Map<String, Object> getPropertiesToSave() {
         Map<String, Object> map = new HashMap<>();
         for (UserProperty<?> property : UserPropertyRegistry.values()) {
-            if (!property.isPersistent()) continue;
+            if (!property.isPersistent())
+                continue;
 
             Object value = this.properties.get(property.getName());
-            if (value == null) continue;
+            if (value == null)
+                continue;
 
             map.put(property.getName(), value);
         }
         return map;
     }
 
-    public <T> boolean hasProperty(@NonNull UserProperty<T> property) {
+    public <T> boolean hasProperty(UserProperty<T> property) {
         return this.properties.containsKey(property.getName());
     }
 
-    public <T> void setProperty(@NonNull UserProperty<T> property, @NonNull T value) {
+    public <T> void setProperty(UserProperty<T> property, T value) {
         this.properties.put(property.getName(), value);
     }
 
-    @NonNull
-    public <T> T getPropertyOrDefault(@NonNull UserProperty<T> property) {
+    public <T> T getPropertyOrDefault(UserProperty<T> property) {
         return this.getPropertyOr(property, property.getDefaultValue());
     }
 
-    @NonNull
-    public <T> T getPropertyOr(@NonNull UserProperty<T> property, @NonNull T defaultvalue) {
+    public <T> T getPropertyOr(UserProperty<T> property, T defaultvalue) {
         return this.getProperty(property.getName(), property.getType(), defaultvalue);
     }
 
-    @NonNull
-    public <T> T getProperty(@NonNull String name, @NonNull Class<T> type, @NonNull T defaultValue) {
+    public <T> T getProperty(String name, Class<T> type, T defaultValue) {
         String key = LowerCase.INTERNAL.apply(name);
 
         Object value = this.properties.get(key);
-        if (value == null) return defaultValue;
+        if (value == null)
+            return defaultValue;
 
         if (!type.isAssignableFrom(value.getClass())) {
-            throw new IllegalArgumentException("User property '%s' is defined as %s, not %s".formatted(name, value.getClass().getSimpleName(), type.getSimpleName()));
+            throw new IllegalArgumentException("User property '%s' is defined as %s, not %s".formatted(name,
+                    value.getClass().getSimpleName(), type.getSimpleName()));
         }
 
         return type.cast(value);
     }
 
-    public <T> void removeProperty(@NonNull UserProperty<T> property) {
+    public <T> void removeProperty(UserProperty<T> property) {
         this.removeProperty(property.getName());
     }
 
-    public void removeProperty(@NonNull String property) {
+    public void removeProperty(String property) {
         this.properties.remove(LowerCase.INTERNAL.apply(property));
     }
 
-    @Nullable
-    public Long getCommandCooldown(@NonNull CommandKey key) {
+    public Long getCommandCooldown(CommandKey key) {
         return this.commandCooldowns.get(key);
     }
 
-    public void setCommandCooldown(@NonNull CommandKey key, long expireDate) {
+    public void setCommandCooldown(CommandKey key, long expireDate) {
         this.commandCooldowns.put(key, expireDate);
     }
-    
-    @NonNull
+
     public Map<CommandKey, Long> getCommandCooldowns() {
         return this.commandCooldowns;
     }
-    
-
 
     public void setFirstTimeJoined(boolean firstTimeJoined) {
         this.firstTimeJoined = firstTimeJoined;
@@ -166,8 +160,6 @@ public class SunUser extends UserTemplate {
         return !this.firstTimeJoined;
     }
 
-
-
     public long getDateCreated() {
         return this.dateCreated;
     }
@@ -179,13 +171,12 @@ public class SunUser extends UserTemplate {
     public void setLastOnline(long lastOnline) {
         this.lastOnline = lastOnline;
     }
-    
-    @NonNull
+
     public Optional<InetAddress> getLatestAddress() {
         return Optional.ofNullable(this.latestAddress);
     }
 
-    public void setLatestAddress(@Nullable InetAddress address) {
+    public void setLatestAddress(InetAddress address) {
         this.latestAddress = address;
     }
 }

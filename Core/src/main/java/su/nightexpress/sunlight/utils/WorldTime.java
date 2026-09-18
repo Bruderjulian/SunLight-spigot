@@ -14,7 +14,6 @@ public class WorldTime {
         return Math.clamp(ticks, MIN_TICKS, MAX_TICKS);
     }
 
-    @NotNull
     public static LocalTime getTimeOfTicks(long ticks) {
         double point = ticks * 3.6;
 

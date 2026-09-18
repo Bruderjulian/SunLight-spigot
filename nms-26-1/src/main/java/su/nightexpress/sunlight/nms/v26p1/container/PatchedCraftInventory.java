@@ -13,7 +13,7 @@ public class PatchedCraftInventory extends CraftInventory {
     }
 
     @Override
-    @NonNull
+    
     public InventoryType getType() {
         // Force tell that it's a custom chest and not PLAYER type inventory.
         // Otherwise an error is thrown sometimes due to CraftContainer.getNotchInventoryType in the CraftContainer constructor.

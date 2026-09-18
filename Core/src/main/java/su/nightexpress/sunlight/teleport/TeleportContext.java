@@ -14,20 +14,20 @@ import java.util.function.Supplier;
 
 public class TeleportContext {
 
-    private final Module                module;
-    private final CommandSender         sender;
-    private final Player                target;
+    private final Module module;
+    private final CommandSender sender;
+    private final Player target;
     private final EnumSet<TeleportFlag> flags;
-    private final Runnable              callback;
+    private final Runnable callback;
 
     private Location destination;
 
-    public TeleportContext(@NonNull Module module,
-                           @Nullable CommandSender sender,
-                           @NonNull Player target,
-                           @NonNull Location destination,
-                           @NonNull EnumSet<TeleportFlag> flags,
-                           @Nullable Runnable callback) {
+    public TeleportContext(Module module,
+            CommandSender sender,
+            Player target,
+            Location destination,
+            EnumSet<TeleportFlag> flags,
+            Runnable callback) {
         this.module = module;
         this.sender = sender;
         this.target = target;
@@ -37,8 +37,7 @@ public class TeleportContext {
         this.setDestination(destination);
     }
 
-    @NonNull
-    public static Builder builder(@NonNull Module module, @NonNull Player target, @NonNull Location destination) {
+    public static Builder builder(Module module, Player target, Location destination) {
         return new Builder(module, target, destination);
     }
 
@@ -56,7 +55,7 @@ public class TeleportContext {
         return !this.flags.isEmpty();
     }
 
-    public boolean hasFlag(@NonNull TeleportFlag flag) {
+    public boolean hasFlag(TeleportFlag flag) {
         return this.flags.contains(flag);
     }
 
@@ -64,92 +63,81 @@ public class TeleportContext {
         return this.callback != null;
     }
 
-    @NonNull
     public CommandSender getExecutor() {
         return this.hasSender() ? this.sender : this.target;
     }
 
-    @NonNull
     public Module getModule() {
         return this.module;
     }
 
-    @Nullable
     public CommandSender getSender() {
         return this.sender;
     }
 
-    @NonNull
     public Player getTarget() {
         return this.target;
     }
 
-    @NonNull
     public Location getDestination() {
         return this.destination;
     }
 
-    public void setDestination(@NonNull Location destination) {
+    public void setDestination(Location destination) {
         this.destination = destination.clone();
     }
 
-    @NonNull
     public EnumSet<TeleportFlag> getFlags() {
         return this.flags;
     }
 
-    @Nullable
     public Runnable getCallback() {
         return this.callback;
     }
-    
+
     public static class Builder {
 
-        private final Module            module;
-        private final Player            target;
-        private final Location          destination;
+        private final Module module;
+        private final Player target;
+        private final Location destination;
         private final Set<TeleportFlag> flags;
 
         private CommandSender sender;
-        private Runnable      callback;
-        
-        Builder(@NonNull Module module, @NonNull Player target, @NonNull Location destination) {
+        private Runnable callback;
+
+        Builder(Module module, Player target, Location destination) {
             this.module = module;
             this.target = target;
             this.destination = destination.clone();
             this.flags = new HashSet<>();
         }
 
-        @NonNull
         public TeleportContext build() {
-            EnumSet<TeleportFlag> flagSet = this.flags.isEmpty() ? EnumSet.noneOf(TeleportFlag.class) : EnumSet.copyOf(this.flags);
+            EnumSet<TeleportFlag> flagSet = this.flags.isEmpty() ? EnumSet.noneOf(TeleportFlag.class)
+                    : EnumSet.copyOf(this.flags);
             return new TeleportContext(this.module, this.sender, this.target, this.destination, flagSet, this.callback);
         }
 
-        @NonNull
-        public Builder sender(@NonNull CommandSender sender) {
+        public Builder sender(CommandSender sender) {
             if (sender != this.target) {
                 this.sender = sender;
             }
             return this;
         }
 
-        @NonNull
-        public Builder withFlag(@NonNull TeleportFlag flag) {
+        public Builder withFlag(TeleportFlag flag) {
             this.flags.add(flag);
             return this;
         }
 
-        @NonNull
-        public Builder withFlagIf(@NonNull TeleportFlag flag, @NonNull Supplier<Boolean> predicate) {
+        public Builder withFlagIf(TeleportFlag flag, Supplier<Boolean> predicate) {
             if (predicate.get()) {
                 return this.withFlag(flag);
             }
             return this;
         }
 
-        @NonNull
-        public Builder callback(@NonNull Runnable callback) {
+        public Builder callback(Runnable callback) {
             this.callback = callback;
             return this;
         }

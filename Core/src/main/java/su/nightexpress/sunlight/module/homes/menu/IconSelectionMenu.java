@@ -40,10 +40,10 @@ public class IconSelectionMenu extends AbstractObjectMenu<Home> {
 
     private ItemPopulator<HomeIcon> iconPopulator;
 
-    private record HomeIcon(@NonNull String id, @NonNull AdaptedItem adaptedItem) {
+    private record HomeIcon( String id,  AdaptedItem adaptedItem) {
     }
 
-    public IconSelectionMenu(@NonNull SunLightPlugin plugin, @NonNull HomesModule module) {
+    public IconSelectionMenu( SunLightPlugin plugin,  HomesModule module) {
         super(MenuType.GENERIC_9X4, "Icon Selection", Home.class);
         this.module = module;
 
@@ -76,7 +76,7 @@ public class IconSelectionMenu extends AbstractObjectMenu<Home> {
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
+    protected void onLoad( FileConfig config) {
         int[] iconSlots = ConfigProperty.of(ConfigTypes.INT_ARRAY, "Icons.Slots", IntStream.range(0, 27).toArray())
             .resolveWithDefaults(config);
 
@@ -104,22 +104,22 @@ public class IconSelectionMenu extends AbstractObjectMenu<Home> {
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
         List<HomeIcon> icons = new ArrayList<>();
 
         this.module.getSettings().getIconPresets().forEach((id, item) -> {
@@ -130,12 +130,12 @@ public class IconSelectionMenu extends AbstractObjectMenu<Home> {
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 }

@@ -30,17 +30,16 @@ import java.util.Set;
 public class PhysicsExplosionListener extends AbstractListener<SunLightPlugin> {
 
     private static final Set<Material> ILLEGAL_ITEMS = Sets.newHashSet(
-        Material.AIR, Material.TNT, Material.SPAWNER,
-        Material.BEDROCK, Material.BARRIER, Material.FARMLAND, Material.BUDDING_AMETHYST,
-        Material.INFESTED_STONE, Material.INFESTED_COBBLESTONE,
-        Material.INFESTED_STONE_BRICKS, Material.INFESTED_MOSSY_STONE_BRICKS,
-        Material.INFESTED_CRACKED_STONE_BRICKS, Material.INFESTED_CHISELED_STONE_BRICKS,
-        Material.INFESTED_DEEPSLATE
-    );
+            Material.AIR, Material.TNT, Material.SPAWNER,
+            Material.BEDROCK, Material.BARRIER, Material.FARMLAND, Material.BUDDING_AMETHYST,
+            Material.INFESTED_STONE, Material.INFESTED_COBBLESTONE,
+            Material.INFESTED_STONE_BRICKS, Material.INFESTED_MOSSY_STONE_BRICKS,
+            Material.INFESTED_CRACKED_STONE_BRICKS, Material.INFESTED_CHISELED_STONE_BRICKS,
+            Material.INFESTED_DEEPSLATE);
 
     private final NamespacedKey physx;
 
-    public PhysicsExplosionListener(@NotNull SunLightPlugin plugin) {
+    public PhysicsExplosionListener(SunLightPlugin plugin) {
         super(plugin);
         this.physx = new NamespacedKey(plugin, "physical_block");
     }
@@ -48,7 +47,8 @@ public class PhysicsExplosionListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
         ExplosionResult result = event.getExplosionResult();
-        if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
+        if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY)
+            return;
 
         this.create(event.blockList(), event.getLocation());
     }
@@ -56,26 +56,30 @@ public class PhysicsExplosionListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
         ExplosionResult result = event.getExplosionResult();
-        if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY) return;
+        if (result != ExplosionResult.DESTROY && result != ExplosionResult.DESTROY_WITH_DECAY)
+            return;
 
         this.create(event.blockList(), event.getBlock().getLocation());
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockPhysLand(EntityChangeBlockEvent event) {
-        if (event.getEntity() instanceof FallingBlock fallingBlock && PDCUtil.getBoolean(fallingBlock, this.physx).isPresent()) {
+        if (event.getEntity() instanceof FallingBlock fallingBlock
+                && PDCUtil.getBoolean(fallingBlock, this.physx).isPresent()) {
             SunNMS internals = this.plugin.getInternals();
-            if (internals == null) return;
+            if (internals == null)
+                return;
 
             internals.dropFallingContent(fallingBlock);
             event.setCancelled(true);
         }
     }
 
-    private void create(@NotNull List<Block> list, @NotNull Location from) {
+    private void create(List<Block> list, Location from) {
         list.removeIf(block -> {
             Material type = block.getType();
-            if (type.isInteractable()) return false;
+            if (type.isInteractable())
+                return false;
 
             BlockData blockData = block.getBlockData();
 
@@ -83,7 +87,8 @@ public class PhysicsExplosionListener extends AbstractListener<SunLightPlugin> {
             if (!type.isSolid() || blockData instanceof Leaves || blockData instanceof GlassPane) {
                 return false;
             }
-            if (ILLEGAL_ITEMS.contains(type)) return false;
+            if (ILLEGAL_ITEMS.contains(type))
+                return false;
 
             BlockData fallData = blockData;
             if (type == Material.GRASS_BLOCK || type == Material.MYCELIUM || type == Material.DIRT_PATH) {

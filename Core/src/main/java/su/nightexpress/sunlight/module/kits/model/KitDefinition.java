@@ -9,26 +9,25 @@ import java.util.List;
 
 public class KitDefinition {
 
-    private String       name;
+    private String name;
     private List<String> description;
-    private boolean      permissionRequired;
-    private int          cooldown;
-    private double       cost;
-    private int          priority;
-    private NightItem    icon;
+    private boolean permissionRequired;
+    private int cooldown;
+    private double cost;
+    private int priority;
+    private NightItem icon;
     private List<String> commands;
-    private KitContent   content;
+    private KitContent content;
 
-    public KitDefinition(@NotNull String name,
-                         @NotNull List<String> description,
-                         boolean permissionRequired,
-                         int cooldown,
-                         double cost,
-                         int priority,
-                         @NotNull NightItem icon,
-                         @NotNull List<String> commands,
-                         @NotNull KitContent content
-    ) {
+    public KitDefinition(String name,
+            List<String> description,
+            boolean permissionRequired,
+            int cooldown,
+            double cost,
+            int priority,
+            NightItem icon,
+            List<String> commands,
+            KitContent content) {
         this.setName(name);
         this.setDescription(description);
         this.setPermissionRequired(permissionRequired);
@@ -40,8 +39,7 @@ public class KitDefinition {
         this.setContent(content);
     }
 
-    @NotNull
-    public static KitDefinition createDefault(@NotNull String name) {
+    public static KitDefinition createDefault(String name) {
         List<String> description = new ArrayList<>();
         boolean permissionRequired = true;
         int cooldown = 0;
@@ -51,24 +49,23 @@ public class KitDefinition {
         List<String> commands = new ArrayList<>();
         KitContent content = KitContent.empty();
 
-        return new KitDefinition(name, description, permissionRequired, cooldown, cost, priority, icon, commands, content);
+        return new KitDefinition(name, description, permissionRequired, cooldown, cost, priority, icon, commands,
+                content);
     }
 
-    @NotNull
     public String getName() {
         return this.name;
     }
 
-    public void setName(@NotNull String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    @NotNull
     public List<String> getDescription() {
         return this.description;
     }
 
-    public void setDescription(@NotNull List<String> description) {
+    public void setDescription(List<String> description) {
         this.description = new ArrayList<>(description);
     }
 
@@ -104,30 +101,27 @@ public class KitDefinition {
         this.priority = priority;
     }
 
-    @NotNull
     public NightItem getIcon() {
         return this.icon.copy();
     }
 
-    public void setIcon(@NotNull NightItem icon) {
+    public void setIcon(NightItem icon) {
         this.icon = icon.copy();
     }
 
-    @NotNull
     public List<String> getCommands() {
         return this.commands;
     }
 
-    public void setCommands(@NotNull List<String> commands) {
+    public void setCommands(List<String> commands) {
         this.commands = new ArrayList<>(commands);
     }
 
-    @NotNull
     public KitContent getContent() {
         return this.content;
     }
 
-    public void setContent(@NotNull KitContent content) {
+    public void setContent(KitContent content) {
         this.content = content;
     }
 }

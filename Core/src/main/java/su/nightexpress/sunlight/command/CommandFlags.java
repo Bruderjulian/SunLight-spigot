@@ -6,7 +6,6 @@ import su.nightexpress.nightcore.command.experimental.flag.FlagTypes;
 
 public class CommandFlags {
 
-    @NotNull
     @Deprecated
     public static SimpleFlagBuilder silent() {
         return FlagTypes.simple(CommandArguments.FLAG_SILENT);

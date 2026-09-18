@@ -5,5 +5,5 @@ import org.jetbrains.annotations.NotNull;
 @FunctionalInterface
 public interface ModuleFactory<T extends Module> {
 
-    @NotNull T load(@NotNull ModuleContext context);
+    T load(ModuleContext context);
 }

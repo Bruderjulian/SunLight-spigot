@@ -26,7 +26,7 @@ public class WorldListEditor extends EditorMenu<SunLightPlugin, WorldsModule> im
 
     private final WorldsModule module;
 
-    public WorldListEditor(@NotNull SunLightPlugin plugin, @NotNull WorldsModule module) {
+    public WorldListEditor(SunLightPlugin plugin, WorldsModule module) {
         super(plugin, WorldsLang.EDITOR_TITLE_LIST.text(), MenuSize.CHEST_45);
         this.module = module;
 
@@ -36,28 +36,26 @@ public class WorldListEditor extends EditorMenu<SunLightPlugin, WorldsModule> im
     }
 
     @Override
-    public void onPrepare(@NotNull MenuViewer viewer, @NotNull MenuOptions options) {
+    public void onPrepare(MenuViewer viewer, MenuOptions options) {
         this.autoFill(viewer);
     }
 
     @Override
-    protected void onReady(@NotNull MenuViewer viewer, @NotNull Inventory inventory) {
+    protected void onReady(MenuViewer viewer, Inventory inventory) {
 
     }
 
     @Override
-    public void onAutoFill(@NotNull MenuViewer viewer, @NotNull AutoFill<WrappedWorld> autoFill) {
+    public void onAutoFill(MenuViewer viewer, AutoFill<WrappedWorld> autoFill) {
         autoFill.setSlots(IntStream.range(0, 36).toArray());
         autoFill.setItems(this.module.getWorlds().stream().sorted(Comparator.comparing(WrappedWorld::isCustom)
-            .thenComparing(world -> world.isCustom() ? world.getData().getId() : world.getWorld().getName()))
-            .toList()
-        );
+                .thenComparing(world -> world.isCustom() ? world.getData().getId() : world.getWorld().getName()))
+                .toList());
         autoFill.setItemCreator(wrappedWorld -> {
             ItemStack item;
             if (wrappedWorld.isCustom()) {
                 item = ItemUtil.getSkinHead(TEXTURE_CUSTOM_WORLD);
-            }
-            else {
+            } else {
                 Material material = switch (wrappedWorld.getWorld().getEnvironment()) {
                     case NETHER -> Material.NETHERRACK;
                     case THE_END -> Material.END_STONE;
@@ -67,16 +65,16 @@ public class WorldListEditor extends EditorMenu<SunLightPlugin, WorldsModule> im
             }
 
             ItemReplacer.create(item).hideFlags().trimmed()
-                .readLocale(WorldsLang.EDITOR_WORLD_OBJECT)
-                .replace(wrappedWorld.getPlaceholders())
-                .writeMeta();
+                    .readLocale(WorldsLang.EDITOR_WORLD_OBJECT)
+                    .replace(wrappedWorld.getPlaceholders())
+                    .writeMeta();
             return item;
         });
         autoFill.setClickAction(wrappedWorld -> (viewer1, event) -> {
             if (wrappedWorld.isCustom() && !wrappedWorld.isPresent()) {
                 this.runNextTick(() -> this.module.openGenerationSettings(viewer.getPlayer(), wrappedWorld.getData()));
-            }
-            else this.runNextTick(() -> this.module.openWorldSettings(viewer.getPlayer(), wrappedWorld));
+            } else
+                this.runNextTick(() -> this.module.openWorldSettings(viewer.getPlayer(), wrappedWorld));
         });
     }
 }

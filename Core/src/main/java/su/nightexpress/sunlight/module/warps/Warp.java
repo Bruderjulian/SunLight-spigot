@@ -24,34 +24,34 @@ import java.util.List;
 
 public class Warp implements PlaceholderResolvable {
 
-    private final Path   file;
+    private final Path file;
     private final String id;
 
-    private String       name;
+    private String name;
     private List<String> description;
-    private String       worldName;
-    private ExactPos     blockPos;
-    private NightItem    icon;
+    private String worldName;
+    private ExactPos blockPos;
+    private NightItem icon;
 
-    private int     menuPage;
-    private int[]   menuSlots;
+    private int menuPage;
+    private int[] menuSlots;
     private boolean permissionRequired;
 
     private boolean commandEnabled;
-    private String  commandLabel;
+    private String commandLabel;
 
-    private World   world;
+    private World world;
     private boolean dirty;
 
     private NightCommand command;
 
-    public Warp(@NonNull Path file, @NonNull String id) {
+    public Warp(Path file, String id) {
         this.file = file;
         this.id = id;
     }
 
     @Override
-    @NotNull
+
     public PlaceholderResolver placeholders() {
         return WarpsPlaceholders.WARP.resolver(this);
     }
@@ -60,7 +60,7 @@ public class Warp implements PlaceholderResolvable {
         this.loadConfig().edit(this::loadFromConfig);
     }
 
-    public void loadFromConfig(@NonNull FileConfig config) {
+    public void loadFromConfig(FileConfig config) {
         this.blockPos = ExactPos.read(config, "BlockPos");
         this.worldName = config.getString("World");
 
@@ -87,7 +87,7 @@ public class Warp implements PlaceholderResolvable {
         this.loadConfig().edit(this::writeToConfig);
     }
 
-    private void writeToConfig(@NonNull FileConfig config) {
+    private void writeToConfig(FileConfig config) {
         config.set("World", this.worldName);
         config.set("BlockPos", this.blockPos);
         config.set("Name", this.name);
@@ -122,19 +122,19 @@ public class Warp implements PlaceholderResolvable {
         return !this.isActive();
     }
 
-    public boolean isWorld(@NonNull World world) {
+    public boolean isWorld(World world) {
         return this.worldName.equalsIgnoreCase(world.getName());
     }
 
-    public boolean hasPermission(@NonNull Player player) {
+    public boolean hasPermission(Player player) {
         return !this.permissionRequired || player.hasPermission(this.getPermission());
     }
 
-    public boolean canUse(@NonNull Player player) {
+    public boolean canUse(Player player) {
         return this.hasPermission(player);
     }
 
-    public boolean canEdit(@NonNull Player player) {
+    public boolean canEdit(Player player) {
         return player.hasPermission(WarpsPerms.EDITOR);
     }
 
@@ -145,7 +145,7 @@ public class Warp implements PlaceholderResolvable {
         }
     }
 
-    public void activate(@NonNull World world) {
+    public void activate(World world) {
         if (this.worldName.equalsIgnoreCase(world.getName())) {
             this.world = world;
         }
@@ -161,89 +161,79 @@ public class Warp implements PlaceholderResolvable {
         }
     }
 
-    @NonNull
     public World getWorld() {
-        if (this.world == null) throw new IllegalStateException("Warp's world is not loaded");
+        if (this.world == null)
+            throw new IllegalStateException("Warp's world is not loaded");
 
         return this.world;
     }
 
-    @NonNull
     public Location getLocation() {
         return this.blockPos.toLocation(this.getWorld());
     }
 
-    public void setLocation(@NonNull Location location) {
+    public void setLocation(Location location) {
         World locWorld = location.getWorld();
-        if (locWorld == null) return;
+        if (locWorld == null)
+            return;
 
         this.worldName = locWorld.getName();
         this.blockPos = ExactPos.from(location);
     }
 
-    public void setCommand(@Nullable NightCommand command) {
+    public void setCommand(NightCommand command) {
         this.command = command;
     }
 
-    @Nullable
     public NightCommand getCommand() {
         return this.command;
     }
 
-    @NonNull
     public String getPermission() {
         return WarpsPerms.WARP.childrenNode(this.getId());
     }
 
-    @NonNull
     public Path getFile() {
         return this.file;
     }
 
-    @NonNull
     public FileConfig loadConfig() {
         return FileConfig.load(this.file);
     }
 
-    @NonNull
     public String getId() {
         return this.id;
     }
 
-    @NonNull
     public String getWorldName() {
         return this.worldName;
     }
 
-    @NonNull
     public ExactPos getBlockPos() {
         return this.blockPos;
     }
 
-    @NonNull
     public String getName() {
         return this.name;
     }
 
-    public void setName(@NonNull String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    @NonNull
     public List<String> getDescription() {
         return List.copyOf(this.description);
     }
 
-    public void setDescription(@NonNull List<String> description) {
+    public void setDescription(List<String> description) {
         this.description = new ArrayList<>(description);
     }
 
-    @NonNull
     public NightItem getIcon() {
         return this.icon.copy();
     }
 
-    public void setIcon(@NonNull NightItem icon) {
+    public void setIcon(NightItem icon) {
         this.icon = icon.copy();
     }
 
@@ -279,12 +269,11 @@ public class Warp implements PlaceholderResolvable {
         this.commandEnabled = commandEnabled;
     }
 
-    @NonNull
     public String getCommandLabel() {
         return this.commandLabel;
     }
 
-    public void setCommandLabel(@NonNull String commandLabel) {
+    public void setCommandLabel(String commandLabel) {
         this.commandLabel = Strings.varStyle(commandLabel).orElse(this.id);
     }
 }

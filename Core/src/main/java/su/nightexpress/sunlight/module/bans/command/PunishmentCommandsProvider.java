@@ -40,61 +40,62 @@ public class PunishmentCommandsProvider extends AbstractCommandProvider {
     private final BansModule module;
     private final UserManager userManager;
 
-    private final ArgumentType<BanTimeUnit>      timeUnitArgumentType;
+    private final ArgumentType<BanTimeUnit> timeUnitArgumentType;
     private final ArgumentType<PunishmentReason> punishmentReasonArgumentType;
 
-    public PunishmentCommandsProvider(@NotNull SunLightPlugin plugin, @NotNull BansModule module, @NotNull UserManager userManager) {
+    public PunishmentCommandsProvider(SunLightPlugin plugin, BansModule module, UserManager userManager) {
         super(plugin);
         this.module = module;
         this.userManager = userManager;
 
         this.timeUnitArgumentType = (builder, string) -> Optional.ofNullable(module.getTimeUnitByAlias(string))
-            .orElseThrow(() -> CommandSyntaxException.custom(BansLang.COMMAND_SYNTAX_INVALID_TIME_UNIT));
+                .orElseThrow(() -> CommandSyntaxException.custom(BansLang.COMMAND_SYNTAX_INVALID_TIME_UNIT));
 
         this.punishmentReasonArgumentType = (builder, string) -> Optional.ofNullable(this.module.getReasonById(string))
-            .orElseThrow(() -> CommandSyntaxException.custom(BansLang.COMMAND_SYNTAX_INVALID_REASON));
+                .orElseThrow(() -> CommandSyntaxException.custom(BansLang.COMMAND_SYNTAX_INVALID_REASON));
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("ban", true, new String[]{"ban"}, builder -> this.buildPunishment(builder, PunishmentType.BAN, true));
-        this.registerLiteral("mute", true, new String[]{"mute"}, builder -> this.buildPunishment(builder, PunishmentType.MUTE, true));
-        this.registerLiteral("warn", true, new String[]{"warn"}, builder -> this.buildPunishment(builder, PunishmentType.WARN, true));
-        this.registerLiteral("tempban", true, new String[]{"tempban"}, builder -> this.buildPunishment(builder, PunishmentType.BAN, false));
-        this.registerLiteral("tempmute", true, new String[]{"tempmute"}, builder -> this.buildPunishment(builder, PunishmentType.MUTE, false));
-        this.registerLiteral("tempwarn", true, new String[]{"tempwarn"}, builder -> this.buildPunishment(builder, PunishmentType.WARN, false));
+        this.registerLiteral("ban", true, new String[] { "ban" },
+                builder -> this.buildPunishment(builder, PunishmentType.BAN, true));
+        this.registerLiteral("mute", true, new String[] { "mute" },
+                builder -> this.buildPunishment(builder, PunishmentType.MUTE, true));
+        this.registerLiteral("warn", true, new String[] { "warn" },
+                builder -> this.buildPunishment(builder, PunishmentType.WARN, true));
+        this.registerLiteral("tempban", true, new String[] { "tempban" },
+                builder -> this.buildPunishment(builder, PunishmentType.BAN, false));
+        this.registerLiteral("tempmute", true, new String[] { "tempmute" },
+                builder -> this.buildPunishment(builder, PunishmentType.MUTE, false));
+        this.registerLiteral("tempwarn", true, new String[] { "tempwarn" },
+                builder -> this.buildPunishment(builder, PunishmentType.WARN, false));
 
-        this.registerLiteral("banip", true, new String[]{"banip", "ipban"}, builder -> builder
-            .description(BansLang.COMMAND_BAN_IP_DESC)
-            .permission(BansPerms.COMMAND_BAN_IP)
-            .withArguments(
-                CommandArguments.inetAddress(CommandArguments.INET_ADDRESS),
-                reasonArgument().optional()
-            )
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes(this::banInet)
-        );
+        this.registerLiteral("banip", true, new String[] { "banip", "ipban" }, builder -> builder
+                .description(BansLang.COMMAND_BAN_IP_DESC)
+                .permission(BansPerms.COMMAND_BAN_IP)
+                .withArguments(
+                        CommandArguments.inetAddress(CommandArguments.INET_ADDRESS),
+                        reasonArgument().optional())
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes(this::banInet));
 
-        this.registerLiteral("kick", true, new String[]{"kick"}, builder -> builder
-            .description(BansLang.COMMAND_KICK_DESC)
-            .permission(BansPerms.COMMAND_KICK)
-            .withArguments(
-                Arguments.player(CommandArguments.PLAYER),
-                reasonArgument().optional()
-            )
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes(this::kick)
-        );
+        this.registerLiteral("kick", true, new String[] { "kick" }, builder -> builder
+                .description(BansLang.COMMAND_KICK_DESC)
+                .permission(BansPerms.COMMAND_KICK)
+                .withArguments(
+                        Arguments.player(CommandArguments.PLAYER),
+                        reasonArgument().optional())
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes(this::kick));
     }
 
-    @NotNull
     private ArgumentNodeBuilder<PunishmentReason> reasonArgument() {
         return Commands.argument(ARG_REASON, this.punishmentReasonArgumentType)
-            .localized(BansLang.COMMAND_ARGUMENT_NAME_REASON)
-            .suggestions((reader, tabContext) -> this.module.getReasonIds());
+                .localized(BansLang.COMMAND_ARGUMENT_NAME_REASON)
+                .suggestions((reader, tabContext) -> this.module.getReasonIds());
     }
 
-    private void buildPunishment(@NotNull LiteralNodeBuilder builder, @NotNull PunishmentType type, boolean isPermament) {
+    private void buildPunishment(LiteralNodeBuilder builder, PunishmentType type, boolean isPermament) {
         TextLocale description = switch (type) {
             case BAN -> BansLang.COMMAND_BAN_DESC;
             case MUTE -> BansLang.COMMAND_MUTE_DESC;
@@ -108,32 +109,30 @@ public class PunishmentCommandsProvider extends AbstractCommandProvider {
         };
 
         builder
-            .description(description)
-            .permission(permission)
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes((context, arguments) -> this.punishPlayer(context, arguments, type, isPermament));
+                .description(description)
+                .permission(permission)
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes((context, arguments) -> this.punishPlayer(context, arguments, type, isPermament));
 
         if (isPermament) {
             builder.withArguments(
-                Arguments.playerName(CommandArguments.PLAYER),
-                reasonArgument().optional()
-            );
-        }
-        else {
+                    Arguments.playerName(CommandArguments.PLAYER),
+                    reasonArgument().optional());
+        } else {
             builder.withArguments(
-                Arguments.playerName(CommandArguments.PLAYER),
-                Arguments.integer(CommandArguments.AMOUNT, 1)
-                    .localized(Lang.COMMAND_ARGUMENT_NAME_TIME)
-                    .suggestions((reader, context) -> List.of("1", "10", "30", "60")),
-                Commands.argument(CommandArguments.TYPE, this.timeUnitArgumentType)
-                    .localized(BansLang.COMMAND_ARGUMENT_NAME_TIME_UNIT)
-                    .suggestions((reader, context) -> this.module.getTimeUnitAliases()),
-                reasonArgument().optional()
-            );
+                    Arguments.playerName(CommandArguments.PLAYER),
+                    Arguments.integer(CommandArguments.AMOUNT, 1)
+                            .localized(Lang.COMMAND_ARGUMENT_NAME_TIME)
+                            .suggestions((reader, context) -> List.of("1", "10", "30", "60")),
+                    Commands.argument(CommandArguments.TYPE, this.timeUnitArgumentType)
+                            .localized(BansLang.COMMAND_ARGUMENT_NAME_TIME_UNIT)
+                            .suggestions((reader, context) -> this.module.getTimeUnitAliases()),
+                    reasonArgument().optional());
         }
     }
 
-    private boolean punishPlayer(@NotNull CommandContext context, @NotNull ParsedArguments arguments, @NotNull PunishmentType type, boolean isPermanent) {
+    private boolean punishPlayer(CommandContext context, ParsedArguments arguments, PunishmentType type,
+            boolean isPermanent) {
         CommandSender sender = context.getSender();
         String playerName = arguments.getString(CommandArguments.PLAYER);
 
@@ -143,14 +142,14 @@ public class PunishmentCommandsProvider extends AbstractCommandProvider {
                 return CompletableFuture.completedFuture(null);
             }
 
-            PunishmentReason reason = arguments.getOr(ARG_REASON, PunishmentReason.class, this.module.getDefaultReason());
+            PunishmentReason reason = arguments.getOr(ARG_REASON, PunishmentReason.class,
+                    this.module.getDefaultReason());
             boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);
 
             BanTime banTime;
             if (isPermanent) {
                 banTime = BanTime.permanent();
-            }
-            else {
+            } else {
                 int duration = arguments.getInt(CommandArguments.AMOUNT);
                 BanTimeUnit timeUnit = arguments.get(CommandArguments.TYPE, BanTimeUnit.class);
                 banTime = BanTime.temporary(timeUnit, duration);
@@ -163,7 +162,7 @@ public class PunishmentCommandsProvider extends AbstractCommandProvider {
         return true;
     }
 
-    private boolean banInet(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean banInet(CommandContext context, ParsedArguments arguments) {
         InetAddress address = arguments.get(CommandArguments.INET_ADDRESS, InetAddress.class);
         PunishmentReason reason = arguments.getOr(ARG_REASON, PunishmentReason.class, this.module.getDefaultReason());
         boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);
@@ -173,7 +172,7 @@ public class PunishmentCommandsProvider extends AbstractCommandProvider {
         return module.banInet(context.getSender(), address, reason, banTime, silent);
     }
 
-    private boolean kick(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean kick(CommandContext context, ParsedArguments arguments) {
         Player player = arguments.getPlayer(CommandArguments.PLAYER);
         PunishmentReason reason = arguments.getOr(ARG_REASON, PunishmentReason.class, this.module.getDefaultReason());
         boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);

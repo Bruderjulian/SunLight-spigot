@@ -16,10 +16,10 @@ public class ActivityTracker {
 
     private long afkEnterTimestamp;
 
-    private int  wakeUpThreshold;
+    private int wakeUpThreshold;
     private long wakeUpEndTimestamp;
 
-    public ActivityTracker(@NotNull AfkSettings settings) {
+    public ActivityTracker(AfkSettings settings) {
         this.settings = settings;
         this.resetCounters();
     }
@@ -46,7 +46,7 @@ public class ActivityTracker {
         this.countIdleTime();
     }
 
-    public void updatePosition(@NotNull BlockPos newPos) {
+    public void updatePosition(BlockPos newPos) {
         if (this.lastPos == null) {
             this.lastPos = newPos;
             return;
@@ -58,12 +58,13 @@ public class ActivityTracker {
         }
     }
 
-    public void countActivity(@NotNull ActivityType type) {
+    public void countActivity(ActivityType type) {
         this.countActivity(this.settings.getActivityPoints(type));
     }
 
     public void countActivity(int amount) {
-        if (amount <= 0) return;
+        if (amount <= 0)
+            return;
 
         if (!this.isAfk()) {
             this.resetIdleCounter();

@@ -28,13 +28,13 @@ public class NametagsModule extends Module {
 
     private NametagHandler tagHandler;
 
-    public NametagsModule(@NotNull ModuleContext context) {
+    public NametagsModule(ModuleContext context) {
         super(context);
         this.settings = new NametagsSettings();
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) throws ModuleLoadException {
+    protected void loadModule(FileConfig config) throws ModuleLoadException {
         this.settings.load(config);
 
         this.loadTagHandler();
@@ -45,8 +45,7 @@ public class NametagsModule extends Module {
     private void loadTagHandler() {
         if (Plugins.isInstalled(HookId.PACKET_EVENTS)) {
             this.tagHandler = new PacketsTagHandler(this.plugin);
-        }
-        else if (Plugins.isInstalled(HookId.PROTOCOL_LIB)) {
+        } else if (Plugins.isInstalled(HookId.PROTOCOL_LIB)) {
             this.tagHandler = new ProtocolTagHandler(this.plugin);
         }
 
@@ -62,7 +61,7 @@ public class NametagsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
 
     }
 
@@ -72,32 +71,33 @@ public class NametagsModule extends Module {
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 
-    @Nullable
-    public NameTagFormat getPlayerNameTagFormat(@NotNull Player player) {
+    public NameTagFormat getPlayerNameTagFormat(Player player) {
         return this.settings.getNameTagFormatsMap().values().stream()
-            .filter(entry -> entry.isRankAvailable(player))
-            .max(Comparator.comparingInt(NameTagFormat::getPriority))
-            .orElse(null);
+                .filter(entry -> entry.isRankAvailable(player))
+                .max(Comparator.comparingInt(NameTagFormat::getPriority))
+                .orElse(null);
     }
 
-    public void handleJoin(@NotNull PlayerJoinEvent event) {
+    public void handleJoin(PlayerJoinEvent event) {
         this.updatePlayerNameTag(event.getPlayer());
     }
 
-    public void updatePlayerNameTag(@NotNull Player player) {
-        if (this.tagHandler == null) return;
+    public void updatePlayerNameTag(Player player) {
+        if (this.tagHandler == null)
+            return;
 
         NameTagFormat tag = this.getPlayerNameTagFormat(player);
-        if (tag == null) return;
+        if (tag == null)
+            return;
 
         PlaceholderContext placeholderContext = PlaceholderContext.builder()
-            .with(CommonPlaceholders.PLAYER.resolver(player))
-            .andThen(CommonPlaceholders.forPlaceholderAPI(player))
-            .build();
+                .with(CommonPlaceholders.PLAYER.resolver(player))
+                .andThen(CommonPlaceholders.forPlaceholderAPI(player))
+                .build();
 
         this.tagHandler.sendTeamPacket(player, tag, placeholderContext);
     }

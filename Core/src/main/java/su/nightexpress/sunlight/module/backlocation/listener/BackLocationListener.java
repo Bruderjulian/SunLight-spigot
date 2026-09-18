@@ -13,7 +13,7 @@ public class BackLocationListener extends AbstractListener<SunLightPlugin> {
 
     private final BackLocationModule module;
 
-    public BackLocationListener(@NotNull SunLightPlugin plugin, @NotNull BackLocationModule module) {
+    public BackLocationListener(SunLightPlugin plugin, BackLocationModule module) {
         super(plugin);
         this.module = module;
     }

@@ -36,8 +36,8 @@ public class PlayerWarpPriceDialog extends Dialog<PlayerWarp> {
     private static final String JSON_PRICE = "price";
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull PlayerWarp warp) {
+    
+    public WrappedDialog create( Player player,  PlayerWarp warp) {
         return Dialogs.builder()
             .base(DialogBases.builder(TITLE)
                 .body(DialogBodies.plainMessage(BODY))

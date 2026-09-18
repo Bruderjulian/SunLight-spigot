@@ -14,10 +14,10 @@ public class WordFilter {
 
     private static final Pattern WORD_SPLITTER = Pattern.compile("(?U)\\b\\w+\\b");
 
-    private final Set<String>       exactWords;
+    private final Set<String> exactWords;
     private final List<RuleHandler> ruleHandlers;
 
-    public WordFilter(@NotNull Set<String> rules) {
+    public WordFilter(Set<String> rules) {
         this.exactWords = new HashSet<>();
         this.ruleHandlers = new ArrayList<>();
 
@@ -29,9 +29,11 @@ public class WordFilter {
         this.ruleHandlers.add(new RuleHandler(RuleValidator.forSuffix('+'), RuleResult.BLOCK));
 
         for (String rule : rules) {
-            if (rule.isBlank()) continue;
+            if (rule.isBlank())
+                continue;
 
-            RuleHandler handler = this.ruleHandlers.stream().filter(ruleHandler -> ruleHandler.canHandle(rule)).findFirst().orElse(null);
+            RuleHandler handler = this.ruleHandlers.stream().filter(ruleHandler -> ruleHandler.canHandle(rule))
+                    .findFirst().orElse(null);
             if (handler == null) {
                 this.exactWords.add(rule);
                 continue;
@@ -41,8 +43,9 @@ public class WordFilter {
         }
     }
 
-    public boolean matches(@NotNull String input) {
-        if (input.isBlank()) return false;
+    public boolean matches(String input) {
+        if (input.isBlank())
+            return false;
 
         Matcher matcher = WORD_SPLITTER.matcher(input);
 
@@ -56,9 +59,9 @@ public class WordFilter {
         return false;
     }
 
-    @NotNull
-    public String censor(@NotNull String input, char censorChar) {
-        if (input.isBlank()) return input;
+    public String censor(String input, char censorChar) {
+        if (input.isBlank())
+            return input;
 
         StringBuilder builder = new StringBuilder(input);
         Matcher matcher = WORD_SPLITTER.matcher(input);
@@ -75,14 +78,17 @@ public class WordFilter {
         return builder.toString();
     }
 
-    public boolean isBadWord(@NotNull String word) {
+    public boolean isBadWord(String word) {
         String lower = LowerCase.USER_LOCALE.apply(word);
-        if (this.exactWords.contains(lower)) return true;
+        if (this.exactWords.contains(lower))
+            return true;
 
         for (RuleHandler node : this.ruleHandlers) {
             RuleResult result = node.scan(lower);
-            if (result == RuleResult.ALLOW) return false;
-            if (result == RuleResult.BLOCK) return true;
+            if (result == RuleResult.ALLOW)
+                return false;
+            if (result == RuleResult.BLOCK)
+                return true;
         }
 
         return false;

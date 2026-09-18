@@ -13,7 +13,7 @@ public class VanishListener extends AbstractListener<SunLightPlugin> {
 
     private final VanishModule module;
 
-    public VanishListener(@NotNull SunLightPlugin plugin, @NotNull VanishModule module) {
+    public VanishListener(SunLightPlugin plugin, VanishModule module) {
         super(plugin);
         this.module = module;
     }
@@ -25,10 +25,12 @@ public class VanishListener extends AbstractListener<SunLightPlugin> {
             this.module.vanish(player, true);
         }
 
-        if (player.hasPermission(VanishPerms.BYPASS_SEE)) return;
+        if (player.hasPermission(VanishPerms.BYPASS_SEE))
+            return;
 
         for (Player vanished : plugin.getServer().getOnlinePlayers()) {
-            if (vanished == player || !this.module.isVanished(vanished)) continue;
+            if (vanished == player || !this.module.isVanished(vanished))
+                continue;
 
             player.hidePlayer(plugin, vanished);
         }

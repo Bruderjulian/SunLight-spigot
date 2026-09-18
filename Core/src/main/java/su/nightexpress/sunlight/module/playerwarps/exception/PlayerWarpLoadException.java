@@ -4,7 +4,7 @@ import org.jspecify.annotations.NonNull;
 
 public class PlayerWarpLoadException extends RuntimeException {
 
-    public PlayerWarpLoadException(@NonNull String message) {
+    public PlayerWarpLoadException( String message) {
         super(message);
     }
 }

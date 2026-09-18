@@ -13,11 +13,11 @@ import su.nightexpress.sunlight.module.chat.channel.ChatChannel;
 
 public class DiscordHandler extends SimpleManager<SunLightPlugin> {
 
-    //private final ChatModule module;
+    // private final ChatModule module;
 
-    public DiscordHandler(@NotNull SunLightPlugin plugin, @NotNull ChatModule module) {
+    public DiscordHandler(SunLightPlugin plugin, ChatModule module) {
         super(plugin);
-        //this.module = module;
+        // this.module = module;
     }
 
     @Override
@@ -30,7 +30,7 @@ public class DiscordHandler extends SimpleManager<SunLightPlugin> {
         DiscordSRV.api.unsubscribe(this);
     }
 
-    public void sendToChannel(@NotNull ChatChannel channel, @NotNull String message) {
+    public void sendToChannel(ChatChannel channel, String message) {
         TextChannel textChannel = DiscordSRV.getPlugin().getDestinationTextChannelForGameChannelName(channel.getId());
         if (textChannel != null) {
             textChannel.sendMessage(message).queue();
@@ -44,20 +44,27 @@ public class DiscordHandler extends SimpleManager<SunLightPlugin> {
     }
 
     // From Discord to in-game
-    /*@Subscribe(priority = ListenerPriority.HIGHEST)
-    public void onChatMessageFromDiscord(DiscordGuildMessagePreProcessEvent event) {
-        event.setCancelled(true);
-
-        UUID playerId = DiscordSRV.getPlugin().getAccountLinkManager().getUuid(event.getAuthor().getId());
-        if (playerId == null) return;
-
-        String channelId = DiscordSRV.getPlugin().getDestinationGameChannelNameForTextChannel(event.getChannel());
-        ChatChannel channel = this.module.getChannelRepository().getById(channelId);
-        if (channel == null) return;
-
-        SunUser user = plugin.getUserManager().getOrFetch(playerId).orElse(null);
-        if (user == null) return;
-
-        String message = event.getMessage().getContentRaw();
-    }*/
+    /*
+     * @Subscribe(priority = ListenerPriority.HIGHEST)
+     * public void onChatMessageFromDiscord(DiscordGuildMessagePreProcessEvent
+     * event) {
+     * event.setCancelled(true);
+     * 
+     * UUID playerId =
+     * DiscordSRV.getPlugin().getAccountLinkManager().getUuid(event.getAuthor().
+     * getId());
+     * if (playerId == null) return;
+     * 
+     * String channelId =
+     * DiscordSRV.getPlugin().getDestinationGameChannelNameForTextChannel(event.
+     * getChannel());
+     * ChatChannel channel = this.module.getChannelRepository().getById(channelId);
+     * if (channel == null) return;
+     * 
+     * SunUser user = plugin.getUserManager().getOrFetch(playerId).orElse(null);
+     * if (user == null) return;
+     * 
+     * String message = event.getMessage().getContentRaw();
+     * }
+     */
 }

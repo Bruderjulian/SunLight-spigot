@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface SunlightAPI {
 
-    @NonNull Optional<? extends AfkProvider> afkProvider();
+     Optional<? extends AfkProvider> afkProvider();
 
-    @NonNull Optional<? extends VanishProvider> vanishProvider();
+     Optional<? extends VanishProvider> vanishProvider();
 }

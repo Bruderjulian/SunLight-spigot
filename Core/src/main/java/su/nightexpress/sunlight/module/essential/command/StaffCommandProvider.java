@@ -32,13 +32,12 @@ public class StaffCommandProvider extends AbstractCommandProvider {
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Staff.Desc").text("Show online staff.");
 
     private static final MessageLocale MESSAGE_NO_STAFF_ONLINE = LangEntry.builder("Command.Staff.Empty").chatMessage(
-        GRAY.wrap("There is no staff online.")
-    );
+            GRAY.wrap("There is no staff online."));
 
     private final EssentialModule module;
     private final EssentialSettings settings;
 
-    public StaffCommandProvider(@NotNull SunLightPlugin plugin, @NotNull EssentialModule module, @NotNull EssentialSettings settings) {
+    public StaffCommandProvider(SunLightPlugin plugin, EssentialModule module, EssentialSettings settings) {
         super(plugin);
         this.module = module;
         this.settings = settings;
@@ -46,24 +45,23 @@ public class StaffCommandProvider extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("staff", true, new String[]{"staff"}, builder -> builder
-            .description(DESCRIPTION)
-            .permission(STAFF)
-            .executes(this::showStaff)
-        );
+        this.registerLiteral("staff", true, new String[] { "staff" }, builder -> builder
+                .description(DESCRIPTION)
+                .permission(STAFF)
+                .executes(this::showStaff));
     }
 
-    @NotNull
-    private String formatEntry(@NotNull Player player) {
+    private String formatEntry(Player player) {
         return forPlayerWithPAPI(player).apply(this.settings.staffEntryFormat.get());
     }
 
-    private boolean showStaff(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean showStaff(CommandContext context, ParsedArguments arguments) {
         Player executor = context.getPlayer();
         Set<Player> staffs = new HashSet<>();
 
         Players.getOnline().forEach(other -> {
-            if (executor != null && !executor.canSee(other)) return;
+            if (executor != null && !executor.canSee(other))
+                return;
 
             Set<String> playerRanks = Players.getInheritanceGroups(other);
             if (playerRanks.stream().anyMatch(this.settings.staffRanks.get()::contains)) {
@@ -77,14 +75,14 @@ public class StaffCommandProvider extends AbstractCommandProvider {
         }
 
         String entries = staffs.stream()
-            .sorted(Comparator.comparing(Player::getName))
-            .map(this::formatEntry)
-            .collect(Collectors.joining(BR));
+                .sorted(Comparator.comparing(Player::getName))
+                .map(this::formatEntry)
+                .collect(Collectors.joining(BR));
 
         String text = String.join("\n", Replacer.create()
-            .replace(GENERIC_ENTRY, entries)
-            .replace(GENERIC_AMOUNT, () -> String.valueOf(staffs.size()))
-            .apply(this.settings.staffFormat.get()));
+                .replace(GENERIC_ENTRY, entries)
+                .replace(GENERIC_AMOUNT, () -> String.valueOf(staffs.size()))
+                .apply(this.settings.staffFormat.get()));
 
         Players.sendMessage(context.getSender(), text);
 

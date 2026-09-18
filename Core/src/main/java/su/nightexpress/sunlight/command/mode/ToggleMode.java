@@ -12,7 +12,7 @@ public enum ToggleMode {
 
     private final Function<Boolean, Boolean> function;
 
-    ToggleMode(@NotNull Function<Boolean, Boolean> function) {
+    ToggleMode(Function<Boolean, Boolean> function) {
         this.function = function;
     }
 

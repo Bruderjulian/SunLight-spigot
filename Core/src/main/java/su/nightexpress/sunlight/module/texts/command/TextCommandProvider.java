@@ -21,31 +21,31 @@ public class TextCommandProvider extends AbstractCommandProvider {
 
     private final TextsModule module;
 
-    public TextCommandProvider(@NotNull SunLightPlugin plugin, TextsModule module) {
+    public TextCommandProvider(SunLightPlugin plugin, TextsModule module) {
         super(plugin);
         this.module = module;
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("customtext", true, new String[]{"customtext", "ctext"}, builder -> builder
-            .description(TextsLang.COMMAND_TEXT_DESC)
-            .permission(TextsPerms.COMMAND_TEXT)
-            .withArguments(textArgument(this.module))
-            .executes(this::showText)
-        );
+        this.registerLiteral("customtext", true, new String[] { "customtext", "ctext" }, builder -> builder
+                .description(TextsLang.COMMAND_TEXT_DESC)
+                .permission(TextsPerms.COMMAND_TEXT)
+                .withArguments(textArgument(this.module))
+                .executes(this::showText));
     }
 
-    @NotNull
-    private static ArgumentNodeBuilder<Text> textArgument(@NotNull TextsModule module) {
-        return Commands.argument(CommandArguments.NAME, (context, str) ->
-                Optional.ofNullable(module.getTextById(str)).orElseThrow(() -> CommandSyntaxException.custom(TextsLang.COMMAND_SYNTAX_INVALID_TEXT))
-            )
-            .localized(CoreLang.COMMAND_ARGUMENT_NAME_NAME)
-            .suggestions((reader, context) -> module.getCustomTexts().stream().filter(text -> text.hasPermission(context.getSender())).map(Text::getId).toList());
+    private static ArgumentNodeBuilder<Text> textArgument(TextsModule module) {
+        return Commands
+                .argument(CommandArguments.NAME,
+                        (context, str) -> Optional.ofNullable(module.getTextById(str)).orElseThrow(
+                                () -> CommandSyntaxException.custom(TextsLang.COMMAND_SYNTAX_INVALID_TEXT)))
+                .localized(CoreLang.COMMAND_ARGUMENT_NAME_NAME)
+                .suggestions((reader, context) -> module.getCustomTexts().stream()
+                        .filter(text -> text.hasPermission(context.getSender())).map(Text::getId).toList());
     }
 
-    private boolean showText(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean showText(CommandContext context, ParsedArguments arguments) {
         Text text = arguments.get(CommandArguments.NAME, Text.class);
         if (!text.hasPermission(context.getSender())) {
             this.module.sendPrefixed(CoreLang.ERROR_NO_PERMISSION, context.getSender());

@@ -31,48 +31,63 @@ import static su.nightexpress.sunlight.SLPlaceholders.*;
 public class FoodLevelCommandProvider extends AbstractCommandProvider {
 
     private static final String COMMAND_RESTORE = "restore";
-    private static final String COMMAND_ADD     = "add";
-    private static final String COMMAND_SET     = "set";
-    private static final String COMMAND_REMOVE  = "remove";
+    private static final String COMMAND_ADD = "add";
+    private static final String COMMAND_SET = "set";
+    private static final String COMMAND_REMOVE = "remove";
 
-    private static final Permission PERM_ADD     = EssentialPerms.COMMAND.permission("foodlevel.add");
-    private static final Permission PERM_SET     = EssentialPerms.COMMAND.permission("foodlevel.set");
-    private static final Permission PERM_REMOVE  = EssentialPerms.COMMAND.permission("foodlevel.remove");
+    private static final Permission PERM_ADD = EssentialPerms.COMMAND.permission("foodlevel.add");
+    private static final Permission PERM_SET = EssentialPerms.COMMAND.permission("foodlevel.set");
+    private static final Permission PERM_REMOVE = EssentialPerms.COMMAND.permission("foodlevel.remove");
     private static final Permission PERM_RESTORE = EssentialPerms.COMMAND.permission("foodlevel.restore");
-    private static final Permission PERM_ROOT    = EssentialPerms.COMMAND.permission("foodlevel.root");
-    private static final Permission PERM_OTHERS  = EssentialPerms.COMMAND.permission("foodlevel.others");
+    private static final Permission PERM_ROOT = EssentialPerms.COMMAND.permission("foodlevel.root");
+    private static final Permission PERM_OTHERS = EssentialPerms.COMMAND.permission("foodlevel.others");
 
-    private static final TextLocale DESCRIPTION_ROOT    = LangEntry.builder("Command.Food.Root.Desc").text("Food level commands.");
-    private static final TextLocale DESCRIPTION_ADD     = LangEntry.builder("Command.Food.Add.Desc").text("Add food points.");
-    private static final TextLocale DESCRIPTION_SET     = LangEntry.builder("Command.Food.Set.Desc").text("Set food level.");
-    private static final TextLocale DESCRIPTION_REMOVE  = LangEntry.builder("Command.Food.Remove.Desc").text("Remove food points.");
-    private static final TextLocale DESCRIPTION_RESTORE = LangEntry.builder("Command.Food.Restore.Desc").text("Restore food level.");
+    private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Food.Root.Desc")
+            .text("Food level commands.");
+    private static final TextLocale DESCRIPTION_ADD = LangEntry.builder("Command.Food.Add.Desc")
+            .text("Add food points.");
+    private static final TextLocale DESCRIPTION_SET = LangEntry.builder("Command.Food.Set.Desc")
+            .text("Set food level.");
+    private static final TextLocale DESCRIPTION_REMOVE = LangEntry.builder("Command.Food.Remove.Desc")
+            .text("Remove food points.");
+    private static final TextLocale DESCRIPTION_RESTORE = LangEntry.builder("Command.Food.Restore.Desc")
+            .text("Restore food level.");
 
     private static final MessageLocale MESSAGE_ADD_FEEDBACK = LangEntry.builder("Command.Food.Give.Target").chatMessage(
-        GRAY.wrap("You have " + GREEN.wrap("added " + GENERIC_AMOUNT) + " food points to " + WHITE.wrap(PLAYER_DISPLAY_NAME) + " (" + WHITE.wrap(GENERIC_OLD_VALUE) + DARK_GRAY.wrap(" → ") + GREEN.wrap(GENERIC_NEW_VALUE) + ")"));
+            GRAY.wrap("You have " + GREEN.wrap("added " + GENERIC_AMOUNT) + " food points to "
+                    + WHITE.wrap(PLAYER_DISPLAY_NAME) + " (" + WHITE.wrap(GENERIC_OLD_VALUE) + DARK_GRAY.wrap(" → ")
+                    + GREEN.wrap(GENERIC_NEW_VALUE) + ")"));
 
-    private static final MessageLocale MESSAGE_REMOVE_FEEDBACK = LangEntry.builder("Command.Food.Take.Target").chatMessage(
-        GRAY.wrap("You have " + RED.wrap("removed " + GENERIC_AMOUNT) + " food points from " + WHITE.wrap(PLAYER_DISPLAY_NAME) + " (" + WHITE.wrap(GENERIC_OLD_VALUE) + DARK_GRAY.wrap(" → ") + RED.wrap(GENERIC_NEW_VALUE) + ")"));
+    private static final MessageLocale MESSAGE_REMOVE_FEEDBACK = LangEntry.builder("Command.Food.Take.Target")
+            .chatMessage(
+                    GRAY.wrap("You have " + RED.wrap("removed " + GENERIC_AMOUNT) + " food points from "
+                            + WHITE.wrap(PLAYER_DISPLAY_NAME) + " (" + WHITE.wrap(GENERIC_OLD_VALUE)
+                            + DARK_GRAY.wrap(" → ") + RED.wrap(GENERIC_NEW_VALUE) + ")"));
 
     private static final MessageLocale MESSAGE_SET_FEEDBACK = LangEntry.builder("Command.Food.Set.Target").chatMessage(
-        GRAY.wrap("You have set " + WHITE.wrap(PLAYER_DISPLAY_NAME) + "'s food level to " + YELLOW.wrap(GENERIC_AMOUNT) + " (" + WHITE.wrap(GENERIC_OLD_VALUE) + DARK_GRAY.wrap(" → ") + YELLOW.wrap(GENERIC_NEW_VALUE) + ")"));
+            GRAY.wrap("You have set " + WHITE.wrap(PLAYER_DISPLAY_NAME) + "'s food level to "
+                    + YELLOW.wrap(GENERIC_AMOUNT) + " (" + WHITE.wrap(GENERIC_OLD_VALUE) + DARK_GRAY.wrap(" → ")
+                    + YELLOW.wrap(GENERIC_NEW_VALUE) + ")"));
 
     private static final MessageLocale MESSAGE_ADD_NOTIFY = LangEntry.builder("Command.Food.Give.Notify").chatMessage(
-        GRAY.wrap("Your food level has been increased by " + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + "."));
+            GRAY.wrap("Your food level has been increased by " + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + "."));
 
-    private static final MessageLocale MESSAGE_REMOVE_NOTIFY = LangEntry.builder("Command.Food.Take.Notify").chatMessage(
-        GRAY.wrap("Your food level has been decreased by " + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + "."));
+    private static final MessageLocale MESSAGE_REMOVE_NOTIFY = LangEntry.builder("Command.Food.Take.Notify")
+            .chatMessage(
+                    GRAY.wrap("Your food level has been decreased by " + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + "."));
 
     private static final MessageLocale MESSAGE_SET_NOTIFY = LangEntry.builder("Command.Food.Set.Notify").chatMessage(
-        GRAY.wrap("Your food level has been set to " + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + "."));
+            GRAY.wrap("Your food level has been set to " + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + "."));
 
-    private static final MessageLocale MESSAGE_RESTORE_NOTIFY = LangEntry.builder("Command.Food.Restore.Notify").chatMessage(
-        Sound.ENTITY_GENERIC_EAT,
-        GRAY.wrap("You have been fed!"));
+    private static final MessageLocale MESSAGE_RESTORE_NOTIFY = LangEntry.builder("Command.Food.Restore.Notify")
+            .chatMessage(
+                    Sound.ENTITY_GENERIC_EAT,
+                    GRAY.wrap("You have been fed!"));
 
-    private static final MessageLocale MESSAGE_RESTORE_FEEDBACK = LangEntry.builder("Command.Food.Restore.Info").chatMessage(
-        Sound.ENTITY_GENERIC_EAT,
-        GRAY.wrap("You have fed " + WHITE.wrap(PLAYER_DISPLAY_NAME) + "."));
+    private static final MessageLocale MESSAGE_RESTORE_FEEDBACK = LangEntry.builder("Command.Food.Restore.Info")
+            .chatMessage(
+                    Sound.ENTITY_GENERIC_EAT,
+                    GRAY.wrap("You have fed " + WHITE.wrap(PLAYER_DISPLAY_NAME) + "."));
 
     private static final int MAX_VALUE = 20;
 
@@ -80,7 +95,8 @@ public class FoodLevelCommandProvider extends AbstractCommandProvider {
     private final EssentialSettings settings;
     private final UserManager userManager;
 
-    public FoodLevelCommandProvider(@NotNull SunLightPlugin plugin, @NotNull EssentialModule module, @NotNull EssentialSettings settings, @NotNull UserManager userManager) {
+    public FoodLevelCommandProvider(SunLightPlugin plugin, EssentialModule module, EssentialSettings settings,
+            UserManager userManager) {
         super(plugin);
         this.module = module;
         this.settings = settings;
@@ -89,30 +105,30 @@ public class FoodLevelCommandProvider extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral(COMMAND_ADD, false, new String[]{"addfood"}, builder -> this.builderMode(builder, ModifyMode.ADD));
-        this.registerLiteral(COMMAND_SET, false, new String[]{"setfood"}, builder -> this.builderMode(builder, ModifyMode.SET));
-        this.registerLiteral(COMMAND_REMOVE, false, new String[]{"removefood"}, builder -> this.builderMode(builder, ModifyMode.REMOVE));
+        this.registerLiteral(COMMAND_ADD, false, new String[] { "addfood" },
+                builder -> this.builderMode(builder, ModifyMode.ADD));
+        this.registerLiteral(COMMAND_SET, false, new String[] { "setfood" },
+                builder -> this.builderMode(builder, ModifyMode.SET));
+        this.registerLiteral(COMMAND_REMOVE, false, new String[] { "removefood" },
+                builder -> this.builderMode(builder, ModifyMode.REMOVE));
 
-        this.registerLiteral(COMMAND_RESTORE, true, new String[]{"feed"}, builder -> builder
-            .description(DESCRIPTION_RESTORE)
-            .permission(PERM_RESTORE)
-            .withArguments(Arguments.playerName(CommandArguments.PLAYER).permission(PERM_OTHERS).optional())
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes(this::restoreFood)
-        );
+        this.registerLiteral(COMMAND_RESTORE, true, new String[] { "feed" }, builder -> builder
+                .description(DESCRIPTION_RESTORE)
+                .permission(PERM_RESTORE)
+                .withArguments(Arguments.playerName(CommandArguments.PLAYER).permission(PERM_OTHERS).optional())
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes(this::restoreFood));
 
-        this.registerRoot("Food Level", true, new String[]{"foodlevel"},
-            Map.of(
-                COMMAND_ADD, "add",
-                COMMAND_SET, "set",
-                COMMAND_REMOVE, "remove",
-                COMMAND_RESTORE, "restore"
-            ),
-            builder -> builder.description(DESCRIPTION_ROOT).permission(PERM_ROOT)
-        );
+        this.registerRoot("Food Level", true, new String[] { "foodlevel" },
+                Map.of(
+                        COMMAND_ADD, "add",
+                        COMMAND_SET, "set",
+                        COMMAND_REMOVE, "remove",
+                        COMMAND_RESTORE, "restore"),
+                builder -> builder.description(DESCRIPTION_ROOT).permission(PERM_ROOT));
     }
 
-    private void builderMode(@NotNull LiteralNodeBuilder builder, @NotNull ModifyMode mode) {
+    private void builderMode(LiteralNodeBuilder builder, ModifyMode mode) {
         TextLocale description = switch (mode) {
             case ADD -> DESCRIPTION_ADD;
             case SET -> DESCRIPTION_SET;
@@ -126,18 +142,17 @@ public class FoodLevelCommandProvider extends AbstractCommandProvider {
         };
 
         builder
-            .description(description)
-            .permission(permission)
-            .withArguments(Arguments.integer(CommandArguments.AMOUNT, 0)
-                .localized(CoreLang.COMMAND_ARGUMENT_NAME_AMOUNT)
-                .suggestions((reader, context) -> IntStream.range(0, 21).boxed().map(String::valueOf).toList()),
-                Arguments.playerName(CommandArguments.PLAYER).permission(PERM_OTHERS).optional()
-            )
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes((context, arguments) -> modifyFood(context, arguments, mode));
+                .description(description)
+                .permission(permission)
+                .withArguments(Arguments.integer(CommandArguments.AMOUNT, 0)
+                        .localized(CoreLang.COMMAND_ARGUMENT_NAME_AMOUNT)
+                        .suggestions((reader, context) -> IntStream.range(0, 21).boxed().map(String::valueOf).toList()),
+                        Arguments.playerName(CommandArguments.PLAYER).permission(PERM_OTHERS).optional())
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes((context, arguments) -> modifyFood(context, arguments, mode));
     }
 
-    private boolean modifyFood(@NotNull CommandContext context, @NotNull ParsedArguments arguments, @NotNull ModifyMode mode) {
+    private boolean modifyFood(CommandContext context, ParsedArguments arguments, ModifyMode mode) {
         return this.loadPlayerOrSenderAndRunInMainThread(context, arguments, this.module, this.userManager, target -> {
             int amount = arguments.getInt(CommandArguments.AMOUNT);
             int oldValue = target.getFoodLevel();
@@ -159,35 +174,35 @@ public class FoodLevelCommandProvider extends AbstractCommandProvider {
 
             if (target != context.getSender()) {
                 this.module.sendPrefixed(infoMessage, context.getSender(), builder -> builder
-                    .with(GENERIC_NEW_VALUE, () -> NumberUtil.format(target.getFoodLevel()))
-                    .with(GENERIC_OLD_VALUE, () -> NumberUtil.format(oldValue))
-                    .with(GENERIC_MAX, () -> NumberUtil.format(MAX_VALUE))
-                    .with(GENERIC_AMOUNT, () -> NumberUtil.format(amount))
-                    .with(CommonPlaceholders.PLAYER.resolver(target))
-                );
+                        .with(GENERIC_NEW_VALUE, () -> NumberUtil.format(target.getFoodLevel()))
+                        .with(GENERIC_OLD_VALUE, () -> NumberUtil.format(oldValue))
+                        .with(GENERIC_MAX, () -> NumberUtil.format(MAX_VALUE))
+                        .with(GENERIC_AMOUNT, () -> NumberUtil.format(amount))
+                        .with(CommonPlaceholders.PLAYER.resolver(target)));
             }
 
             if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
                 this.module.sendPrefixed(notifyMessage, target, builder -> builder
-                    .with(GENERIC_NEW_VALUE, () -> NumberUtil.format(target.getFoodLevel()))
-                    .with(GENERIC_OLD_VALUE, () -> NumberUtil.format(oldValue))
-                    .with(GENERIC_MAX, () -> NumberUtil.format(MAX_VALUE))
-                    .with(GENERIC_AMOUNT, () -> NumberUtil.format(amount))
-                );
+                        .with(GENERIC_NEW_VALUE, () -> NumberUtil.format(target.getFoodLevel()))
+                        .with(GENERIC_OLD_VALUE, () -> NumberUtil.format(oldValue))
+                        .with(GENERIC_MAX, () -> NumberUtil.format(MAX_VALUE))
+                        .with(GENERIC_AMOUNT, () -> NumberUtil.format(amount)));
             }
         });
     }
 
-    private boolean restoreFood(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean restoreFood(CommandContext context, ParsedArguments arguments) {
         return this.loadPlayerOrSenderAndRunInMainThread(context, arguments, this.module, this.userManager, target -> {
             target.setFoodLevel(MAX_VALUE);
 
             if (this.settings.foodSaturationEnabled.get()) {
-                target.setSaturation(Math.min(MAX_VALUE, target.getSaturation() + this.settings.foodSaturationAmount.get().floatValue()));
+                target.setSaturation(Math.min(MAX_VALUE,
+                        target.getSaturation() + this.settings.foodSaturationAmount.get().floatValue()));
             }
 
             if (context.getSender() != target) {
-                this.module.sendPrefixed(MESSAGE_RESTORE_FEEDBACK, context.getSender(), replacer -> replacer.with(CommonPlaceholders.PLAYER.resolver(target)));
+                this.module.sendPrefixed(MESSAGE_RESTORE_FEEDBACK, context.getSender(),
+                        replacer -> replacer.with(CommonPlaceholders.PLAYER.resolver(target)));
             }
 
             if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {

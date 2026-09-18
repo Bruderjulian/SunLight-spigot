@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 
 public class WorldRulesEditor extends EditorMenu<SunLightPlugin, WrappedWorld> implements AutoFilled<GameRule<?>> {
 
-    public WorldRulesEditor(@NotNull SunLightPlugin plugin, @NotNull WorldsModule module) {
+    public WorldRulesEditor(SunLightPlugin plugin, WorldsModule module) {
         super(plugin, WorldsLang.EDITOR_TITLE_GAME_RULES.text(), MenuSize.CHEST_45);
 
         this.addNextPage(44);
@@ -41,68 +41,72 @@ public class WorldRulesEditor extends EditorMenu<SunLightPlugin, WrappedWorld> i
     }
 
     @Override
-    public void onPrepare(@NotNull MenuViewer viewer, @NotNull MenuOptions options) {
+    public void onPrepare(MenuViewer viewer, MenuOptions options) {
         this.autoFill(viewer);
     }
 
     @Override
-    protected void onReady(@NotNull MenuViewer viewer, @NotNull Inventory inventory) {
+    protected void onReady(MenuViewer viewer, Inventory inventory) {
 
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void onAutoFill(@NotNull MenuViewer viewer, @NotNull AutoFill<GameRule<?>> autoFill) {
+    public void onAutoFill(MenuViewer viewer, AutoFill<GameRule<?>> autoFill) {
         // TODO
-        /*World world = this.getLink(viewer).getWorld();
-
-        autoFill.setSlots(IntStream.range(0, 36).toArray());
-        autoFill.setItems(Stream.of(world.getGameRules())
-            .map(GameRule::getByName).filter(Objects::nonNull)
-            .sorted(Comparator.comparing(GameRule::getName))
-            .collect(Collectors.toCollection(ArrayList::new))
-        );
-        autoFill.setItemCreator(gameRule -> {
-
-            Material material = Material.MAP;
-            if (gameRule.getType() == Boolean.class) {
-                if (world.getGameRuleValue(gameRule) == Boolean.TRUE) {
-                    material = Material.LIME_DYE;
-                }
-                else material = Material.GRAY_DYE;
-            }
-
-            ItemStack item = new ItemStack(material);
-            ItemReplacer.create(item).hideFlags().trimmed()
-                .readLocale(WorldsLang.EDITOR_WORLD_RULE_OBJECT)
-                .replace(Placeholders.GENERIC_NAME, this.getRuleName(gameRule.getName()))
-                .replace(Placeholders.GENERIC_VALUE, String.valueOf(world.getGameRuleValue(gameRule)))
-                .writeMeta();
-            return item;
-        });
-        autoFill.setClickAction(gameRule -> (viewer1, event) -> {
-            if (gameRule.getType() == Boolean.class) {
-                GameRule<Boolean> rule = (GameRule<Boolean>) gameRule;
-                Boolean value = world.getGameRuleValue(rule);
-
-                world.setGameRule(rule, value != null && !value);
-                this.runNextTick(() -> this.open(viewer.getPlayer(), viewer.getPage()));
-            }
-            else if (gameRule.getType() == Integer.class) {
-                GameRule<Integer> rule = (GameRule<Integer>) gameRule;
-                this.handleInput(viewer.getPlayer(), Lang.EDITOR_INPUT_GENERIC_VALUE.text(), (dialog, input) -> {
-                    world.setGameRule(rule, input.asInt());
-                    return true;
-                });
-            }
-        });*/
+        /*
+         * World world = this.getLink(viewer).getWorld();
+         * 
+         * autoFill.setSlots(IntStream.range(0, 36).toArray());
+         * autoFill.setItems(Stream.of(world.getGameRules())
+         * .map(GameRule::getByName).filter(Objects::nonNull)
+         * .sorted(Comparator.comparing(GameRule::getName))
+         * .collect(Collectors.toCollection(ArrayList::new))
+         * );
+         * autoFill.setItemCreator(gameRule -> {
+         * 
+         * Material material = Material.MAP;
+         * if (gameRule.getType() == Boolean.class) {
+         * if (world.getGameRuleValue(gameRule) == Boolean.TRUE) {
+         * material = Material.LIME_DYE;
+         * }
+         * else material = Material.GRAY_DYE;
+         * }
+         * 
+         * ItemStack item = new ItemStack(material);
+         * ItemReplacer.create(item).hideFlags().trimmed()
+         * .readLocale(WorldsLang.EDITOR_WORLD_RULE_OBJECT)
+         * .replace(Placeholders.GENERIC_NAME, this.getRuleName(gameRule.getName()))
+         * .replace(Placeholders.GENERIC_VALUE,
+         * String.valueOf(world.getGameRuleValue(gameRule)))
+         * .writeMeta();
+         * return item;
+         * });
+         * autoFill.setClickAction(gameRule -> (viewer1, event) -> {
+         * if (gameRule.getType() == Boolean.class) {
+         * GameRule<Boolean> rule = (GameRule<Boolean>) gameRule;
+         * Boolean value = world.getGameRuleValue(rule);
+         * 
+         * world.setGameRule(rule, value != null && !value);
+         * this.runNextTick(() -> this.open(viewer.getPlayer(), viewer.getPage()));
+         * }
+         * else if (gameRule.getType() == Integer.class) {
+         * GameRule<Integer> rule = (GameRule<Integer>) gameRule;
+         * this.handleInput(viewer.getPlayer(), Lang.EDITOR_INPUT_GENERIC_VALUE.text(),
+         * (dialog, input) -> {
+         * world.setGameRule(rule, input.asInt());
+         * return true;
+         * });
+         * }
+         * });
+         */
     }
 
-    @NotNull
-    private String getRuleName(@NotNull String name) {
+    private String getRuleName(String name) {
         StringBuilder builder = new StringBuilder();
         for (char letter : name.toCharArray()) {
-            if (Character.isUpperCase(letter) && !builder.isEmpty()) builder.append(" ");
+            if (Character.isUpperCase(letter) && !builder.isEmpty())
+                builder.append(" ");
             builder.append(letter);
         }
         return StringUtil.capitalizeFully(builder.toString());

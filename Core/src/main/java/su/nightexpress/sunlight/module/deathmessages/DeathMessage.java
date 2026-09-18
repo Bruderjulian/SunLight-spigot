@@ -14,41 +14,37 @@ public class DeathMessage implements Writeable {
     private final List<String> messages;
     private final List<String> messagesByPlayer;
 
-    public DeathMessage(@NotNull List<String> messages) {
+    public DeathMessage(List<String> messages) {
         this(messages, Lists.newList());
     }
 
-    public DeathMessage(@NotNull List<String> messages, @NotNull List<String> messagesByPlayer) {
+    public DeathMessage(List<String> messages, List<String> messagesByPlayer) {
         this.messages = messages;
         this.messagesByPlayer = messagesByPlayer;
     }
 
-    @NotNull
-    public static DeathMessage simple(@NotNull String message) {
+    public static DeathMessage simple(String message) {
         return new DeathMessage(Lists.newList(message));
     }
 
-    @NotNull
-    public static DeathMessage read(@NotNull FileConfig config, @NotNull String path) {
+    public static DeathMessage read(FileConfig config, String path) {
         List<String> messages = config.getStringList(path + ".Messages");
         List<String> messagesByPlayer = config.getStringList(path + ".Messages_By_Player");
         return new DeathMessage(messages, messagesByPlayer);
     }
 
     @Override
-    public void write(@NotNull FileConfig config, @NotNull String path) {
+    public void write(FileConfig config, String path) {
         config.set(path + ".Messages", this.messages);
         if (!this.messagesByPlayer.isEmpty()) {
             config.set(path + ".Messages_By_Player", this.messagesByPlayer);
         }
     }
 
-    @Nullable
     public String selectMessage() {
         return this.selectMessage(false);
     }
 
-    @Nullable
     public String selectMessage(boolean playerCaused) {
         if (playerCaused && !this.messagesByPlayer.isEmpty()) {
             return Rnd.get(this.messagesByPlayer);
@@ -56,12 +52,10 @@ public class DeathMessage implements Writeable {
         return this.messages.isEmpty() ? null : Rnd.get(this.messages);
     }
 
-    @NotNull
     public List<String> getMessages() {
         return messages;
     }
 
-    @NotNull
     public List<String> getMessagesByPlayer() {
         return messagesByPlayer;
     }

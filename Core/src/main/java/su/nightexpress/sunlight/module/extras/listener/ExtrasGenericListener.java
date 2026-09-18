@@ -32,21 +32,21 @@ import java.util.Set;
 
 public class ExtrasGenericListener extends AbstractListener<SunLightPlugin> {
 
-    public ExtrasGenericListener(@NotNull SunLightPlugin plugin, @NotNull ExtrasModule module) {
+    public ExtrasGenericListener(SunLightPlugin plugin, ExtrasModule module) {
         super(plugin);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoinCommands(PlayerJoinEvent event) {
-        if (!ExtrasConfig.JOIN_COMMANDS_ENABLED.get()) return;
+        if (!ExtrasConfig.JOIN_COMMANDS_ENABLED.get())
+            return;
 
         Player player = event.getPlayer();
         SunUser user = plugin.getUserManager().getOrFetch(player);
         List<String> commands;
         if (user.isFirstTimeJoined()) {
             commands = ExtrasConfig.JOIN_COMMANDS_FIRST.get();
-        }
-        else {
+        } else {
             commands = ExtrasConfig.JOIN_COMMANDS_DEFAULT.get();
         }
         Players.dispatchCommands(player, commands);
@@ -54,10 +54,12 @@ public class ExtrasGenericListener extends AbstractListener<SunLightPlugin> {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onSignsColor(SignChangeEvent event) {
-        if (!ExtrasConfig.SIGN_COLORS_ENABLED.get()) return;
+        if (!ExtrasConfig.SIGN_COLORS_ENABLED.get())
+            return;
 
         Player player = event.getPlayer();
-        if (!player.hasPermission(ExtrasPerms.SIGNS_COLOR)) return;
+        if (!player.hasPermission(ExtrasPerms.SIGNS_COLOR))
+            return;
 
         for (int index = 0; index < event.getLines().length; index++) {
             String line = event.getLine(index);
@@ -69,14 +71,18 @@ public class ExtrasGenericListener extends AbstractListener<SunLightPlugin> {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onAnvilColor(PrepareAnvilEvent event) {
-        if (!ExtrasConfig.ANVIL_COLORS_ENABLED.get()) return;
-        if (event.getViewers().isEmpty()) return;
+        if (!ExtrasConfig.ANVIL_COLORS_ENABLED.get())
+            return;
+        if (event.getViewers().isEmpty())
+            return;
 
         ItemStack result = event.getResult();
-        if (result == null || result.getType().isAir()) return;
+        if (result == null || result.getType().isAir())
+            return;
 
         Player player = (Player) event.getViewers().getFirst();
-        if (!player.hasPermission(ExtrasPerms.ANVILS_COLOR)) return;
+        if (!player.hasPermission(ExtrasPerms.ANVILS_COLOR))
+            return;
 
         ItemUtil.editMeta(result, meta -> {
             meta.setDisplayName(NightMessage.from(meta.getDisplayName(), TagPool.BASE_COLORS_AND_STYLES).toLegacy());
@@ -86,7 +92,8 @@ public class ExtrasGenericListener extends AbstractListener<SunLightPlugin> {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onKeepInventoryDeath(PlayerDeathEvent event) {
-        if (!ExtrasConfig.KEEP_INVENTORY_ENABLED.get()) return;
+        if (!ExtrasConfig.KEEP_INVENTORY_ENABLED.get())
+            return;
 
         Player player = event.getEntity();
 
@@ -103,59 +110,74 @@ public class ExtrasGenericListener extends AbstractListener<SunLightPlugin> {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onGodTarget(EntityTargetEvent event) {
-        if (!ExtrasConfig.GOD_ENABLED.get()) return;
-        if (!(event.getTarget() instanceof Player player)) return;
-        if (!this.isGod(player)) return;
+        if (!ExtrasConfig.GOD_ENABLED.get())
+            return;
+        if (!(event.getTarget() instanceof Player player))
+            return;
+        if (!this.isGod(player))
+            return;
 
         event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onGodDamage(EntityDamageEvent event) {
-        if (!ExtrasConfig.GOD_ENABLED.get()) return;
-        if (!(event.getEntity() instanceof Player player)) return;
-        if (!this.isGod(player)) return;
+        if (!ExtrasConfig.GOD_ENABLED.get())
+            return;
+        if (!(event.getEntity() instanceof Player player))
+            return;
+        if (!this.isGod(player))
+            return;
 
         event.setCancelled(true);
     }
 
-    private boolean isGod(@NotNull Player player) {
+    private boolean isGod(Player player) {
         return this.plugin.getUserManager().getOrFetch(player).getPropertyOrDefault(ExtrasProperties.GOD);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onFarmKillerEnderEndermite(EntityTargetEvent event) {
-        if (!ExtrasConfig.ANTI_FARM_ENDERMITE_MINECART.get()) return;
-        if (!(event.getEntity() instanceof Enderman enderman)) return;
-        if (!(event.getTarget() instanceof Endermite endermite)) return;
+        if (!ExtrasConfig.ANTI_FARM_ENDERMITE_MINECART.get())
+            return;
+        if (!(event.getEntity() instanceof Enderman enderman))
+            return;
+        if (!(event.getTarget() instanceof Endermite endermite))
+            return;
 
         event.setCancelled(endermite.isInsideVehicle());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onFarmKillerFishingAuto(PlayerInteractEvent event) {
-        if (!ExtrasConfig.ANTI_FARM_AUTO_FISHING.get()) return;
-        if (event.useInteractedBlock() == Event.Result.DENY) return;
-        if (event.useItemInHand() == Event.Result.DENY) return;
+        if (!ExtrasConfig.ANTI_FARM_AUTO_FISHING.get())
+            return;
+        if (event.useInteractedBlock() == Event.Result.DENY)
+            return;
+        if (event.useItemInHand() == Event.Result.DENY)
+            return;
 
         Block block = event.getClickedBlock();
-        if (block == null) return;
+        if (block == null)
+            return;
 
         Player player = event.getPlayer();
         ItemStack main = player.getInventory().getItemInMainHand();
         ItemStack off = player.getInventory().getItemInOffHand();
-        if (!this.isFishingRod(main) && !this.isFishingRod(off)) return;
+        if (!this.isFishingRod(main) && !this.isFishingRod(off))
+            return;
 
         Material blockType = block.getType();
-        if (!blockType.isInteractable() && blockType.isSolid()) return;
+        if (!blockType.isInteractable() && blockType.isSolid())
+            return;
 
         player.getNearbyEntities(16D, 16D, 16).stream()
-            .filter(entity -> entity instanceof FishHook).map(entity -> (FishHook) entity)
-            .filter(fishHook -> fishHook.getShooter() instanceof Player && fishHook.getShooter().equals(player))
-            .forEach(Entity::remove);
+                .filter(entity -> entity instanceof FishHook).map(entity -> (FishHook) entity)
+                .filter(fishHook -> fishHook.getShooter() instanceof Player && fishHook.getShooter().equals(player))
+                .forEach(Entity::remove);
     }
 
-    private boolean isFishingRod(@NotNull ItemStack item) {
+    private boolean isFishingRod(ItemStack item) {
         return !item.getType().isAir() && item.getType() == Material.FISHING_ROD;
     }
 }

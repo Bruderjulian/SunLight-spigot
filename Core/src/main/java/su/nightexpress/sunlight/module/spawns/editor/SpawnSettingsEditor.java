@@ -89,7 +89,7 @@ public class SpawnSettingsEditor extends AbstractObjectMenu<Spawn> implements La
 
     private final SpawnsModule module;
 
-    public SpawnSettingsEditor(@NonNull SunLightPlugin plugin, @NonNull SpawnsModule module) {
+    public SpawnSettingsEditor( SunLightPlugin plugin,  SpawnsModule module) {
         super(MenuType.GENERIC_9X4, SpawnsLang.EDITOR_TITLE_SETTINGS.text(), Spawn.class);
         this.module = module;
 
@@ -224,37 +224,37 @@ public class SpawnSettingsEditor extends AbstractObjectMenu<Spawn> implements La
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
+    protected void onLoad( FileConfig config) {
 
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
 
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 }

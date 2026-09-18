@@ -12,16 +12,15 @@ import java.util.Set;
 
 public class GroupMention implements ChatMention, Writeable {
 
-    private final String      format;
+    private final String format;
     private final Set<String> ranks;
 
-    public GroupMention(@NotNull String format, @NotNull Set<String> ranks) {
+    public GroupMention(String format, Set<String> ranks) {
         this.format = format;
         this.ranks = ranks;
     }
 
-    @NotNull
-    public static GroupMention read(@NotNull FileConfig config, @NotNull String path) {
+    public static GroupMention read(FileConfig config, String path) {
         String format = config.getString(path + ".Format", "");
         Set<String> groups = Lists.modify(config.getStringSet(path + ".Included-Ranks"), String::toLowerCase);
 
@@ -29,26 +28,26 @@ public class GroupMention implements ChatMention, Writeable {
     }
 
     @Override
-    public void write(@NotNull FileConfig config, @NotNull String path) {
+    public void write(FileConfig config, String path) {
         config.set(path + ".Format", this.format);
         config.set(path + ".Included-Ranks", this.ranks);
     }
 
     @Override
-    public boolean isApplicable(@NotNull Player player) {
-        if (this.ranks.contains(SLPlaceholders.WILDCARD)) return true;
+    public boolean isApplicable(Player player) {
+        if (this.ranks.contains(SLPlaceholders.WILDCARD))
+            return true;
 
         Set<String> groups = Players.getInheritanceGroups(player);
         return this.ranks.stream().anyMatch(groups::contains);
     }
 
     @Override
-    @NotNull
+
     public String getFormat() {
         return this.format;
     }
 
-    @NotNull
     public Set<String> getRanks() {
         return this.ranks;
     }

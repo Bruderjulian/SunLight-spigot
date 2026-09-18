@@ -10,10 +10,9 @@ import java.util.stream.Stream;
 
 public class WorldUtils {
 
-    @NotNull
-    public static Collection<Plugin> getGeneratorPlugins(@NotNull String worldName) {
+    public static Collection<Plugin> getGeneratorPlugins(String worldName) {
         return Stream.of(Bukkit.getServer().getPluginManager().getPlugins())
-            .filter(plugin -> plugin.getDefaultWorldGenerator(worldName, null) != null)
-            .collect(Collectors.toSet());
+                .filter(plugin -> plugin.getDefaultWorldGenerator(worldName, null) != null)
+                .collect(Collectors.toSet());
     }
 }

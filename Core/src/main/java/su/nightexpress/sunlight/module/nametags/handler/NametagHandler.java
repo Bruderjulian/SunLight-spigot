@@ -14,11 +14,11 @@ import su.nightexpress.sunlight.module.nametags.NameTagFormat;
 
 public abstract class NametagHandler extends SimpleManager<SunLightPlugin> {
 
-    protected NametagHandler(@NonNull SunLightPlugin plugin) {
+    protected NametagHandler( SunLightPlugin plugin) {
         super(plugin);
     }
 
-    public void sendTeamPacket(@NonNull Player playerOfTeam, @NonNull NameTagFormat tag, @NonNull PlaceholderContext placeholderContext) {
+    public void sendTeamPacket( Player playerOfTeam,  NameTagFormat tag,  PlaceholderContext placeholderContext) {
         String uuid = SLUtils.createIdentifier(playerOfTeam);
         String teamId = "sl_" + uuid;
         if (teamId.length() > 16) teamId = teamId.substring(0, 16);
@@ -34,7 +34,7 @@ public abstract class NametagHandler extends SimpleManager<SunLightPlugin> {
         }
     }
 
-    protected abstract void sendPacket(@NonNull TeamMode mode, @NonNull String teamId, @NonNull String teamPrefix, @NonNull String teamSuffix, @NonNull String teamColorRaw, @NonNull Player playerOfTeam, @NonNull Collection<? extends Player> receivers);
+    protected abstract void sendPacket( TeamMode mode,  String teamId,  String teamPrefix,  String teamSuffix,  String teamColorRaw,  Player playerOfTeam,  Collection<? extends Player> receivers);
 
     public enum TeamMode {
 

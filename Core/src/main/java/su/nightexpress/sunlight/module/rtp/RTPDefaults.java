@@ -10,9 +10,9 @@ import java.util.Set;
 
 public class RTPDefaults {
 
-    private static final Set<BlockFace> DIRECTIONS = Set.of(BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH);
+    private static final Set<BlockFace> DIRECTIONS = Set.of(BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST,
+            BlockFace.SOUTH);
 
-    @NotNull
     public static Map<String, LookupRange> getDefaultRangeMap() {
         Map<String, LookupRange> map = new LinkedHashMap<>();
 

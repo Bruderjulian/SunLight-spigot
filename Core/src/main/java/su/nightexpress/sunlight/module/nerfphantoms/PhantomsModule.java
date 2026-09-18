@@ -19,12 +19,12 @@ import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 
 public class PhantomsModule extends Module {
 
-    public PhantomsModule(@NotNull ModuleContext context) {
+    public PhantomsModule(ModuleContext context) {
         super(context);
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         config.initializeOptions(PhantomsConfig.class);
         this.plugin.injectLang(PhantomsLang.class);
         UserPropertyRegistry.register(PhantomsProperties.ANTI_PHANTOM);
@@ -39,26 +39,28 @@ public class PhantomsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(PhantomsPerms.ROOT);
     }
 
     protected void registerCommands() {
-        this.commandRegistry.addProvider("nophantom", new PhantomsCommandProvider(this.plugin, this, this.userManager), this);
+        this.commandRegistry.addProvider("nophantom", new PhantomsCommandProvider(this.plugin, this, this.userManager),
+                this);
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("phantoms_antiphantom_state", (player, payload) -> {
             return CoreLang.STATE_YES_NO.get(this.userManager.getOrFetch(player).getPropertyOrDefault(
-                PhantomsProperties.ANTI_PHANTOM));
+                    PhantomsProperties.ANTI_PHANTOM));
         });
     }
 
     private void resetRestTime() {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             SunUser user = plugin.getUserManager().getOrFetch(player);
-            if (!user.getPropertyOrDefault(PhantomsProperties.ANTI_PHANTOM)) continue;
+            if (!user.getPropertyOrDefault(PhantomsProperties.ANTI_PHANTOM))
+                continue;
 
             player.setStatistic(Statistic.TIME_SINCE_REST, 0);
         }

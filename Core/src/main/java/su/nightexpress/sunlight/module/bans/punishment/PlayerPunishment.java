@@ -13,19 +13,19 @@ public class PlayerPunishment extends AbstractPunishment {
 
     private String playerName;
 
-    public PlayerPunishment(@NotNull UUID playerId, @NotNull String playerName, @NotNull PunishmentData data, boolean active) {
+    public PlayerPunishment(UUID playerId, String playerName, PunishmentData data, boolean active) {
         super(data, active);
         this.playerId = playerId;
         this.playerName = playerName;
     }
 
     @Override
-    @NotNull
+
     public PlaceholderResolver placeholders() {
         return BansPlaceholders.PLAYER_PUNISHMENT.resolver(this);
     }
 
-    public void updateName(@NotNull String name) {
+    public void updateName(String name) {
         if (!this.playerName.equalsIgnoreCase(name)) {
             this.playerName = name;
             this.markDirty();
@@ -33,22 +33,20 @@ public class PlayerPunishment extends AbstractPunishment {
     }
 
     @Override
-    public boolean isApplicable(@NotNull Player player) {
+    public boolean isApplicable(Player player) {
         return this.playerName.equalsIgnoreCase(player.getName());
     }
 
     @Override
-    @NotNull
+
     public String getName() {
         return this.playerName;
     }
 
-    @NotNull
     public UUID getPlayerId() {
         return this.playerId;
     }
 
-    @NotNull
     public String getPlayerName() {
         return this.playerName;
     }

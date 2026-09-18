@@ -14,7 +14,7 @@ public class PlayerEnderChest extends PlayerEnderChestContainer {
     private static final String ITEMS_FIELD = "items"; // 'c'
 
     private final CraftInventory inventory = new CraftInventory(this);
-    private final CraftPlayer    owner;
+    private final CraftPlayer owner;
 
     public PlayerEnderChest(CraftPlayer owner) {
         super(owner.getHandle());
@@ -22,24 +22,24 @@ public class PlayerEnderChest extends PlayerEnderChestContainer {
         Reflex.setFieldValue(this, ITEMS_FIELD, owner.getHandle().getEnderChestInventory().items);
     }
 
-    @NotNull
     public org.bukkit.inventory.Inventory getInventory() {
         return this.inventory;
     }
 
     private void saveOnExit() {
-        if (!this.transaction.isEmpty()) return;
+        if (!this.transaction.isEmpty())
+            return;
         this.owner.saveData();
     }
 
     @Override
-    public void onClose(@NotNull CraftHumanEntity who) {
+    public void onClose(CraftHumanEntity who) {
         super.onClose(who);
         this.saveOnExit();
     }
 
     @Override
-    public boolean stillValid(@NotNull Player player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 }

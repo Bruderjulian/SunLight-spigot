@@ -12,34 +12,32 @@ public class InetPunishment extends AbstractPunishment {
 
     private final InetAddress address;
 
-    public InetPunishment(@NotNull InetAddress address, @NotNull PunishmentData data, boolean active) {
+    public InetPunishment(InetAddress address, PunishmentData data, boolean active) {
         super(data, active);
         this.address = address;
     }
 
     @Override
-    @NotNull
+
     public PlaceholderResolver placeholders() {
         return BansPlaceholders.INET_PUNISHMENT.resolver(this);
     }
 
     @Override
-    public boolean isApplicable(@NotNull Player player) {
+    public boolean isApplicable(Player player) {
         return SLUtils.getInetAddress(player).map(address -> address.equals(this.address)).orElse(false);
     }
 
     @Override
-    @NotNull
+
     public String getName() {
         return this.getRawAddress();
     }
 
-    @NotNull
     public InetAddress getAddress() {
         return this.address;
     }
 
-    @NotNull
     public String getRawAddress() {
         return this.address.getHostAddress();
     }

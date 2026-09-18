@@ -19,15 +19,15 @@ import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 
 public class ExtrasModule extends Module {
 
-    private ChairsManager  chairsManager;
-    private SortManager    sortManager;
+    private ChairsManager chairsManager;
+    private SortManager sortManager;
 
-    public ExtrasModule(@NotNull ModuleContext context) {
+    public ExtrasModule(ModuleContext context) {
         super(context);
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         config.initializeOptions(ExtrasConfig.class);
         this.plugin.injectLang(ExtrasLang.class);
 
@@ -50,39 +50,44 @@ public class ExtrasModule extends Module {
 
     @Override
     protected void unloadModule() {
-        if (this.chairsManager != null) this.chairsManager.shutdown();
-        if (this.sortManager != null) this.sortManager.shutdown();
+        if (this.chairsManager != null)
+            this.chairsManager.shutdown();
+        if (this.sortManager != null)
+            this.sortManager.shutdown();
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(ExtrasPerms.MODULE);
     }
 
     @Override
     protected void registerCommands() {
         if (ExtrasConfig.GOD_ENABLED.get()) {
-            this.commandRegistry.addProvider("extras-god", new GodCommandProvider(this.plugin, this, this.userManager), this);
+            this.commandRegistry.addProvider("extras-god", new GodCommandProvider(this.plugin, this, this.userManager),
+                    this);
         }
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
         // TODO
-        /*if (params.equalsIgnoreCase("chairs_state")) {
-            return CoreLang.getYesOrNo(user.getSettings().get(ChairsManager.SETTING_CHAIRS));
-        }
-        if (params.equalsIgnoreCase("chestsort_state")) {
-            return CoreLang.getYesOrNo(user.getSettings().get(SortManager.SETTING_CHEST_SORT));
-        }*/
+        /*
+         * if (params.equalsIgnoreCase("chairs_state")) {
+         * return
+         * CoreLang.getYesOrNo(user.getSettings().get(ChairsManager.SETTING_CHAIRS));
+         * }
+         * if (params.equalsIgnoreCase("chestsort_state")) {
+         * return
+         * CoreLang.getYesOrNo(user.getSettings().get(SortManager.SETTING_CHEST_SORT));
+         * }
+         */
     }
 
-    @Nullable
     public ChairsManager getChairsManager() {
         return chairsManager;
     }
 
-    @Nullable
     public SortManager getChestSortManager() {
         return sortManager;
     }

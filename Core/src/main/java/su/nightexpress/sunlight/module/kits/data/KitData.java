@@ -14,13 +14,13 @@ public class KitData {
 
     private boolean dirty;
 
-    public KitData(@NotNull UUID playerId, @NotNull String kitId, long cooldownDate) {
+    public KitData(UUID playerId, String kitId, long cooldownDate) {
         this.playerId = playerId;
         this.kitId = kitId;
         this.cooldownDate = cooldownDate;
     }
 
-    public static KitData create(@NotNull UUID playerId, @NotNull String kitId) {
+    public static KitData create(UUID playerId, String kitId) {
         return new KitData(playerId, kitId, 0L);
     }
 
@@ -48,12 +48,10 @@ public class KitData {
         return TimeUtil.isPassed(this.cooldownDate);
     }
 
-    @NotNull
     public UUID getPlayerId() {
         return this.playerId;
     }
 
-    @NotNull
     public String getKitId() {
         return this.kitId;
     }

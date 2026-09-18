@@ -41,7 +41,7 @@ public class PlayerWarpOptionsMenu extends AbstractObjectMenu<PlayerWarp> {
     private final MenuItemAction priceAction;
     private final MenuItemAction categoryAction;
 
-    public PlayerWarpOptionsMenu(@NonNull PlayerWarpsModule module) {
+    public PlayerWarpOptionsMenu( PlayerWarpsModule module) {
         super(MenuType.GENERIC_9X5, "[%s] Settings".formatted(WARP_NAME), PlayerWarp.class);
         this.module = module;
 
@@ -53,8 +53,8 @@ public class PlayerWarpOptionsMenu extends AbstractObjectMenu<PlayerWarp> {
     }
 
     @Override
-    @NonNull
-    protected String getRawTitle(@NonNull ViewerContext context) {
+    
+    protected String getRawTitle( ViewerContext context) {
         return PlaceholderContext.builder().with(this.getObject(context).placeholders()).build().apply(super.getRawTitle(context));
     }
 
@@ -178,33 +178,33 @@ public class PlayerWarpOptionsMenu extends AbstractObjectMenu<PlayerWarp> {
         );
     }
 
-    protected void backToWarps(@NonNull ObjectActionContext<PlayerWarp> context) {
+    protected void backToWarps( ObjectActionContext<PlayerWarp> context) {
         this.module.openWarpsMenu(context.getPlayer());
     }
 
-    private void editCategory(@NonNull ObjectActionContext<PlayerWarp> context) {
+    private void editCategory( ObjectActionContext<PlayerWarp> context) {
         this.module.openCategoryDialog(context.getPlayer(), context.getObject(), () -> context.getViewer().refresh());
     }
 
-    private void editName(@NonNull ObjectActionContext<PlayerWarp> context) {
+    private void editName( ObjectActionContext<PlayerWarp> context) {
         this.module.openNameDialog(context.getPlayer(), context.getObject(), () -> context.getViewer().refresh());
     }
 
-    private void editDescription(@NonNull ObjectActionContext<PlayerWarp> context) {
+    private void editDescription( ObjectActionContext<PlayerWarp> context) {
         this.module.openDescriptionDialog(context.getPlayer(), context.getObject(), () -> context.getViewer().refresh());
     }
 
-    private void editPrice(@NonNull ObjectActionContext<PlayerWarp> context) {
+    private void editPrice( ObjectActionContext<PlayerWarp> context) {
         this.module.openPriceDialog(context.getPlayer(), context.getObject(), () -> context.getViewer().refresh());
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
+    protected void onLoad( FileConfig config) {
 
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
         if (event.isRightClick() && event.getRawSlot() >= event.getInventory().getSize()) {
             ItemStack itemStack = event.getCurrentItem();
             if (itemStack == null || itemStack.getType().isAir()) return;
@@ -217,27 +217,27 @@ public class PlayerWarpOptionsMenu extends AbstractObjectMenu<PlayerWarp> {
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
 
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 }

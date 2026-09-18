@@ -31,33 +31,33 @@ import java.util.UUID;
 
 public class PlayerWarp implements PlaceholderResolvable {
 
-    private final Path   file;
+    private final Path file;
     private final String id;
 
-    private String       worldName;
-    private ExactPos     blockPos;
-    private long         creationTimestamp;
+    private String worldName;
+    private ExactPos blockPos;
+    private long creationTimestamp;
 
-    private String       name;
+    private String name;
     private List<String> description;
-    private NightItem    icon;
-    private double       price;
-    private UserInfo     owner;
-    private String       categoryId;
-    private long         totalVisits;
+    private NightItem icon;
+    private double price;
+    private UserInfo owner;
+    private String categoryId;
+    private long totalVisits;
     private FeaturedData featuredData;
 
-    private World   world;
+    private World world;
     private boolean dirty;
     private WarpCategory category;
 
-    public PlayerWarp(@NonNull Path file, @NonNull String id) {
+    public PlayerWarp(Path file, String id) {
         this.file = file;
         this.id = id;
     }
 
     @Override
-    @NotNull
+
     public PlaceholderResolver placeholders() {
         return PlayerWarpsPlaceholders.PLAYER_WARP.resolver(this);
     }
@@ -66,7 +66,7 @@ public class PlayerWarp implements PlaceholderResolvable {
         this.loadConfig().edit(this::loadFromConfig);
     }
 
-    public void loadFromConfig(@NonNull FileConfig config) {
+    public void loadFromConfig(FileConfig config) {
         this.blockPos = ExactPos.read(config, "BlockPos");
         this.worldName = config.getString("World");
 
@@ -81,8 +81,7 @@ public class PlayerWarp implements PlaceholderResolvable {
         UUID ownerId;
         try {
             ownerId = UUID.fromString(ownerString);
-        }
-        catch (IllegalArgumentException exception) {
+        } catch (IllegalArgumentException exception) {
             throw new PlayerWarpLoadException("Invalid owner UUID: '%s'.".formatted(ownerString));
         }
 
@@ -97,8 +96,7 @@ public class PlayerWarp implements PlaceholderResolvable {
             long endTimestamp = config.getLong("Featured.EndTimestamp");
             if (!TimeUtil.isPassed(endTimestamp)) {
                 this.setFeaturedData(new FeaturedData(slotId, slotIndex, endTimestamp));
-            }
-            else {
+            } else {
                 config.remove("Featured");
             }
         }
@@ -115,7 +113,7 @@ public class PlayerWarp implements PlaceholderResolvable {
         this.loadConfig().edit(this::writeToConfig);
     }
 
-    private void writeToConfig(@NonNull FileConfig config) {
+    private void writeToConfig(FileConfig config) {
         config.set("World", this.worldName);
         config.set("BlockPos", this.blockPos);
         config.set("Name", this.name);
@@ -133,13 +131,12 @@ public class PlayerWarp implements PlaceholderResolvable {
             config.set("Featured.Id", this.featuredData.slotId());
             config.set("Featured.SlotIndex", this.featuredData.slotIndex());
             config.set("Featured.EndTimestamp", this.featuredData.endTimestamp());
-        }
-        else {
+        } else {
             config.remove("Featured");
         }
     }
 
-    public void updateCategory(@NonNull PlayerWarpsSettings settings) {
+    public void updateCategory(PlayerWarpsSettings settings) {
         Optional.ofNullable(settings.getCategory(this.categoryId)).ifPresent(normalCategory -> {
             this.category = normalCategory;
         });
@@ -165,7 +162,7 @@ public class PlayerWarp implements PlaceholderResolvable {
         return !this.isActive();
     }
 
-    public boolean isWorld(@NonNull World world) {
+    public boolean isWorld(World world) {
         return this.worldName.equalsIgnoreCase(world.getName());
     }
 
@@ -176,7 +173,7 @@ public class PlayerWarp implements PlaceholderResolvable {
         }
     }
 
-    public void activate(@NonNull World world) {
+    public void activate(World world) {
         if (this.worldName.equalsIgnoreCase(world.getName())) {
             this.world = world;
         }
@@ -186,37 +183,35 @@ public class PlayerWarp implements PlaceholderResolvable {
         this.world = null;
     }
 
-    @NonNull
     public World getWorld() {
-        if (this.world == null) throw new IllegalStateException("Warp's world is not loaded");
+        if (this.world == null)
+            throw new IllegalStateException("Warp's world is not loaded");
 
         return this.world;
     }
 
-    @NonNull
     public Location getLocation() {
         return this.blockPos.toLocation(this.getWorld());
     }
 
-    public void setLocation(@NonNull Location location) {
+    public void setLocation(Location location) {
         World locWorld = location.getWorld();
-        if (locWorld == null) return;
+        if (locWorld == null)
+            return;
 
         this.worldName = locWorld.getName();
         this.blockPos = ExactPos.from(location);
     }
 
-
-
-    public boolean isOwner(@NonNull Player player) {
+    public boolean isOwner(Player player) {
         return this.owner.isUser(player);
     }
 
-    public boolean isCategory(@NonNull NormalCategory category) {
+    public boolean isCategory(NormalCategory category) {
         return category.isWarpOfThis(this);
     }
 
-    public boolean canUse(@NonNull Player player) {
+    public boolean canUse(Player player) {
         return true;
     }
 
@@ -224,12 +219,13 @@ public class PlayerWarp implements PlaceholderResolvable {
         return !this.isFeatured();
     }
 
-    public boolean canEdit(@NonNull Player player) {
+    public boolean canEdit(Player player) {
         return this.isOwner(player) || player.hasPermission(PlayerWarpsPerms.BYPASS_OWNERSHIP);
     }
 
-    public boolean isFeatured(@NonNull FeaturedSlot slot, int slotIndex) {
-        return this.isFeatured() && this.featuredData.slotId().equalsIgnoreCase(slot.id()) && this.featuredData.slotIndex() == slotIndex;
+    public boolean isFeatured(FeaturedSlot slot, int slotIndex) {
+        return this.isFeatured() && this.featuredData.slotId().equalsIgnoreCase(slot.id())
+                && this.featuredData.slotIndex() == slotIndex;
     }
 
     public boolean isFeatured() {
@@ -244,27 +240,22 @@ public class PlayerWarp implements PlaceholderResolvable {
         return this.price > 0D;
     }
 
-    @NonNull
     public FileConfig loadConfig() {
         return FileConfig.load(this.file);
     }
 
-    @NonNull
     public Path getFile() {
         return this.file;
     }
 
-    @NonNull
     public String getId() {
         return this.id;
     }
 
-    @NonNull
     public String getWorldName() {
         return this.worldName;
     }
 
-    @NonNull
     public ExactPos getBlockPos() {
         return this.blockPos;
     }
@@ -277,21 +268,19 @@ public class PlayerWarp implements PlaceholderResolvable {
         this.creationTimestamp = creationTimestamp;
     }
 
-    @NonNull
     public String getName() {
         return this.name;
     }
 
-    public void setName(@NonNull String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    @NonNull
     public List<String> getDescription() {
         return List.copyOf(this.description);
     }
 
-    public void setDescription(@NonNull List<String> description) {
+    public void setDescription(List<String> description) {
         this.description = new ArrayList<>(description);
     }
 
@@ -303,49 +292,43 @@ public class PlayerWarp implements PlaceholderResolvable {
         this.price = price;
     }
 
-    @NonNull
     public NightItem getIcon() {
         return this.icon.copy();
     }
 
-    public void setIcon(@NonNull NightItem icon) {
+    public void setIcon(NightItem icon) {
         this.icon = icon.copy();
     }
 
-    @NonNull
     public UserInfo getOwner() {
         return this.owner;
     }
 
-    @NonNull
     public UUID getOwnerId() {
         return this.owner.id();
     }
 
-    @NonNull
     public String getOwnerName() {
         return this.owner.name();
     }
 
-    public void setOwner(@NonNull UserInfo owner) {
+    public void setOwner(UserInfo owner) {
         this.owner = owner;
     }
 
-    @NonNull
     public String getCategoryId() {
         return this.categoryId;
     }
 
-    public void setCategoryId(@NonNull String categoryId) {
+    public void setCategoryId(String categoryId) {
         this.categoryId = categoryId;
     }
 
-    @Nullable
     public WarpCategory getCategory() {
         return this.category;
     }
 
-    public void setCategory(@NonNull NormalCategory category) {
+    public void setCategory(NormalCategory category) {
         this.category = category;
         this.categoryId = category.id();
     }
@@ -358,12 +341,11 @@ public class PlayerWarp implements PlaceholderResolvable {
         this.totalVisits = totalVisits;
     }
 
-    @Nullable
     public FeaturedData getFeaturedData() {
         return this.featuredData;
     }
 
-    public void setFeaturedData(@Nullable FeaturedData featuredData) {
+    public void setFeaturedData(FeaturedData featuredData) {
         this.featuredData = featuredData;
     }
 }

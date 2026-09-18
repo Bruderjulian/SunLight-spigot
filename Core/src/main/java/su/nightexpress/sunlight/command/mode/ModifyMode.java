@@ -12,7 +12,7 @@ public enum ModifyMode {
 
     private final BiFunction<Double, Double, Double> function;
 
-    ModifyMode(@NotNull BiFunction<Double, Double, Double> function) {
+    ModifyMode(BiFunction<Double, Double, Double> function) {
         this.function = function;
     }
 

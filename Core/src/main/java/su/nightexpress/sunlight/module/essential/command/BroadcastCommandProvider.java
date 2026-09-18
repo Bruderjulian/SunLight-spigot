@@ -23,27 +23,28 @@ import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.BR;
 
 public class BroadcastCommandProvider extends AbstractCommandProvider {
 
-    private static final Permission PERMISSION  = EssentialPerms.COMMAND.permission("broadcast");
-    private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Broadcast.Desc").text("Broadcast a message.");
+    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("broadcast");
+    private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Broadcast.Desc")
+            .text("Broadcast a message.");
 
     private final String format;
 
-    public BroadcastCommandProvider(@NotNull SunLightPlugin plugin, @NotNull List<String> format) {
+    public BroadcastCommandProvider(SunLightPlugin plugin, List<String> format) {
         super(plugin);
         this.format = String.join(BR, format);
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("broadcast", true, new String[]{"broadcast", "bc"}, builder -> builder
-            .description(DESCRIPTION)
-            .permission(PERMISSION)
-            .withArguments(Arguments.greedyString(CommandArguments.TEXT).localized(Lang.COMMAND_ARGUMENT_NAME_TEXT.text()))
-            .executes(this::broadcast)
-        );
+        this.registerLiteral("broadcast", true, new String[] { "broadcast", "bc" }, builder -> builder
+                .description(DESCRIPTION)
+                .permission(PERMISSION)
+                .withArguments(
+                        Arguments.greedyString(CommandArguments.TEXT).localized(Lang.COMMAND_ARGUMENT_NAME_TEXT.text()))
+                .executes(this::broadcast));
     }
 
-    private boolean broadcast(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean broadcast(CommandContext context, ParsedArguments arguments) {
         String text = arguments.getString(CommandArguments.TEXT);
         String message = this.format.replace(SLPlaceholders.GENERIC_MESSAGE, text);
         NightComponent component = NightMessage.parse(message);

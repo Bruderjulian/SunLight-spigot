@@ -24,7 +24,7 @@ public class HistoryCommandsProvider extends AbstractCommandProvider {
     private final BansModule module;
     private final UserManager userManager;
 
-    public HistoryCommandsProvider(@NotNull SunLightPlugin plugin, @NotNull BansModule module, @NotNull UserManager userManager) {
+    public HistoryCommandsProvider(SunLightPlugin plugin, BansModule module, UserManager userManager) {
         super(plugin);
         this.module = module;
         this.userManager = userManager;
@@ -32,12 +32,15 @@ public class HistoryCommandsProvider extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("banhistory", true, new String[]{"banhistory"}, builder -> this.builder(builder, PunishmentType.BAN));
-        this.registerLiteral("mutehistory", true, new String[]{"mutehistory"}, builder -> this.builder(builder, PunishmentType.MUTE));
-        this.registerLiteral("warnhistory", true, new String[]{"warnhistory"}, builder -> this.builder(builder, PunishmentType.WARN));
+        this.registerLiteral("banhistory", true, new String[] { "banhistory" },
+                builder -> this.builder(builder, PunishmentType.BAN));
+        this.registerLiteral("mutehistory", true, new String[] { "mutehistory" },
+                builder -> this.builder(builder, PunishmentType.MUTE));
+        this.registerLiteral("warnhistory", true, new String[] { "warnhistory" },
+                builder -> this.builder(builder, PunishmentType.WARN));
     }
 
-    private void builder(@NotNull LiteralNodeBuilder builder, @NotNull PunishmentType type) {
+    private void builder(LiteralNodeBuilder builder, PunishmentType type) {
         TextLocale description = switch (type) {
             case BAN -> BansLang.COMMAND_BAN_HISTORY_DESC;
             case MUTE -> BansLang.COMMAND_MUTE_HISTORY_DESC;
@@ -51,17 +54,17 @@ public class HistoryCommandsProvider extends AbstractCommandProvider {
         };
 
         builder
-            .playerOnly()
-            .description(description)
-            .permission(permission)
-            .withArguments(
-                Arguments.playerName(CommandArguments.PLAYER)
-                    .suggestions((reader, tabContext) -> this.module.getPlayerPunishments(type).stream().map(PlayerPunishment::getPlayerName).toList())
-            )
-            .executes((context, arguments) -> this.showHistory(context, arguments, type));
+                .playerOnly()
+                .description(description)
+                .permission(permission)
+                .withArguments(
+                        Arguments.playerName(CommandArguments.PLAYER)
+                                .suggestions((reader, tabContext) -> this.module.getPlayerPunishments(type).stream()
+                                        .map(PlayerPunishment::getPlayerName).toList()))
+                .executes((context, arguments) -> this.showHistory(context, arguments, type));
     }
 
-    private boolean showHistory(@NotNull CommandContext context, @NotNull ParsedArguments arguments, @NotNull PunishmentType type) {
+    private boolean showHistory(CommandContext context, ParsedArguments arguments, PunishmentType type) {
         Player viewer = context.getPlayerOrThrow();
         String targetName = arguments.getString(CommandArguments.PLAYER);
 

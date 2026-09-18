@@ -8,16 +8,15 @@ public abstract class FormattedContext extends ChatContext {
 
     protected String format;
 
-    public FormattedContext(@NotNull Player player, @NotNull UserChatCache cache, @NotNull String originalMessage) {
+    public FormattedContext(Player player, UserChatCache cache, String originalMessage) {
         super(player, cache, originalMessage);
     }
 
-    @NotNull
     public String getFormat() {
         return this.format;
     }
 
-    public void setFormat(@NotNull String format) {
+    public void setFormat(String format) {
         this.format = format;
     }
 }

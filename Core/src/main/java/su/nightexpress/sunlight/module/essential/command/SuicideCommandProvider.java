@@ -25,32 +25,32 @@ public class SuicideCommandProvider extends AbstractCommandProvider {
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Suicide.Desc").text("Commit suicide.");
 
     private static final MessageLocale MESSAGE_SUICIDE_NOTIFY = LangEntry.builder("Command.Suicide.Notify").chatMessage(
-        GRAY.wrap("You have commited suicide.")
-    );
+            GRAY.wrap("You have commited suicide."));
 
     private final EssentialModule module;
 
-    public SuicideCommandProvider(@NotNull SunLightPlugin plugin, @NotNull EssentialModule module) {
+    public SuicideCommandProvider(SunLightPlugin plugin, EssentialModule module) {
         super(plugin);
         this.module = module;
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("suicide", true, new String[]{"suicide"}, builder -> builder
-            .playerOnly()
-            .description(DESCRIPTION)
-            .permission(PERMISSION)
-            .executes(this::commitSuicide)
-        );
+        this.registerLiteral("suicide", true, new String[] { "suicide" }, builder -> builder
+                .playerOnly()
+                .description(DESCRIPTION)
+                .permission(PERMISSION)
+                .executes(this::commitSuicide));
     }
 
-    private boolean commitSuicide(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean commitSuicide(CommandContext context, ParsedArguments arguments) {
         Player target = context.getPlayerOrThrow();
-        DamageSource source = DamageSource.builder(DamageType.GENERIC_KILL).withDirectEntity(target).withCausingEntity(target).build();
+        DamageSource source = DamageSource.builder(DamageType.GENERIC_KILL).withDirectEntity(target)
+                .withCausingEntity(target).build();
         target.damage(Integer.MAX_VALUE, source);
         target.setHealth(0);
-        this.module.sendPrefixed(MESSAGE_SUICIDE_NOTIFY, target, replacer -> replacer.with(CommonPlaceholders.PLAYER.resolver(target)));
+        this.module.sendPrefixed(MESSAGE_SUICIDE_NOTIFY, target,
+                replacer -> replacer.with(CommonPlaceholders.PLAYER.resolver(target)));
         return true;
     }
 }

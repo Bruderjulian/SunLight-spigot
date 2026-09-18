@@ -21,7 +21,7 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
 
     private final DataHandler dataHandler;
 
-    public UserManager(@NonNull SunLightPlugin plugin, @NonNull DataHandler dataHandler) {
+    public UserManager( SunLightPlugin plugin,  DataHandler dataHandler) {
         super(plugin, new DefaultUserDataAccessor<>(dataHandler, dataHandler));
         this.dataHandler = dataHandler;
     }
@@ -44,13 +44,13 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
     }
 
     @Override
-    protected void synchronize(@NonNull SunUser fetched, @NonNull SunUser cached) {
+    protected void synchronize( SunUser fetched,  SunUser cached) {
         cached.updateFrom(fetched);
     }
 
     @Override
-    @NonNull
-    protected SunUser create(@NonNull UUID uuid, @NonNull String name, @NonNull InetAddress address) {
+    
+    protected SunUser create( UUID uuid,  String name,  InetAddress address) {
         long timestamp = System.currentTimeMillis();
         Map<CommandKey, Long> commandCooldowns = new HashMap<>();
         Map<String, Object> properties = new HashMap<>();
@@ -61,39 +61,39 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
         return user;
     }
 
-    @NonNull
-    public CompletableFuture<Player> loadTargetPlayer(@NonNull String playerName) {
+    
+    public CompletableFuture<Player> loadTargetPlayer( String playerName) {
         return this.loadTargetProfile(playerName).thenCompose(this::loadTargetPlayer);
     }
 
-    @NonNull
-    public CompletableFuture<Player> loadTargetPlayer(@NonNull UserInfo profile) {
+    
+    public CompletableFuture<Player> loadTargetPlayer( UserInfo profile) {
         return this.loadTargetPlayer(profile.id(), profile.name());
     }
 
-    @NonNull
-    public CompletableFuture<Player> loadTargetPlayer(@NonNull SunUser user) {
+    
+    public CompletableFuture<Player> loadTargetPlayer( SunUser user) {
         return this.loadTargetPlayer(user.getId(), user.getName());
     }
 
-    @NonNull
-    public CompletableFuture<Player> loadTargetPlayer(@NonNull UUID id, @NonNull String name) {
+    
+    public CompletableFuture<Player> loadTargetPlayer( UUID id,  String name) {
         Player target = Players.getPlayer(id);
         if (target != null) return CompletableFuture.completedFuture(target);
 
         return CompletableFuture.supplyAsync(() -> this.plugin.internals().map(nms -> nms.loadPlayerData(id, name)).orElse(null));
     }
 
-    @NonNull
-    public CompletableFuture<UserInfo> loadTargetProfile(@NonNull String playerName) {
+    
+    public CompletableFuture<UserInfo> loadTargetProfile( String playerName) {
         Player target = Players.getPlayer(playerName);
         if (target != null) return CompletableFuture.completedFuture(UserInfo.of(target));
 
         return CompletableFuture.supplyAsync(() -> this.dataHandler.loadProfile(playerName).orElse(null));
     }
 
-    @NonNull
-    public CompletableFuture<InetAddress> loadInetAddress(@NonNull UUID playerId) {
+    
+    public CompletableFuture<InetAddress> loadInetAddress( UUID playerId) {
         Player target = Players.getPlayer(playerId);
         if (target != null) return CompletableFuture.completedFuture(SLUtils.getInetAddress(target).orElse(null));
 

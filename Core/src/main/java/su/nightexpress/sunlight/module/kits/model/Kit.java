@@ -21,20 +21,19 @@ import java.util.Map;
 
 public class Kit implements PlaceholderResolvable {
 
-    private final Path          path;
-    private final String        id;
+    private final Path path;
+    private final String id;
     private final KitDefinition definition;
 
     private boolean dirty;
 
-    public Kit(@NotNull Path path, @NotNull String id, @NotNull KitDefinition definition) {
+    public Kit(Path path, String id, KitDefinition definition) {
         this.path = path;
         this.id = id;
         this.definition = definition;
     }
 
-    @NotNull
-    public static Kit fromFile(@NotNull Path file) {
+    public static Kit fromFile(Path file) {
         FileConfig config = FileConfig.load(file);
         String id = LowerCase.INTERNAL.apply(FileUtil.getNameWithoutExtension(file));
 
@@ -52,7 +51,8 @@ public class Kit implements PlaceholderResolvable {
             Map<Integer, AdaptedItem> itemMap = new HashMap<>();
             for (int slot = 0; slot < combined.length; slot++) {
                 ItemStack itemStack = combined[slot];
-                if (itemStack == null || itemStack.getType().isAir()) continue;
+                if (itemStack == null || itemStack.getType().isAir())
+                    continue;
 
                 AdaptedItem adaptedItem = AdaptedVanillaStack.of(itemStack);
                 itemMap.put(slot, adaptedItem);
@@ -75,12 +75,13 @@ public class Kit implements PlaceholderResolvable {
         List<String> commands = KitSchema.COMMANDS.resolveWithDefaults(config);
         KitContent content = KitSchema.CONTENT.resolveWithDefaults(config);
 
-        KitDefinition definition = new KitDefinition(name, description, permissionRequired, cooldown, cost, priority, icon, commands, content);
+        KitDefinition definition = new KitDefinition(name, description, permissionRequired, cooldown, cost, priority,
+                icon, commands, content);
 
         return new Kit(file, id, definition);
     }
 
-    public void write(@NotNull FileConfig config) {
+    public void write(FileConfig config) {
         KitSchema.NAME.writeValue(config, this.definition.getName());
         KitSchema.DESCRIPTION.writeValue(config, this.definition.getDescription());
         KitSchema.COOLDOWN.writeValue(config, this.definition.getCooldown());
@@ -93,7 +94,7 @@ public class Kit implements PlaceholderResolvable {
     }
 
     @Override
-    @NotNull
+
     public PlaceholderResolver placeholders() {
         return KitsPlaceholders.KIT.resolver(this);
     }
@@ -110,28 +111,25 @@ public class Kit implements PlaceholderResolvable {
         this.dirty = false;
     }
 
-    @NotNull
     public Path getPath() {
         return this.path;
     }
 
-    @NotNull
     public String getId() {
         return this.id;
     }
 
-    @NotNull
     public KitDefinition definition() {
         return this.definition;
     }
 
-    @NotNull
     public String getPermission() {
         return KitsPerms.KIT.childrenNode(this.id);
     }
 
-    public boolean hasPermission(@NotNull Player player) {
-        if (!this.definition.isPermissionRequired()) return true;
+    public boolean hasPermission(Player player) {
+        if (!this.definition.isPermissionRequired())
+            return true;
 
         return KitsPerms.KIT.hasChildAccess(player, this.id);
     }

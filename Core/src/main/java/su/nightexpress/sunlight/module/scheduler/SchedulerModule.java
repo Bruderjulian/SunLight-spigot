@@ -27,14 +27,14 @@ public class SchedulerModule extends Module {
 
     private final Map<String, Announcer> announcerByIdMap;
 
-    public SchedulerModule(@NotNull ModuleContext context) {
+    public SchedulerModule(ModuleContext context) {
         super(context);
         this.settings = new SchedulerSettings();
         this.announcerByIdMap = new HashMap<>();
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) throws ModuleLoadException {
+    protected void loadModule(FileConfig config) throws ModuleLoadException {
         this.settings.load(config);
 
         this.loadAnnouncers();
@@ -55,21 +55,19 @@ public class SchedulerModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
 
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 
-    @NotNull
     public SchedulerSettings getSettings() {
         return this.settings;
     }
 
-    @NotNull
     public Set<Announcer> getAnnouncers() {
         return Set.copyOf(this.announcerByIdMap.values());
     }
@@ -84,8 +82,7 @@ public class SchedulerModule extends Module {
                     Path filePath = Path.of(dirPath.toString(), FileConfig.withExtension(id));
                     announcer.writeToFile(filePath);
                 });
-            }
-            catch (IOException exception) {
+            } catch (IOException exception) {
                 exception.printStackTrace();
             }
         }
@@ -105,15 +102,16 @@ public class SchedulerModule extends Module {
         this.info("Loaded " + this.announcerByIdMap.size() + " announcers.");
     }
 
-    public void broadcastAnnouncer(@NotNull Announcer announcer) {
+    public void broadcastAnnouncer(Announcer announcer) {
         String message = announcer.selectMessage();
-        if (message == null) return;
+        if (message == null)
+            return;
 
         Players.getOnline().forEach(player -> {
             PlaceholderContext context = PlaceholderContext.builder()
-                .with(CommonPlaceholders.PLAYER.resolver(player))
-                .andThen(CommonPlaceholders.forPlaceholderAPI(player))
-                .build();
+                    .with(CommonPlaceholders.PLAYER.resolver(player))
+                    .andThen(CommonPlaceholders.forPlaceholderAPI(player))
+                    .build();
 
             Players.sendMessage(player, context.apply(message));
         });

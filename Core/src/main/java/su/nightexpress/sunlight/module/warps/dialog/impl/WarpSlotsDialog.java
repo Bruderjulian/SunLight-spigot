@@ -52,8 +52,8 @@ public class WarpSlotsDialog extends Dialog<Warp> {
     private static final String JSON_SLOTS = "slots";
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull Warp warp) {
+    
+    public WrappedDialog create( Player player,  Warp warp) {
         return Dialogs.builder()
             .base(DialogBases.builder(TITLE)
                 .body(DialogBodies.plainMessage(BODY))

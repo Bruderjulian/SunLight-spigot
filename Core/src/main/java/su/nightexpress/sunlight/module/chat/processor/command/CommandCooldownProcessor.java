@@ -13,7 +13,7 @@ import su.nightexpress.sunlight.module.chat.processor.ChatProcessor;
 public class CommandCooldownProcessor implements ChatProcessor<CommandContext> {
 
     @Override
-    public void preProcess(@NonNull ChatModule module, @NonNull CommandContext context) {
+    public void preProcess( ChatModule module,  CommandContext context) {
         Player player = context.getPlayer();
         UserChatCache cache = context.getCache();
 
@@ -25,7 +25,7 @@ public class CommandCooldownProcessor implements ChatProcessor<CommandContext> {
     }
 
     @Override
-    public void postProcess(@NonNull ChatModule module, @NonNull CommandContext context) {
+    public void postProcess( ChatModule module,  CommandContext context) {
         context.getCache().setNextCommandTimestamp(module.getSettings().getAntiFloodCommandCooldown());
     }
 }

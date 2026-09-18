@@ -21,17 +21,19 @@ public class WorldsListener extends AbstractListener<SunLightPlugin> {
 
     private final WorldsModule module;
 
-    public WorldsListener(@NotNull SunLightPlugin plugin, @NotNull WorldsModule module) {
+    public WorldsListener(SunLightPlugin plugin, WorldsModule module) {
         super(plugin);
         this.module = module;
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onFlyDisableToggle(PlayerToggleFlightEvent event) {
-        if (!event.isFlying()) return;
+        if (!event.isFlying())
+            return;
 
         Player player = event.getPlayer();
-        if (this.module.canFlyThere(player)) return;
+        if (this.module.canFlyThere(player))
+            return;
 
         event.setCancelled(true);
         player.setAllowFlight(false);
@@ -43,7 +45,8 @@ public class WorldsListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onFlyDisableTeleport(PlayerChangedWorldEvent event) {
         Player player = event.getPlayer();
-        if (!player.getAllowFlight() || this.module.canFlyThere(player)) return;
+        if (!player.getAllowFlight() || this.module.canFlyThere(player))
+            return;
 
         player.setAllowFlight(false);
         player.setFlying(false);
@@ -51,13 +54,17 @@ public class WorldsListener extends AbstractListener<SunLightPlugin> {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onWorldCommandsBlocked(PlayerCommandPreprocessEvent event) {
-        if (!WorldsConfig.COMMAND_BLOCKER_ENABLED.get()) return;
+        if (!WorldsConfig.COMMAND_BLOCKER_ENABLED.get())
+            return;
 
         Player player = event.getPlayer();
-        if (player.hasPermission(WorldsPerms.BYPASS.getRoot()) || player.hasPermission(WorldsPerms.BYPASS_COMMANDS)) return;
+        if (player.hasPermission(WorldsPerms.BYPASS.getRoot()) || player.hasPermission(WorldsPerms.BYPASS_COMMANDS))
+            return;
 
-        Set<String> deniedCommands = WorldsConfig.COMMAND_BLOCKER_COMMANDS.get().get(player.getWorld().getName().toLowerCase());
-        if (deniedCommands == null || deniedCommands.isEmpty()) return;
+        Set<String> deniedCommands = WorldsConfig.COMMAND_BLOCKER_COMMANDS.get()
+                .get(player.getWorld().getName().toLowerCase());
+        if (deniedCommands == null || deniedCommands.isEmpty())
+            return;
 
         String command = CommandUtil.getCommandName(event.getMessage());
         boolean doBlock = CommandUtil.getAliases(command, true).stream().anyMatch(deniedCommands::contains);

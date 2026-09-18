@@ -15,11 +15,11 @@ public enum PortableContainer {
 
     private final String label;
 
-    private PortableContainer(@NonNull String label) {
+    private PortableContainer( String label) {
         this.label = label;
     }
 
-    @NonNull
+    
     public String label() {
         return this.label;
     }

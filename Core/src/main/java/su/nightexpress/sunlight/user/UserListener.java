@@ -14,7 +14,7 @@ public class UserListener extends AbstractListener<SunLightPlugin> {
 
     private final UserManager manager;
 
-    public UserListener(@NotNull SunLightPlugin plugin, @NotNull UserManager manager) {
+    public UserListener(SunLightPlugin plugin, UserManager manager) {
         super(plugin);
         this.manager = manager;
     }

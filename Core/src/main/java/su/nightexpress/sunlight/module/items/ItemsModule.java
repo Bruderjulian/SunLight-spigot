@@ -13,13 +13,13 @@ public class ItemsModule extends Module {
 
     private final ItemsSettings settings;
 
-    public ItemsModule(@NotNull ModuleContext context) {
+    public ItemsModule(ModuleContext context) {
         super(context);
         this.settings = new ItemsSettings();
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         this.settings.load(config);
         this.plugin.injectLang(ItemsLang.class);
     }
@@ -30,18 +30,19 @@ public class ItemsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(ItemsPerms.MODULE);
     }
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("item", new ItemCommandProvider(this.plugin, this, this.settings, this.userManager), this);
+        this.commandRegistry.addProvider("item",
+                new ItemCommandProvider(this.plugin, this, this.settings, this.userManager), this);
         this.commandRegistry.addProvider("lore", new LoreCommandsProvider(this.plugin, this), this);
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 }

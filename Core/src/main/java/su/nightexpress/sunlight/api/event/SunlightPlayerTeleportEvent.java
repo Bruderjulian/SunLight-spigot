@@ -17,28 +17,28 @@ public class SunlightPlayerTeleportEvent extends Event implements Cancellable {
     private boolean intercepted;
     private boolean cancelled;
 
-    public SunlightPlayerTeleportEvent(@NonNull TeleportContext context, @NonNull TeleportType type) {
+    public SunlightPlayerTeleportEvent( TeleportContext context,  TeleportType type) {
         this.context = context;
         this.type = type;
     }
 
-    @NonNull
+    
     public static HandlerList getHandlerList() {
         return HANDLER_LIST;
     }
 
     @Override
-    @NonNull
+    
     public HandlerList getHandlers() {
         return HANDLER_LIST;
     }
 
-    @NonNull
+    
     public TeleportContext getContext() {
         return this.context;
     }
 
-    @NonNull
+    
     public TeleportType getType() {
         return this.type;
     }

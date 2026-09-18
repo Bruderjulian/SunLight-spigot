@@ -12,22 +12,22 @@ public class PlaceholderRegistry {
 
     private final Map<String, PlaceholderHandler> handlerMap = new HashMap<>();
 
-    public record ParsedPlaceholder(@NotNull String key, @NotNull PlaceholderHandler handler, @NotNull String payload) {}
+    public record ParsedPlaceholder(String key, PlaceholderHandler handler, String payload) {
+    }
 
-    public void register(@NotNull String key, @NotNull PlaceholderHandler handler) {
+    public void register(String key, PlaceholderHandler handler) {
         this.handlerMap.put(LowerCase.INTERNAL.apply(key), handler);
     }
 
-    @Nullable
-    public String onPlaceholderRequest(@NotNull Player player, @NotNull String params) {
+    public String onPlaceholderRequest(Player player, String params) {
         ParsedPlaceholder parsed = this.findHandler(params);
-        if (parsed == null) return null;
+        if (parsed == null)
+            return null;
 
         return parsed.handler().handle(player, parsed.payload());
     }
 
-    @Nullable
-    private ParsedPlaceholder findHandler(@NotNull String params) {
+    private ParsedPlaceholder findHandler(String params) {
         String currentKey = params;
         StringBuilder currentPayload = new StringBuilder();
 
@@ -37,14 +37,14 @@ public class PlaceholderRegistry {
             }
 
             int lastUnderscoreIndex = currentKey.lastIndexOf('_');
-            if (lastUnderscoreIndex == -1) return null;
+            if (lastUnderscoreIndex == -1)
+                return null;
 
             String suffix = currentKey.substring(lastUnderscoreIndex + 1);
 
             if (currentPayload.isEmpty()) {
                 currentPayload = new StringBuilder(suffix);
-            }
-            else {
+            } else {
                 currentPayload.insert(0, suffix + "_");
             }
 

@@ -12,11 +12,11 @@ public class PlayerWarpTeleportEvent extends Event implements Cancellable {
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
     private final Player player;
-    private final PlayerWarp   warp;
+    private final PlayerWarp warp;
 
     private boolean cancelled;
 
-    public PlayerWarpTeleportEvent(@NotNull Player player, @NotNull PlayerWarp warp) {
+    public PlayerWarpTeleportEvent(Player player, PlayerWarp warp) {
         this.player = player;
         this.warp = warp;
     }
@@ -25,18 +25,15 @@ public class PlayerWarpTeleportEvent extends Event implements Cancellable {
         return HANDLER_LIST;
     }
 
-    @NotNull
     @Override
     public HandlerList getHandlers() {
         return HANDLER_LIST;
     }
 
-    @NotNull
     public Player getPlayer() {
         return player;
     }
 
-    @NotNull
     public PlayerWarp getWarp() {
         return warp;
     }

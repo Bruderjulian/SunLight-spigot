@@ -11,18 +11,18 @@ public class OwnCategory implements WarpCategory {
 
     private final UUID playerId;
 
-    public OwnCategory(@NonNull Player player) {
+    public OwnCategory( Player player) {
         this.playerId = player.getUniqueId();
     }
 
     @Override
-    @NonNull
+    
     public String name() {
         return PlayerWarpsLang.CATEGORY_OWN_NAME.text();
     }
 
     @Override
-    public boolean isWarpOfThis(@NonNull PlayerWarp warp) {
+    public boolean isWarpOfThis( PlayerWarp warp) {
         return warp.getOwnerId().equals(this.playerId);
     }
 }

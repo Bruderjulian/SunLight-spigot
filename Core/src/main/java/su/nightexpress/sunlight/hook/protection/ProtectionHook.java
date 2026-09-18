@@ -6,11 +6,11 @@ import su.nightexpress.nightcore.util.Plugins;
 
 public interface ProtectionHook {
 
-    @NotNull String getPluginName();
+    String getPluginName();
 
     default boolean isEnabled() {
         return Plugins.isInstalled(this.getPluginName());
     }
 
-    boolean isProtected(@NotNull Location location);
+    boolean isProtected(Location location);
 }

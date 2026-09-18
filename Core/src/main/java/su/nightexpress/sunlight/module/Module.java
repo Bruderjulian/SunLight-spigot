@@ -28,18 +28,18 @@ import su.nightexpress.sunlight.user.UserManager;
 
 public abstract class Module extends AbstractManager<SunLightPlugin> {
 
-    private final String             id;
-    protected final Path             path;
+    private final String id;
+    protected final Path path;
     protected final ModuleDefinition definition;
 
-    protected final DataHandler     dataHandler;
-    protected final UserManager     userManager;
+    protected final DataHandler dataHandler;
+    protected final UserManager userManager;
     protected final CommandRegistry commandRegistry;
-    protected final DialogRegistry  dialogRegistry;
+    protected final DialogRegistry dialogRegistry;
 
     private final String logPrefix;
 
-    protected Module(@NonNull ModuleContext context) {
+    protected Module(ModuleContext context) {
         super(context.plugin());
         this.id = context.id();
         this.path = context.path();
@@ -83,114 +83,107 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
 
     }
 
-    protected abstract void loadModule(@NonNull FileConfig config) throws ModuleLoadException;
+    protected abstract void loadModule(FileConfig config) throws ModuleLoadException;
 
     protected abstract void unloadModule();
 
-    protected abstract void registerPermissions(@NonNull PermissionTree root);
+    protected abstract void registerPermissions(PermissionTree root);
 
     protected abstract void registerCommands();
 
-    public abstract void registerPlaceholders(@NonNull PlaceholderRegistry registry);
+    public abstract void registerPlaceholders(PlaceholderRegistry registry);
 
-    @NonNull
     public final FileConfig getConfig() {
         return FileConfig.load(this.path.toString(), SLFiles.FILE_MODULE_SETTINGS);
     }
 
-    @NonNull
     public final String getId() {
         return this.id;
     }
 
-    @NonNull
     public String getPermissionNamespace() {
         return this.id;
     }
 
-    @NonNull
     public final String getName() {
         return this.definition.name();
     }
 
-    @NonNull
     public final String getSystemPath() {
         return this.path.toString();
     }
 
-    @NonNull
     @Deprecated
     public final String getLocalPath() {
         return this.path.toString();
     }
 
-    @NonNull
     public final String getLocalUIPath() {
         return Paths.get(this.getLocalPath(), Config.DIR_MENU).toString();
     }
 
-    @NonNull
     @Deprecated
     public final String getAbsolutePath() {
         return this.getSystemPath();
-        //return this.plugin.getDataFolder() + this.getLocalPath();
+        // return this.plugin.getDataFolder() + this.getLocalPath();
     }
 
-    @NonNull
-    private String buildLog(@NonNull String msg) {
+    private String buildLog(String msg) {
         return this.logPrefix + msg;
     }
 
-    public final void info(@NonNull String msg) {
+    public final void info(String msg) {
         this.plugin.info(this.buildLog(msg));
     }
 
-    public final void warn(@NonNull String msg) {
+    public final void warn(String msg) {
         this.plugin.warn(this.buildLog(msg));
     }
 
-    public final void error(@NonNull String msg) {
+    public final void error(String msg) {
         this.plugin.error(this.buildLog(msg));
     }
 
-    @NonNull
-    public LangMessage getPrefixed(@NonNull MessageLocale locale) {
+    public LangMessage getPrefixed(MessageLocale locale) {
         return locale.withPrefix(this.definition.prefix());
     }
 
-    public void sendPrefixed(@NonNull MessageLocale locale, @NonNull CommandSender sender) {
+    public void sendPrefixed(MessageLocale locale, CommandSender sender) {
         this.getPrefixed(locale).send(sender);
     }
 
-    public void sendPrefixed(@NonNull MessageLocale locale, @NonNull CommandSender sender, @Nullable Consumer<PlaceholderContext.Builder> consumer) {
+    public void sendPrefixed(MessageLocale locale, CommandSender sender,
+            Consumer<PlaceholderContext.Builder> consumer) {
         this.getPrefixed(locale).sendWith(sender, consumer);
     }
 
-    public void sendPrefixed(@NonNull MessageLocale locale, @NonNull CommandSender sender, @Nullable PlaceholderContext context) {
+    public void sendPrefixed(MessageLocale locale, CommandSender sender, PlaceholderContext context) {
         this.getPrefixed(locale).sendWith(sender, context);
     }
 
-    public void sendPrefixed(@NonNull MessageLocale locale, @NonNull Collection<? extends CommandSender> receivers) {
+    public void sendPrefixed(MessageLocale locale, Collection<? extends CommandSender> receivers) {
         this.getPrefixed(locale).send(receivers);
     }
 
-    public void sendPrefixed(@NonNull MessageLocale locale, @NonNull Collection<? extends CommandSender> receivers, @Nullable Consumer<PlaceholderContext.Builder> consumer) {
+    public void sendPrefixed(MessageLocale locale, Collection<? extends CommandSender> receivers,
+            Consumer<PlaceholderContext.Builder> consumer) {
         this.getPrefixed(locale).sendWith(receivers, consumer);
     }
 
-    public void sendPrefixed(@NonNull MessageLocale locale, @NonNull Collection<? extends CommandSender> receivers, @Nullable PlaceholderContext context) {
+    public void sendPrefixed(MessageLocale locale, Collection<? extends CommandSender> receivers,
+            PlaceholderContext context) {
         this.getPrefixed(locale).sendWith(receivers, context);
     }
 
-    public void broadcastPrefixed(@NonNull MessageLocale locale) {
+    public void broadcastPrefixed(MessageLocale locale) {
         this.getPrefixed(locale).broadcast();
     }
 
-    public void broadcastPrefixed(@NonNull MessageLocale locale, @Nullable Consumer<PlaceholderContext.Builder> consumer) {
+    public void broadcastPrefixed(MessageLocale locale, Consumer<PlaceholderContext.Builder> consumer) {
         this.getPrefixed(locale).broadcastWith(consumer);
     }
 
-    public void broadcastPrefixed(@NonNull MessageLocale locale, @Nullable PlaceholderContext context) {
+    public void broadcastPrefixed(MessageLocale locale, PlaceholderContext context) {
         this.getPrefixed(locale).broadcastWith(context);
     }
 }

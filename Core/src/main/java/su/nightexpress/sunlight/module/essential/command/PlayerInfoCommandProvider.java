@@ -49,7 +49,7 @@ public class PlayerInfoCommandProvider extends AbstractCommandProvider {
     private final EssentialSettings settings;
     private final UserManager       userManager;
 
-    public PlayerInfoCommandProvider(@NonNull SunLightPlugin plugin, @NonNull EssentialModule module, @NonNull EssentialSettings settings, @NonNull UserManager userManager) {
+    public PlayerInfoCommandProvider( SunLightPlugin plugin,  EssentialModule module,  EssentialSettings settings,  UserManager userManager) {
         super(plugin);
         this.module = module;
         this.settings = settings;
@@ -67,7 +67,7 @@ public class PlayerInfoCommandProvider extends AbstractCommandProvider {
         );
     }
 
-    private boolean showPlayerInfo(@NonNull CommandContext context, @NonNull ParsedArguments arguments) {
+    private boolean showPlayerInfo( CommandContext context,  ParsedArguments arguments) {
         this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager,
             (user, target) -> {
                 Location location = target.getLocation();

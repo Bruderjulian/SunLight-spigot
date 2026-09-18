@@ -23,31 +23,28 @@ public class KitDataRepository {
         this.dataMapById.clear();
     }
 
-    public synchronized void add(@NotNull KitData data) {
+    public synchronized void add(KitData data) {
         this.getUserDataMap(data.getPlayerId()).put(data.getKitId(), data);
     }
 
-    public synchronized void remove(@NotNull UUID playerId, @NotNull String kitId) {
+    public synchronized void remove(UUID playerId, String kitId) {
         this.getUserDataMap(playerId).remove(LowerCase.INTERNAL.apply(kitId));
     }
 
-    @NotNull
-    public Map<String, KitData> getUserDataMap(@NotNull UUID playerId) {
+    public Map<String, KitData> getUserDataMap(UUID playerId) {
         return this.dataMapById.computeIfAbsent(playerId, k -> new ConcurrentHashMap<>());
     }
 
-    @Nullable
-    public KitData getKitData(@NotNull UUID playerId, @NotNull String kitId) {
+    public KitData getKitData(UUID playerId, String kitId) {
         return this.getUserDataMap(playerId).get(LowerCase.INTERNAL.apply(kitId));
     }
 
-    @NotNull
-    public Optional<KitData> kitData(@NotNull UUID playerId, @NotNull String kitId) {
+    public Optional<KitData> kitData(UUID playerId, String kitId) {
         return Optional.ofNullable(this.getKitData(playerId, kitId));
     }
 
-    @NotNull
     public Set<KitData> getAll() {
-        return this.dataMapById.values().stream().flatMap(dataMap -> dataMap.values().stream()).collect(Collectors.toSet());
+        return this.dataMapById.values().stream().flatMap(dataMap -> dataMap.values().stream())
+                .collect(Collectors.toSet());
     }
 }

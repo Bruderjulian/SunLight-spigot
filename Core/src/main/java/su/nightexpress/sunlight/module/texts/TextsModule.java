@@ -24,14 +24,14 @@ public class TextsModule extends Module {
     private final Map<String, Text> textByIdMap;
     private final Set<NightCommand> textCommands;
 
-    public TextsModule(@NotNull ModuleContext context) {
+    public TextsModule(ModuleContext context) {
         super(context);
         this.textByIdMap = new HashMap<>();
         this.textCommands = new HashSet<>();
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         this.plugin.injectLang(TextsLang.class);
 
         this.loadTexts();
@@ -51,13 +51,12 @@ public class TextsModule extends Module {
 
         this.textByIdMap.values().forEach(text -> {
             NightCommand command = NightCommand.literal(this.plugin, text.getId(), builder -> builder
-                .description(text.getDescription())
-                .permission(text.getPermission())
-                .executes((context, arguments) -> {
-                    this.showText(context.getSender(), text);
-                    return true;
-                })
-            );
+                    .description(text.getDescription())
+                    .permission(text.getPermission())
+                    .executes((context, arguments) -> {
+                        this.showText(context.getSender(), text);
+                        return true;
+                    }));
             if (command.register()) {
                 this.textCommands.add(command);
             }
@@ -65,12 +64,12 @@ public class TextsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(TextsPerms.MODULE);
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 
@@ -94,17 +93,15 @@ public class TextsModule extends Module {
         this.info("Loaded " + this.textByIdMap.size() + " custom texts.");
     }
 
-    @Nullable
-    public Text getTextById(@NotNull String id) {
+    public Text getTextById(String id) {
         return this.textByIdMap.get(id.toLowerCase());
     }
 
-    @NotNull
     public Set<Text> getCustomTexts() {
         return Set.copyOf(this.textByIdMap.values());
     }
 
-    public void showText(@NotNull CommandSender sender, @NotNull Text text) {
+    public void showText(CommandSender sender, Text text) {
         List<String> texts = sender instanceof Player player ? text.getText(player) : text.getText();
         texts.forEach(line -> Players.sendMessage(sender, line));
     }

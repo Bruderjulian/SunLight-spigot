@@ -35,13 +35,13 @@ public class PlayerWarpsSearchDialog extends Dialog<WarpsListData> {
 
     protected final PlayerWarpsModule module;
 
-    public PlayerWarpsSearchDialog(@NonNull PlayerWarpsModule module) {
+    public PlayerWarpsSearchDialog( PlayerWarpsModule module) {
         this.module = module;
     }
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull WarpsListData data) {
+    
+    public WrappedDialog create( Player player,  WarpsListData data) {
         return Dialogs.builder()
             .base(DialogBases.builder(TITLE)
                 .body(DialogBodies.plainMessage(BODY))

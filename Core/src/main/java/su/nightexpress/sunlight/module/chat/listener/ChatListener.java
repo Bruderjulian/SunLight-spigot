@@ -15,7 +15,7 @@ public class ChatListener extends AbstractListener<SunLightPlugin> {
 
     private final ChatModule module;
 
-    public ChatListener(@NotNull SunLightPlugin plugin, @NotNull ChatModule module) {
+    public ChatListener(SunLightPlugin plugin, ChatModule module) {
         super(plugin);
         this.module = module;
     }
@@ -38,4 +38,3 @@ public class ChatListener extends AbstractListener<SunLightPlugin> {
         this.module.handleCommandEvent(event);
     }
 }
-

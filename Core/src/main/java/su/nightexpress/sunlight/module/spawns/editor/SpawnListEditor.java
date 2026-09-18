@@ -41,7 +41,7 @@ public class SpawnListEditor extends AbstractMenu implements LangContainer {
     private final SpawnsModule         module;
     private final ItemPopulator<Spawn> spawnPopulator;
 
-    public SpawnListEditor(@NonNull SunLightPlugin plugin, @NonNull SpawnsModule module) {
+    public SpawnListEditor( SunLightPlugin plugin,  SpawnsModule module) {
         super(MenuType.GENERIC_9X5, SpawnsLang.EDITOR_TITLE_LIST.text());
         this.module = module;
 
@@ -80,27 +80,27 @@ public class SpawnListEditor extends AbstractMenu implements LangContainer {
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
+    protected void onLoad( FileConfig config) {
 
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
         List<Spawn> spawns = this.module.getSpawns().stream()
             .sorted(Comparator.comparingInt(Spawn::getPriority).reversed().thenComparing(Spawn::getName))
             .toList();
@@ -109,12 +109,12 @@ public class SpawnListEditor extends AbstractMenu implements LangContainer {
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 }

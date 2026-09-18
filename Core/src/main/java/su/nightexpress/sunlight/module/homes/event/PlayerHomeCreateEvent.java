@@ -18,7 +18,7 @@ public class PlayerHomeCreateEvent extends Event implements Cancellable {
 
     private boolean cancelled;
 
-    public PlayerHomeCreateEvent(@NotNull Player player, @NotNull String homeId, @NotNull Location location, boolean isNewHome) {
+    public PlayerHomeCreateEvent(Player player, String homeId, Location location, boolean isNewHome) {
         this.player = player;
         this.homeId = homeId;
         this.isNewHome = isNewHome;
@@ -29,28 +29,24 @@ public class PlayerHomeCreateEvent extends Event implements Cancellable {
         return HANDLER_LIST;
     }
 
-    @NotNull
     @Override
     public HandlerList getHandlers() {
         return HANDLER_LIST;
     }
 
-    @NotNull
     public Player getPlayer() {
         return player;
     }
 
-    @NotNull
     public String getHomeId() {
         return homeId;
     }
 
-    @NotNull
     public Location getLocation() {
         return location;
     }
 
-    public void setLocation(@NotNull Location location) {
+    public void setLocation(Location location) {
         this.location = location;
     }
 

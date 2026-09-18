@@ -26,7 +26,7 @@ public class PardonCommandsProvider extends AbstractCommandProvider {
     private final BansModule module;
     private final UserManager userManager;
 
-    public PardonCommandsProvider(@NotNull SunLightPlugin plugin, @NotNull BansModule module, @NotNull UserManager userManager) {
+    public PardonCommandsProvider(SunLightPlugin plugin, BansModule module, UserManager userManager) {
         super(plugin);
         this.module = module;
         this.userManager = userManager;
@@ -34,26 +34,30 @@ public class PardonCommandsProvider extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("unban", true, new String[]{"unban"}, builder -> this.builderPlayer(builder, PunishmentType.BAN));
-        this.registerLiteral("unmute", true, new String[]{"unmute"}, builder -> this.builderPlayer(builder, PunishmentType.MUTE));
-        this.registerLiteral("unwarn", true, new String[]{"unwarn"}, builder -> this.builderPlayer(builder, PunishmentType.WARN));
+        this.registerLiteral("unban", true, new String[] { "unban" },
+                builder -> this.builderPlayer(builder, PunishmentType.BAN));
+        this.registerLiteral("unmute", true, new String[] { "unmute" },
+                builder -> this.builderPlayer(builder, PunishmentType.MUTE));
+        this.registerLiteral("unwarn", true, new String[] { "unwarn" },
+                builder -> this.builderPlayer(builder, PunishmentType.WARN));
 
-        this.registerLiteral("unbanip", true, new String[]{"unbanip"}, this::builderInet);
+        this.registerLiteral("unbanip", true, new String[] { "unbanip" }, this::builderInet);
     }
 
-    private void builderInet(@NotNull LiteralNodeBuilder builder) {
+    private void builderInet(LiteralNodeBuilder builder) {
         builder
-            .description(BansLang.COMMAND_UNBAN_IP_DESC)
-            .permission(BansPerms.COMMAND_UNBAN_IP)
-            .withArguments(
-                Arguments.playerName(CommandArguments.INET_ADDRESS)
-                    .suggestions((reader, tabContext) -> this.module.getPunishmentRepository(PunishmentType.BAN).getActiveInetPunishments().stream().map(InetPunishment::getRawAddress).toList())
-            )
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes(this::pardonInet);
+                .description(BansLang.COMMAND_UNBAN_IP_DESC)
+                .permission(BansPerms.COMMAND_UNBAN_IP)
+                .withArguments(
+                        Arguments.playerName(CommandArguments.INET_ADDRESS)
+                                .suggestions((reader, tabContext) -> this.module
+                                        .getPunishmentRepository(PunishmentType.BAN).getActiveInetPunishments().stream()
+                                        .map(InetPunishment::getRawAddress).toList()))
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes(this::pardonInet);
     }
 
-    private void builderPlayer(@NotNull LiteralNodeBuilder builder, @NotNull PunishmentType type) {
+    private void builderPlayer(LiteralNodeBuilder builder, PunishmentType type) {
         TextLocale description = switch (type) {
             case BAN -> BansLang.COMMAND_UNBAN_DESC;
             case MUTE -> BansLang.COMMAND_UNMUTE_DESC;
@@ -67,24 +71,25 @@ public class PardonCommandsProvider extends AbstractCommandProvider {
         };
 
         builder
-            .description(description)
-            .permission(permission)
-            .withArguments(
-                Arguments.playerName(CommandArguments.PLAYER)
-                    .suggestions((reader, tabContext) -> this.module.getPunishmentRepository(type).getActivePlayerPunishments().stream().map(PlayerPunishment::getPlayerName).toList())
-            )
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes((context, arguments) -> this.pardonPlayer(context, arguments, type));
+                .description(description)
+                .permission(permission)
+                .withArguments(
+                        Arguments.playerName(CommandArguments.PLAYER)
+                                .suggestions((reader, tabContext) -> this.module.getPunishmentRepository(type)
+                                        .getActivePlayerPunishments().stream().map(PlayerPunishment::getPlayerName)
+                                        .toList()))
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes((context, arguments) -> this.pardonPlayer(context, arguments, type));
     }
 
-    private boolean pardonInet(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean pardonInet(CommandContext context, ParsedArguments arguments) {
         InetAddress address = arguments.get(CommandArguments.INET_ADDRESS, InetAddress.class);
         boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);
 
         return this.module.pardonInet(address, context.getSender(), silent);
     }
 
-    private boolean pardonPlayer(@NotNull CommandContext context, @NotNull ParsedArguments arguments, @NotNull PunishmentType type) {
+    private boolean pardonPlayer(CommandContext context, ParsedArguments arguments, PunishmentType type) {
         String targetName = arguments.getString(CommandArguments.PLAYER);
         boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);
 

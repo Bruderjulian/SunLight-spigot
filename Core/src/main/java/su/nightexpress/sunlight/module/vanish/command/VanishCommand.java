@@ -18,14 +18,14 @@ import su.nightexpress.sunlight.user.property.UserProperty;
 
 public class VanishCommand extends AbstractCommandProvider {
 
-    private static final String COMMAND_OFF    = "off";
-    private static final String COMMAND_ON     = "on";
+    private static final String COMMAND_OFF = "off";
+    private static final String COMMAND_ON = "on";
     private static final String COMMAND_TOGGLE = "toggle";
 
     private final VanishModule module;
     private final UserManager userManager;
 
-    public VanishCommand(@NotNull SunLightPlugin plugin, @NotNull VanishModule module, @NotNull UserManager userManager) {
+    public VanishCommand(SunLightPlugin plugin, VanishModule module, UserManager userManager) {
         super(plugin);
         this.module = module;
         this.userManager = userManager;
@@ -33,38 +33,37 @@ public class VanishCommand extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral(COMMAND_TOGGLE, true, new String[]{"vanish"}, builder -> builder
-            .description(VanishLang.COMMAND_VANISH_DESC)
-            .permission(VanishPerms.COMMAND_VANISH)
-            .withArguments(Arguments.playerName(CommandArguments.PLAYER).permission(VanishPerms.COMMAND_VANISH_OTHERS).optional())
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes((context, arguments) -> this.toggleVanish(context, arguments, ToggleMode.TOGGLE))
-        );
+        this.registerLiteral(COMMAND_TOGGLE, true, new String[] { "vanish" }, builder -> builder
+                .description(VanishLang.COMMAND_VANISH_DESC)
+                .permission(VanishPerms.COMMAND_VANISH)
+                .withArguments(Arguments.playerName(CommandArguments.PLAYER)
+                        .permission(VanishPerms.COMMAND_VANISH_OTHERS).optional())
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes((context, arguments) -> this.toggleVanish(context, arguments, ToggleMode.TOGGLE)));
     }
 
-    private boolean toggleVanish(@NotNull CommandContext context, @NotNull ParsedArguments arguments, @NotNull ToggleMode mode) {
-        this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager, (user, target) -> {
-            UserProperty<Boolean> setting = VanishModule.VANISH;
+    private boolean toggleVanish(CommandContext context, ParsedArguments arguments, ToggleMode mode) {
+        this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager,
+                (user, target) -> {
+                    UserProperty<Boolean> setting = VanishModule.VANISH;
 
-            boolean state = mode.apply(user.getPropertyOrDefault(setting));
-            user.setProperty(setting, state);
-            user.markDirty();
+                    boolean state = mode.apply(user.getPropertyOrDefault(setting));
+                    user.setProperty(setting, state);
+                    user.markDirty();
 
-            module.vanish(target, state);
+                    module.vanish(target, state);
 
-            if (context.getSender() != target) {
-                VanishLang.COMMAND_VANISH_TARGET.message().send(context.getSender(), replacer -> replacer
-                    .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
-                    .replace(SLPlaceholders.forPlayer(target))
-                );
-            }
+                    if (context.getSender() != target) {
+                        VanishLang.COMMAND_VANISH_TARGET.message().send(context.getSender(), replacer -> replacer
+                                .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
+                                .replace(SLPlaceholders.forPlayer(target)));
+                    }
 
-            if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                VanishLang.COMMAND_VANISH_NOTIFY.message().send(target, replacer -> replacer
-                    .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
-                );
-            }
-        });
+                    if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
+                        VanishLang.COMMAND_VANISH_NOTIFY.message().send(target, replacer -> replacer
+                                .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state)));
+                    }
+                });
 
         return true;
     }

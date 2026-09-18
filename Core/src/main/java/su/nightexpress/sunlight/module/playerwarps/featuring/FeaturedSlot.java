@@ -16,10 +16,10 @@ import su.nightexpress.sunlight.module.playerwarps.PlayerWarpsPlaceholders;
 
 import java.util.Optional;
 
-public record FeaturedSlot(@NonNull String id, @NonNull String currencyId, double price, long duration, int[] inventorySlots) implements Writeable, PlaceholderResolvable {
+public record FeaturedSlot( String id,  String currencyId, double price, long duration, int[] inventorySlots) implements Writeable, PlaceholderResolvable {
 
-    @NonNull
-    public static FeaturedSlot read(@NonNull FileConfig config, @NonNull String path) {
+    
+    public static FeaturedSlot read( FileConfig config,  String path) {
         String id = LowerCase.INTERNAL.apply(config.getString(path + ".Id", "null"));
         String currencyId = config.getString(path + ".Price.Currency", CurrencyId.VAULT);
         double price = config.getDouble(path + ".Price.Amount");
@@ -30,7 +30,7 @@ public record FeaturedSlot(@NonNull String id, @NonNull String currencyId, doubl
     }
 
     @Override
-    public void write(@NonNull FileConfig config, @NonNull String path) {
+    public void write( FileConfig config,  String path) {
         config.set(path + ".Id", this.id);
         config.set(path + ".Price.Currency", this.currencyId);
         config.set(path + ".Price.Amount", this.price);
@@ -39,21 +39,21 @@ public record FeaturedSlot(@NonNull String id, @NonNull String currencyId, doubl
     }
 
     @Override
-    @NonNull
+    
     public PlaceholderResolver placeholders() {
         return PlayerWarpsPlaceholders.FEATURED_SLOT.resolver(this);
     }
 
-    @NonNull
+    
     public Optional<Currency> currency() {
         return EconomyBridge.currency(this.currencyId);
     }
 
-    public void pay(@NonNull Player player) {
+    public void pay( Player player) {
         this.currency().ifPresent(currency -> currency.take(player, this.price));
     }
 
-    public boolean canAfford(@NonNull Player player) {
+    public boolean canAfford( Player player) {
         return this.currency().map(currency -> currency.getBalance(player)).orElse(0D) >= this.price;
     }
 

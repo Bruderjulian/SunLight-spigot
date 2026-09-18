@@ -10,10 +10,10 @@ public class PlayerAfkEvent extends Event {
 
     private static final HandlerList HANDLER_LIST = new HandlerList();
 
-    private final Player   player;
+    private final Player player;
     private final boolean state;
 
-    public PlayerAfkEvent(@NotNull Player player, boolean state) {
+    public PlayerAfkEvent(Player player, boolean state) {
         super(!Bukkit.isPrimaryThread());
         this.player = player;
         this.state = state;
@@ -23,13 +23,11 @@ public class PlayerAfkEvent extends Event {
         return HANDLER_LIST;
     }
 
-    @NotNull
     @Override
     public HandlerList getHandlers() {
         return HANDLER_LIST;
     }
 
-    @NotNull
     public Player getPlayer() {
         return this.player;
     }

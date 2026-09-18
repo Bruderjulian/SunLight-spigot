@@ -20,11 +20,11 @@ public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writ
     private final List<String> description;
     private final NightItem    icon;
 
-    public NormalCategory(@NonNull String id,
-                          @NonNull String name,
+    public NormalCategory( String id,
+                           String name,
                           boolean primary,
-                          @NonNull List<String> description,
-                          @NonNull NightItem icon) {
+                           List<String> description,
+                           NightItem icon) {
         this.id = id;
         this.name = name;
         this.primary = primary;
@@ -32,8 +32,8 @@ public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writ
         this.icon = icon;
     }
 
-    @NonNull
-    public static NormalCategory read(@NonNull FileConfig config, @NonNull String path) {
+    
+    public static NormalCategory read( FileConfig config,  String path) {
         String id = LowerCase.INTERNAL.apply(config.getString(path + ".Id", "null"));
         String name = config.getString(path + ".Name", id);
         boolean primary = config.getBoolean(path + ".Primary");
@@ -44,7 +44,7 @@ public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writ
     }
 
     @Override
-    public void write(@NonNull FileConfig config, @NonNull String path) {
+    public void write( FileConfig config,  String path) {
         config.set(path + ".Id", this.id);
         config.set(path + ".Name", this.name);
         config.set(path + ".Primary", this.primary);
@@ -53,21 +53,21 @@ public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writ
     }
 
     @Override
-    @NonNull
+    
     public PlaceholderResolver placeholders() {
         return PlayerWarpsPlaceholders.CATEGORY.resolver(this);
     }
 
-    public boolean isWarpOfThis(@NonNull PlayerWarp warp) {
+    public boolean isWarpOfThis( PlayerWarp warp) {
         return warp.getCategoryId().equalsIgnoreCase(this.id);
     }
 
-    @NonNull
+    
     public String id() {
         return this.id;
     }
 
-    @NonNull
+    
     public String name() {
         return this.name;
     }
@@ -76,12 +76,12 @@ public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writ
         return this.primary;
     }
 
-    @NonNull
+    
     public List<String> description() {
         return List.copyOf(this.description);
     }
 
-    @NonNull
+    
     public NightItem icon() {
         return this.icon.copy();
     }

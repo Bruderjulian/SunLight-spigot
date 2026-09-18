@@ -14,18 +14,17 @@ import java.util.Set;
 
 public class FormatDefinition implements Writeable {
 
-    private final int         priority;
-    private final String      format;
+    private final int priority;
+    private final String format;
     private final Set<String> applicableRanks;
 
-    public FormatDefinition(int priority, @NotNull String format, @NotNull Set<String> applicableRanks) {
+    public FormatDefinition(int priority, String format, Set<String> applicableRanks) {
         this.priority = priority;
         this.format = format;
         this.applicableRanks = applicableRanks;
     }
 
-    @NotNull
-    public static FormatDefinition read(@NotNull FileConfig config, @NotNull String path) {
+    public static FormatDefinition read(FileConfig config, String path) {
         int priority = config.getInt(path + ".Priority");
         String format = config.getString(path + ".Format", ChatDefaults.DEFAULT_USER_FORMAT);
         Set<String> applicableRanks = Lists.modify(config.getStringSet(path + ".Ranks"), LowerCase.INTERNAL::apply);
@@ -34,15 +33,17 @@ public class FormatDefinition implements Writeable {
     }
 
     @Override
-    public void write(@NotNull FileConfig config, @NotNull String path) {
+    public void write(FileConfig config, String path) {
         config.set(path + ".Priority", this.priority);
         config.set(path + ".Format", this.format);
         config.set(path + ".Ranks", this.applicableRanks);
     }
 
-    public boolean isApplicable(@NotNull Player player) {
-        if (this.applicableRanks.isEmpty()) return false;
-        if (this.applicableRanks.contains(SLPlaceholders.WILDCARD)) return true;
+    public boolean isApplicable(Player player) {
+        if (this.applicableRanks.isEmpty())
+            return false;
+        if (this.applicableRanks.contains(SLPlaceholders.WILDCARD))
+            return true;
 
         Set<String> groups = Players.getInheritanceGroups(player);
         return this.applicableRanks.stream().anyMatch(groups::contains);
@@ -52,12 +53,10 @@ public class FormatDefinition implements Writeable {
         return this.priority;
     }
 
-    @NotNull
     public String getFormat() {
         return this.format;
     }
 
-    @NotNull
     public Set<String> getApplicableRanks() {
         return this.applicableRanks;
     }

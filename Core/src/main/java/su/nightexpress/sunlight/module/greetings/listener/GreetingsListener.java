@@ -13,7 +13,7 @@ public class GreetingsListener extends AbstractListener<SunLightPlugin> {
 
     private final GreetingsModule module;
 
-    public GreetingsListener(@NotNull SunLightPlugin plugin, @NotNull GreetingsModule module) {
+    public GreetingsListener(SunLightPlugin plugin, GreetingsModule module) {
         super(plugin);
         this.module = module;
     }

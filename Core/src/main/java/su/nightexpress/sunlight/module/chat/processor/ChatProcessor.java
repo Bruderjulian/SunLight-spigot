@@ -7,7 +7,7 @@ import su.nightexpress.sunlight.module.chat.context.ChatContext;
 
 public interface ChatProcessor<T extends ChatContext> {
 
-    void preProcess(@NonNull ChatModule module, @NonNull T context);
+    void preProcess( ChatModule module,  T context);
 
-    void postProcess(@NonNull ChatModule module, @NonNull T context);
+    void postProcess( ChatModule module,  T context);
 }

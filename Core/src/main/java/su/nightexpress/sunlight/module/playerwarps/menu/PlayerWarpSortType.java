@@ -17,21 +17,18 @@ public enum PlayerWarpSortType {
 
     private final Comparator<PlayerWarp> comparator;
 
-    PlayerWarpSortType(@NotNull Comparator<PlayerWarp> comparator) {
+    PlayerWarpSortType(Comparator<PlayerWarp> comparator) {
         this.comparator = comparator;
     }
 
-    @NonNull
     public Comparator<PlayerWarp> getComparator() {
         return this.comparator;
     }
 
-    @NonNull
     public PlayerWarpSortType next() {
         return Lists.next(this);
     }
 
-    @NonNull
     public String localized() {
         return PlayerWarpsLang.SORT_TYPE.getLocalized(this);
     }

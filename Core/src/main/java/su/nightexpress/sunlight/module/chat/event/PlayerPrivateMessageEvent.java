@@ -16,7 +16,7 @@ public class PlayerPrivateMessageEvent extends Event implements Cancellable {
 
     private boolean cancelled;
 
-    public PlayerPrivateMessageEvent(@NotNull Player sender, @NotNull Player target, @NotNull String message) {
+    public PlayerPrivateMessageEvent(Player sender, Player target, String message) {
         this.sender = sender;
         this.target = target;
         this.message = message;
@@ -26,7 +26,6 @@ public class PlayerPrivateMessageEvent extends Event implements Cancellable {
         return HANDLER_LIST;
     }
 
-    @NotNull
     @Override
     public HandlerList getHandlers() {
         return HANDLER_LIST;
@@ -42,17 +41,14 @@ public class PlayerPrivateMessageEvent extends Event implements Cancellable {
         this.cancelled = cancelled;
     }
 
-    @NotNull
     public Player getSender() {
         return this.sender;
     }
 
-    @NotNull
     public Player getTarget() {
         return this.target;
     }
 
-    @NotNull
     public String getMessage() {
         return this.message;
     }

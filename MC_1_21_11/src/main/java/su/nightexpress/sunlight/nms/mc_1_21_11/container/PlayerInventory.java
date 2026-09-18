@@ -13,16 +13,16 @@ import su.nightexpress.nightcore.util.Version;
 public class PlayerInventory extends Inventory {
 
     private final CraftInventory inventory;
-    private final CraftPlayer    owner;
+    private final CraftPlayer owner;
 
-    public PlayerInventory(@NotNull CraftPlayer player) {
+    public PlayerInventory(CraftPlayer player) {
         super(player.getHandle(), getEquipment(player));
         this.owner = player;
         this.inventory = new PatchedCraftInventory(this);
         this.reflectContents();
     }
 
-    private static EntityEquipment getEquipment(@NotNull CraftPlayer craftPlayer) {
+    private static EntityEquipment getEquipment(CraftPlayer craftPlayer) {
         if (Version.isSpigot()) {
             return (EntityEquipment) Reflex.getFieldValue(craftPlayer.getHandle(), "equipment", "m");
         }
@@ -36,18 +36,18 @@ public class PlayerInventory extends Inventory {
         Reflex.setFieldValue(this, field, origin.getNonEquipmentItems());
     }
 
-    @NotNull
     public org.bukkit.inventory.Inventory getInventory() {
         return this.inventory;
     }
 
     private void saveOnExit() {
-        if (!this.transaction.isEmpty()) return;
+        if (!this.transaction.isEmpty())
+            return;
         this.owner.saveData();
     }
 
     @Override
-    public void onClose(@NotNull CraftHumanEntity who) {
+    public void onClose(CraftHumanEntity who) {
         super.onClose(who);
         this.saveOnExit();
     }
@@ -63,7 +63,7 @@ public class PlayerInventory extends Inventory {
     }
 
     @Override
-    public boolean stillValid(@NotNull Player player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 }

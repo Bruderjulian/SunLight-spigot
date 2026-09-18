@@ -20,7 +20,7 @@ public class AltsCommandProvider extends AbstractCommandProvider {
     private final BansModule module;
     private final UserManager userManager;
 
-    public AltsCommandProvider(@NotNull SunLightPlugin plugin, @NotNull BansModule module, @NotNull UserManager userManager) {
+    public AltsCommandProvider(SunLightPlugin plugin, BansModule module, UserManager userManager) {
         super(plugin);
         this.module = module;
         this.userManager = userManager;
@@ -28,15 +28,14 @@ public class AltsCommandProvider extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("alts", true, new String[]{"alts"}, builder -> builder
-            .description(BansLang.COMMAND_ALTS_DESC)
-            .permission(BansPerms.COMMAND_ALTS)
-            .withArguments(Arguments.playerName(CommandArguments.PLAYER))
-            .executes(this::showAlts)
-        );
+        this.registerLiteral("alts", true, new String[] { "alts" }, builder -> builder
+                .description(BansLang.COMMAND_ALTS_DESC)
+                .permission(BansPerms.COMMAND_ALTS)
+                .withArguments(Arguments.playerName(CommandArguments.PLAYER))
+                .executes(this::showAlts));
     }
 
-    private boolean showAlts(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean showAlts(CommandContext context, ParsedArguments arguments) {
         String playerName = arguments.getString(CommandArguments.PLAYER);
 
         this.userManager.loadTargetProfile(playerName).thenCompose(profile -> {

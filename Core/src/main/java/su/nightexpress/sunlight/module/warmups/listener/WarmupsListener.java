@@ -27,7 +27,7 @@ public class WarmupsListener extends AbstractListener<SunLightPlugin> {
 
     private final WarmupsModule module;
 
-    public WarmupsListener(@NotNull SunLightPlugin plugin, @NotNull WarmupsModule module) {
+    public WarmupsListener(SunLightPlugin plugin, WarmupsModule module) {
         super(plugin);
         this.module = module;
     }
@@ -36,14 +36,18 @@ public class WarmupsListener extends AbstractListener<SunLightPlugin> {
     public void onTeleport(SunlightPlayerTeleportEvent event) {
         TeleportContext context = event.getContext();
 
-        if (context.hasSender()) return;
-        if (context.hasFlag(TeleportFlag.BYPASS_WARMUP)) return;
+        if (context.hasSender())
+            return;
+        if (context.hasFlag(TeleportFlag.BYPASS_WARMUP))
+            return;
 
         Player player = context.getTarget();
-        if (player.hasPermission(WarmupsPerms.BYPASS_TELEPORT)) return;
+        if (player.hasPermission(WarmupsPerms.BYPASS_TELEPORT))
+            return;
 
         TeleportType type = event.getType();
-        if (!this.module.canHandleTeleport(type)) return;
+        if (!this.module.canHandleTeleport(type))
+            return;
 
         event.setIntercepted(true);
 
@@ -67,12 +71,15 @@ public class WarmupsListener extends AbstractListener<SunLightPlugin> {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onWarmupInteract(PlayerInteractEvent event) {
-        if (!WarmupsConfig.WARMUP_CANCEL_ON_INTERACT.get()) return;
+        if (!WarmupsConfig.WARMUP_CANCEL_ON_INTERACT.get())
+            return;
 
         Player player = event.getPlayer();
-        if (!this.module.hasWarmup(player)) return;
+        if (!this.module.hasWarmup(player))
+            return;
 
-        if (event.useItemInHand() == Event.Result.DENY && event.useInteractedBlock() == Event.Result.DENY) return;
+        if (event.useItemInHand() == Event.Result.DENY && event.useInteractedBlock() == Event.Result.DENY)
+            return;
 
         var action = event.getAction();
         if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
@@ -88,7 +95,8 @@ public class WarmupsListener extends AbstractListener<SunLightPlugin> {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onWarmupDamage(EntityDamageEvent event) {
-        if (!WarmupsConfig.WARMUP_CANCEL_ON_DAMAGE.get()) return;
+        if (!WarmupsConfig.WARMUP_CANCEL_ON_DAMAGE.get())
+            return;
 
         if (event.getEntity() instanceof Player victim && this.module.hasWarmup(victim)) {
             this.module.cancelWarmup(victim);

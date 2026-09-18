@@ -21,23 +21,23 @@ import static su.nightexpress.sunlight.module.chat.ChatPlaceholders.CHANNEL;
 
 public class ChatChannel implements PlaceholderResolvable {
 
-    private final Path      path;
-    private final String    id;
+    private final Path path;
+    private final String id;
     private final Set<UUID> players;
 
-    private final ChannelDisplay       display;
+    private final ChannelDisplay display;
     private final ChannelAccessibility accessibility;
-    private final ChannelDistance      distance;
-    private final ChannelCommand       command;
-    private final ChannelPrefix        prefix;
+    private final ChannelDistance distance;
+    private final ChannelCommand command;
+    private final ChannelPrefix prefix;
 
-    private ChatChannel(@Nullable Path path,
-                        @NotNull String id,
-                        @NotNull ChannelDisplay display,
-                        @NotNull ChannelAccessibility accessibility,
-                        @NotNull ChannelDistance distance,
-                        @NotNull ChannelCommand command,
-                        @NotNull ChannelPrefix prefix) {
+    private ChatChannel(Path path,
+            String id,
+            ChannelDisplay display,
+            ChannelAccessibility accessibility,
+            ChannelDistance distance,
+            ChannelCommand command,
+            ChannelPrefix prefix) {
         this.path = path;
         this.id = id;
         this.players = new HashSet<>();
@@ -49,8 +49,7 @@ public class ChatChannel implements PlaceholderResolvable {
         this.prefix = prefix;
     }
 
-    @NotNull
-    public static ChatChannel fromFile(@NotNull Path file) {
+    public static ChatChannel fromFile(Path file) {
         FileConfig config = FileConfig.load(file);
         String fileName = file.getFileName().toString();
         String id = fileName.substring(0, fileName.length() - FileConfig.EXTENSION.length());
@@ -67,16 +66,19 @@ public class ChatChannel implements PlaceholderResolvable {
         ChannelDistanceType distanceType = ChannelSchema.DISTANCE_TYPE.resolveWithDefaults(config);
         double distanceRange = ChannelSchema.DISTANCE_RANGE.resolveWithDefaults(config);
 
-        //boolean commandEnabled = ChannelSchema.COMMAND_ENABLED.resolveWithDefaults(config);
-        //String commandAlias = ChannelSchema.COMMAND_ALIAS.resolveWithDefaults(config);
+        // boolean commandEnabled =
+        // ChannelSchema.COMMAND_ENABLED.resolveWithDefaults(config);
+        // String commandAlias =
+        // ChannelSchema.COMMAND_ALIAS.resolveWithDefaults(config);
 
         boolean prefixEnabled = ChannelSchema.PREFIX_ENABLED.resolveWithDefaults(config);
         String prefixValue = ChannelSchema.PREFIX_VALUE.resolveWithDefaults(config);
 
         ChannelDisplay display = new ChannelDisplay(name, format);
-        ChannelAccessibility accessibility = new ChannelAccessibility(autoJoin, permissionToListen, permissionToSpeak, messageCooldowns, cooldownMessage);
+        ChannelAccessibility accessibility = new ChannelAccessibility(autoJoin, permissionToListen, permissionToSpeak,
+                messageCooldowns, cooldownMessage);
         ChannelDistance distance = new ChannelDistance(distanceType, distanceRange);
-        ChannelCommand command = new ChannelCommand(false, "");//new ChannelCommand(commandEnabled, commandAlias);
+        ChannelCommand command = new ChannelCommand(false, "");// new ChannelCommand(commandEnabled, commandAlias);
         ChannelPrefix prefix = new ChannelPrefix(prefixEnabled, prefixValue);
 
         config.saveChanges();
@@ -84,17 +86,16 @@ public class ChatChannel implements PlaceholderResolvable {
         return new ChatChannel(file, id, display, accessibility, distance, command, prefix);
     }
 
-    @NotNull
-    public static ChatChannel create(@NotNull String id,
-                                     @NotNull ChannelDisplay display,
-                                     @NotNull ChannelAccessibility accessibility,
-                                     @NotNull ChannelDistance distance,
-                                     @NotNull ChannelCommand command,
-                                     @NotNull ChannelPrefix prefix) {
+    public static ChatChannel create(String id,
+            ChannelDisplay display,
+            ChannelAccessibility accessibility,
+            ChannelDistance distance,
+            ChannelCommand command,
+            ChannelPrefix prefix) {
         return new ChatChannel(null, id, display, accessibility, distance, command, prefix);
     }
 
-    public void write(@NotNull FileConfig config) {
+    public void write(FileConfig config) {
         ChannelSchema.NAME.writeValue(config, this.display.name());
         ChannelSchema.FORMAT.writeValue(config, this.display.format());
 
@@ -107,59 +108,62 @@ public class ChatChannel implements PlaceholderResolvable {
         ChannelSchema.DISTANCE_TYPE.writeValue(config, this.distance.type());
         ChannelSchema.DISTANCE_RANGE.writeValue(config, this.distance.range());
 
-        //ChannelSchema.COMMAND_ENABLED.writeValue(config, this.command.enabled());
-        //ChannelSchema.COMMAND_ALIAS.writeValue(config, this.command.alias());
+        // ChannelSchema.COMMAND_ENABLED.writeValue(config, this.command.enabled());
+        // ChannelSchema.COMMAND_ALIAS.writeValue(config, this.command.alias());
 
         ChannelSchema.PREFIX_ENABLED.writeValue(config, this.prefix.enabled());
         ChannelSchema.PREFIX_VALUE.writeValue(config, this.prefix.value());
     }
 
     @Override
-    @NotNull
+
     public PlaceholderResolver placeholders() {
         return CHANNEL.resolver(this);
     }
 
-    @Nullable
     public Path getPath() {
         return this.path;
     }
 
-    public boolean canListenOrSpeakHere(@NotNull Player player) {
+    public boolean canListenOrSpeakHere(Player player) {
         return this.canListenHere(player) || this.canSpeakHere(player);
     }
 
-    public boolean addPlayer(@NotNull Player player) {
+    public boolean addPlayer(Player player) {
         return this.players.add(player.getUniqueId());
     }
 
-    public boolean removePlayer(@NotNull Player player) {
+    public boolean removePlayer(Player player) {
         return this.players.remove(player.getUniqueId());
     }
 
-    public boolean contains(@NotNull Player player) {
+    public boolean contains(Player player) {
         return this.players.contains(player.getUniqueId());
     }
 
-    public boolean canSpeakHere(@NotNull Player player) {
+    public boolean canSpeakHere(Player player) {
         return !this.accessibility.permissionToSpeak() || ChatPerms.CHANNEL_SPEAK.hasChildAccess(player, this.id);
     }
 
-    public boolean canListenHere(@NotNull Player player) {
-        return !this.accessibility.permissionToListen() || this.canSpeakHere(player) || ChatPerms.CHANNEL_LISTEN.hasChildAccess(player, this.id);
+    public boolean canListenHere(Player player) {
+        return !this.accessibility.permissionToListen() || this.canSpeakHere(player)
+                || ChatPerms.CHANNEL_LISTEN.hasChildAccess(player, this.id);
     }
 
-    public boolean isInRadius(@NotNull CommandSender recipient, @NotNull Player speaker) {
+    public boolean isInRadius(CommandSender recipient, Player speaker) {
         ChannelDistanceType distanceType = this.distance.type();
-        if (distanceType == ChannelDistanceType.SERVER_WIDE) return true;
+        if (distanceType == ChannelDistanceType.SERVER_WIDE)
+            return true;
 
         if (recipient instanceof Entity listener) {
             if (listener.getWorld() == speaker.getWorld()) {
-                if (distanceType == ChannelDistanceType.WORLD_WIDE) return true;
+                if (distanceType == ChannelDistanceType.WORLD_WIDE)
+                    return true;
 
                 if (distanceType == ChannelDistanceType.RANGE) {
                     double range = this.distance.range();
-                    if (range <= 0D) return true;
+                    if (range <= 0D)
+                        return true;
 
                     double rangeSqr = range * range;
                     double distanceSqr = listener.getLocation().distanceSquared(speaker.getLocation());
@@ -172,10 +176,13 @@ public class ChatChannel implements PlaceholderResolvable {
         return true;
     }
 
-    public boolean isInChannelRadius(@NotNull CommandSender who, @NotNull Player speaker) {
-        if (who == speaker) return true;
-        if (who instanceof ConsoleCommandSender) return true;
-        if (who instanceof Player other && !this.contains(other)) return false;
+    public boolean isInChannelRadius(CommandSender who, Player speaker) {
+        if (who == speaker)
+            return true;
+        if (who instanceof ConsoleCommandSender)
+            return true;
+        if (who instanceof Player other && !this.contains(other))
+            return false;
 
         return this.isInRadius(who, speaker);
     }
@@ -188,37 +195,30 @@ public class ChatChannel implements PlaceholderResolvable {
         return this.prefix.value().charAt(0);
     }
 
-    @NotNull
     public String getId() {
         return this.id;
     }
 
-    @NotNull
     public Set<UUID> getPlayers() {
         return this.players;
     }
 
-    @NotNull
     public ChannelDisplay getDisplay() {
         return this.display;
     }
 
-    @NotNull
     public ChannelAccessibility getAccessibility() {
         return this.accessibility;
     }
 
-    @NotNull
     public ChannelDistance getDistance() {
         return this.distance;
     }
 
-    @NotNull
     public ChannelCommand getCommand() {
         return this.command;
     }
 
-    @NotNull
     public ChannelPrefix getPrefix() {
         return this.prefix;
     }

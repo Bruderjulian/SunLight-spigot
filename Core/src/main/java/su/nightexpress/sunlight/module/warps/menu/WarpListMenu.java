@@ -55,7 +55,7 @@ public class WarpListMenu extends AbstractMenu implements LangContainer {
 
     private final WarpsModule module;
 
-    public WarpListMenu(@NonNull WarpsModule module) {
+    public WarpListMenu( WarpsModule module) {
         super(MenuType.GENERIC_9X6, "Server Warps");
         this.module = module;
     }
@@ -81,27 +81,27 @@ public class WarpListMenu extends AbstractMenu implements LangContainer {
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
+    protected void onLoad( FileConfig config) {
 
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
         Player player = context.getPlayer();
         MenuViewer viewer = context.getViewer();
 
@@ -126,12 +126,12 @@ public class WarpListMenu extends AbstractMenu implements LangContainer {
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 }

@@ -6,5 +6,5 @@ import org.jetbrains.annotations.NotNull;
 @FunctionalInterface
 public interface PlaceholderHandler {
 
-    @NotNull String handle(@NotNull Player player, @NotNull String payload);
+    String handle(Player player, String payload);
 }

@@ -19,13 +19,13 @@ public class InventoriesModule extends Module {
 
     private final SunNMS internals;
 
-    public InventoriesModule(@NotNull ModuleContext context, @Nullable SunNMS internals) {
+    public InventoriesModule(ModuleContext context, SunNMS internals) {
         super(context);
         this.internals = internals;
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) throws ModuleLoadException {
+    protected void loadModule(FileConfig config) throws ModuleLoadException {
         config.initializeOptions(InventoriesSettings.class);
 
         this.dialogRegistry.register(InventoryDialogKeys.CLEAR, InventoryClearDialog::new);
@@ -37,22 +37,25 @@ public class InventoriesModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(InventoriesPerms.MODULE);
     }
 
     @Override
     protected void registerCommands() {
         if (this.internals != null) {
-            this.commandRegistry.addProvider("container", new ContainerCommandProvider(this.plugin, this, this.internals), this);
+            this.commandRegistry.addProvider("container",
+                    new ContainerCommandProvider(this.plugin, this, this.internals), this);
         }
 
-        this.commandRegistry.addProvider("enderchest", new EnderchestCommandsProvider(this.plugin, this, this.userManager, this.internals), this);
-        this.commandRegistry.addProvider("inventory", new InventoryCommandProvider(this.plugin, this, this.userManager, this.internals), this);
+        this.commandRegistry.addProvider("enderchest",
+                new EnderchestCommandsProvider(this.plugin, this, this.userManager, this.internals), this);
+        this.commandRegistry.addProvider("inventory",
+                new InventoryCommandProvider(this.plugin, this, this.userManager, this.internals), this);
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 

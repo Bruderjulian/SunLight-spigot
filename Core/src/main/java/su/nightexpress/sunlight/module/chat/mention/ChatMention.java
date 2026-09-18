@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ChatMention {
 
-    boolean isApplicable(@NotNull Player player);
+    boolean isApplicable(Player player);
 
-    @NotNull String getFormat();
+    String getFormat();
 }

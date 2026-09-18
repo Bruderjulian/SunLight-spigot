@@ -8,19 +8,19 @@ public class PlayerMention implements ChatMention {
     private final String playerName;
     private final String format;
 
-    public PlayerMention(@NotNull String playerName, @NotNull String format) {
+    public PlayerMention(String playerName, String format) {
         this.playerName = playerName;
         this.format = format;
     }
 
     @Override
-    @NotNull
+
     public String getFormat() {
         return this.format;
     }
 
     @Override
-    public boolean isApplicable(@NotNull Player player) {
+    public boolean isApplicable(Player player) {
         return player.getName().equalsIgnoreCase(this.playerName);
     }
 }

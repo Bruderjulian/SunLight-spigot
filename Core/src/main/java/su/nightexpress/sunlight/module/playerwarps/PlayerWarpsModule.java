@@ -67,13 +67,13 @@ public class PlayerWarpsModule extends Module {
     private final TeleportManager teleportManager;
 
     private final PlayerWarpRepository repository;
-    private final PlayerWarpsSettings  settings;
+    private final PlayerWarpsSettings settings;
 
-    private PlayerWarpsMainMenu   mainMenu;
+    private PlayerWarpsMainMenu mainMenu;
     private PlayerWarpOptionsMenu settingsMenu;
-    private PlayerWarpsListMenu   warpsListMenu;
+    private PlayerWarpsListMenu warpsListMenu;
 
-    public PlayerWarpsModule(@NonNull ModuleContext context, @NonNull TeleportManager teleportManager) {
+    public PlayerWarpsModule(ModuleContext context, TeleportManager teleportManager) {
         super(context);
         this.teleportManager = teleportManager;
         this.repository = new PlayerWarpRepository();
@@ -81,7 +81,7 @@ public class PlayerWarpsModule extends Module {
     }
 
     @Override
-    protected void loadModule(@NonNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         this.plugin.injectLang(PlayerWarpsLang.class);
         this.settings.load(config);
 
@@ -91,7 +91,7 @@ public class PlayerWarpsModule extends Module {
 
         this.settingsMenu = new PlayerWarpOptionsMenu(this);
         this.settingsMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(),
-            PlayerWarpsFiles.FILE_WARP_SETTINGS));
+                PlayerWarpsFiles.FILE_WARP_SETTINGS));
 
         this.warpsListMenu = new PlayerWarpsListMenu(this.plugin, this, this.settings, this.repository);
         this.warpsListMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), PlayerWarpsFiles.FILE_WARP_LIST));
@@ -99,7 +99,7 @@ public class PlayerWarpsModule extends Module {
 
         this.dialogRegistry.register(PlayerWarpsDialogKeys.WARP_NAME, () -> new PlayerWarpNameDialog(this.settings));
         this.dialogRegistry.register(PlayerWarpsDialogKeys.WARP_DESCRIPTION,
-            () -> new PlayerWarpDescriptionDialog(this.settings));
+                () -> new PlayerWarpDescriptionDialog(this.settings));
         this.dialogRegistry.register(PlayerWarpsDialogKeys.WARP_PRICE, PlayerWarpPriceDialog::new);
         this.dialogRegistry.register(PlayerWarpsDialogKeys.WARP_SEARCH, () -> new PlayerWarpsSearchDialog(this));
         this.dialogRegistry.register(PlayerWarpsDialogKeys.WARP_FEATURING, () -> new PlayerWarpFeaturingDialog(this));
@@ -123,17 +123,18 @@ public class PlayerWarpsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NonNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(PlayerWarpsPerms.ROOT);
     }
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("playerwarps", new PlayerWarpsCommands(this.plugin, this, this.userManager), this);
+        this.commandRegistry.addProvider("playerwarps", new PlayerWarpsCommands(this.plugin, this, this.userManager),
+                this);
     }
 
     @Override
-    public void registerPlaceholders(@NonNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("playerwarps_creation_limit", (player, payload) -> {
             int limit = this.getAllowedWarpsAmount(player);
             return limit >= 0 ? NumberUtil.format(limit) : CoreLang.OTHER_INFINITY.text();
@@ -166,15 +167,14 @@ public class PlayerWarpsModule extends Module {
         this.info("Loaded %s player warps.".formatted(String.valueOf(this.repository.size())));
     }
 
-    public boolean loadWarp(@NonNull PlayerWarp warp) {
+    public boolean loadWarp(PlayerWarp warp) {
         try {
             warp.load();
             warp.activate();
             warp.updateCategory(this.settings);
             this.repository.add(warp);
             return true;
-        }
-        catch (PlayerWarpLoadException exception) {
+        } catch (PlayerWarpLoadException exception) {
             this.error("Could not load warp '%s': %s".formatted(warp.getFile(), exception.getMessage()));
             return false;
         }
@@ -194,94 +194,89 @@ public class PlayerWarpsModule extends Module {
         this.mainMenu.refresh();
     }
 
-    public void handleWorldLoad(@NonNull WorldLoadEvent event) {
+    public void handleWorldLoad(WorldLoadEvent event) {
         World world = event.getWorld();
 
         this.repository.getAll().stream().filter(PlayerWarp::isInactive).filter(warp -> warp.isWorld(world)).forEach(
-            warp -> warp.activate(world));
+                warp -> warp.activate(world));
     }
 
-    public void handleWorldUnload(@NonNull WorldUnloadEvent event) {
+    public void handleWorldUnload(WorldUnloadEvent event) {
         World world = event.getWorld();
 
         this.repository.getAll().stream().filter(PlayerWarp::isActive).filter(warp -> warp.isWorld(world)).forEach(
-            PlayerWarp::deactivate);
+                PlayerWarp::deactivate);
     }
 
-    @NonNull
     public String getWarpsDirectory() {
         return PlayerWarpsFiles.DIR_WARPS;
     }
 
-    @NonNull
     public PlayerWarpRepository getRepository() {
         return this.repository;
     }
 
-    @NonNull
     public PlayerWarpsSettings getSettings() {
         return this.settings;
     }
 
-    @NonNull
-    public Set<PlayerWarp> getAvailableWarps(@NonNull Player player) {
+    public Set<PlayerWarp> getAvailableWarps(Player player) {
         return this.repository.stream().filter(warp -> warp.canUse(player)).collect(Collectors.toSet());
     }
 
-    @NonNull
-    public Set<PlayerWarp> getOwnedWarps(@NonNull Player player) {
+    public Set<PlayerWarp> getOwnedWarps(Player player) {
         return this.repository.getByOwner(player.getUniqueId());
     }
 
-    public void openCategoryDialog(@NonNull Player player, @NonNull PlayerWarp warp, @Nullable Runnable callback) {
+    public void openCategoryDialog(Player player, PlayerWarp warp, Runnable callback) {
         this.dialogRegistry.show(player, PlayerWarpsDialogKeys.WARP_CATEGORY, warp, callback);
     }
 
-    public void openNameDialog(@NonNull Player player, @NonNull PlayerWarp warp, @Nullable Runnable callback) {
+    public void openNameDialog(Player player, PlayerWarp warp, Runnable callback) {
         this.dialogRegistry.show(player, PlayerWarpsDialogKeys.WARP_NAME, warp, callback);
     }
 
-    public void openDescriptionDialog(@NonNull Player player, @NonNull PlayerWarp warp, @Nullable Runnable callback) {
+    public void openDescriptionDialog(Player player, PlayerWarp warp, Runnable callback) {
         this.dialogRegistry.show(player, PlayerWarpsDialogKeys.WARP_DESCRIPTION, warp, callback);
     }
 
-    public void openPriceDialog(@NonNull Player player, @NonNull PlayerWarp warp, @Nullable Runnable callback) {
+    public void openPriceDialog(Player player, PlayerWarp warp, Runnable callback) {
         this.dialogRegistry.show(player, PlayerWarpsDialogKeys.WARP_PRICE, warp, callback);
     }
 
-    public void openSearchDialog(@NonNull Player player, @NonNull WarpsListData data) {
+    public void openSearchDialog(Player player, WarpsListData data) {
         this.dialogRegistry.show(player, PlayerWarpsDialogKeys.WARP_SEARCH, data, null);
     }
 
-    public int getAllowedWarpsAmount(@NonNull Player player) {
+    public int getAllowedWarpsAmount(Player player) {
         return this.settings.getMaxWarpsAmount(player);
     }
 
-    public int getOwnedWarpsAmount(@NonNull Player player) {
+    public int getOwnedWarpsAmount(Player player) {
         return this.getOwnedWarps(player).size();
     }
 
-    public void openWarpsMenu(@NonNull Player player) {
+    public void openWarpsMenu(Player player) {
         this.mainMenu.show(this.plugin, player);
     }
 
-    public void openWarpSettings(@NonNull Player player, @NonNull PlayerWarp warp) {
+    public void openWarpSettings(Player player, PlayerWarp warp) {
         this.settingsMenu.show(this.plugin, player, warp);
     }
 
-    public boolean openWarpsList(@NonNull Player player, @NonNull WarpCategory category, @Nullable PlayerWarpSortType sortType, @Nullable String searchText) {
+    public boolean openWarpsList(Player player, WarpCategory category, PlayerWarpSortType sortType, String searchText) {
         return this.warpsListMenu.show(player, category, sortType, searchText);
     }
 
-    public boolean openOwnWarpsList(@NonNull Player player, @NonNull UUID playerId) {
+    public boolean openOwnWarpsList(Player player, UUID playerId) {
         return this.openWarpsList(player, new OwnCategory(player), null, null);
     }
 
-    public boolean openAllWarpsList(@NonNull Player player) {
+    public boolean openAllWarpsList(Player player) {
         return this.openWarpsList(player, new AllCategory(), null, null);
     }
 
-    public boolean openFeaturingDialog(@NonNull Player player, @NonNull FeaturedSlot slot, int slotIndex) {
+    public boolean openFeaturingDialog(Player player, FeaturedSlot slot, int slotIndex) {
         if (this.repository.getByOwner(player.getUniqueId()).stream().noneMatch(PlayerWarp::canFeature)) {
             this.sendPrefixed(PlayerWarpsLang.WARP_FEATURE_NOTHING, player);
             return false;
@@ -290,12 +285,12 @@ public class PlayerWarpsModule extends Module {
         PlayerWarpFeaturingDialog.Data data = new PlayerWarpFeaturingDialog.Data(slot, slotIndex);
 
         this.dialogRegistry.show(player, PlayerWarpsDialogKeys.WARP_FEATURING, data, () -> this.mainMenu.refresh(
-            player));
+                player));
 
         return true;
     }
 
-    public void clickWarp(@NonNull ActionContext context, @NonNull PlayerWarp warp) {
+    public void clickWarp(ActionContext context, PlayerWarp warp) {
         Player player = context.getPlayer();
         InventoryClickEvent event = context.getEvent();
 
@@ -310,11 +305,11 @@ public class PlayerWarpsModule extends Module {
         this.teleportToWarp(warp, player, false);
     }
 
-    public boolean removeWarp(@NonNull CommandSender sender, @NonNull PlayerWarp warp, boolean force) {
+    public boolean removeWarp(CommandSender sender, PlayerWarp warp, boolean force) {
         if (sender instanceof Player player) {
             if (!warp.canEdit(player)) {
                 this.sendPrefixed(PlayerWarpsLang.ERROR_NOT_OWN_WARP, player, builder -> builder.with(warp
-                    .placeholders()));
+                        .placeholders()));
                 return false;
             }
         }
@@ -324,17 +319,16 @@ public class PlayerWarpsModule extends Module {
         return true;
     }
 
-    public void delete(@NonNull PlayerWarp warp) {
+    public void delete(PlayerWarp warp) {
         try {
             Files.delete(warp.getFile());
             this.repository.remove(warp);
-        }
-        catch (IOException exception) {
+        } catch (IOException exception) {
             exception.printStackTrace();
         }
     }
 
-    public boolean create(@NonNull Player player, @NonNull String name, boolean force) {
+    public boolean create(Player player, String name, boolean force) {
         Location location = player.getLocation();
         String id = Strings.varStyle(name).orElse(null);
         if (id == null) {
@@ -342,12 +336,10 @@ public class PlayerWarpsModule extends Module {
             return false;
         }
 
-
         int idLimit = this.settings.getWarpIdCharacterLimit();
         if (idLimit > 0 && id.length() > idLimit) {
             this.sendPrefixed(PlayerWarpsLang.WARP_CREATION_LONG_ID, player, builder -> builder
-                .with(CommonPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(idLimit))
-            );
+                    .with(CommonPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(idLimit)));
             return false;
         }
 
@@ -356,9 +348,8 @@ public class PlayerWarpsModule extends Module {
             int created = this.getOwnedWarpsAmount(player);
             if (maxAllowed >= 0 && created >= maxAllowed) {
                 this.sendPrefixed(PlayerWarpsLang.WARP_CREATION_LIMIT_REACHED, player, builder -> builder
-                    .with(CommonPlaceholders.GENERIC_AMOUNT, () -> NumberUtil.format(created))
-                    .with(SLPlaceholders.GENERIC_MAX, () -> NumberUtil.format(maxAllowed))
-                );
+                        .with(CommonPlaceholders.GENERIC_AMOUNT, () -> NumberUtil.format(created))
+                        .with(SLPlaceholders.GENERIC_MAX, () -> NumberUtil.format(maxAllowed)));
                 return false;
             }
 
@@ -373,7 +364,7 @@ public class PlayerWarpsModule extends Module {
         PlayerWarp existent = this.getRepository().getById(id);
         if (existent != null) {
             this.sendPrefixed(PlayerWarpsLang.WARP_CREATION_ALREADY_EXISTS, player, builder -> builder.with(existent
-                .placeholders()));
+                    .placeholders()));
             return false;
         }
 
@@ -384,12 +375,13 @@ public class PlayerWarpsModule extends Module {
         }
 
         double cost = this.settings.getCreationCost();
-        boolean charge = !force && cost > 0D && !EconomyUtils.hasBypass(player, PlayerWarpsPerms.BYPASS_COST) && EconomyUtils
-            .hasCurrency();
+        boolean charge = !force && cost > 0D && !EconomyUtils.hasBypass(player, PlayerWarpsPerms.BYPASS_COST)
+                && EconomyUtils
+                        .hasCurrency();
 
         if (charge && !EconomyUtils.canAfford(player, cost)) {
             this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
-                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
             return false;
         }
 
@@ -403,14 +395,15 @@ public class PlayerWarpsModule extends Module {
         warp.setIcon(this.getSettings().getDefaultIcon());
         warp.setLocation(location);
         warp.save();
-        if (charge) EconomyUtils.withdraw(player, cost);
+        if (charge)
+            EconomyUtils.withdraw(player, cost);
         this.loadWarp(warp);
         this.sendPrefixed(PlayerWarpsLang.WARP_CREATION_NOTIFY, player, builder -> builder.with(warp.placeholders()));
 
         return true;
     }
 
-    public boolean updateWarp(@NonNull Player player, @NonNull PlayerWarp warp, boolean force) {
+    public boolean updateWarp(Player player, PlayerWarp warp, boolean force) {
         if (!warp.canEdit(player)) {
             this.sendPrefixed(PlayerWarpsLang.ERROR_NOT_OWN_WARP, player, builder -> builder.with(warp.placeholders()));
             return false;
@@ -423,49 +416,52 @@ public class PlayerWarpsModule extends Module {
         return true;
     }
 
-    public boolean teleportToWarp(@NonNull PlayerWarp warp, @NonNull Player player, boolean force) {
+    public boolean teleportToWarp(PlayerWarp warp, Player player, boolean force) {
         if (!warp.isActive()) {
             this.sendPrefixed(PlayerWarpsLang.WARP_JUMP_INACTIVE, player, builder -> builder.with(warp.placeholders()));
             return false;
         }
 
         double price = warp.getPrice();
-        boolean chargePrice = warp.hasPrice() && !warp.isOwner(player) && !EconomyUtils.hasBypass(player, PlayerWarpsPerms.BYPASS_PRICE) && EconomyUtils
-            .hasCurrency();
+        boolean chargePrice = warp.hasPrice() && !warp.isOwner(player)
+                && !EconomyUtils.hasBypass(player, PlayerWarpsPerms.BYPASS_PRICE) && EconomyUtils
+                        .hasCurrency();
 
         if (chargePrice && !EconomyUtils.canAfford(player, price)) {
             this.sendPrefixed(PlayerWarpsLang.WARP_JUMP_INSUFFICIENT_FUNDS, player, builder -> builder.with(warp
-                .placeholders()));
+                    .placeholders()));
             return false;
         }
 
         PlayerWarpTeleportEvent event = new PlayerWarpTeleportEvent(player, warp);
         this.plugin.getPluginManager().callEvent(event);
-        if (event.isCancelled()) return false;
+        if (event.isCancelled())
+            return false;
 
         Location location = warp.getLocation();
         TeleportContext teleportContext = TeleportContext.builder(this, player, location)
-            .withFlag(TeleportFlag.LOOK_FOR_SURFACE)
-            .withFlag(TeleportFlag.AVOID_LAVA)
-            .withFlag(TeleportFlag.CENTERED)
-            .withFlagIf(TeleportFlag.BYPASS_WARMUP, () -> force)
-            .callback(() -> {
-                if (chargePrice) EconomyUtils.withdraw(player, price);
+                .withFlag(TeleportFlag.LOOK_FOR_SURFACE)
+                .withFlag(TeleportFlag.AVOID_LAVA)
+                .withFlag(TeleportFlag.CENTERED)
+                .withFlagIf(TeleportFlag.BYPASS_WARMUP, () -> force)
+                .callback(() -> {
+                    if (chargePrice)
+                        EconomyUtils.withdraw(player, price);
 
-                if (!warp.isOwner(player)) {
-                    warp.addVisitCount(); // TODO Per player cooldown
-                    warp.markDirty();
-                }
+                    if (!warp.isOwner(player)) {
+                        warp.addVisitCount(); // TODO Per player cooldown
+                        warp.markDirty();
+                    }
 
-                this.sendPrefixed(PlayerWarpsLang.WARP_JUMP_NOTIFY, player, builder -> builder.with(warp
-                    .placeholders()));
-            })
-            .build();
+                    this.sendPrefixed(PlayerWarpsLang.WARP_JUMP_NOTIFY, player, builder -> builder.with(warp
+                            .placeholders()));
+                })
+                .build();
 
         return this.teleportManager.teleport(teleportContext, TeleportType.PLAYER_WARP);
     }
 
-    public boolean purchaseFeaturedSlot(@NonNull Player player, @NonNull FeaturedSlot slot, int slotIndex, @NonNull String warpId) {
+    public boolean purchaseFeaturedSlot(Player player, FeaturedSlot slot, int slotIndex, String warpId) {
         PlayerWarp warp = this.repository.getById(warpId);
         if (warp == null) {
             this.sendPrefixed(PlayerWarpsLang.WARP_FEATURE_UNEXPECTED_ERROR, player);
@@ -489,7 +485,7 @@ public class PlayerWarpsModule extends Module {
 
         if (!slot.canAfford(player)) {
             this.sendPrefixed(PlayerWarpsLang.WARP_FEATURE_CANT_AFFORD, player, builder -> builder.with(slot
-                .placeholders()));
+                    .placeholders()));
             return false;
         }
 
@@ -499,7 +495,7 @@ public class PlayerWarpsModule extends Module {
         this.updateFeaturedWarps();
 
         this.sendPrefixed(PlayerWarpsLang.WARP_FEATURE_SUCCESS, player, builder -> builder.with(slot.placeholders())
-            .with(warp.placeholders()));
+                .with(warp.placeholders()));
         return true;
     }
 }

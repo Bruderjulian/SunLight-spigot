@@ -5,7 +5,7 @@ import su.nightexpress.sunlight.module.playerwarps.PlayerWarp;
 
 public interface WarpCategory {
 
-    @NonNull String name();
+     String name();
 
-    boolean isWarpOfThis(@NonNull PlayerWarp warp);
+    boolean isWarpOfThis( PlayerWarp warp);
 }

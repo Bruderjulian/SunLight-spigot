@@ -10,7 +10,7 @@ import java.util.Set;
 
 public class ChannelRepository {
 
-    private final Map<String, ChatChannel>    channelByIdMap;
+    private final Map<String, ChatChannel> channelByIdMap;
     private final Map<Character, ChatChannel> channelByPrefixMap;
 
     private ChatChannel defaultChannel;
@@ -29,7 +29,7 @@ public class ChannelRepository {
         this.channelByPrefixMap.clear();
     }
 
-    public void add(@NotNull ChatChannel channel) {
+    public void add(ChatChannel channel) {
         this.channelByIdMap.put(channel.getId(), channel);
 
         if (channel.hasPrefix()) {
@@ -37,7 +37,7 @@ public class ChannelRepository {
         }
     }
 
-    public void remove(@NotNull ChatChannel channel) {
+    public void remove(ChatChannel channel) {
         this.channelByIdMap.remove(channel.getId());
 
         if (channel.hasPrefix()) {
@@ -45,27 +45,23 @@ public class ChannelRepository {
         }
     }
 
-    @Nullable
-    public ChatChannel getById(@NotNull String id) {
+    public ChatChannel getById(String id) {
         return this.channelByIdMap.get(LowerCase.INTERNAL.apply(id));
     }
 
-    @Nullable
     public ChatChannel getByPrefix(char prefix) {
         return this.channelByPrefixMap.get(prefix);
     }
 
-    @NotNull
     public Set<ChatChannel> getChannels() {
         return Set.copyOf(this.channelByIdMap.values());
     }
 
-    @NotNull
     public ChatChannel getDefaultChannel() {
         return this.defaultChannel;
     }
 
-    public void setDefaultChannel(@NotNull ChatChannel defaultChannel) {
+    public void setDefaultChannel(ChatChannel defaultChannel) {
         this.defaultChannel = defaultChannel;
     }
 }
