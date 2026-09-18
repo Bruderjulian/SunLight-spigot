@@ -1,0 +1,16 @@
+package su.nightexpress.sunlight.moduleImpl.worlds.impl.generation;
+
+import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.generator.WorldInfo;
+
+import java.util.Random;
+
+public class VoidChunkGenerator extends ChunkGenerator {
+
+    public static final String NAME = "void";
+
+    @Override
+    public void generateNoise(WorldInfo worldInfo, Random random, int x, int z, ChunkGenerator.ChunkData chunkData) {
+
+    }
+}

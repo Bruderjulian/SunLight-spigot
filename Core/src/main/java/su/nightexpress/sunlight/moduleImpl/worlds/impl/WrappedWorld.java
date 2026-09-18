@@ -1,0 +1,41 @@
+package su.nightexpress.sunlight.moduleImpl.worlds.impl;
+
+import org.bukkit.World;
+
+import su.nightexpress.nightcore.util.placeholder.Placeholder;
+import su.nightexpress.nightcore.util.placeholder.PlaceholderMap;
+import su.nightexpress.sunlight.moduleImpl.worlds.util.Placeholders;
+
+public class WrappedWorld implements Placeholder {
+
+    private final World world;
+    private final WorldData worldData;
+    private final PlaceholderMap placeholders;
+
+    public WrappedWorld(World world, WorldData worldData) {
+        this.world = world;
+        this.worldData = worldData;
+        this.placeholders = Placeholders.forWrapped(this);
+    }
+
+    @Override
+    public PlaceholderMap getPlaceholders() {
+        return placeholders;
+    }
+
+    public boolean isCustom() {
+        return this.worldData != null;
+    }
+
+    public boolean isPresent() {
+        return this.world != null;
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public WorldData getData() {
+        return worldData;
+    }
+}

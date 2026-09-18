@@ -13,7 +13,6 @@ import su.nightexpress.nightcore.locale.message.LangMessage;
 import su.nightexpress.nightcore.manager.AbstractManager;
 import su.nightexpress.nightcore.ui.dialog.wrap.DialogRegistry;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
-import su.nightexpress.sunlight.SLFiles;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandRegistry;
 import su.nightexpress.sunlight.config.Config;
@@ -92,7 +91,7 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
     public abstract void registerPlaceholders(PlaceholderRegistry registry);
 
     public final FileConfig getConfig() {
-        return FileConfig.load(this.path.toString(), SLFiles.FILE_MODULE_SETTINGS);
+        return FileConfig.load(this.path.toString(), "settings.yml");
     }
 
     public final String getId() {

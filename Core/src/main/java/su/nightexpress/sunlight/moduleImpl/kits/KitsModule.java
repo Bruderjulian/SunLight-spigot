@@ -1,0 +1,375 @@
+package su.nightexpress.sunlight.moduleImpl.kits;
+
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+
+import su.nightexpress.nightcore.config.FileConfig;
+import su.nightexpress.nightcore.core.config.CoreLang;
+import su.nightexpress.nightcore.integration.currency.EconomyBridge;
+import su.nightexpress.nightcore.util.*;
+import su.nightexpress.nightcore.util.time.TimeFormatType;
+import su.nightexpress.nightcore.util.time.TimeFormats;
+import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.config.PermissionTree;
+import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
+import su.nightexpress.sunlight.module.Module;
+import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.moduleImpl.kits.command.KitsCommandProvider;
+import su.nightexpress.sunlight.moduleImpl.kits.config.KitsLang;
+import su.nightexpress.sunlight.moduleImpl.kits.config.KitsPerms;
+import su.nightexpress.sunlight.moduleImpl.kits.config.KitsSettings;
+import su.nightexpress.sunlight.moduleImpl.kits.data.KitData;
+import su.nightexpress.sunlight.moduleImpl.kits.data.KitDataManager;
+import su.nightexpress.sunlight.moduleImpl.kits.data.KitDataRepository;
+import su.nightexpress.sunlight.moduleImpl.kits.dialog.KitDialogKeys;
+import su.nightexpress.sunlight.moduleImpl.kits.dialog.impl.*;
+import su.nightexpress.sunlight.moduleImpl.kits.editor.KitContentEditorMenu;
+import su.nightexpress.sunlight.moduleImpl.kits.editor.KitSettingsEditorMenu;
+import su.nightexpress.sunlight.moduleImpl.kits.editor.KitsEditorMenu;
+import su.nightexpress.sunlight.moduleImpl.kits.listener.KitBindListener;
+import su.nightexpress.sunlight.moduleImpl.kits.menu.KitPreviewMenu;
+import su.nightexpress.sunlight.moduleImpl.kits.menu.KitsMenu;
+import su.nightexpress.sunlight.moduleImpl.kits.model.Kit;
+import su.nightexpress.sunlight.moduleImpl.kits.model.KitDefinition;
+import su.nightexpress.sunlight.utils.EconomyUtils;
+import su.nightexpress.sunlight.utils.FutureUtils;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+public class KitsModule extends Module {
+
+    private final KitsSettings settings;
+    private final KitDataManager dataManager;
+    private final KitDataRepository dataRepository;
+    private final Map<String, Kit> kitByIdMap;
+
+    private KitsMenu kitsMenu;
+    private KitPreviewMenu previewMenu;
+
+    private KitsEditorMenu editorMenu;
+    private KitSettingsEditorMenu settingsEditorMenu;
+    private KitContentEditorMenu contentEditorMenu;
+
+    private boolean dataLoaded;
+
+    public KitsModule(ModuleContext context) {
+        super(context);
+        this.settings = new KitsSettings();
+        this.dataManager = new KitDataManager(this.dataHandler);
+        this.dataRepository = new KitDataRepository();
+        this.kitByIdMap = new HashMap<>();
+    }
+
+    @Override
+    protected void loadModule(FileConfig config) {
+        this.settings.load(config);
+        this.plugin.injectLang(KitsLang.class);
+
+        KitsUtils.loadKeys(this.plugin);
+
+        this.dataManager.init();
+
+        this.loadData();
+        this.loadDialogs();
+        this.loadUI();
+        this.loadKits();
+
+        if (this.settings.isBindToPlayers()) {
+            this.addListener(new KitBindListener(this.plugin, this));
+        }
+
+        this.addAsyncTask(this::saveData, this.settings.getDataSaveInterval());
+        this.addAsyncTask(this::saveKits, this.settings.getKitSaveInterval());
+    }
+
+    @Override
+    protected void unloadModule() {
+        this.dataLoaded = false;
+
+        this.saveData();
+        this.saveKits();
+
+        this.kitByIdMap.clear();
+        this.dataRepository.clear();
+    }
+
+    @Override
+    protected void registerPermissions(PermissionTree root) {
+        root.merge(KitsPerms.ROOT);
+    }
+
+    @Override
+    protected void registerCommands() {
+        this.commandRegistry.addProvider("kits-commons", new KitsCommandProvider(this.plugin, this, this.userManager),
+                this);
+    }
+
+    @Override
+    public void registerPlaceholders(PlaceholderRegistry registry) {
+        registry.register("kits_is_on_cooldown", (player, payload) -> {
+            return CoreLang.STATE_YES_NO.get(this.dataRepository.kitData(player.getUniqueId(), payload).map(
+                    KitData::hasCooldown).orElse(false));
+        });
+
+        registry.register("kits_is_available", (player, payload) -> {
+            return CoreLang.STATE_YES_NO.get(this.dataRepository.kitData(player.getUniqueId(), payload).map(
+                    KitData::hasCooldown).orElse(false));
+        });
+
+        registry.register("kits_cooldown_raw", (player, payload) -> {
+            return String.valueOf(this.dataRepository.kitData(player.getUniqueId(), payload).map(
+                    KitData::getCooldownDate).orElse(0L));
+        });
+
+        registry.register("kits_cooldown", (player, payload) -> {
+            return TimeFormats.formatDuration(this.dataRepository.kitData(player.getUniqueId(), payload).map(
+                    KitData::getCooldownDate).orElse(0L), TimeFormatType.LITERAL);
+        });
+    }
+
+    private void loadData() {
+        this.plugin.runTaskAsync(() -> {
+            this.dataManager.loadData().forEach(this.dataRepository::add);
+            this.dataLoaded = true;
+        });
+    }
+
+    private void loadDialogs() {
+        // TODO Better texts
+        this.dialogRegistry.register(KitDialogKeys.KIT_CREATION, KitCreationDialog::new);
+        this.dialogRegistry.register(KitDialogKeys.KIT_NAME, KitNameDialog::new);
+        this.dialogRegistry.register(KitDialogKeys.KIT_DESCRIPTION, KitDescriptionDialog::new);
+        this.dialogRegistry.register(KitDialogKeys.KIT_PRIORITY, KitPriorityDialog::new);
+        this.dialogRegistry.register(KitDialogKeys.KIT_COST, KitCostDialog::new);
+        this.dialogRegistry.register(KitDialogKeys.KIT_COOLDOWN, KitCooldownDialog::new);
+        this.dialogRegistry.register(KitDialogKeys.KIT_COMMANDS, KitCommandsDialog::new);
+    }
+
+    private void loadUI() {
+        this.kitsMenu = new KitsMenu(this.plugin, this);
+        this.previewMenu = new KitPreviewMenu(this.plugin, this);
+
+        this.editorMenu = new KitsEditorMenu(this.plugin, this);
+        this.settingsEditorMenu = new KitSettingsEditorMenu(this.plugin, this);
+        this.contentEditorMenu = new KitContentEditorMenu(this.plugin, this);
+    }
+
+    private void loadKits() {
+        FileUtil.findYamlFiles(this.getSystemPath() + KitFiles.DIR_KITS).forEach(file -> {
+            Kit kit = Kit.fromFile(file);
+            this.addKit(kit);
+        });
+
+        this.info("Loaded " + this.kitByIdMap.size() + " kits.");
+    }
+
+    private void saveData() {
+        Set<KitData> dirties = this.dataRepository.getAll().stream().filter(KitData::isDirty).collect(Collectors
+                .toSet());
+
+        dirties.forEach(KitData::markClean);
+
+        this.dataManager.saveData(dirties);
+    }
+
+    private void saveKits() {
+        this.getKits().stream().filter(Kit::isDirty).forEach(kit -> {
+            kit.markClean();
+            FileConfig config = FileConfig.load(kit.getPath());
+            config.edit(kit::write);
+        });
+    }
+
+    public KitsSettings getSettings() {
+        return this.settings;
+    }
+
+    public KitDataManager getDataManager() {
+        return this.dataManager;
+    }
+
+    public KitDataRepository getDataRepository() {
+        return this.dataRepository;
+    }
+
+    public KitData getKitData(UUID playerId, String kitId) {
+        return this.dataRepository.getKitData(playerId, kitId);
+    }
+
+    public CompletableFuture<KitData> getKitDataOrCreate(UUID playerId, String kitId) {
+        KitData data = this.getKitData(playerId, kitId);
+        if (data != null)
+            return CompletableFuture.completedFuture(data);
+
+        return CompletableFuture.supplyAsync(() -> {
+            KitData newData = KitData.create(playerId, kitId);
+            this.dataRepository.add(newData);
+            this.dataManager.addData(newData);
+            return newData;
+        }).whenComplete(FutureUtils::printStacktrace);
+    }
+
+    private void addKit(Kit kit) {
+        this.kitByIdMap.put(kit.getId(), kit);
+    }
+
+    public void createKit(String name) throws IllegalArgumentException {
+        String id = Strings.varStyle(name).orElseThrow(() -> new IllegalArgumentException("%s is not a valid name"
+                .formatted(name)));
+
+        if (this.isKitExists(id))
+            throw new IllegalArgumentException("Kit %s already exists".formatted(name));
+
+        Path file = Path.of(this.getSystemPath() + KitFiles.DIR_KITS, FileConfig.withExtension(id));
+        FileConfig config = FileConfig.load(file);
+
+        KitDefinition definition = KitDefinition.createDefault(StringUtil.capitalizeUnderscored(id));
+        Kit kit = new Kit(file, id, definition);
+
+        kit.write(config);
+        this.addKit(kit);
+    }
+
+    public boolean giveKit(Kit kit, Player player, boolean force, boolean silent) {
+        if (!this.dataLoaded) {
+            this.sendPrefixed(KitsLang.DATA_ERROR_NOT_LOADED, player);
+            return false;
+        }
+
+        // Check kit permission.
+        if (!force && !kit.hasPermission(player)) {
+            if (!silent)
+                this.sendPrefixed(KitsLang.KIT_GET_ERROR_NO_PERMISSION, player, builder -> builder.with(kit
+                        .placeholders()));
+            return false;
+        }
+
+        // Check kit cooldown.
+        this.getKitDataOrCreate(player.getUniqueId(), kit.getId()).thenAcceptAsync(kitData -> {
+            if (!force && !kitData.isCooldownExpired()) {
+                if (!silent) {
+                    this.sendPrefixed(!kitData
+                            .isCooldownExpirable() ? KitsLang.KIT_GET_ERROR_ONE_TIME : KitsLang.KIT_GET_ERROR_COOLDOWN,
+                            player, builder -> builder
+                                    .with(kit.placeholders())
+                                    .with(SLPlaceholders.GENERIC_COOLDOWN, () -> TimeFormats.formatDuration(kitData
+                                            .getCooldownDate(), TimeFormatType.LITERAL)));
+                }
+                return;
+            }
+
+            // Check kit money cost.
+            if (!force && kit.hasCost() && !EconomyUtils.hasBypass(player, KitsPerms.BYPASS_COST) && EconomyBridge.api()
+                    .hasVaultCurrency()) {
+                double cost = kit.definition().getCost();
+                double balance = EconomyBridge.api().queryBalance(player);
+                if (balance < cost) {
+                    if (!silent)
+                        this.sendPrefixed(KitsLang.KIT_GET_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
+                                .with(kit.placeholders()));
+                    return;
+                }
+                EconomyBridge.api().withdraw(player, cost);
+            }
+
+            // Give kit content.
+            PlayerInventory inventory = player.getInventory();
+            List<ItemStack> leftovers = new ArrayList<>();
+
+            kit.definition().getContent().give((slot, itemStack) -> {
+                if (this.settings.isBindToPlayers()) {
+                    KitsUtils.setItemOwner(itemStack, player.getUniqueId());
+                }
+
+                ItemStack current = inventory.getItem(slot);
+                if (current != null && !current.getType().isAir()) {
+                    leftovers.add(new ItemStack(current));
+                }
+                inventory.setItem(slot, itemStack);
+            });
+
+            Players.addItem(player, leftovers.toArray(new ItemStack[0]));
+            Players.dispatchCommands(player, kit.definition().getCommands());
+
+            if (!force && kit.hasCooldown() && !EconomyUtils.hasCooldownBypass(player, KitsPerms.BYPASS_COOLDOWN)) {
+                kitData.setCooldownDate(TimeUtil.createFutureTimestamp(kit.definition().getCooldown()));
+                kitData.markDirty();
+            }
+
+            if (!silent)
+                this.sendPrefixed(KitsLang.KIT_GET_NOTIFY, player, builder -> builder.with(kit
+                        .placeholders()));
+
+        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+
+        return true;
+    }
+
+    public void deleteKit(Kit kit) {
+        try {
+            Files.delete(kit.getPath());
+            this.plugin.runTaskAsync(() -> this.dataManager.deleteData(kit.getId()));
+            this.kitByIdMap.remove(kit.getId());
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    public void openKitsMenu(Player player) {
+        this.kitsMenu.show(this.plugin, player);
+    }
+
+    public void openEditor(Player player) {
+        this.editorMenu.show(this.plugin, player);
+    }
+
+    public void openSettingsEditor(Player player, Kit kit) {
+        this.settingsEditorMenu.show(this.plugin, player, kit);
+    }
+
+    public boolean openContentEditor(Player player, Kit kit) {
+        return this.contentEditorMenu.show(this.plugin, player, kit);
+    }
+
+    public void previewKit(Player player, Kit kit) {
+        this.previewMenu.show(this.plugin, player, kit);
+    }
+
+    public boolean isKitExists(String id) {
+        return this.getKitById(LowerCase.INTERNAL.apply(id)) != null;
+    }
+
+    public Kit getKitById(String id) {
+        return this.kitByIdMap.get(id.toLowerCase());
+    }
+
+    public Optional<Kit> kitById(String id) {
+        return Optional.ofNullable(this.getKitById(id));
+    }
+
+    public Map<String, Kit> getKitByIdMap() {
+        return Map.copyOf(this.kitByIdMap);
+    }
+
+    public Set<Kit> getKits() {
+        return Set.copyOf(this.kitByIdMap.values());
+    }
+
+    public List<Kit> getKits(Player player) {
+        return this.kitByIdMap.values().stream().filter(kit -> kit.hasPermission(player)).toList();
+    }
+
+    public List<String> getKitIds() {
+        return new ArrayList<>(this.kitByIdMap.keySet());
+    }
+
+    public List<String> getKitIds(Player player) {
+        return this.getKits(player).stream().map(Kit::getId).toList();
+    }
+}

@@ -1,0 +1,70 @@
+package su.nightexpress.sunlight.moduleImpl.extras.chestsort;
+
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+
+import su.nightexpress.nightcore.manager.AbstractManager;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.moduleImpl.extras.ExtrasModule;
+import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasConfig;
+import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
+import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.user.property.UserProperty;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
+public class SortManager extends AbstractManager<SunLightPlugin> {
+
+    public static final UserProperty<Boolean> SETTING_CHEST_SORT = UserProperty.create("chest_sort", Boolean.class,
+            false, true);
+
+    // private final ExtrasModule module;
+
+    public SortManager(SunLightPlugin plugin, ExtrasModule module) {
+        super(plugin);
+        // this.module = module;
+    }
+
+    @Override
+    protected void onLoad() {
+        this.loadCommands();
+        UserPropertyRegistry.register(SETTING_CHEST_SORT);
+
+        this.addListener(new SortListener(this.plugin, this));
+    }
+
+    @Override
+    protected void onShutdown() {
+
+    }
+
+    private void loadCommands() {
+        // TODO SortCommand.load(this.plugin, this);
+    }
+
+    public static boolean isChestSortEnabled(SunUser user) {
+        return user.getPropertyOrDefault(SETTING_CHEST_SORT);
+    }
+
+    private String getItemSortedId(ItemStack item) {
+        StringBuilder rules = new StringBuilder();
+        ExtrasConfig.CHEST_SORT_RULES.get().forEach(rule -> {
+            rules.append(rule.getRule(item));
+        });
+        return rules.toString();
+    }
+
+    public void sortInventory(Inventory inventory) {
+        List<ItemStack> sorted = Arrays.stream(inventory.getContents())
+                .filter(item -> item != null && !item.getType().isAir())
+                .sorted(Comparator.comparing(this::getItemSortedId)).toList();
+
+        inventory.clear();
+
+        for (int slot = 0; slot < sorted.size(); slot++) {
+            inventory.setItem(slot, sorted.get(slot));
+        }
+    }
+}

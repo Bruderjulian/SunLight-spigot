@@ -1,0 +1,50 @@
+package su.nightexpress.sunlight.moduleImpl.homes.event;
+
+import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
+
+import su.nightexpress.sunlight.moduleImpl.homes.impl.Home;
+
+public class PlayerHomeTeleportEvent extends Event implements Cancellable {
+
+    private static final HandlerList HANDLER_LIST = new HandlerList();
+
+    private final Player player;
+    private final Home home;
+
+    private boolean cancelled;
+
+    public PlayerHomeTeleportEvent(Player player, Home home) {
+        this.player = player;
+        this.home = home;
+    }
+
+    public static HandlerList getHandlerList() {
+        return HANDLER_LIST;
+    }
+
+    @Override
+    public HandlerList getHandlers() {
+        return HANDLER_LIST;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public Home getHome() {
+        return home;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+}

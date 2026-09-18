@@ -18,7 +18,6 @@ import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.TimeUtil;
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
-import su.nightexpress.sunlight.SLFiles;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.provider.CommandProvider;
@@ -76,7 +75,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
     private void registerCommands() {
         this.providers.forEach((providerId, provider) -> {
-            FileConfig config = FileConfig.load(this.plugin.getDataFolder() + SLFiles.DIR_COMMANDS,
+            FileConfig config = FileConfig.load(this.plugin.getDataFolder() + "/commands/",
                     FileConfig.withExtension(providerId));
 
             this.plugin.injectLang(provider); // Register and load command's locales.

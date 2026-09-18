@@ -1,0 +1,95 @@
+package su.nightexpress.sunlight.moduleImpl.chat.processor.chat;
+
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
+
+import su.nightexpress.nightcore.util.time.TimeFormatType;
+import su.nightexpress.nightcore.util.time.TimeFormats;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
+import su.nightexpress.sunlight.moduleImpl.chat.cache.UserChatCache;
+import su.nightexpress.sunlight.moduleImpl.chat.channel.ChatChannel;
+import su.nightexpress.sunlight.moduleImpl.chat.context.MessageContext;
+import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
+import su.nightexpress.sunlight.moduleImpl.chat.core.ChatPerms;
+import su.nightexpress.sunlight.moduleImpl.chat.processor.MessageProcessor;
+
+public class ChannelProcessor implements MessageProcessor {
+
+    private final SunLightPlugin plugin;
+
+    public ChannelProcessor(SunLightPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    @Override
+    public void preProcess(ChatModule module, MessageContext context) {
+        Player player = context.getPlayer();
+        ChatChannel channel = context.getChannel();
+        UserChatCache cache = context.getCache();
+
+        if (!channel.canSpeakHere(player)) {
+            module.sendPrefixed(ChatLang.CHANNEL_SPEAK_NO_PERMISSION, player, builder -> builder.with(channel
+                    .placeholders()));
+            context.cancel();
+            return;
+        }
+
+        // Check channel cooldown.
+        if (cache.hasChannelCooldown(channel.getId())) {
+            context.cancel();
+            int cooldown = channel.getAccessibility().messageCooldowns().getSmallest(player);
+            String remaining = TimeFormats.formatDuration(cache.getChannelCooldownTimestamp(channel.getId()),
+                    TimeFormatType.LITERAL);
+            module.sendChannelCooldownNotice(player, channel, remaining, cooldown);
+            return;
+        }
+
+        // Remove channel prefix from the message.
+        if (channel.hasPrefix() && context.getMessage().charAt(0) == channel.getPrefixChar()) {
+            context.setMessage(context.getMessage().substring(1).trim());
+        }
+
+        // Do not send empty messages, mimic default chat behavior.
+        if (context.getMessage().isBlank()) {
+            context.cancel();
+            return;
+        }
+
+        // Add player to the channel, so they can listen for new messages.
+        if (!channel.contains(player)) {
+            module.joinChannel(player, channel, true);
+        }
+
+        context.getViewers().removeIf(sender -> !channel.isInChannelRadius(sender, player));
+    }
+
+    @Override
+    public void postProcess(ChatModule module, MessageContext context) {
+        Player player = context.getPlayer();
+
+        if (this.isAlone(player, context)) {
+            // While messages can be set silent in the lang config, it won't prevent this
+            // useless scheduler task, so use explicit config option to disable it.
+            if (module.getSettings().isChannelNoHeardMessageEnabled()) {
+                // One tick delay to send after player's message.
+                this.plugin.runTask(() -> module.sendPrefixed(ChatLang.CHANNEL_NOBODY_HERE, player));
+            }
+        }
+
+        if (!player.hasPermission(ChatPerms.BYPASS_CHANNEL_COOLDOWN)) {
+            UserChatCache cache = context.getCache();
+            ChatChannel channel = context.getChannel();
+            int cooldown = channel.getAccessibility().messageCooldowns().getSmallest(player);
+            if (cooldown <= 0)
+                return;
+
+            cache.setChannelCooldown(channel.getId(), cooldown);
+        }
+    }
+
+    private boolean isAlone(Player player, MessageContext context) {
+        return context.getViewers().stream().noneMatch(
+                sender -> sender != player && !(sender instanceof ConsoleCommandSender));
+    }
+}

@@ -2,7 +2,6 @@ package su.nightexpress.sunlight.module;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.sunlight.SLConfigTypes;
-import su.nightexpress.sunlight.SLFiles;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 
@@ -15,6 +14,7 @@ import java.util.function.Supplier;
 
 public class ModuleLoader {
 
+    private static final String MODULE_DIR = "/modules/";
     private final SunLightPlugin plugin;
     private final ModuleRegistry moduleRegistry;
 
@@ -42,7 +42,7 @@ public class ModuleLoader {
     }
 
     public void loadAll() {
-        FileConfig config = FileConfig.load(this.plugin.getDataFolder().getAbsolutePath(), SLFiles.FILE_MODULES);
+        FileConfig config = FileConfig.load(this.plugin.getDataFolder().getAbsolutePath(), MODULE_DIR);
         FileConfig pluginConfig = this.plugin.getConfig();
 
         this.definitionMap.forEach((id, defaultDefinition) -> {
@@ -91,7 +91,7 @@ public class ModuleLoader {
             return false;
         }
 
-        Path path = Paths.get(this.plugin.getDataFolder() + SLFiles.DIR_MODULES, id);
+        Path path = Paths.get(this.plugin.getDataFolder() + MODULE_DIR, id);
         ModuleContext context = this.plugin.createModuleContext(id, path, definition);
         Module module = registration.getFactory().load(context);
 

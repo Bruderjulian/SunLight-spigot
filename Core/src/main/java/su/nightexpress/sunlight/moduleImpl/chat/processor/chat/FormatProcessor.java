@@ -1,0 +1,52 @@
+package su.nightexpress.sunlight.moduleImpl.chat.processor.chat;
+
+import org.bukkit.entity.Player;
+
+import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
+import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
+import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
+import su.nightexpress.sunlight.moduleImpl.chat.context.MessageContext;
+import su.nightexpress.sunlight.moduleImpl.chat.format.FormatComponent;
+import su.nightexpress.sunlight.moduleImpl.chat.processor.MessageProcessor;
+
+public class FormatProcessor implements MessageProcessor {
+
+    @Override
+    public void preProcess(ChatModule module, MessageContext context) {
+        Player player = context.getPlayer();
+
+        PlaceholderContext componentContext = PlaceholderContext.builder()
+                .with(key -> {
+                    String raw = CommonPlaceholders.withoutBrackets(key);
+                    FormatComponent component = module.getSettings().getFormatComponents().get(raw);
+                    return component == null ? null : component.getText();
+                })
+                .build();
+
+        PlaceholderContext globalContext = PlaceholderContext.builder()
+                .with(CommonPlaceholders.PLAYER.resolver(player))
+                .andThen(CommonPlaceholders.forPlaceholderAPI(player))
+                .build();
+
+        // Replace %message% latest to not apply placeholders to it.
+        PlaceholderContext messageContext = PlaceholderContext.builder()
+                .with(SLPlaceholders.GENERIC_MESSAGE, context::getMessage)
+                .build();
+
+        String withComponents = componentContext.apply(context.getFormat());
+        String withPlayerText = globalContext.apply(withComponents);
+        String oneSpaced = messageContext.apply(oneSpace(withPlayerText));
+
+        context.setFormat(oneSpaced);
+    }
+
+    @Override
+    public void postProcess(ChatModule module, MessageContext context) {
+
+    }
+
+    private static String oneSpace(String str) {
+        return str.trim().replaceAll("\\s+", " ");
+    }
+}

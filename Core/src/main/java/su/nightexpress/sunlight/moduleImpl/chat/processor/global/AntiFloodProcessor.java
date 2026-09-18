@@ -1,0 +1,63 @@
+package su.nightexpress.sunlight.moduleImpl.chat.processor.global;
+
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
+import org.bukkit.entity.Player;
+
+import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
+import su.nightexpress.sunlight.moduleImpl.chat.cache.CachedContent;
+import su.nightexpress.sunlight.moduleImpl.chat.context.ChatContext;
+import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
+import su.nightexpress.sunlight.moduleImpl.chat.processor.ChatProcessor;
+
+public class AntiFloodProcessor implements ChatProcessor<ChatContext> {
+
+    private boolean floodDetected;
+
+    @Override
+    public void preProcess(ChatModule module, ChatContext context) {
+        Player player = context.getPlayer();
+
+        CachedContent lastContent = context.getLastContent();
+        if (lastContent == null || lastContent.isExpired())
+            return;
+
+        double threshold = module.getSettings().getAntiFloodSimilarityScoreThreshold();
+        if (!this.isSimilarEnough(context.getMessage(), lastContent.content(), threshold))
+            return;
+
+        this.floodDetected = true;
+
+        int score = lastContent.getCount();
+        if (score >= module.getSettings().getAntiFloodSimilarityCountThreshold()) {
+            module.sendPrefixed(ChatLang.ANTI_FLOOD_SIMILAR_CONTENT, player);
+            context.cancel();
+            return;
+        }
+
+        lastContent.addCount();
+    }
+
+    @Override
+    public void postProcess(ChatModule module, ChatContext context) {
+        if (this.floodDetected)
+            return; // Do not override last content if player is flooding the same one.
+
+        int lifeTime = module.getSettings().getUserContentCacheLifetime();
+        if (lifeTime <= 0)
+            return;
+
+        context.setLastContent(context.getMessage(), lifeTime);
+    }
+
+    private boolean isSimilarEnough(String left, String right, double similarityThreshold) {
+        double score = getSimiliartyScore(left, right);
+        double threshold = similarityThreshold / 100D;
+
+        return score >= threshold;
+    }
+
+    public static double getSimiliartyScore(String left, String right) {
+        JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
+        return similarity.apply(left, right);
+    }
+}
