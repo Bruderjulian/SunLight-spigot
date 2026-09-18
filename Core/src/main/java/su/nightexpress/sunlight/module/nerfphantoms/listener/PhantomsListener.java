@@ -6,7 +6,7 @@ import org.bukkit.entity.Phantom;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.manager.AbstractListener;
 import su.nightexpress.nightcore.util.EntityUtil;
 import su.nightexpress.sunlight.SunLightPlugin;

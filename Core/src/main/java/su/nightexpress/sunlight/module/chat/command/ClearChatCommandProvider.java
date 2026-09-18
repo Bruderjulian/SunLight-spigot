@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.chat.command;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.sunlight.SLPlaceholders;

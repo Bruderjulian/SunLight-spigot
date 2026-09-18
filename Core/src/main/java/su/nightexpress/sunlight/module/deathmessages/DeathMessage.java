@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.module.deathmessages;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.config.Writeable;
 import su.nightexpress.nightcore.util.Lists;

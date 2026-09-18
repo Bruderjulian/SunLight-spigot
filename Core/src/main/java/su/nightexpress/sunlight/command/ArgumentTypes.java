@@ -12,8 +12,7 @@ public class ArgumentTypes {
     public static final ArgumentType<InetAddress> INET_ADDRESS = (builder, string) -> {
         try {
             return InetAddress.getByName(string);
-        }
-        catch (UnknownHostException exception) {
+        } catch (UnknownHostException exception) {
             throw CommandSyntaxException.custom(Lang.COMMAND_SYNTAX_INVALID_INET_ADDRESS);
         }
     };

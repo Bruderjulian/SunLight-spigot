@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.module.inventories;
 
-import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;

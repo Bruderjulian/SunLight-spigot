@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.texts.command;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.commands.Commands;
 import su.nightexpress.nightcore.commands.builder.ArgumentNodeBuilder;
 import su.nightexpress.nightcore.commands.context.CommandContext;

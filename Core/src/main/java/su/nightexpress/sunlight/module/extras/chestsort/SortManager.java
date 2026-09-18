@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.module.extras.chestsort;
 
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.manager.AbstractManager;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;

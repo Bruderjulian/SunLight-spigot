@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.utils;
 
-import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalTime;
 

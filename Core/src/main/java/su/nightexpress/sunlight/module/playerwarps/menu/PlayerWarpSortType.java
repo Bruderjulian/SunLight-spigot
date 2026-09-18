@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.module.playerwarps.menu;
 
-import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import su.nightexpress.nightcore.util.Lists;
 import su.nightexpress.sunlight.module.playerwarps.PlayerWarp;
 import su.nightexpress.sunlight.module.playerwarps.core.PlayerWarpsLang;

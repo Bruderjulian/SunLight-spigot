@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.module.chat.mail;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.UUID;
 
 public class MailData {

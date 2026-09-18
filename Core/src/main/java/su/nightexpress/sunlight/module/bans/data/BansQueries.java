@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.bans.data;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.db.statement.RowMapper;
 import su.nightexpress.nightcore.db.statement.template.InsertStatement;
 import su.nightexpress.nightcore.db.statement.template.SelectStatement;

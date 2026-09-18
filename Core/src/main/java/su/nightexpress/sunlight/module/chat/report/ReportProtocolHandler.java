@@ -6,7 +6,7 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.sunlight.SunLightPlugin;
 
 public final class ReportProtocolHandler implements ReportHandler {

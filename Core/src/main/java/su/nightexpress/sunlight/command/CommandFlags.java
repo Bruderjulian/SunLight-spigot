@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.command;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.command.experimental.builder.SimpleFlagBuilder;
 import su.nightexpress.nightcore.command.experimental.flag.FlagTypes;
 

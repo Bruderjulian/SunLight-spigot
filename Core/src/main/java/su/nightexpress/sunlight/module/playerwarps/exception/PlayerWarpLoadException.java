@@ -1,10 +1,8 @@
 package su.nightexpress.sunlight.module.playerwarps.exception;
 
-import org.jspecify.annotations.NonNull;
-
 public class PlayerWarpLoadException extends RuntimeException {
 
-    public PlayerWarpLoadException( String message) {
+    public PlayerWarpLoadException(String message) {
         super(message);
     }
 }

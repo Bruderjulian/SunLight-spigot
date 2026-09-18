@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.module.playerwarps;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.sunlight.module.playerwarps.category.WarpCategory;
 import su.nightexpress.sunlight.module.playerwarps.featuring.FeaturedSlot;

@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.hook.impl;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 
@@ -47,13 +47,13 @@ public class PlaceholderHook {
         @Override
 
         public String getAuthor() {
-            return plugin.getDescription().getAuthors().getFirst();
+            return plugin.getPluginMeta().getAuthors().getFirst();
         }
 
         @Override
 
         public String getVersion() {
-            return plugin.getDescription().getVersion();
+            return plugin.getPluginMeta().getVersion();
         }
 
         @Override

@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.module.nerfphantoms;
 
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.config.PermissionTree;

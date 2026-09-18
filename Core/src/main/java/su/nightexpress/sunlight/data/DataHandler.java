@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.data;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.db.AbstractDatabaseManager;
 import su.nightexpress.nightcore.db.column.Column;
 import su.nightexpress.nightcore.db.statement.condition.Operator;

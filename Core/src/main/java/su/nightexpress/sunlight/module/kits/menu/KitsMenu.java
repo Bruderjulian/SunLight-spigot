@@ -27,7 +27,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.configuration.ConfigProperty;
@@ -52,17 +51,17 @@ import su.nightexpress.sunlight.utils.EconomyUtils;
 public class KitsMenu extends AbstractMenu {
 
     private static final EnumLocale<KitStatus> KIT_STATUS_LOCALE = LangEntry.builder("Kits.UI.KitBrowser.KitStatus")
-        .enumeration(KitStatus.class, KitStatus::getDefaultText);
+            .enumeration(KitStatus.class, KitStatus::getDefaultText);
 
     private static final IconLocale KIT_ICON = LangEntry.iconBuilder("Kits.UI.KitBrowser.KitIcon")
-        .accentColor(WHITE)
-        .rawName(YELLOW.and(BOLD).wrap("Kit: ") + WHITE.wrap(KIT_NAME))
-        .rawLore(KIT_DESCRIPTION)
-        .rawLore(EMPTY_IF_ABOVE)
-        .appendCurrent("Cost", KIT_COST)
-        .appendCurrent("Cooldown", KIT_COOLDOWN).br()
-        .rawLore(GENERIC_STATUS)
-        .build();
+            .accentColor(WHITE)
+            .rawName(YELLOW.and(BOLD).wrap("Kit: ") + WHITE.wrap(KIT_NAME))
+            .rawLore(KIT_DESCRIPTION)
+            .rawLore(EMPTY_IF_ABOVE)
+            .appendCurrent("Cost", KIT_COST)
+            .appendCurrent("Cooldown", KIT_COOLDOWN).br()
+            .rawLore(GENERIC_STATUS)
+            .build();
 
     enum KitStatus {
 
@@ -73,11 +72,10 @@ public class KitsMenu extends AbstractMenu {
 
         private final String defaultText;
 
-        KitStatus( String defaultText) {
+        KitStatus(String defaultText) {
             this.defaultText = defaultText;
         }
 
-        
         public String getDefaultText() {
             return this.defaultText;
         }
@@ -87,7 +85,7 @@ public class KitsMenu extends AbstractMenu {
 
     private ItemPopulator<Kit> kitPopulator;
 
-    public KitsMenu( SunLightPlugin plugin,  KitsModule module) {
+    public KitsMenu(SunLightPlugin plugin, KitsModule module) {
         super(MenuType.GENERIC_9X4, "Kits");
         this.module = module;
 
@@ -115,82 +113,80 @@ public class KitsMenu extends AbstractMenu {
     }
 
     @Override
-    protected void onLoad( FileConfig config) {
-        int[] kitSlots = ConfigProperty.of(ConfigTypes.INT_ARRAY, "Kit.Slots", new int[]{10, 11, 12, 13, 14, 15, 16})
-            .resolveWithDefaults(config);
+    protected void onLoad(FileConfig config) {
+        int[] kitSlots = ConfigProperty.of(ConfigTypes.INT_ARRAY, "Kit.Slots", new int[] { 10, 11, 12, 13, 14, 15, 16 })
+                .resolveWithDefaults(config);
 
         this.kitPopulator = ItemPopulator.builder(Kit.class)
-            .actionProvider(kit -> context -> {
-                Player player = context.getPlayer();
+                .actionProvider(kit -> context -> {
+                    Player player = context.getPlayer();
 
-                if (context.getEvent().isRightClick()) {
-                    this.module.previewKit(player, kit);
-                    return;
-                }
+                    if (context.getEvent().isRightClick()) {
+                        this.module.previewKit(player, kit);
+                        return;
+                    }
 
-                KitStatus status = this.getKitStatus(player, kit);
-                if (status != KitStatus.AVAILABLE)
-                    return;
+                    KitStatus status = this.getKitStatus(player, kit);
+                    if (status != KitStatus.AVAILABLE)
+                        return;
 
-                context.getViewer().closeMenu();
-                this.module.giveKit(kit, player, false, false);
-            })
-            .itemProvider((context, kit) -> {
-                return kit.definition().getIcon()
-                    .hideAllComponents()
-                    .localized(KIT_ICON)
-                    .replace(builder -> builder
-                        .with(kit.placeholders())
-                        .with(GENERIC_STATUS, () -> KIT_STATUS_LOCALE.getLocalized(this.getKitStatus(context
-                            .getPlayer(), kit))));
-            })
-            .slots(kitSlots)
-            .build();
+                    context.getViewer().closeMenu();
+                    this.module.giveKit(kit, player, false, false);
+                })
+                .itemProvider((context, kit) -> {
+                    return kit.definition().getIcon()
+                            .hideAllComponents()
+                            .localized(KIT_ICON)
+                            .replace(builder -> builder
+                                    .with(kit.placeholders())
+                                    .with(GENERIC_STATUS, () -> KIT_STATUS_LOCALE.getLocalized(this.getKitStatus(context
+                                            .getPlayer(), kit))));
+                })
+                .slots(kitSlots)
+                .build();
     }
 
     @Override
-    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
-
-    }
-
-    @Override
-    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
+    protected void onClick(ViewerContext context, InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
+    protected void onDrag(ViewerContext context, InventoryDragEvent event) {
 
     }
 
     @Override
-    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
+    protected void onClose(ViewerContext context, InventoryCloseEvent event) {
+
+    }
+
+    @Override
+    public void onPrepare(ViewerContext context, InventoryView view, Inventory inventory, List<MenuItem> items) {
         Collection<Kit> availableKits;
         if (this.module.getSettings().isHideNoPermKits()) {
             availableKits = this.module.getKits(context.getPlayer());
-        }
-        else {
+        } else {
             availableKits = this.module.getKits();
         }
 
         List<Kit> kits = availableKits.stream().sorted(Comparator.comparingInt(kit -> kit.definition().getPriority()))
-            .toList();
+                .toList();
 
         this.kitPopulator.populateTo(context, kits, items);
     }
 
     @Override
-    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onReady(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 
     @Override
-    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onRender(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 
-    
-    private KitStatus getKitStatus( Player player,  Kit kit) {
+    private KitStatus getKitStatus(Player player, Kit kit) {
         if (!kit.hasPermission(player))
             return KitStatus.NO_PERMISSION;
 

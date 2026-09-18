@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.manager.SimpleManager;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
@@ -14,14 +13,15 @@ import su.nightexpress.sunlight.module.nametags.NameTagFormat;
 
 public abstract class NametagHandler extends SimpleManager<SunLightPlugin> {
 
-    protected NametagHandler( SunLightPlugin plugin) {
+    protected NametagHandler(SunLightPlugin plugin) {
         super(plugin);
     }
 
-    public void sendTeamPacket( Player playerOfTeam,  NameTagFormat tag,  PlaceholderContext placeholderContext) {
+    public void sendTeamPacket(Player playerOfTeam, NameTagFormat tag, PlaceholderContext placeholderContext) {
         String uuid = SLUtils.createIdentifier(playerOfTeam);
         String teamId = "sl_" + uuid;
-        if (teamId.length() > 16) teamId = teamId.substring(0, 16);
+        if (teamId.length() > 16)
+            teamId = teamId.substring(0, 16);
 
         String teamPrefix = placeholderContext.apply(tag.getPrefix());
         String teamSuffix = placeholderContext.apply(tag.getSuffix());
@@ -34,7 +34,8 @@ public abstract class NametagHandler extends SimpleManager<SunLightPlugin> {
         }
     }
 
-    protected abstract void sendPacket( TeamMode mode,  String teamId,  String teamPrefix,  String teamSuffix,  String teamColorRaw,  Player playerOfTeam,  Collection<? extends Player> receivers);
+    protected abstract void sendPacket(TeamMode mode, String teamId, String teamPrefix, String teamSuffix,
+            String teamColorRaw, Player playerOfTeam, Collection<? extends Player> receivers);
 
     public enum TeamMode {
 

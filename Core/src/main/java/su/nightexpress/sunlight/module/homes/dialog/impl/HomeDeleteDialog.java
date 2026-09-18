@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.module.homes.dialog.impl;
 
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.bridge.dialog.wrap.WrappedDialog;
 import su.nightexpress.nightcore.locale.LangEntry;
@@ -23,34 +22,33 @@ import su.nightexpress.sunlight.module.homes.impl.Home;
 public class HomeDeleteDialog extends Dialog<Home> {
 
     private static final TextLocale TITLE = LangEntry.builder("Homes.Dialog.Deletion.Title").text(title("Home",
-        "Deletion"));
+            "Deletion"));
 
     private static final DialogElementLocale BODY = LangEntry.builder("Homes.Dialog.Deletion.Body").dialogElement(400,
-        "Are you sure you want to delete the " + HomePlaceholders.HOME_NAME + " home?",
-        "",
-        TagWrappers.SOFT_RED.wrap("This action cannot be undone!")
-    );
+            "Are you sure you want to delete the " + HomePlaceholders.HOME_NAME + " home?",
+            "",
+            TagWrappers.SOFT_RED.wrap("This action cannot be undone!"));
 
     private final HomesModule module;
 
-    public HomeDeleteDialog( HomesModule module) {
+    public HomeDeleteDialog(HomesModule module) {
         this.module = module;
     }
 
     @Override
-    
-    public WrappedDialog create( Player player,  Home home) {
+
+    public WrappedDialog create(Player player, Home home) {
         return Dialogs.builder()
-            .base(DialogBases.builder(TITLE)
-                .body(DialogBodies.plainMessage(BODY.replace(PlaceholderContext.builder().with(home.placeholders())
-                    .build())))
-                .build()
-            )
-            .type(DialogTypes.multiAction(DialogButtons.confirm()).exitAction(DialogButtons.cancel()).build())
-            .handleResponse(DialogActions.CONFIRM, (viewer, identifier, nbtHolder) -> {
-                this.module.removeHome(player, home);
-                viewer.callback();
-            })
-            .build();
+                .base(DialogBases.builder(TITLE)
+                        .body(DialogBodies
+                                .plainMessage(BODY.replace(PlaceholderContext.builder().with(home.placeholders())
+                                        .build())))
+                        .build())
+                .type(DialogTypes.multiAction(DialogButtons.confirm()).exitAction(DialogButtons.cancel()).build())
+                .handleResponse(DialogActions.CONFIRM, (viewer, identifier, nbtHolder) -> {
+                    this.module.removeHome(player, home);
+                    viewer.callback();
+                })
+                .build();
     }
 }

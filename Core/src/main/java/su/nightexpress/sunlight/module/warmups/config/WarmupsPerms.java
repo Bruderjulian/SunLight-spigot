@@ -10,5 +10,5 @@ public class WarmupsPerms {
     public static final PermissionTree BYPASS = MODULE.branch("bypass");
 
     public static final Permission BYPASS_TELEPORT = BYPASS.permission("teleport");
-    public static final Permission BYPASS_COMMAND  = BYPASS.permission("command");
+    public static final Permission BYPASS_COMMAND = BYPASS.permission("command");
 }

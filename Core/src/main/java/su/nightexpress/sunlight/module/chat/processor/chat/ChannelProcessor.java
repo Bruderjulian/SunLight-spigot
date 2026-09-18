@@ -2,7 +2,6 @@ package su.nightexpress.sunlight.module.chat.processor.chat;
 
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
@@ -19,19 +18,19 @@ public class ChannelProcessor implements MessageProcessor {
 
     private final SunLightPlugin plugin;
 
-    public ChannelProcessor( SunLightPlugin plugin) {
+    public ChannelProcessor(SunLightPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public void preProcess( ChatModule module,  MessageContext context) {
+    public void preProcess(ChatModule module, MessageContext context) {
         Player player = context.getPlayer();
         ChatChannel channel = context.getChannel();
         UserChatCache cache = context.getCache();
 
         if (!channel.canSpeakHere(player)) {
             module.sendPrefixed(ChatLang.CHANNEL_SPEAK_NO_PERMISSION, player, builder -> builder.with(channel
-                .placeholders()));
+                    .placeholders()));
             context.cancel();
             return;
         }
@@ -40,7 +39,8 @@ public class ChannelProcessor implements MessageProcessor {
         if (cache.hasChannelCooldown(channel.getId())) {
             context.cancel();
             int cooldown = channel.getAccessibility().messageCooldowns().getSmallest(player);
-            String remaining = TimeFormats.formatDuration(cache.getChannelCooldownTimestamp(channel.getId()), TimeFormatType.LITERAL);
+            String remaining = TimeFormats.formatDuration(cache.getChannelCooldownTimestamp(channel.getId()),
+                    TimeFormatType.LITERAL);
             module.sendChannelCooldownNotice(player, channel, remaining, cooldown);
             return;
         }
@@ -65,11 +65,12 @@ public class ChannelProcessor implements MessageProcessor {
     }
 
     @Override
-    public void postProcess( ChatModule module,  MessageContext context) {
+    public void postProcess(ChatModule module, MessageContext context) {
         Player player = context.getPlayer();
 
         if (this.isAlone(player, context)) {
-            // While messages can be set silent in the lang config, it won't prevent this useless scheduler task, so use explicit config option to disable it.
+            // While messages can be set silent in the lang config, it won't prevent this
+            // useless scheduler task, so use explicit config option to disable it.
             if (module.getSettings().isChannelNoHeardMessageEnabled()) {
                 // One tick delay to send after player's message.
                 this.plugin.runTask(() -> module.sendPrefixed(ChatLang.CHANNEL_NOBODY_HERE, player));
@@ -80,14 +81,15 @@ public class ChannelProcessor implements MessageProcessor {
             UserChatCache cache = context.getCache();
             ChatChannel channel = context.getChannel();
             int cooldown = channel.getAccessibility().messageCooldowns().getSmallest(player);
-            if (cooldown <= 0) return;
+            if (cooldown <= 0)
+                return;
 
             cache.setChannelCooldown(channel.getId(), cooldown);
         }
     }
 
-    private boolean isAlone( Player player,  MessageContext context) {
+    private boolean isAlone(Player player, MessageContext context) {
         return context.getViewers().stream().noneMatch(
-            sender -> sender != player && !(sender instanceof ConsoleCommandSender));
+                sender -> sender != player && !(sender instanceof ConsoleCommandSender));
     }
 }

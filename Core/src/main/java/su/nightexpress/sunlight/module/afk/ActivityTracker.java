@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.afk;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.util.TimeUtil;
 import su.nightexpress.nightcore.util.geodata.pos.BlockPos;
 import su.nightexpress.sunlight.module.afk.core.AfkSettings;

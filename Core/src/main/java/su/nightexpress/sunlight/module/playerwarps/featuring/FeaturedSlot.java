@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.playerwarps.featuring;
 
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
+
 import su.nightexpress.nightcore.bridge.currency.Currency;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.config.Writeable;
@@ -16,10 +16,10 @@ import su.nightexpress.sunlight.module.playerwarps.PlayerWarpsPlaceholders;
 
 import java.util.Optional;
 
-public record FeaturedSlot( String id,  String currencyId, double price, long duration, int[] inventorySlots) implements Writeable, PlaceholderResolvable {
+public record FeaturedSlot(String id, String currencyId, double price, long duration, int[] inventorySlots)
+        implements Writeable, PlaceholderResolvable {
 
-    
-    public static FeaturedSlot read( FileConfig config,  String path) {
+    public static FeaturedSlot read(FileConfig config, String path) {
         String id = LowerCase.INTERNAL.apply(config.getString(path + ".Id", "null"));
         String currencyId = config.getString(path + ".Price.Currency", CurrencyId.VAULT);
         double price = config.getDouble(path + ".Price.Amount");
@@ -30,7 +30,7 @@ public record FeaturedSlot( String id,  String currencyId, double price, long du
     }
 
     @Override
-    public void write( FileConfig config,  String path) {
+    public void write(FileConfig config, String path) {
         config.set(path + ".Id", this.id);
         config.set(path + ".Price.Currency", this.currencyId);
         config.set(path + ".Price.Amount", this.price);
@@ -39,21 +39,20 @@ public record FeaturedSlot( String id,  String currencyId, double price, long du
     }
 
     @Override
-    
+
     public PlaceholderResolver placeholders() {
         return PlayerWarpsPlaceholders.FEATURED_SLOT.resolver(this);
     }
 
-    
     public Optional<Currency> currency() {
         return EconomyBridge.currency(this.currencyId);
     }
 
-    public void pay( Player player) {
+    public void pay(Player player) {
         this.currency().ifPresent(currency -> currency.take(player, this.price));
     }
 
-    public boolean canAfford( Player player) {
+    public boolean canAfford(Player player) {
         return this.currency().map(currency -> currency.getBalance(player)).orElse(0D) >= this.price;
     }
 

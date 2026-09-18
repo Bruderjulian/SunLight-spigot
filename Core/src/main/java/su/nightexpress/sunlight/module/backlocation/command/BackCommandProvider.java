@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.backlocation.command;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.commands.Arguments;
 import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;

@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.kits.data;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.db.statement.condition.Operator;
 import su.nightexpress.nightcore.db.statement.condition.Wheres;
 import su.nightexpress.nightcore.db.statement.template.SelectStatement;

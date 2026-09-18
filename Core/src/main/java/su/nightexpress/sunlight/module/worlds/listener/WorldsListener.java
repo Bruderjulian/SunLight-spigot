@@ -6,7 +6,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.manager.AbstractListener;
 import su.nightexpress.nightcore.util.CommandUtil;
 import su.nightexpress.sunlight.SunLightPlugin;

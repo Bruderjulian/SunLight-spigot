@@ -5,7 +5,7 @@ import github.scarsz.discordsrv.api.ListenerPriority;
 import github.scarsz.discordsrv.api.Subscribe;
 import github.scarsz.discordsrv.api.events.GameChatMessagePreProcessEvent;
 import github.scarsz.discordsrv.dependencies.jda.api.entities.TextChannel;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.manager.SimpleManager;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.module.chat.ChatModule;

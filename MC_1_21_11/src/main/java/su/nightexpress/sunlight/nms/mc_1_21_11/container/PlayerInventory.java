@@ -6,7 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import org.bukkit.craftbukkit.entity.CraftHumanEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftInventory;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.util.Reflex;
 import su.nightexpress.nightcore.util.Version;
 

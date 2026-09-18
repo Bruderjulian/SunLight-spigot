@@ -2,8 +2,6 @@ package su.nightexpress.sunlight.module;
 
 import java.nio.file.Path;
 
-import org.jetbrains.annotations.NotNull;
-
 import su.nightexpress.nightcore.ui.dialog.wrap.DialogRegistry;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandRegistry;
@@ -25,13 +23,13 @@ import su.nightexpress.sunlight.user.UserManager;
  * @param definition      The configuration-defined definition for this module.
  */
 public record ModuleContext(
-    SunLightPlugin plugin,
-    DataHandler dataHandler,
-    UserManager userManager,
-    CommandRegistry commandRegistry,
-    DialogRegistry dialogRegistry,
-    String id,
-    Path path,
-    ModuleDefinition definition) {
+        SunLightPlugin plugin,
+        DataHandler dataHandler,
+        UserManager userManager,
+        CommandRegistry commandRegistry,
+        DialogRegistry dialogRegistry,
+        String id,
+        Path path,
+        ModuleDefinition definition) {
 
 }

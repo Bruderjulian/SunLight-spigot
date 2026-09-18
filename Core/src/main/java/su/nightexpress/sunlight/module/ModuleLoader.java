@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.sunlight.SLConfigTypes;
 import su.nightexpress.sunlight.SLFiles;

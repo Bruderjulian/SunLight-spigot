@@ -1,8 +1,7 @@
 package su.nightexpress.sunlight.module.chat.context;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 import su.nightexpress.sunlight.module.chat.cache.CachedContent;
 import su.nightexpress.sunlight.module.chat.cache.UserChatCache;
 

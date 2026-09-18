@@ -14,7 +14,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.bridge.item.AdaptedItem;
 import su.nightexpress.nightcore.config.ConfigValue;
@@ -37,11 +36,11 @@ public class HomesMenu extends AbstractObjectMenu<UUID> {
 
     private int totalSlots;
 
-    private ItemPopulator<Home>    homePopulator;
-    private ItemPopulator<Home>    teleportPopulator;
+    private ItemPopulator<Home> homePopulator;
+    private ItemPopulator<Home> teleportPopulator;
     private ItemPopulator<Integer> lockPopulator;
 
-    public HomesMenu( SunLightPlugin plugin,  HomesModule module) {
+    public HomesMenu(SunLightPlugin plugin, HomesModule module) {
         super(MenuType.GENERIC_9X6, BLACK.wrap("Homes"), UUID.class);
         this.module = module;
 
@@ -67,93 +66,95 @@ public class HomesMenu extends AbstractObjectMenu<UUID> {
     }
 
     @Override
-    protected void onLoad( FileConfig config) {
+    protected void onLoad(FileConfig config) {
         this.totalSlots = ConfigValue.create("Homes.Total-Slots", 14).read(config);
 
         int[] homeSlots = ConfigValue.create("Homes.Slots-Homes", IntStream.range(19, 26).toArray()).read(config);
         int[] teleportSlots = ConfigValue.create("Homes.Slots-Teleport", IntStream.range(28, 35).toArray()).read(
-            config);
+                config);
 
         NightItem teleportIcon = ConfigValue.create("Homes.Icon-Teleport", NightItem.fromType(Material.ENDER_PEARL))
-            .read(config);
+                .read(config);
         NightItem lockedIcon = ConfigValue.create("Homes.Icon-Locked", NightItem.fromType(Material.IRON_BARS)).read(
-            config);
+                config);
         NightItem emptyIcon = ConfigValue.create("Homes.Icon-Empty", NightItem.fromType(Material.GRAY_DYE)).read(
-            config);
+                config);
 
         this.homePopulator = ItemPopulator.builder(Home.class)
-            .actionProvider(home -> context -> {
-                this.module.openHomeSettings(context.getPlayer(), home);
-            })
-            .itemProvider((context, home) -> {
-                AdaptedItem adaptedItem = this.module.getSettings().getIconOrDefault(home.getIconId());
-                NightItem item = adaptedItem.itemStack().map(NightItem::fromItemStack).orElse(NightItem.fromType(
-                    Material.RED_BED));
-                IconLocale locale = home.isFavorite() ? HomesLang.UI_HOMES_FAVORITE : HomesLang.UI_HOMES_NORMAL;
+                .actionProvider(home -> context -> {
+                    this.module.openHomeSettings(context.getPlayer(), home);
+                })
+                .itemProvider((context, home) -> {
+                    AdaptedItem adaptedItem = this.module.getSettings().getIconOrDefault(home.getIconId());
+                    NightItem item = adaptedItem.itemStack().map(NightItem::fromItemStack).orElse(NightItem.fromType(
+                            Material.RED_BED));
+                    IconLocale locale = home.isFavorite() ? HomesLang.UI_HOMES_FAVORITE : HomesLang.UI_HOMES_NORMAL;
 
-                return item
-                    .localized(locale)
-                    .hideAllComponents()
-                    .replace(builder -> builder.with(home.placeholders()));
-            })
-            .slots(homeSlots)
-            .build();
+                    return item
+                            .localized(locale)
+                            .hideAllComponents()
+                            .replace(builder -> builder.with(home.placeholders()));
+                })
+                .slots(homeSlots)
+                .build();
 
         this.teleportPopulator = ItemPopulator.builder(Home.class)
-            .actionProvider(home -> context -> {
-                context.getPlayer().closeInventory();
-                this.module.teleportToHome(context.getPlayer(), home);
-            })
-            .itemProvider((context, home) -> {
-                if (!home.isActive()) return NightItem.fromType(Material.AIR);
+                .actionProvider(home -> context -> {
+                    context.getPlayer().closeInventory();
+                    this.module.teleportToHome(context.getPlayer(), home);
+                })
+                .itemProvider((context, home) -> {
+                    if (!home.isActive())
+                        return NightItem.fromType(Material.AIR);
 
-                return teleportIcon
-                    .copy()
-                    .localized(HomesLang.UI_HOMES_TELEPORT)
-                    .hideAllComponents()
-                    .replace(builder -> builder.with(home.placeholders()));
-            })
-            .slots(teleportSlots)
-            .build();
+                    return teleportIcon
+                            .copy()
+                            .localized(HomesLang.UI_HOMES_TELEPORT)
+                            .hideAllComponents()
+                            .replace(builder -> builder.with(home.placeholders()));
+                })
+                .slots(teleportSlots)
+                .build();
 
         this.lockPopulator = ItemPopulator.builder(Integer.class)
-            .actionProvider(slot -> context -> {
-                int maxHomes = this.module.getMaxHomesValue(context.getPlayer());
-                int finedSlot = slot + 1;
-                boolean isLocked = maxHomes >= 0 && finedSlot > maxHomes;
-                if (isLocked) return;
+                .actionProvider(slot -> context -> {
+                    int maxHomes = this.module.getMaxHomesValue(context.getPlayer());
+                    int finedSlot = slot + 1;
+                    boolean isLocked = maxHomes >= 0 && finedSlot > maxHomes;
+                    if (isLocked)
+                        return;
 
-                this.module.setHome(context.getPlayer(), String.valueOf(finedSlot), false);
-                context.getViewer().refresh();
-            })
-            .itemProvider((context, slot) -> {
-                int maxHomes = this.module.getMaxHomesValue(context.getPlayer());
-                int finedSlot = slot + 1;
-                boolean isLocked = maxHomes >= 0 && finedSlot > maxHomes;
-                return (isLocked ? lockedIcon : emptyIcon).copy().localized(
-                    isLocked ? HomesLang.UI_HOMES_LOCKED : HomesLang.UI_HOMES_EMPTY).hideAllComponents();
-            })
-            .slots(homeSlots)
-            .build();
+                    this.module.setHome(context.getPlayer(), String.valueOf(finedSlot), false);
+                    context.getViewer().refresh();
+                })
+                .itemProvider((context, slot) -> {
+                    int maxHomes = this.module.getMaxHomesValue(context.getPlayer());
+                    int finedSlot = slot + 1;
+                    boolean isLocked = maxHomes >= 0 && finedSlot > maxHomes;
+                    return (isLocked ? lockedIcon : emptyIcon).copy().localized(
+                            isLocked ? HomesLang.UI_HOMES_LOCKED : HomesLang.UI_HOMES_EMPTY).hideAllComponents();
+                })
+                .slots(homeSlots)
+                .build();
     }
 
     @Override
-    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
-
-    }
-
-    @Override
-    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
+    protected void onClick(ViewerContext context, InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
+    protected void onDrag(ViewerContext context, InventoryDragEvent event) {
 
     }
 
     @Override
-    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
+    protected void onClose(ViewerContext context, InventoryCloseEvent event) {
+
+    }
+
+    @Override
+    public void onPrepare(ViewerContext context, InventoryView view, Inventory inventory, List<MenuItem> items) {
         UUID targetId = this.getObject(context);
 
         List<Home> homes = this.module.getHomes(targetId).stream().sorted(Comparator.comparing(Home::getId)).toList();
@@ -165,12 +166,12 @@ public class HomesMenu extends AbstractObjectMenu<UUID> {
     }
 
     @Override
-    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onReady(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 
     @Override
-    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onRender(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 }

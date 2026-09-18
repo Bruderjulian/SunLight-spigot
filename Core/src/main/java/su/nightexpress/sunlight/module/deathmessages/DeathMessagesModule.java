@@ -12,8 +12,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.*;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;

@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.bans.punishment;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.config.ConfigValue;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.config.Writeable;

@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.module.chat.processor.global;
 
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.sunlight.SLPlaceholders;
@@ -16,12 +15,12 @@ import su.nightexpress.sunlight.module.chat.spy.SpyType;
 public class SpyProcessor implements ChatProcessor<ChatContext> {
 
     @Override
-    public void preProcess( ChatModule module,  ChatContext context) {
+    public void preProcess(ChatModule module, ChatContext context) {
 
     }
 
     @Override
-    public void postProcess( ChatModule module,  ChatContext context) {
+    public void postProcess(ChatModule module, ChatContext context) {
         Player player = context.getPlayer();
         String message = context.getMessage();
         SpyType type;
@@ -30,12 +29,12 @@ public class SpyProcessor implements ChatProcessor<ChatContext> {
         switch (context) {
             case MessageContext messageContext -> {
                 placeholderContext = PlaceholderContext.builder().with(messageContext.getChannel().placeholders())
-                    .build();
+                        .build();
                 type = SpyType.CHAT;
             }
             case ConversationContext conversationContext -> {
                 placeholderContext = PlaceholderContext.builder().with(SLPlaceholders.GENERIC_TARGET,
-                    () -> conversationContext.getTarget().getName()).build();
+                        () -> conversationContext.getTarget().getName()).build();
                 type = SpyType.SOCIAL;
             }
             case CommandContext ignored -> {
@@ -48,7 +47,8 @@ public class SpyProcessor implements ChatProcessor<ChatContext> {
         }
 
         String format = module.getSettings().getSpyModeFormat(type);
-        if (format == null) return;
+        if (format == null)
+            return;
 
         String formatted = placeholderContext.apply(format);
         module.sendSpyInfo(player, message, formatted, type);

@@ -11,7 +11,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.manager.AbstractListener;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.user.SunUser;

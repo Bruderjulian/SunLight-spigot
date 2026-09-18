@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.bridge.common.NightNbtHolder;
 import su.nightexpress.nightcore.bridge.dialog.wrap.WrappedDialog;
@@ -33,33 +32,32 @@ import su.nightexpress.sunlight.module.playerwarps.category.NormalCategory;
 public class PlayerWarpCategoryDialog extends Dialog<PlayerWarp> {
 
     private static final TextLocale TITLE = LangEntry.builder("PlayerWarps.Dialog.WarpCategory.Title").text(title(
-        "Warp", "Category"));
+            "Warp", "Category"));
 
     private static final DialogElementLocale BODY = LangEntry.builder("PlayerWarps.Dialog.WarpCategory.Body.Selection")
-        .dialogElement(400,
-            "Please Select a category for your warp."
-        );
+            .dialogElement(400,
+                    "Please Select a category for your warp.");
 
     private static final ButtonLocale BUTTON_NORMAL = LangEntry.builder(
-        "PlayerWarps.Dialog.WarpCategory.Button.CategoryNormal")
-        .button(CATEGORY_NAME, CATEGORY_DESCRIPTION);
+            "PlayerWarps.Dialog.WarpCategory.Button.CategoryNormal")
+            .button(CATEGORY_NAME, CATEGORY_DESCRIPTION);
 
     private static final ButtonLocale BUTTON_SELECTED = LangEntry.builder(
-        "PlayerWarps.Dialog.WarpCategory.Button.CategorySelected")
-        .button(GREEN.wrap("✔ " + UNDERLINED.wrap(CATEGORY_NAME)), CATEGORY_DESCRIPTION);
+            "PlayerWarps.Dialog.WarpCategory.Button.CategorySelected")
+            .button(GREEN.wrap("✔ " + UNDERLINED.wrap(CATEGORY_NAME)), CATEGORY_DESCRIPTION);
 
     private static final String ACTION_CATEGORY = "category";
-    private static final String JSON_ID         = "id";
+    private static final String JSON_ID = "id";
 
     private final PlayerWarpsModule module;
 
-    public PlayerWarpCategoryDialog( PlayerWarpsModule module) {
+    public PlayerWarpCategoryDialog(PlayerWarpsModule module) {
         this.module = module;
     }
 
     @Override
-    
-    public WrappedDialog create( Player player,  PlayerWarp warp) {
+
+    public WrappedDialog create(Player player, PlayerWarp warp) {
         List<WrappedActionButton> buttons = new ArrayList<>();
 
         this.module.getSettings().getCategories().forEach(category -> {
@@ -67,32 +65,34 @@ public class PlayerWarpCategoryDialog extends Dialog<PlayerWarp> {
             ButtonLocale locale = warp.isCategory(category) ? BUTTON_SELECTED : BUTTON_NORMAL;
 
             buttons.add(DialogButtons.action(locale.replace(placeholderContext::apply))
-                .action(DialogActions.customClick(ACTION_CATEGORY, NightNbtHolder.builder().put(JSON_ID, category.id())
-                    .build()))
-                .build()
-            );
+                    .action(DialogActions.customClick(ACTION_CATEGORY,
+                            NightNbtHolder.builder().put(JSON_ID, category.id())
+                                    .build()))
+                    .build());
         });
 
         return Dialogs.builder()
-            .base(DialogBases.builder(TITLE)
-                .body(DialogBodies.plainMessage(BODY))
-                .build()
-            )
-            .type(DialogTypes.multiAction(buttons).exitAction(DialogButtons.back()).build())
-            .handleResponse(ACTION_CATEGORY, (viewer, identifier, nbtHolder) -> {
-                if (nbtHolder == null) return;
+                .base(DialogBases.builder(TITLE)
+                        .body(DialogBodies.plainMessage(BODY))
+                        .build())
+                .type(DialogTypes.multiAction(buttons).exitAction(DialogButtons.back()).build())
+                .handleResponse(ACTION_CATEGORY, (viewer, identifier, nbtHolder) -> {
+                    if (nbtHolder == null)
+                        return;
 
-                String id = nbtHolder.getText(JSON_ID).orElse(null);
-                if (id == null) return;
+                    String id = nbtHolder.getText(JSON_ID).orElse(null);
+                    if (id == null)
+                        return;
 
-                NormalCategory category = this.module.getSettings().getCategory(id);
-                if (category == null) return;
+                    NormalCategory category = this.module.getSettings().getCategory(id);
+                    if (category == null)
+                        return;
 
-                warp.setCategory(category);
-                warp.markDirty();
+                    warp.setCategory(category);
+                    warp.markDirty();
 
-                viewer.callback();
-            })
-            .build();
+                    viewer.callback();
+                })
+                .build();
     }
 }

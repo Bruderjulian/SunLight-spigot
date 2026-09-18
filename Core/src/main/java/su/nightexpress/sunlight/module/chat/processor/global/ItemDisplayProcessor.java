@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.module.chat.processor.global;
 
 import org.bukkit.inventory.ItemStack;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.util.ItemTag;
 import su.nightexpress.nightcore.util.ItemUtil;
@@ -16,12 +15,13 @@ import su.nightexpress.sunlight.module.chat.processor.ChatProcessor;
 public class ItemDisplayProcessor implements ChatProcessor<FormattedContext> {
 
     @Override
-    public void preProcess( ChatModule module,  FormattedContext context) {
+    public void preProcess(ChatModule module, FormattedContext context) {
         String format = context.getFormat();
 
         String placeholder = module.getSettings().getItemShowPlaceholder();
         int index = format.indexOf(placeholder);
-        if (index == -1) return;
+        if (index == -1)
+            return;
 
         ItemStack itemStack = context.getPlayer().getInventory().getItemInMainHand();
         if (itemStack.isEmpty()) {
@@ -29,12 +29,12 @@ public class ItemDisplayProcessor implements ChatProcessor<FormattedContext> {
             return;
         }
 
-        //ItemStack lite = getLiteCopy(itemStack);
+        // ItemStack lite = getLiteCopy(itemStack);
 
         PlaceholderContext itemContext = PlaceholderContext.builder()
-            .with(ChatPlaceholders.ITEM_NAME, () -> ItemUtil.getNameSerialized(itemStack))
-            .with(ChatPlaceholders.ITEM_VALUE, () -> Strings.toBase64(ItemTag.getTagString(itemStack)))
-            .build();
+                .with(ChatPlaceholders.ITEM_NAME, () -> ItemUtil.getNameSerialized(itemStack))
+                .with(ChatPlaceholders.ITEM_VALUE, () -> Strings.toBase64(ItemTag.getTagString(itemStack)))
+                .build();
 
         String itemFormat = itemContext.apply(module.getSettings().getItemShowFormat());
 
@@ -42,23 +42,24 @@ public class ItemDisplayProcessor implements ChatProcessor<FormattedContext> {
     }
 
     @Override
-    public void postProcess( ChatModule module,  FormattedContext context) {
+    public void postProcess(ChatModule module, FormattedContext context) {
 
     }
 
     /*
-    private static ItemStack getLiteCopy( ItemStack origin) {
-        ItemStack copy = new ItemStack(origin);
-    
-        ItemMeta meta = copy.getItemMeta();
-        if (!(meta instanceof BlockStateMeta blockStateMeta)) return copy;
-    
-        if (blockStateMeta.getBlockState() instanceof Container container) {
-            container.getInventory().clear();
-            blockStateMeta.setBlockState(container);
-        }
-    
-        copy.setItemMeta(blockStateMeta);
-        return copy;
-    }*/
+     * private static ItemStack getLiteCopy( ItemStack origin) {
+     * ItemStack copy = new ItemStack(origin);
+     * 
+     * ItemMeta meta = copy.getItemMeta();
+     * if (!(meta instanceof BlockStateMeta blockStateMeta)) return copy;
+     * 
+     * if (blockStateMeta.getBlockState() instanceof Container container) {
+     * container.getInventory().clear();
+     * blockStateMeta.setBlockState(container);
+     * }
+     * 
+     * copy.setItemMeta(blockStateMeta);
+     * return copy;
+     * }
+     */
 }

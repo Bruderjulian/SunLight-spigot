@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.command;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.configuration.AbstractConfig;
 import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigTypes;

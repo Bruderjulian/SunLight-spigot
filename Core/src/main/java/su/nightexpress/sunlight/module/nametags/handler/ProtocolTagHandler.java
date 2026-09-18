@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Optional;
 
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -21,7 +20,7 @@ import su.nightexpress.sunlight.SunLightPlugin;
 
 public class ProtocolTagHandler extends NametagHandler {
 
-    public ProtocolTagHandler( SunLightPlugin plugin) {
+    public ProtocolTagHandler(SunLightPlugin plugin) {
         super(plugin);
     }
 
@@ -36,13 +35,13 @@ public class ProtocolTagHandler extends NametagHandler {
     }
 
     @Override
-    protected void sendPacket(NametagHandler. TeamMode mode,
-                               String teamId,
-                               String teamPrefix,
-                               String teamSuffix,
-                               String teamColorRaw,
-                               Player playerOfTeam,
-                               Collection<? extends Player> receivers) {
+    protected void sendPacket(NametagHandler.TeamMode mode,
+            String teamId,
+            String teamPrefix,
+            String teamSuffix,
+            String teamColorRaw,
+            Player playerOfTeam,
+            Collection<? extends Player> receivers) {
         PacketContainer packetTeam = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
         Collection<String> entities = Lists.newList(playerOfTeam.getName());
         ChatFormatting teamColor = Enums.parse(teamColorRaw, ChatFormatting.class).orElse(ChatFormatting.GRAY);
@@ -53,14 +52,14 @@ public class ProtocolTagHandler extends NametagHandler {
 
         if (mode == TeamMode.CREATE) {
             WrappedTeamParameters parameters = WrappedTeamParameters.newBuilder()
-                .displayName(WrappedChatComponent.fromText(teamId))
-                .prefix(WrappedChatComponent.fromJson(NightMessage.asJson(teamPrefix)))
-                .suffix(WrappedChatComponent.fromJson(NightMessage.asJson(teamSuffix)))
-                .color(teamColor)
-                .nametagVisibility(EnumWrappers.TeamVisibility.ALWAYS)
-                .collisionRule(EnumWrappers.TeamCollisionRule.ALWAYS)
-                .options(0)
-                .build();
+                    .displayName(WrappedChatComponent.fromText(teamId))
+                    .prefix(WrappedChatComponent.fromJson(NightMessage.asJson(teamPrefix)))
+                    .suffix(WrappedChatComponent.fromJson(NightMessage.asJson(teamSuffix)))
+                    .color(teamColor)
+                    .nametagVisibility(EnumWrappers.TeamVisibility.ALWAYS)
+                    .collisionRule(EnumWrappers.TeamCollisionRule.ALWAYS)
+                    .options(0)
+                    .build();
             packetTeam.getOptionalTeamParameters().write(0, Optional.of(parameters));
         }
 

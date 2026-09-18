@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.rtp.model;
 
 import org.bukkit.block.BlockFace;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.config.Writeable;
 import su.nightexpress.nightcore.util.Enums;

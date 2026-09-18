@@ -3,7 +3,7 @@ package su.nightexpress.sunlight.module.worlds.impl.generation;
 import org.bukkit.Material;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.generator.WorldInfo;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.util.Lists;
 import su.nightexpress.nightcore.util.random.Rnd;
 

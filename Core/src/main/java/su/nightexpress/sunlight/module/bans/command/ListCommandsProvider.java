@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.bans.command;
 
 import org.bukkit.permissions.Permission;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
 import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.locale.entry.TextLocale;

@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.user.property;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.util.Strings;
 
 public class UserProperty<T> {

@@ -4,7 +4,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.jspecify.annotations.NonNull;
+
 import su.nightexpress.nightcore.manager.AbstractListener;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.module.warps.WarpsModule;
@@ -13,7 +13,7 @@ public class WarpsListener extends AbstractListener<SunLightPlugin> {
 
     private final WarpsModule module;
 
-    public WarpsListener( SunLightPlugin plugin,  WarpsModule module) {
+    public WarpsListener(SunLightPlugin plugin, WarpsModule module) {
         super(plugin);
         this.module = module;
     }

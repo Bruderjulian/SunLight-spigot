@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.module.chat.processor.conversation;
 
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
@@ -14,12 +13,12 @@ import su.nightexpress.sunlight.module.chat.processor.ChatProcessor;
 public class ConversationProcessor implements ChatProcessor<ConversationContext> {
 
     @Override
-    public void preProcess( ChatModule module,  ConversationContext context) {
+    public void preProcess(ChatModule module, ConversationContext context) {
 
     }
 
     @Override
-    public void postProcess( ChatModule module,  ConversationContext context) {
+    public void postProcess(ChatModule module, ConversationContext context) {
         String rawIncoming = module.getSettings().getConversationIncomingFormat();
         String rawOutgoing = module.getSettings().getConversationOutgoingFormat();
 
@@ -38,18 +37,17 @@ public class ConversationProcessor implements ChatProcessor<ConversationContext>
         module.getChatCache(context.getTarget()).setLastConversationWith(context.getPlayer().getUniqueId());
     }
 
-    
-    private String format( ConversationContext context,  Player player,  String rawFormat) {
+    private String format(ConversationContext context, Player player, String rawFormat) {
         PlaceholderContext messageContext = PlaceholderContext.builder()
-            .with(SLPlaceholders.GENERIC_MESSAGE, context::getMessage)
-            .build();
+                .with(SLPlaceholders.GENERIC_MESSAGE, context::getMessage)
+                .build();
 
         PlaceholderContext formatContext = PlaceholderContext.builder()
-            .maxRecursion(1) // To apply player placeholders for proxy format as well.
-            .with(SLPlaceholders.GENERIC_FORMAT, context::getFormat)
-            .with(CommonPlaceholders.PLAYER.resolver(player))
-            .andThen(CommonPlaceholders.forPlaceholderAPI(player))
-            .build();
+                .maxRecursion(1) // To apply player placeholders for proxy format as well.
+                .with(SLPlaceholders.GENERIC_FORMAT, context::getFormat)
+                .with(CommonPlaceholders.PLAYER.resolver(player))
+                .andThen(CommonPlaceholders.forPlaceholderAPI(player))
+                .build();
 
         String formatted = formatContext.apply(rawFormat);
 

@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.utils;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.config.FileConfig;
 
 import java.util.Arrays;

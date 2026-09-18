@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.module.kits.dialog.impl;
 
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.bridge.dialog.wrap.WrappedDialog;
 import su.nightexpress.nightcore.locale.LangEntry;
@@ -22,34 +21,35 @@ public class KitCostDialog extends Dialog<Kit> {
     private static final TextLocale TITLE = LangEntry.builder("Kits.Dialog.KitCost.Title").text("Kit Cost");
 
     private static final DialogElementLocale BODY = LangEntry.builder("Kits.Dialog.KitCost.Body").dialogElement(400,
-        "Enter kit cost."
-    );
+            "Enter kit cost.");
 
     private static final TextLocale INPUT_ID = LangEntry.builder("Kits.Dialog.KitCost.Input.Name").text("Cost");
 
     private static final String JSON_COST = "cost";
 
     @Override
-    
-    public WrappedDialog create( Player player,  Kit kit) {
+
+    public WrappedDialog create(Player player, Kit kit) {
         return Dialogs.builder()
-            .base(DialogBases.builder(TITLE)
-                .body(DialogBodies.plainMessage(BODY))
-                .inputs(DialogInputs.text(JSON_COST, INPUT_ID).maxLength(12).initial(String.valueOf(kit.definition()
-                    .getCost())).build())
-                .build()
-            )
-            .type(DialogTypes.multiAction(DialogButtons.ok()).exitAction(DialogButtons.back()).build())
-            .handleResponse(DialogActions.OK, (viewer, identifier, nbtHolder) -> {
-                if (nbtHolder == null) return;
+                .base(DialogBases.builder(TITLE)
+                        .body(DialogBodies.plainMessage(BODY))
+                        .inputs(DialogInputs.text(JSON_COST, INPUT_ID).maxLength(12)
+                                .initial(String.valueOf(kit.definition()
+                                        .getCost()))
+                                .build())
+                        .build())
+                .type(DialogTypes.multiAction(DialogButtons.ok()).exitAction(DialogButtons.back()).build())
+                .handleResponse(DialogActions.OK, (viewer, identifier, nbtHolder) -> {
+                    if (nbtHolder == null)
+                        return;
 
-                double cost = nbtHolder.getDouble(JSON_COST).orElse(kit.definition().getCost());
+                    double cost = nbtHolder.getDouble(JSON_COST).orElse(kit.definition().getCost());
 
-                kit.definition().setCost(cost);
-                kit.markDirty();
+                    kit.definition().setCost(cost);
+                    kit.markDirty();
 
-                viewer.callback();
-            })
-            .build();
+                    viewer.callback();
+                })
+                .build();
     }
 }

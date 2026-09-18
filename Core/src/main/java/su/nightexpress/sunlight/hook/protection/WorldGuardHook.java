@@ -6,7 +6,7 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import org.bukkit.Location;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.sunlight.hook.HookId;
 
 import java.util.function.BooleanSupplier;

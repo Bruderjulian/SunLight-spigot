@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.module.texts.text;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.FileUtil;
 import su.nightexpress.nightcore.util.LowerCase;

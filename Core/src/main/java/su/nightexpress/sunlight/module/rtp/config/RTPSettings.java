@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.rtp.config;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.configuration.AbstractConfig;
 import su.nightexpress.nightcore.configuration.ConfigProperty;

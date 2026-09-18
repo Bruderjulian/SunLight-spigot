@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.chat.context;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.sunlight.module.chat.cache.UserChatCache;
 
 public abstract class FormattedContext extends ChatContext {

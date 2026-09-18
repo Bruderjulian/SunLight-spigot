@@ -16,7 +16,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.configuration.ConfigProperty;
@@ -43,7 +42,7 @@ public class InvitedPlayersMenu extends AbstractObjectMenu<Home> {
 
     private ItemPopulator<UserInfo> playerPopulator;
 
-    public InvitedPlayersMenu( SunLightPlugin plugin,  HomesModule module) {
+    public InvitedPlayersMenu(SunLightPlugin plugin, HomesModule module) {
         super(MenuType.GENERIC_9X4, "Invited Players", Home.class);
         this.module = module;
 
@@ -65,89 +64,84 @@ public class InvitedPlayersMenu extends AbstractObjectMenu<Home> {
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(27, 36).toArray());
 
         this.addDefaultButton("return", MenuItem.button()
-            .defaultState(ItemState.builder()
-                .icon(NightItem.fromType(Material.IRON_DOOR).setDisplayName(WHITE.wrap("Return")))
-                .action(context -> this.module.openHomeSettings(context.getPlayer(), this.getObject(context)))
-                .build()
-            )
-            .slots(31)
-            .build()
-        );
+                .defaultState(ItemState.builder()
+                        .icon(NightItem.fromType(Material.IRON_DOOR).setDisplayName(WHITE.wrap("Return")))
+                        .action(context -> this.module.openHomeSettings(context.getPlayer(), this.getObject(context)))
+                        .build())
+                .slots(31)
+                .build());
 
         this.addDefaultButton("add_player", MenuItem.button()
-            .defaultState(ItemState.builder()
-                .icon(NightItem.fromType(Material.BELL)
-                    .setDisplayName(YELLOW.and(BOLD).wrap("Add Player"))
-                )
-                .action(context -> this.plugin.showDialog(context.getPlayer(), HomeDialogKeys.HOME_INVITE_PLAYER_NAME,
-                    this.getObject(context), () -> context.getViewer().refresh()))
-                .build()
-            )
-            .slots(34)
-            .build()
-        );
+                .defaultState(ItemState.builder()
+                        .icon(NightItem.fromType(Material.BELL)
+                                .setDisplayName(YELLOW.and(BOLD).wrap("Add Player")))
+                        .action(context -> this.plugin.showDialog(context.getPlayer(),
+                                HomeDialogKeys.HOME_INVITE_PLAYER_NAME,
+                                this.getObject(context), () -> context.getViewer().refresh()))
+                        .build())
+                .slots(34)
+                .build());
     }
 
     @Override
-    protected void onLoad( FileConfig config) {
+    protected void onLoad(FileConfig config) {
         int[] playerSlots = ConfigProperty.of(ConfigTypes.INT_ARRAY, "Players.Slots", IntStream.range(0, 27).toArray())
-            .resolveWithDefaults(config);
+                .resolveWithDefaults(config);
 
         this.playerPopulator = ItemPopulator.builder(UserInfo.class)
-            .actionProvider(profile -> context -> {
-                if (context.getEvent().getClick() == ClickType.DROP) {
-                    Home home = this.getObject(context);
+                .actionProvider(profile -> context -> {
+                    if (context.getEvent().getClick() == ClickType.DROP) {
+                        Home home = this.getObject(context);
 
-                    home.getInvitedPlayers().remove(profile);
-                    home.markDirty();
+                        home.getInvitedPlayers().remove(profile);
+                        home.markDirty();
 
-                    context.getViewer().refresh();
-                }
-            })
-            .itemProvider((context, userInfo) -> {
-                return NightItem.fromType(Material.PLAYER_HEAD)
-                    .localized(HomesLang.UI_INVITED_PLAYERS_PLAYER)
-                    .hideAllComponents()
-                    .setPlayerProfile(PlayerProfiles.createProfile(userInfo.id(), userInfo.name()))
-                    .replace(builder -> builder
-                        .with(CommonPlaceholders.PLAYER_NAME, userInfo::name)
-                    );
-            })
-            .slots(playerSlots)
-            .build();
+                        context.getViewer().refresh();
+                    }
+                })
+                .itemProvider((context, userInfo) -> {
+                    return NightItem.fromType(Material.PLAYER_HEAD)
+                            .localized(HomesLang.UI_INVITED_PLAYERS_PLAYER)
+                            .hideAllComponents()
+                            .setPlayerProfile(PlayerProfiles.createProfile(userInfo.id(), userInfo.name()))
+                            .replace(builder -> builder
+                                    .with(CommonPlaceholders.PLAYER_NAME, userInfo::name));
+                })
+                .slots(playerSlots)
+                .build();
     }
 
     @Override
-    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
-
-    }
-
-    @Override
-    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
+    protected void onClick(ViewerContext context, InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
+    protected void onDrag(ViewerContext context, InventoryDragEvent event) {
 
     }
 
     @Override
-    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
+    protected void onClose(ViewerContext context, InventoryCloseEvent event) {
+
+    }
+
+    @Override
+    public void onPrepare(ViewerContext context, InventoryView view, Inventory inventory, List<MenuItem> items) {
         Home home = this.getObject(context);
         List<UserInfo> invitedPlayers = home.getInvitedPlayers().stream().sorted(Comparator.comparing(UserInfo::name))
-            .toList();
+                .toList();
 
         this.playerPopulator.populateTo(context, invitedPlayers, items);
     }
 
     @Override
-    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onReady(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 
     @Override
-    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onRender(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 }

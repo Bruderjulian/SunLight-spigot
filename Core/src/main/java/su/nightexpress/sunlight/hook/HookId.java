@@ -4,10 +4,10 @@ import su.nightexpress.nightcore.util.Plugins;
 
 public class HookId {
 
-    public static final String PROTOCOL_LIB  = "ProtocolLib";
+    public static final String PROTOCOL_LIB = "ProtocolLib";
     public static final String PACKET_EVENTS = "packetevents";
-    public static final String DISCORD_SRV   = "DiscordSRV";
-    public static final String WORLD_GUARD   = "WorldGuard";
+    public static final String DISCORD_SRV = "DiscordSRV";
+    public static final String WORLD_GUARD = "WorldGuard";
     public static final String GRIEF_PREVENTION = "GriefPrevention";
 
     public static boolean hasDiscordSRV() {

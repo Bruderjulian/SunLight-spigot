@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.user;
 
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
+
 import su.nightexpress.nightcore.user.AbstractUserManager;
 import su.nightexpress.nightcore.user.UserInfo;
 import su.nightexpress.nightcore.user.data.DefaultUserDataAccessor;
@@ -21,7 +21,7 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
 
     private final DataHandler dataHandler;
 
-    public UserManager( SunLightPlugin plugin,  DataHandler dataHandler) {
+    public UserManager(SunLightPlugin plugin, DataHandler dataHandler) {
         super(plugin, new DefaultUserDataAccessor<>(dataHandler, dataHandler));
         this.dataHandler = dataHandler;
     }
@@ -33,24 +33,28 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
         this.addListener(new UserListener(this.plugin, this));
 
         // TODO Placeholders
-        /*if (params.startsWith("command_is_on_cooldown_")) {
-            String name = params.substring("command_is_on_cooldown_".length());
-            return CoreLang.getYesOrNo(user.getCooldown(CooldownType.COMMAND, name).isPresent());
-        }
-        if (params.startsWith("command_cooldown_")) {
-            String name = params.substring("command_cooldown_".length());
-            return user.getCooldown(CooldownType.COMMAND, name).map(c -> TimeUtil.formatDuration(c.getExpireDate())).orElse("-");
-        }*/
+        /*
+         * if (params.startsWith("command_is_on_cooldown_")) {
+         * String name = params.substring("command_is_on_cooldown_".length());
+         * return CoreLang.getYesOrNo(user.getCooldown(CooldownType.COMMAND,
+         * name).isPresent());
+         * }
+         * if (params.startsWith("command_cooldown_")) {
+         * String name = params.substring("command_cooldown_".length());
+         * return user.getCooldown(CooldownType.COMMAND, name).map(c ->
+         * TimeUtil.formatDuration(c.getExpireDate())).orElse("-");
+         * }
+         */
     }
 
     @Override
-    protected void synchronize( SunUser fetched,  SunUser cached) {
+    protected void synchronize(SunUser fetched, SunUser cached) {
         cached.updateFrom(fetched);
     }
 
     @Override
-    
-    protected SunUser create( UUID uuid,  String name,  InetAddress address) {
+
+    protected SunUser create(UUID uuid, String name, InetAddress address) {
         long timestamp = System.currentTimeMillis();
         Map<CommandKey, Long> commandCooldowns = new HashMap<>();
         Map<String, Object> properties = new HashMap<>();
@@ -61,41 +65,39 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
         return user;
     }
 
-    
-    public CompletableFuture<Player> loadTargetPlayer( String playerName) {
+    public CompletableFuture<Player> loadTargetPlayer(String playerName) {
         return this.loadTargetProfile(playerName).thenCompose(this::loadTargetPlayer);
     }
 
-    
-    public CompletableFuture<Player> loadTargetPlayer( UserInfo profile) {
+    public CompletableFuture<Player> loadTargetPlayer(UserInfo profile) {
         return this.loadTargetPlayer(profile.id(), profile.name());
     }
 
-    
-    public CompletableFuture<Player> loadTargetPlayer( SunUser user) {
+    public CompletableFuture<Player> loadTargetPlayer(SunUser user) {
         return this.loadTargetPlayer(user.getId(), user.getName());
     }
 
-    
-    public CompletableFuture<Player> loadTargetPlayer( UUID id,  String name) {
+    public CompletableFuture<Player> loadTargetPlayer(UUID id, String name) {
         Player target = Players.getPlayer(id);
-        if (target != null) return CompletableFuture.completedFuture(target);
+        if (target != null)
+            return CompletableFuture.completedFuture(target);
 
-        return CompletableFuture.supplyAsync(() -> this.plugin.internals().map(nms -> nms.loadPlayerData(id, name)).orElse(null));
+        return CompletableFuture
+                .supplyAsync(() -> this.plugin.internals().map(nms -> nms.loadPlayerData(id, name)).orElse(null));
     }
 
-    
-    public CompletableFuture<UserInfo> loadTargetProfile( String playerName) {
+    public CompletableFuture<UserInfo> loadTargetProfile(String playerName) {
         Player target = Players.getPlayer(playerName);
-        if (target != null) return CompletableFuture.completedFuture(UserInfo.of(target));
+        if (target != null)
+            return CompletableFuture.completedFuture(UserInfo.of(target));
 
         return CompletableFuture.supplyAsync(() -> this.dataHandler.loadProfile(playerName).orElse(null));
     }
 
-    
-    public CompletableFuture<InetAddress> loadInetAddress( UUID playerId) {
+    public CompletableFuture<InetAddress> loadInetAddress(UUID playerId) {
         Player target = Players.getPlayer(playerId);
-        if (target != null) return CompletableFuture.completedFuture(SLUtils.getInetAddress(target).orElse(null));
+        if (target != null)
+            return CompletableFuture.completedFuture(SLUtils.getInetAddress(target).orElse(null));
 
         return CompletableFuture.supplyAsync(() -> this.dataHandler.loadInetAddress(playerId).orElse(null));
     }

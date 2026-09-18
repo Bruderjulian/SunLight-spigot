@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.rtp;
 
 import org.bukkit.block.BlockFace;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.sunlight.module.rtp.model.LookupRange;
 
 import java.util.LinkedHashMap;

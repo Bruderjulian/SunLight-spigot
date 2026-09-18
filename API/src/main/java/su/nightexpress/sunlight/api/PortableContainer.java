@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.api;
 
-import org.jspecify.annotations.NonNull;
-
 public enum PortableContainer {
 
     ANVIL("anvil"),
@@ -15,11 +13,10 @@ public enum PortableContainer {
 
     private final String label;
 
-    private PortableContainer( String label) {
+    private PortableContainer(String label) {
         this.label = label;
     }
 
-    
     public String label() {
         return this.label;
     }

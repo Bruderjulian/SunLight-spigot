@@ -17,7 +17,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.locale.LangContainer;
@@ -35,27 +34,25 @@ import su.nightexpress.sunlight.module.warps.WarpsModule;
 public class WarpListMenu extends AbstractMenu implements LangContainer {
 
     private static final IconLocale ICON_WARP_DEFAULT = LangEntry.iconBuilder("Warps.UI.WarpsMenu.WarpDefault")
-        .rawName(WARP_NAME)
-        .rawLore(
-            WARP_DESCRIPTION,
-            Placeholders.EMPTY_IF_ABOVE,
-            GOLD.wrap("→ " + UNDERLINED.wrap("Click to teleport"))
-        )
-        .build();
+            .rawName(WARP_NAME)
+            .rawLore(
+                    WARP_DESCRIPTION,
+                    Placeholders.EMPTY_IF_ABOVE,
+                    GOLD.wrap("→ " + UNDERLINED.wrap("Click to teleport")))
+            .build();
 
     private static final IconLocale ICON_WARP_MODERATE = LangEntry.iconBuilder("Warps.UI.WarpsMenu.WarpModerate")
-        .rawName(WARP_NAME)
-        .rawLore(
-            WARP_DESCRIPTION,
-            Placeholders.EMPTY_IF_ABOVE,
-            GOLD.wrap("→ " + UNDERLINED.wrap("Left-Click to teleport")),
-            GOLD.wrap("→ " + UNDERLINED.wrap("Right-Click to edit"))
-        )
-        .build();
+            .rawName(WARP_NAME)
+            .rawLore(
+                    WARP_DESCRIPTION,
+                    Placeholders.EMPTY_IF_ABOVE,
+                    GOLD.wrap("→ " + UNDERLINED.wrap("Left-Click to teleport")),
+                    GOLD.wrap("→ " + UNDERLINED.wrap("Right-Click to edit")))
+            .build();
 
     private final WarpsModule module;
 
-    public WarpListMenu( WarpsModule module) {
+    public WarpListMenu(WarpsModule module) {
         super(MenuType.GENERIC_9X6, "Server Warps");
         this.module = module;
     }
@@ -81,27 +78,27 @@ public class WarpListMenu extends AbstractMenu implements LangContainer {
     }
 
     @Override
-    protected void onLoad( FileConfig config) {
+    protected void onLoad(FileConfig config) {
 
     }
 
     @Override
-    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
+    protected void onClick(ViewerContext context, InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
+    protected void onDrag(ViewerContext context, InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
+    protected void onClose(ViewerContext context, InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
+    public void onPrepare(ViewerContext context, InventoryView view, Inventory inventory, List<MenuItem> items) {
         Player player = context.getPlayer();
         MenuViewer viewer = context.getViewer();
 
@@ -112,26 +109,24 @@ public class WarpListMenu extends AbstractMenu implements LangContainer {
 
         warps.stream().filter(warp -> warp.getMenuPage() == viewer.getCurrentPage()).forEach(warp -> {
             items.add(MenuItem.custom()
-                .defaultState(ItemState.builder()
-                    .icon(warp.getIcon()
-                        .localized(warp.canEdit(player) ? ICON_WARP_MODERATE : ICON_WARP_DEFAULT)
-                        .replace(builder -> builder.with(warp.placeholders()))
-                    )
-                    .action(ctx -> this.module.clickWarp(ctx, warp))
-                    .build()
-                )
-                .slots(warp.getMenuSlots())
-                .build());
+                    .defaultState(ItemState.builder()
+                            .icon(warp.getIcon()
+                                    .localized(warp.canEdit(player) ? ICON_WARP_MODERATE : ICON_WARP_DEFAULT)
+                                    .replace(builder -> builder.with(warp.placeholders())))
+                            .action(ctx -> this.module.clickWarp(ctx, warp))
+                            .build())
+                    .slots(warp.getMenuSlots())
+                    .build());
         });
     }
 
     @Override
-    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onReady(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 
     @Override
-    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onRender(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 }

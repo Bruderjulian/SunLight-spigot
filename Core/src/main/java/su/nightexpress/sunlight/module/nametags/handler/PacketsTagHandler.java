@@ -8,7 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.bridge.paper.PaperBridge;
 import su.nightexpress.nightcore.util.Lists;
 import su.nightexpress.nightcore.util.Version;

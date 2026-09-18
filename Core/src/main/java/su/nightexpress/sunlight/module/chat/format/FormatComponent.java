@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.chat.format;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.config.Writeable;
 

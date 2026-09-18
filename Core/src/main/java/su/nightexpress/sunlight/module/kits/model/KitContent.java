@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import org.bukkit.inventory.ItemStack;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.bridge.item.AdaptedItem;
 import su.nightexpress.nightcore.config.FileConfig;
@@ -19,30 +18,29 @@ public class KitContent implements Writeable {
 
     private final Map<Integer, AdaptedItem> itemBySlotMap;
 
-    public KitContent( Map<Integer, AdaptedItem> itemBySlotMap) {
+    public KitContent(Map<Integer, AdaptedItem> itemBySlotMap) {
         this.itemBySlotMap = itemBySlotMap;
     }
 
-    
     public static KitContent empty() {
         return new KitContent(new HashMap<>());
     }
 
-    
-    public static KitContent copyOf( KitContent other) {
+    public static KitContent copyOf(KitContent other) {
         return new KitContent(new HashMap<>(other.getItemBySlotMap()));
     }
 
-    
-    public static KitContent read( FileConfig config,  String path) {
+    public static KitContent read(FileConfig config, String path) {
         Map<Integer, AdaptedItem> itemBySlotMap = new HashMap<>();
 
         config.getSection(path).forEach(sId -> {
             int slot = Numbers.parseInteger(sId).orElse(-1);
-            if (slot < 0) return;
+            if (slot < 0)
+                return;
 
             AdaptedItem adaptedItem = AdaptedItemStack.read(config, path + "." + sId);
-            if (adaptedItem == null) return;
+            if (adaptedItem == null)
+                return;
 
             itemBySlotMap.put(slot, adaptedItem);
         });
@@ -51,14 +49,13 @@ public class KitContent implements Writeable {
     }
 
     @Override
-    public void write( FileConfig config,  String path) {
+    public void write(FileConfig config, String path) {
         config.remove(path);
 
         this.itemBySlotMap.forEach((slot, adaptedItem) -> config.set(path + "." + slot, adaptedItem));
     }
 
-    
-    public List<ItemStack> give( BiConsumer<Integer, ItemStack> consumer) {
+    public List<ItemStack> give(BiConsumer<Integer, ItemStack> consumer) {
         List<ItemStack> leftovers = new ArrayList<>();
         this.itemBySlotMap.forEach((slot, adaptedItem) -> {
             adaptedItem.itemStack().ifPresent(itemStack -> {
@@ -69,7 +66,6 @@ public class KitContent implements Writeable {
         return leftovers;
     }
 
-    
     public Map<Integer, AdaptedItem> getItemBySlotMap() {
         return this.itemBySlotMap;
     }

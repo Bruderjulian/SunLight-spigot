@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.chat.cache;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.util.TimeUtil;
 
 public class CachedContent {

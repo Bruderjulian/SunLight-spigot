@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.essential.command;
 
 import org.bukkit.permissions.Permission;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.commands.Arguments;
 import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;

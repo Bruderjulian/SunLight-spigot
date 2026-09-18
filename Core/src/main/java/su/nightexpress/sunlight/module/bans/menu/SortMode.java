@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.bans.menu;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.sunlight.module.bans.punishment.AbstractPunishment;
 
 import java.util.Comparator;

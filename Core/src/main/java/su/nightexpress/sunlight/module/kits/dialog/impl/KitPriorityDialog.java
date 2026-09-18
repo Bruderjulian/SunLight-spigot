@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.module.kits.dialog.impl;
 
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.bridge.dialog.wrap.WrappedDialog;
 import su.nightexpress.nightcore.locale.LangEntry;
@@ -22,34 +21,35 @@ public class KitPriorityDialog extends Dialog<Kit> {
     private static final TextLocale TITLE = LangEntry.builder("Kits.Dialog.KitPriority.Title").text("Kit Priority");
 
     private static final DialogElementLocale BODY = LangEntry.builder("Kits.Dialog.KitPriority.Body").dialogElement(400,
-        "Enter kit priority."
-    );
+            "Enter kit priority.");
 
     private static final TextLocale INPUT_ID = LangEntry.builder("Kits.Dialog.KitPriority.Input.Name").text("Priority");
 
     private static final String JSON_PRIORITY = "priority";
 
     @Override
-    
-    public WrappedDialog create( Player player,  Kit kit) {
+
+    public WrappedDialog create(Player player, Kit kit) {
         return Dialogs.builder()
-            .base(DialogBases.builder(TITLE)
-                .body(DialogBodies.plainMessage(BODY))
-                .inputs(DialogInputs.text(JSON_PRIORITY, INPUT_ID).maxLength(8).initial(String.valueOf(kit.definition()
-                    .getPriority())).build())
-                .build()
-            )
-            .type(DialogTypes.multiAction(DialogButtons.ok()).exitAction(DialogButtons.back()).build())
-            .handleResponse(DialogActions.OK, (viewer, identifier, nbtHolder) -> {
-                if (nbtHolder == null) return;
+                .base(DialogBases.builder(TITLE)
+                        .body(DialogBodies.plainMessage(BODY))
+                        .inputs(DialogInputs.text(JSON_PRIORITY, INPUT_ID).maxLength(8)
+                                .initial(String.valueOf(kit.definition()
+                                        .getPriority()))
+                                .build())
+                        .build())
+                .type(DialogTypes.multiAction(DialogButtons.ok()).exitAction(DialogButtons.back()).build())
+                .handleResponse(DialogActions.OK, (viewer, identifier, nbtHolder) -> {
+                    if (nbtHolder == null)
+                        return;
 
-                int priority = nbtHolder.getInt(JSON_PRIORITY).orElse(kit.definition().getPriority());
+                    int priority = nbtHolder.getInt(JSON_PRIORITY).orElse(kit.definition().getPriority());
 
-                kit.definition().setPriority(priority);
-                kit.markDirty();
+                    kit.definition().setPriority(priority);
+                    kit.markDirty();
 
-                viewer.callback();
-            })
-            .build();
+                    viewer.callback();
+                })
+                .build();
     }
 }

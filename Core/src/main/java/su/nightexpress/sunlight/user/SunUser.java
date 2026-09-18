@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.user;
 
-import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 import su.nightexpress.nightcore.user.UserTemplate;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.sunlight.command.CommandKey;

@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.command;
 
-import org.jetbrains.annotations.NotNull;
-
 public record CommandKey(String providerId, String nodeId) {
 
     private static final String DELIMITER = ":";

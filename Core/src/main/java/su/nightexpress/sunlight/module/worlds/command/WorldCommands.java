@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.worlds.command;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.commands.Arguments;
 import su.nightexpress.nightcore.commands.Commands;
 import su.nightexpress.nightcore.commands.builder.ArgumentNodeBuilder;
@@ -25,138 +25,143 @@ import java.util.function.Predicate;
 
 public class WorldCommands extends AbstractCommandProvider {
 
-    public static final String NODE_CREATE = "world_create";
-    public static final String NODE_DELETE = "world_delete";
-    public static final String NODE_EDITOR = "world_editor";
-    public static final String NODE_LOAD = "world_load";
-    public static final String NODE_UNLOAD = "world_unload";
+        public static final String NODE_CREATE = "world_create";
+        public static final String NODE_DELETE = "world_delete";
+        public static final String NODE_EDITOR = "world_editor";
+        public static final String NODE_LOAD = "world_load";
+        public static final String NODE_UNLOAD = "world_unload";
 
-    private final WorldsModule module;
+        private final WorldsModule module;
 
-    public WorldCommands(SunLightPlugin plugin, WorldsModule module) {
-        super(plugin);
-        this.module = module;
-    }
-
-    @Override
-    public void registerDefaults() {
-        this.registerLiteral(NODE_CREATE, true, new String[] { "createworld" }, builder -> builder
-                .description(WorldsLang.COMMAND_CREATE_WORLD_DESC)
-                .permission(WorldsPerms.COMMAND_WORLDS_CREATE)
-                .withArguments(Arguments.string(CommandArguments.NAME).localized(CoreLang.COMMAND_ARGUMENT_NAME_NAME))
-                .executes(this::createWorld));
-
-        this.registerLiteral(NODE_DELETE, true, new String[] { "deleteworld" }, builder -> builder
-                .description(WorldsLang.COMMAND_DELETE_WORLD_DESC)
-                .permission(WorldsPerms.COMMAND_WORLDS_DELETE)
-                .withArguments(dataArgument(module)
-                        .suggestions((reader, context) -> new ArrayList<>(module.getDataMap().keySet())))
-                .executes(this::deleteWorld));
-
-        this.registerLiteral(NODE_EDITOR, true, new String[] { "editworld" }, builder -> builder
-                .playerOnly()
-                .description(WorldsLang.COMMAND_EDITOR_DESC)
-                .permission(WorldsPerms.COMMAND_WORLDS_EDITOR)
-                .executes(this::openEditor));
-
-        this.registerLiteral(NODE_LOAD, true, new String[] { "loadworld" }, builder -> builder
-                .description(WorldsLang.COMMAND_LOAD_WORLD_DESC)
-                .permission(WorldsPerms.COMMAND_WORLDS_LOAD)
-                .withArguments(dataArgument(module).suggestions((reader, context) -> module.getDatas().stream()
-                        .filter(Predicate.not(WorldData::isLoaded)).map(WorldData::getId).toList()))
-                .executes(this::loadWorld));
-
-        this.registerLiteral(NODE_UNLOAD, true, new String[] { "unloadworld" }, builder -> builder
-                .description(WorldsLang.COMMAND_UNLOAD_WORLD_DESC)
-                .permission(WorldsPerms.COMMAND_WORLDS_UNLOAD)
-                .withArguments(dataArgument(module).suggestions((reader, context) -> module.getDatas().stream()
-                        .filter(WorldData::isLoaded).map(WorldData::getId).toList()))
-                .executes(this::unloadWorld));
-
-        this.registerRoot("world_manager", true, new String[] { "worldmanager" },
-                map -> {
-                    map.put(NODE_CREATE, "create");
-                    map.put(NODE_DELETE, "delete");
-                    map.put(NODE_EDITOR, "editor");
-                    map.put(NODE_LOAD, "load");
-                    map.put(NODE_UNLOAD, "unload");
-                },
-                builder -> builder.description(WorldsLang.COMMAND_WORLDS_ROOT_DESC)
-                        .permission(WorldsPerms.COMMAND_WORLDS_ROOT));
-    }
-
-    private static ArgumentNodeBuilder<WorldData> dataArgument(WorldsModule module) {
-        return Commands
-                .argument(CommandArguments.NAME,
-                        (context, str) -> Optional.ofNullable(module.getWorldData(str))
-                                .orElseThrow(() -> CommandSyntaxException
-                                        .custom(WorldsLang.ERROR_COMMAND_INVALID_WORLD_DATA_ARGUMENT)))
-                .localized(CoreLang.COMMAND_ARGUMENT_NAME_NAME);
-    }
-
-    private boolean createWorld(CommandContext context, ParsedArguments arguments) {
-        String name = arguments.getString(CommandArguments.NAME);
-        WorldData worldData = module.createWorldData(name);
-
-        if (worldData == null) {
-            context.send(WorldsLang.COMMAND_CREATE_WORLD_ERROR);
-            return false;
+        public WorldCommands(SunLightPlugin plugin, WorldsModule module) {
+                super(plugin);
+                this.module = module;
         }
 
-        Player player = context.getPlayer();
-        if (player != null) {
-            module.openGenerationSettings(player, worldData);
+        @Override
+        public void registerDefaults() {
+                this.registerLiteral(NODE_CREATE, true, new String[] { "createworld" }, builder -> builder
+                                .description(WorldsLang.COMMAND_CREATE_WORLD_DESC)
+                                .permission(WorldsPerms.COMMAND_WORLDS_CREATE)
+                                .withArguments(Arguments.string(CommandArguments.NAME)
+                                                .localized(CoreLang.COMMAND_ARGUMENT_NAME_NAME))
+                                .executes(this::createWorld));
+
+                this.registerLiteral(NODE_DELETE, true, new String[] { "deleteworld" }, builder -> builder
+                                .description(WorldsLang.COMMAND_DELETE_WORLD_DESC)
+                                .permission(WorldsPerms.COMMAND_WORLDS_DELETE)
+                                .withArguments(dataArgument(module)
+                                                .suggestions((reader, context) -> new ArrayList<>(
+                                                                module.getDataMap().keySet())))
+                                .executes(this::deleteWorld));
+
+                this.registerLiteral(NODE_EDITOR, true, new String[] { "editworld" }, builder -> builder
+                                .playerOnly()
+                                .description(WorldsLang.COMMAND_EDITOR_DESC)
+                                .permission(WorldsPerms.COMMAND_WORLDS_EDITOR)
+                                .executes(this::openEditor));
+
+                this.registerLiteral(NODE_LOAD, true, new String[] { "loadworld" }, builder -> builder
+                                .description(WorldsLang.COMMAND_LOAD_WORLD_DESC)
+                                .permission(WorldsPerms.COMMAND_WORLDS_LOAD)
+                                .withArguments(dataArgument(module)
+                                                .suggestions((reader, context) -> module.getDatas().stream()
+                                                                .filter(Predicate.not(WorldData::isLoaded))
+                                                                .map(WorldData::getId).toList()))
+                                .executes(this::loadWorld));
+
+                this.registerLiteral(NODE_UNLOAD, true, new String[] { "unloadworld" }, builder -> builder
+                                .description(WorldsLang.COMMAND_UNLOAD_WORLD_DESC)
+                                .permission(WorldsPerms.COMMAND_WORLDS_UNLOAD)
+                                .withArguments(dataArgument(module).suggestions((reader, context) -> module.getDatas()
+                                                .stream()
+                                                .filter(WorldData::isLoaded).map(WorldData::getId).toList()))
+                                .executes(this::unloadWorld));
+
+                this.registerRoot("world_manager", true, new String[] { "worldmanager" },
+                                map -> {
+                                        map.put(NODE_CREATE, "create");
+                                        map.put(NODE_DELETE, "delete");
+                                        map.put(NODE_EDITOR, "editor");
+                                        map.put(NODE_LOAD, "load");
+                                        map.put(NODE_UNLOAD, "unload");
+                                },
+                                builder -> builder.description(WorldsLang.COMMAND_WORLDS_ROOT_DESC)
+                                                .permission(WorldsPerms.COMMAND_WORLDS_ROOT));
         }
 
-        context.send(WorldsLang.COMMAND_CREATE_WORLD_DONE,
-                replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
-        return true;
-    }
-
-    private boolean deleteWorld(CommandContext context, ParsedArguments arguments) {
-        WorldData worldData = arguments.get(CommandArguments.NAME, WorldData.class);
-
-        if (!worldData.delete(DeletionType.FULL)) {
-            context.send(WorldsLang.COMMAND_DELETE_WORLD_ERROR,
-                    replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
-            return false;
+        private static ArgumentNodeBuilder<WorldData> dataArgument(WorldsModule module) {
+                return Commands
+                                .argument(CommandArguments.NAME,
+                                                (context, str) -> Optional.ofNullable(module.getWorldData(str))
+                                                                .orElseThrow(() -> CommandSyntaxException
+                                                                                .custom(WorldsLang.ERROR_COMMAND_INVALID_WORLD_DATA_ARGUMENT)))
+                                .localized(CoreLang.COMMAND_ARGUMENT_NAME_NAME);
         }
 
-        context.send(WorldsLang.COMMAND_DELETE_WORLD_DONE,
-                replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
-        return true;
-    }
+        private boolean createWorld(CommandContext context, ParsedArguments arguments) {
+                String name = arguments.getString(CommandArguments.NAME);
+                WorldData worldData = module.createWorldData(name);
 
-    private boolean openEditor(CommandContext context, ParsedArguments arguments) {
-        Player player = context.getPlayerOrThrow();
-        module.openEditor(player);
-        return true;
-    }
+                if (worldData == null) {
+                        context.send(WorldsLang.COMMAND_CREATE_WORLD_ERROR);
+                        return false;
+                }
 
-    private boolean loadWorld(CommandContext context, ParsedArguments arguments) {
-        WorldData worldData = arguments.get(CommandArguments.NAME, WorldData.class);
+                Player player = context.getPlayer();
+                if (player != null) {
+                        module.openGenerationSettings(player, worldData);
+                }
 
-        if (worldData.loadWorld() == null) {
-            context.send(WorldsLang.COMMAND_LOAD_WORLD_ERROR,
-                    replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
-            return false;
+                context.send(WorldsLang.COMMAND_CREATE_WORLD_DONE,
+                                replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
+                return true;
         }
 
-        context.send(WorldsLang.COMMAND_LOAD_WORLD_DONE,
-                replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
-        return true;
-    }
+        private boolean deleteWorld(CommandContext context, ParsedArguments arguments) {
+                WorldData worldData = arguments.get(CommandArguments.NAME, WorldData.class);
 
-    private boolean unloadWorld(CommandContext context, ParsedArguments arguments) {
-        WorldData worldData = arguments.get(CommandArguments.NAME, WorldData.class);
+                if (!worldData.delete(DeletionType.FULL)) {
+                        context.send(WorldsLang.COMMAND_DELETE_WORLD_ERROR,
+                                        replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
+                        return false;
+                }
 
-        if (!this.module.unloadWorld(worldData)) {
-            context.send(WorldsLang.COMMAND_UNLOAD_WORLD_ERROR);
-            return false;
+                context.send(WorldsLang.COMMAND_DELETE_WORLD_DONE,
+                                replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
+                return true;
         }
 
-        context.send(WorldsLang.COMMAND_UNLOAD_WORLD_DONE,
-                replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
-        return true;
-    }
+        private boolean openEditor(CommandContext context, ParsedArguments arguments) {
+                Player player = context.getPlayerOrThrow();
+                module.openEditor(player);
+                return true;
+        }
+
+        private boolean loadWorld(CommandContext context, ParsedArguments arguments) {
+                WorldData worldData = arguments.get(CommandArguments.NAME, WorldData.class);
+
+                if (worldData.loadWorld() == null) {
+                        context.send(WorldsLang.COMMAND_LOAD_WORLD_ERROR,
+                                        replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
+                        return false;
+                }
+
+                context.send(WorldsLang.COMMAND_LOAD_WORLD_DONE,
+                                replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
+                return true;
+        }
+
+        private boolean unloadWorld(CommandContext context, ParsedArguments arguments) {
+                WorldData worldData = arguments.get(CommandArguments.NAME, WorldData.class);
+
+                if (!this.module.unloadWorld(worldData)) {
+                        context.send(WorldsLang.COMMAND_UNLOAD_WORLD_ERROR);
+                        return false;
+                }
+
+                context.send(WorldsLang.COMMAND_UNLOAD_WORLD_DONE,
+                                replacer -> replacer.replace(Placeholders.WORLD_ID, worldData.getId()));
+                return true;
+        }
 }

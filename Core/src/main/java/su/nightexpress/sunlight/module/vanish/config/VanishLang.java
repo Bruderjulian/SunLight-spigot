@@ -12,13 +12,13 @@ import static su.nightexpress.sunlight.SLPlaceholders.PLAYER_DISPLAY_NAME;
 
 public class VanishLang implements LangContainer {
 
-    public static final TextLocale COMMAND_VANISH_DESC = LangEntry.builder("Command.Vanish.Desc").text("Toggle Vanish.");
+    public static final TextLocale COMMAND_VANISH_DESC = LangEntry.builder("Command.Vanish.Desc")
+            .text("Toggle Vanish.");
 
     public static final MessageLocale COMMAND_VANISH_NOTIFY = LangEntry.builder("Command.Vanish.Notify").chatMessage(
-        LIGHT_GRAY.wrap("Vanish has been set on " + LIGHT_YELLOW.wrap(GENERIC_STATE) + ".")
-    );
+            LIGHT_GRAY.wrap("Vanish has been set on " + LIGHT_YELLOW.wrap(GENERIC_STATE) + "."));
 
     public static final MessageLocale COMMAND_VANISH_TARGET = LangEntry.builder("Command.Vanish.Target").chatMessage(
-        LIGHT_GRAY.wrap("Set Vanish on " + LIGHT_YELLOW.wrap(GENERIC_STATE) + " for " + LIGHT_YELLOW.wrap(PLAYER_DISPLAY_NAME) + ".")
-    );
+            LIGHT_GRAY.wrap("Set Vanish on " + LIGHT_YELLOW.wrap(GENERIC_STATE) + " for "
+                    + LIGHT_YELLOW.wrap(PLAYER_DISPLAY_NAME) + "."));
 }

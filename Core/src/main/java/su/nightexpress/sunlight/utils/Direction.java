@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.utils;
 
 import org.bukkit.block.BlockFace;
-import org.jetbrains.annotations.NotNull;
 
 public enum Direction {
 

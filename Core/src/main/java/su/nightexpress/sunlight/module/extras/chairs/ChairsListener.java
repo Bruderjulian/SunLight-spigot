@@ -17,7 +17,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.manager.AbstractListener;
 import su.nightexpress.nightcore.util.LocationUtil;
 import su.nightexpress.sunlight.SunLightPlugin;

@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.module.chat.rule;
 
-import org.jetbrains.annotations.NotNull;
-
 public class RuleHandler {
 
     private final TrieNode node;

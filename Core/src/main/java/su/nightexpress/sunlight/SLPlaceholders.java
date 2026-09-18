@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.util.text.tag.Tags;
 
 import java.util.function.Function;

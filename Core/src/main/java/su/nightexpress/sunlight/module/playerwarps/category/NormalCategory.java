@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.playerwarps.category;
 
-import org.jspecify.annotations.NonNull;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.config.Writeable;
 import su.nightexpress.nightcore.util.LowerCase;
@@ -14,17 +13,17 @@ import java.util.List;
 
 public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writeable {
 
-    private final String       id;
-    private final String       name;
-    private final boolean      primary;
+    private final String id;
+    private final String name;
+    private final boolean primary;
     private final List<String> description;
-    private final NightItem    icon;
+    private final NightItem icon;
 
-    public NormalCategory( String id,
-                           String name,
-                          boolean primary,
-                           List<String> description,
-                           NightItem icon) {
+    public NormalCategory(String id,
+            String name,
+            boolean primary,
+            List<String> description,
+            NightItem icon) {
         this.id = id;
         this.name = name;
         this.primary = primary;
@@ -32,8 +31,7 @@ public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writ
         this.icon = icon;
     }
 
-    
-    public static NormalCategory read( FileConfig config,  String path) {
+    public static NormalCategory read(FileConfig config, String path) {
         String id = LowerCase.INTERNAL.apply(config.getString(path + ".Id", "null"));
         String name = config.getString(path + ".Name", id);
         boolean primary = config.getBoolean(path + ".Primary");
@@ -44,7 +42,7 @@ public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writ
     }
 
     @Override
-    public void write( FileConfig config,  String path) {
+    public void write(FileConfig config, String path) {
         config.set(path + ".Id", this.id);
         config.set(path + ".Name", this.name);
         config.set(path + ".Primary", this.primary);
@@ -53,21 +51,19 @@ public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writ
     }
 
     @Override
-    
+
     public PlaceholderResolver placeholders() {
         return PlayerWarpsPlaceholders.CATEGORY.resolver(this);
     }
 
-    public boolean isWarpOfThis( PlayerWarp warp) {
+    public boolean isWarpOfThis(PlayerWarp warp) {
         return warp.getCategoryId().equalsIgnoreCase(this.id);
     }
 
-    
     public String id() {
         return this.id;
     }
 
-    
     public String name() {
         return this.name;
     }
@@ -76,12 +72,10 @@ public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writ
         return this.primary;
     }
 
-    
     public List<String> description() {
         return List.copyOf(this.description);
     }
 
-    
     public NightItem icon() {
         return this.icon.copy();
     }

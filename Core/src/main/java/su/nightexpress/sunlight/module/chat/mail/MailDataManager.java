@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.chat.mail;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.db.column.Column;
 import su.nightexpress.nightcore.db.statement.condition.Operator;
 import su.nightexpress.nightcore.db.statement.condition.Wheres;

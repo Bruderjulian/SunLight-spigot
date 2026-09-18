@@ -14,7 +14,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.locale.LangContainer;
@@ -32,33 +31,33 @@ import su.nightexpress.sunlight.module.spawns.config.SpawnsLang;
 public class SpawnListEditor extends AbstractMenu implements LangContainer {
 
     private static final IconLocale SPAWN_OBJECT = LangEntry.iconBuilder("Spawns.Editor.SpawnsList.Spawn")
-        .accentColor(YELLOW)
-        .name(SPAWN_NAME)
-        .appendCurrent("ID", SPAWN_ID).br()
-        .appendClick("Click to edit")
-        .build();
+            .accentColor(YELLOW)
+            .name(SPAWN_NAME)
+            .appendCurrent("ID", SPAWN_ID).br()
+            .appendClick("Click to edit")
+            .build();
 
-    private final SpawnsModule         module;
+    private final SpawnsModule module;
     private final ItemPopulator<Spawn> spawnPopulator;
 
-    public SpawnListEditor( SunLightPlugin plugin,  SpawnsModule module) {
+    public SpawnListEditor(SunLightPlugin plugin, SpawnsModule module) {
         super(MenuType.GENERIC_9X5, SpawnsLang.EDITOR_TITLE_LIST.text());
         this.module = module;
 
         plugin.injectLang(this);
 
         this.spawnPopulator = ItemPopulator.builder(Spawn.class)
-            .slots(IntStream.range(0, 36).toArray())
-            .itemProvider((context, spawn) -> {
-                return spawn.getIcon()
-                    .hideAllComponents()
-                    .localized(SPAWN_OBJECT)
-                    .replace(builder -> builder.with(spawn.placeholders()));
-            })
-            .actionProvider(spawn -> context -> {
-                this.module.openSpawnSettings(context.getPlayer(), spawn);
-            })
-            .build();
+                .slots(IntStream.range(0, 36).toArray())
+                .itemProvider((context, spawn) -> {
+                    return spawn.getIcon()
+                            .hideAllComponents()
+                            .localized(SPAWN_OBJECT)
+                            .replace(builder -> builder.with(spawn.placeholders()));
+                })
+                .actionProvider(spawn -> context -> {
+                    this.module.openSpawnSettings(context.getPlayer(), spawn);
+                })
+                .build();
 
         this.load(plugin);
     }
@@ -80,41 +79,41 @@ public class SpawnListEditor extends AbstractMenu implements LangContainer {
     }
 
     @Override
-    protected void onLoad( FileConfig config) {
+    protected void onLoad(FileConfig config) {
 
     }
 
     @Override
-    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
+    protected void onClick(ViewerContext context, InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
+    protected void onDrag(ViewerContext context, InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
+    protected void onClose(ViewerContext context, InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
+    public void onPrepare(ViewerContext context, InventoryView view, Inventory inventory, List<MenuItem> items) {
         List<Spawn> spawns = this.module.getSpawns().stream()
-            .sorted(Comparator.comparingInt(Spawn::getPriority).reversed().thenComparing(Spawn::getName))
-            .toList();
+                .sorted(Comparator.comparingInt(Spawn::getPriority).reversed().thenComparing(Spawn::getName))
+                .toList();
 
         this.spawnPopulator.populateTo(context, spawns, items);
     }
 
     @Override
-    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onReady(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 
     @Override
-    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onRender(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 }

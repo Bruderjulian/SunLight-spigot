@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.chat.rule;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.util.LowerCase;
 
 import java.util.ArrayList;

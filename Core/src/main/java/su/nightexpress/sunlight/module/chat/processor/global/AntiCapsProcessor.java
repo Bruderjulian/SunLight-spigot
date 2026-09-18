@@ -6,7 +6,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.Players;
@@ -17,17 +16,16 @@ import su.nightexpress.sunlight.module.chat.processor.ChatProcessor;
 public class AntiCapsProcessor implements ChatProcessor<ChatContext> {
 
     @Override
-    public void preProcess( ChatModule module,  ChatContext context) {
+    public void preProcess(ChatModule module, ChatContext context) {
         context.setMessage(this.moderateUpperCase(module, context.getMessage()));
     }
 
     @Override
-    public void postProcess( ChatModule module,  ChatContext context) {
+    public void postProcess(ChatModule module, ChatContext context) {
 
     }
 
-    
-    private String moderateUpperCase( ChatModule module,  String message) {
+    private String moderateUpperCase(ChatModule module, String message) {
         String[] words = message.split(" ");
 
         int totalUpperCase = 0;
@@ -61,26 +59,30 @@ public class AntiCapsProcessor implements ChatProcessor<ChatContext> {
         double percent = (double) totalUpperCase / (double) messageLength;
         double threshold = module.getSettings().getAntiCapsUpperCaseThreshold() / 100D;
 
-        if (percent < threshold) return message;
+        if (percent < threshold)
+            return message;
 
         StringBuilder builder = new StringBuilder();
 
         indexesToModerate.forEach((index, function) -> {
             String moderated = function.apply(words[index]);
 
-            if (!builder.isEmpty()) builder.append(" ");
+            if (!builder.isEmpty())
+                builder.append(" ");
             builder.append(moderated);
         });
 
         return builder.toString();
     }
 
-    private static int countUpperCaseLetters( String string) {
+    private static int countUpperCaseLetters(String string) {
         int count = 0;
 
         for (char c : string.toCharArray()) {
-            if (!Character.isLetter(c) || Character.isWhitespace(c)) continue;
-            if (Character.isUpperCase(c)) count++;
+            if (!Character.isLetter(c) || Character.isWhitespace(c))
+                continue;
+            if (Character.isUpperCase(c))
+                count++;
         }
 
         return count;

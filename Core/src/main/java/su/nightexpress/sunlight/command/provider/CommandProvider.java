@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.command.provider;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.commands.builder.HubNodeBuilder;
 import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
 import su.nightexpress.nightcore.config.FileConfig;

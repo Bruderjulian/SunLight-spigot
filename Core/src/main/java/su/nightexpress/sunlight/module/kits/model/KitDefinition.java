@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.kits.model;
 
 import org.bukkit.Material;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.util.bukkit.NightItem;
 
 import java.util.ArrayList;

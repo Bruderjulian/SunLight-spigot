@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.chat.mention;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.config.Writeable;
 import su.nightexpress.nightcore.util.Lists;

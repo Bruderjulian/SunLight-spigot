@@ -24,8 +24,6 @@ import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.Colorable;
-import org.jspecify.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -34,7 +32,6 @@ import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.NumberUtil;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.StringUtil;
-import su.nightexpress.nightcore.util.geodata.pos.BlockPos;
 import su.nightexpress.nightcore.util.geodata.pos.ExactPos;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
@@ -243,19 +240,19 @@ public class HomesModule extends Module {
     }
 
     public boolean openHomes(Player player, UUID target) {
-        return this.homesMenu.show(this.plugin, player, target);
+        return this.homesMenu.show(player, target);
     }
 
     public boolean openHomeSettings(Player player, Home home) {
-        return this.homeMenu.show(this.plugin, player, home);
+        return this.homeMenu.show(player, home);
     }
 
     public boolean openIconSelection(Player player, Home home) {
-        return this.iconSelectionMenu.show(this.plugin, player, home);
+        return this.iconSelectionMenu.show(player, home);
     }
 
     public boolean openInvitedPlayersMenu(Player player, Home home) {
-        return this.invitedPlayersMenu.show(this.plugin, player, home);
+        return this.invitedPlayersMenu.show(player, home);
     }
 
     public boolean canCreateMoreHomes(Player player) {

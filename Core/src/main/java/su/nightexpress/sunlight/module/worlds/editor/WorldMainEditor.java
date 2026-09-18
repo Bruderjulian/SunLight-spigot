@@ -4,7 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.menu.MenuOptions;
 import su.nightexpress.nightcore.menu.MenuSize;
 import su.nightexpress.nightcore.menu.MenuViewer;

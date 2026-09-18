@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.command.mode;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.function.Function;
 
 public enum ToggleMode {

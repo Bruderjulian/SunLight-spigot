@@ -3,8 +3,7 @@ package su.nightexpress.sunlight.module.greetings;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.EventUtils;
 import su.nightexpress.nightcore.util.bridge.wrapper.NightComponent;

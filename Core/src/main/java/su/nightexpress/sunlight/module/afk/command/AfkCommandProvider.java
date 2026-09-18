@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.module.afk.command;
 
-import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.commands.Arguments;
 import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
 import su.nightexpress.nightcore.commands.context.CommandContext;

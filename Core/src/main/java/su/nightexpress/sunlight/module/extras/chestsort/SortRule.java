@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.module.extras.chestsort;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.util.Colorizer;
 import su.nightexpress.nightcore.util.ItemUtil;
 

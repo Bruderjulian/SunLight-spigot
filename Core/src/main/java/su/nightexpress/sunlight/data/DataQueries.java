@@ -22,14 +22,12 @@ public class DataQueries {
             return UserColumns.INET_ADDRESS.read(resultSet).map(string -> {
                 try {
                     return InetAddress.getByName(string);
-                }
-                catch (UnknownHostException exception) {
+                } catch (UnknownHostException exception) {
                     exception.printStackTrace();
                     return null;
                 }
             }).orElse(null);
-        }
-        catch (SQLException exception) {
+        } catch (SQLException exception) {
             exception.printStackTrace();
             return null;
         }
@@ -41,8 +39,7 @@ public class DataQueries {
             String name = UserColumns.NAME.read(resultSet).orElseThrow();
 
             return new UserInfo(uuid, name);
-        }
-        catch (SQLException exception) {
+        } catch (SQLException exception) {
             exception.printStackTrace();
             return null;
         }
@@ -59,41 +56,45 @@ public class DataQueries {
             Map<String, Object> properties = UserColumns.PROPERTIES.readOrThrow(resultSet);
 
             return new SunUser(uuid, name, dateCreated, lastOnline, latestAddress, commandCooldowns, properties);
-        }
-        catch (SQLException exception) {
+        } catch (SQLException exception) {
             exception.printStackTrace();
             return null;
         }
     };
 
     public static final UpdateStatement<SunUser> UPDATE_USER = UpdateStatement.builder(SunUser.class)
-        .setUUID(UserColumns.UUID, UserTemplate::getId)
-        .setString(UserColumns.NAME, UserTemplate::getName)
-        .setLong(UserColumns.LAST_ONLINE, SunUser::getLastOnline)
-        .setString(UserColumns.INET_ADDRESS, user -> user.getLatestAddress().map(InetAddress::getHostAddress).orElse("0.0.0.0"))
-        .setString(UserColumns.COMMAND_COOLDOWNS, user -> DataHandler.GSON.toJson(user.getCommandCooldowns()))
-        .setString(UserColumns.PROPERTIES, user -> DataHandler.GSON.toJson(user.getPropertiesToSave()))
-        .build();
+            .setUUID(UserColumns.UUID, UserTemplate::getId)
+            .setString(UserColumns.NAME, UserTemplate::getName)
+            .setLong(UserColumns.LAST_ONLINE, SunUser::getLastOnline)
+            .setString(UserColumns.INET_ADDRESS,
+                    user -> user.getLatestAddress().map(InetAddress::getHostAddress).orElse("0.0.0.0"))
+            .setString(UserColumns.COMMAND_COOLDOWNS, user -> DataHandler.GSON.toJson(user.getCommandCooldowns()))
+            .setString(UserColumns.PROPERTIES, user -> DataHandler.GSON.toJson(user.getPropertiesToSave()))
+            .build();
 
     public static final UpdateStatement<SunUser> UPDATE_USER_TINY = UpdateStatement.builder(SunUser.class)
-        .setString(UserColumns.NAME, UserTemplate::getName)
-        .setString(UserColumns.INET_ADDRESS, user -> user.getLatestAddress().map(InetAddress::getHostAddress).orElse("0.0.0.0"))
-        .setLong(UserColumns.LAST_ONLINE, SunUser::getLastOnline)
-        .build();
+            .setString(UserColumns.NAME, UserTemplate::getName)
+            .setString(UserColumns.INET_ADDRESS,
+                    user -> user.getLatestAddress().map(InetAddress::getHostAddress).orElse("0.0.0.0"))
+            .setLong(UserColumns.LAST_ONLINE, SunUser::getLastOnline)
+            .build();
 
     public static final InsertStatement<SunUser> INSERT_USER = InsertStatement.builder(SunUser.class)
-        .setUUID(UserColumns.UUID, UserTemplate::getId)
-        .setString(UserColumns.NAME, UserTemplate::getName)
-        .setLong(UserColumns.DATE_CREATED, SunUser::getDateCreated)
-        .setLong(UserColumns.LAST_ONLINE, SunUser::getLastOnline)
-        .setString(UserColumns.INET_ADDRESS, user -> user.getLatestAddress().map(InetAddress::getHostAddress).orElse("0.0.0.0"))
-        .setString(UserColumns.COMMAND_COOLDOWNS, user -> DataHandler.GSON.toJson(user.getCommandCooldowns()))
-        .setString(UserColumns.PROPERTIES, user -> DataHandler.GSON.toJson(user.getPropertiesToSave()))
-        .build();
+            .setUUID(UserColumns.UUID, UserTemplate::getId)
+            .setString(UserColumns.NAME, UserTemplate::getName)
+            .setLong(UserColumns.DATE_CREATED, SunUser::getDateCreated)
+            .setLong(UserColumns.LAST_ONLINE, SunUser::getLastOnline)
+            .setString(UserColumns.INET_ADDRESS,
+                    user -> user.getLatestAddress().map(InetAddress::getHostAddress).orElse("0.0.0.0"))
+            .setString(UserColumns.COMMAND_COOLDOWNS, user -> DataHandler.GSON.toJson(user.getCommandCooldowns()))
+            .setString(UserColumns.PROPERTIES, user -> DataHandler.GSON.toJson(user.getPropertiesToSave()))
+            .build();
 
     public static final SelectStatement<SunUser> SELECT_USER = SelectStatement.builder(USER_MAPPER).build();
 
-    public static final SelectStatement<UserInfo> SELECT_PROFILE = SelectStatement.builder(PROFILE_MAPPER).column(UserColumns.NAME, UserColumns.UUID).build();
+    public static final SelectStatement<UserInfo> SELECT_PROFILE = SelectStatement.builder(PROFILE_MAPPER)
+            .column(UserColumns.NAME, UserColumns.UUID).build();
 
-    public static final SelectStatement<InetAddress> SELECT_INET = SelectStatement.builder(INET_MAPPER).column(UserColumns.INET_ADDRESS).build();
+    public static final SelectStatement<InetAddress> SELECT_INET = SelectStatement.builder(INET_MAPPER)
+            .column(UserColumns.INET_ADDRESS).build();
 }

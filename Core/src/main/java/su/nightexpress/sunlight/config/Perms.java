@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.config;
 
 import org.bukkit.permissions.Permission;
-import org.jetbrains.annotations.NotNull;
 
 public class Perms {
 

@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.module.bans.punishment;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.util.TimeUtil;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 

@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.module.chat.cache;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.TimeUtil;
 import su.nightexpress.sunlight.user.cache.UserCacheContainer;

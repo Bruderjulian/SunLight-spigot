@@ -14,7 +14,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.MenuType;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.bridge.item.AdaptedItem;
 import su.nightexpress.nightcore.config.FileConfig;
@@ -40,10 +39,10 @@ public class IconSelectionMenu extends AbstractObjectMenu<Home> {
 
     private ItemPopulator<HomeIcon> iconPopulator;
 
-    private record HomeIcon( String id,  AdaptedItem adaptedItem) {
+    private record HomeIcon(String id, AdaptedItem adaptedItem) {
     }
 
-    public IconSelectionMenu( SunLightPlugin plugin,  HomesModule module) {
+    public IconSelectionMenu(SunLightPlugin plugin, HomesModule module) {
         super(MenuType.GENERIC_9X4, "Icon Selection", Home.class);
         this.module = module;
 
@@ -65,61 +64,61 @@ public class IconSelectionMenu extends AbstractObjectMenu<Home> {
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(27, 36).toArray());
 
         this.addDefaultButton("return", MenuItem.button()
-            .defaultState(ItemState.builder()
-                .icon(NightItem.fromType(Material.IRON_DOOR).setDisplayName(WHITE.wrap("Return")))
-                .action(context -> this.module.openHomeSettings(context.getPlayer(), this.getObject(context)))
-                .build()
-            )
-            .slots(31)
-            .build()
-        );
+                .defaultState(ItemState.builder()
+                        .icon(NightItem.fromType(Material.IRON_DOOR).setDisplayName(WHITE.wrap("Return")))
+                        .action(context -> this.module.openHomeSettings(context.getPlayer(), this.getObject(context)))
+                        .build())
+                .slots(31)
+                .build());
     }
 
     @Override
-    protected void onLoad( FileConfig config) {
+    protected void onLoad(FileConfig config) {
         int[] iconSlots = ConfigProperty.of(ConfigTypes.INT_ARRAY, "Icons.Slots", IntStream.range(0, 27).toArray())
-            .resolveWithDefaults(config);
+                .resolveWithDefaults(config);
 
         this.iconPopulator = ItemPopulator.builder(HomeIcon.class)
-            .actionProvider(homeIcon -> context -> {
-                Home home = this.getObject(context);
+                .actionProvider(homeIcon -> context -> {
+                    Home home = this.getObject(context);
 
-                home.setIconId(homeIcon.id());
-                home.markDirty();
+                    home.setIconId(homeIcon.id());
+                    home.markDirty();
 
-                this.module.openHomeSettings(context.getPlayer(), this.getObject(context));
-            })
-            .itemProvider((context, homeIcon) -> {
-                ItemStack itemStack = homeIcon.adaptedItem.getItemStack();
-                if (itemStack == null) return NightItem.fromType(Material.AIR);
+                    this.module.openHomeSettings(context.getPlayer(), this.getObject(context));
+                })
+                .itemProvider((context, homeIcon) -> {
+                    ItemStack itemStack = homeIcon.adaptedItem.getItemStack();
+                    if (itemStack == null)
+                        return NightItem.fromType(Material.AIR);
 
-                return NightItem.fromItemStack(itemStack)
-                    .localized(HomesLang.UI_ICON_SELECTION_ICON)
-                    .replace(builder -> builder.with(SLPlaceholders.GENERIC_NAME, () -> ItemUtil.getNameSerialized(
-                        itemStack)))
-                    .hideAllComponents();
-            })
-            .slots(iconSlots)
-            .build();
+                    return NightItem.fromItemStack(itemStack)
+                            .localized(HomesLang.UI_ICON_SELECTION_ICON)
+                            .replace(builder -> builder.with(SLPlaceholders.GENERIC_NAME,
+                                    () -> ItemUtil.getNameSerialized(
+                                            itemStack)))
+                            .hideAllComponents();
+                })
+                .slots(iconSlots)
+                .build();
     }
 
     @Override
-    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
-
-    }
-
-    @Override
-    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
-
-    }
-
-    @Override
-    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
+    protected void onClick(ViewerContext context, InventoryClickEvent event) {
 
     }
 
     @Override
-    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
+    protected void onDrag(ViewerContext context, InventoryDragEvent event) {
+
+    }
+
+    @Override
+    protected void onClose(ViewerContext context, InventoryCloseEvent event) {
+
+    }
+
+    @Override
+    public void onPrepare(ViewerContext context, InventoryView view, Inventory inventory, List<MenuItem> items) {
         List<HomeIcon> icons = new ArrayList<>();
 
         this.module.getSettings().getIconPresets().forEach((id, item) -> {
@@ -130,12 +129,12 @@ public class IconSelectionMenu extends AbstractObjectMenu<Home> {
     }
 
     @Override
-    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onReady(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 
     @Override
-    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
+    public void onRender(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 }

@@ -1,8 +1,7 @@
 package su.nightexpress.sunlight.module.scheduler.announcer;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.random.Rnd;

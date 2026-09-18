@@ -2,8 +2,7 @@ package su.nightexpress.sunlight.module.afk;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
 import su.nightexpress.nightcore.bridge.chat.UniversalChatEvent;
 import su.nightexpress.nightcore.bridge.chat.UniversalChatEventHandler;
 import su.nightexpress.nightcore.config.FileConfig;

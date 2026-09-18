@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.function.Consumer;
 
 import org.bukkit.command.CommandSender;
-import org.jspecify.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;

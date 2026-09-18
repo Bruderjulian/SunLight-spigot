@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.module.kits.model;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.bridge.item.AdaptedItem;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.integration.item.impl.AdaptedVanillaStack;

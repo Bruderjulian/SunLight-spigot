@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.module.essential.command;
 
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
-import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.commands.Arguments;
 import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
@@ -24,58 +24,63 @@ import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_COMMAND;
 
 public class ForceRunCommandProvider extends AbstractCommandProvider {
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("forcerun");
-    private static final Permission PERMISSION_BYPASS = EssentialPerms.COMMAND.permission("forcerun.bypass");
+        private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("forcerun");
+        private static final Permission PERMISSION_BYPASS = EssentialPerms.COMMAND.permission("forcerun.bypass");
 
-    private static final TextLocale DESCRIPTION = LangEntry.builder("Command.ForceRun.Description")
-            .text("Force player to execute a command.");
+        private static final TextLocale DESCRIPTION = LangEntry.builder("Command.ForceRun.Description")
+                        .text("Force player to execute a command.");
 
-    private static final MessageLocale MESSAGE_FORCED_FEEDBACK = LangEntry.builder("Command.ForceRun.Forced.Feedback")
-            .chatMessage(
-                    GRAY.wrap("You have forced " + WHITE.wrap(PLAYER_DISPLAY_NAME) + " to execute: "
-                            + SOFT_YELLOW.wrap(GENERIC_COMMAND)));
+        private static final MessageLocale MESSAGE_FORCED_FEEDBACK = LangEntry
+                        .builder("Command.ForceRun.Forced.Feedback")
+                        .chatMessage(
+                                        GRAY.wrap("You have forced " + WHITE.wrap(PLAYER_DISPLAY_NAME) + " to execute: "
+                                                        + SOFT_YELLOW.wrap(GENERIC_COMMAND)));
 
-    private static final MessageLocale MESSAGE_IMMUNITY = LangEntry.builder("Command.ForceRun.Immunity").chatMessage(
-            GRAY.wrap("Player " + WHITE.wrap(PLAYER_DISPLAY_NAME) + " is immune to this command."));
+        private static final MessageLocale MESSAGE_IMMUNITY = LangEntry.builder("Command.ForceRun.Immunity")
+                        .chatMessage(
+                                        GRAY.wrap("Player " + WHITE.wrap(PLAYER_DISPLAY_NAME)
+                                                        + " is immune to this command."));
 
-    private final EssentialModule module;
+        private final EssentialModule module;
 
-    public ForceRunCommandProvider(SunLightPlugin plugin, EssentialModule module) {
-        super(plugin);
-        this.module = module;
-    }
-
-    @Override
-    public void registerDefaults() {
-        this.registerLiteral("forcerun", true, new String[] { "forcerun" }, builder -> builder
-                .description(DESCRIPTION)
-                .permission(PERMISSION)
-                .withArguments(
-                        Arguments.player(CommandArguments.PLAYER),
-                        Arguments.greedyString(CommandArguments.TEXT).localized(Lang.COMMAND_ARGUMENT_NAME_COMMAND))
-                .executes(this::forceRun));
-    }
-
-    private boolean forceRun(CommandContext context, ParsedArguments arguments) {
-        Player target = arguments.getPlayer(CommandArguments.PLAYER);
-        if (context.getSender() == target) {
-            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_NOT_YOURSELF, context.getSender()); // TODO Custom
-            return false;
+        public ForceRunCommandProvider(SunLightPlugin plugin, EssentialModule module) {
+                super(plugin);
+                this.module = module;
         }
 
-        if (context.getSender() instanceof Player && target.hasPermission(PERMISSION_BYPASS)) {
-            this.module.sendPrefixed(MESSAGE_IMMUNITY, context.getSender(),
-                    replacer -> replacer.with(CommonPlaceholders.PLAYER.resolver(target)));
-            return false;
+        @Override
+        public void registerDefaults() {
+                this.registerLiteral("forcerun", true, new String[] { "forcerun" }, builder -> builder
+                                .description(DESCRIPTION)
+                                .permission(PERMISSION)
+                                .withArguments(
+                                                Arguments.player(CommandArguments.PLAYER),
+                                                Arguments.greedyString(CommandArguments.TEXT)
+                                                                .localized(Lang.COMMAND_ARGUMENT_NAME_COMMAND))
+                                .executes(this::forceRun));
         }
 
-        String commandToRun = arguments.getString(CommandArguments.TEXT);
+        private boolean forceRun(CommandContext context, ParsedArguments arguments) {
+                Player target = arguments.getPlayer(CommandArguments.PLAYER);
+                if (context.getSender() == target) {
+                        this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_NOT_YOURSELF, context.getSender()); // TODO
+                                                                                                                // Custom
+                        return false;
+                }
 
-        target.performCommand(commandToRun);
+                if (context.getSender() instanceof Player && target.hasPermission(PERMISSION_BYPASS)) {
+                        this.module.sendPrefixed(MESSAGE_IMMUNITY, context.getSender(),
+                                        replacer -> replacer.with(CommonPlaceholders.PLAYER.resolver(target)));
+                        return false;
+                }
 
-        this.module.sendPrefixed(MESSAGE_FORCED_FEEDBACK, context.getSender(), replacer -> replacer
-                .with(GENERIC_COMMAND, () -> commandToRun)
-                .with(CommonPlaceholders.PLAYER.resolver(target)));
-        return true;
-    }
+                String commandToRun = arguments.getString(CommandArguments.TEXT);
+
+                target.performCommand(commandToRun);
+
+                this.module.sendPrefixed(MESSAGE_FORCED_FEEDBACK, context.getSender(), replacer -> replacer
+                                .with(GENERIC_COMMAND, () -> commandToRun)
+                                .with(CommonPlaceholders.PLAYER.resolver(target)));
+                return true;
+        }
 }

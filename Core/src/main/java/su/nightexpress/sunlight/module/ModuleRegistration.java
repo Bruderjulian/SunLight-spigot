@@ -1,7 +1,5 @@
 package su.nightexpress.sunlight.module;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.function.Supplier;
 
 public class ModuleRegistration {

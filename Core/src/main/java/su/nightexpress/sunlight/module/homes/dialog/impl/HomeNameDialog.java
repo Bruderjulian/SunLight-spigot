@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.module.homes.dialog.impl;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 import su.nightexpress.nightcore.bridge.dialog.wrap.WrappedDialog;
 import su.nightexpress.nightcore.locale.LangEntry;
