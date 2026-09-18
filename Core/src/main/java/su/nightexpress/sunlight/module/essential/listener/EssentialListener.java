@@ -13,7 +13,7 @@ public class EssentialListener extends AbstractListener<SunLightPlugin> {
 
     private final EssentialModule module;
 
-    public EssentialListener(@NotNull SunLightPlugin plugin, @NotNull EssentialModule module) {
+    public EssentialListener(SunLightPlugin plugin, EssentialModule module) {
         super(plugin);
         this.module = module;
     }

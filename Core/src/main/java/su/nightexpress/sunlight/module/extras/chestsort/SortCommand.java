@@ -19,61 +19,64 @@ import java.util.Map;
 
 public class SortCommand extends AbstractCommandProvider {
 
-    private static final String COMMAND_OFF    = "off";
-    private static final String COMMAND_ON     = "on";
+    private static final String COMMAND_OFF = "off";
+    private static final String COMMAND_ON = "on";
     private static final String COMMAND_TOGGLE = "toggle";
 
     private final SortManager manager;
 
-    public SortCommand(@NotNull SunLightPlugin plugin, @NotNull SortManager manager) {
+    public SortCommand(SunLightPlugin plugin, SortManager manager) {
         super(plugin);
         this.manager = manager;
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("chestsort", true, new String[]{"chestsort"}, builder -> builder
-            .description(ExtrasLang.COMMAND_CHEST_SORT_DESC)
-            .permission(ExtrasPerms.COMMAND_CHEST_SORT)
-            .withArguments(Arguments.playerName(CommandArguments.PLAYER).permission(ExtrasPerms.COMMAND_CHEST_SORT_OTHERS).optional())
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes((context, arguments) -> this.toggleSorting(context, arguments, ToggleMode.TOGGLE))
-        );
+        this.registerLiteral("chestsort", true, new String[] { "chestsort" }, builder -> builder
+                .description(ExtrasLang.COMMAND_CHEST_SORT_DESC)
+                .permission(ExtrasPerms.COMMAND_CHEST_SORT)
+                .withArguments(Arguments.playerName(CommandArguments.PLAYER)
+                        .permission(ExtrasPerms.COMMAND_CHEST_SORT_OTHERS).optional())
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes((context, arguments) -> this.toggleSorting(context, arguments, ToggleMode.TOGGLE)));
 
-        this.registerRoot("mode", true, new String[]{"sortmode"},
-            Map.of(
-                COMMAND_OFF, "off",
-                COMMAND_ON, "on",
-                COMMAND_TOGGLE, "toggle"
-            ),
-            builder -> builder.description("TODO").permission("TODO") // TODO
+        this.registerRoot("mode", true, new String[] { "sortmode" },
+                Map.of(
+                        COMMAND_OFF, "off",
+                        COMMAND_ON, "on",
+                        COMMAND_TOGGLE, "toggle"),
+                builder -> builder.description("TODO").permission("TODO") // TODO
         );
     }
 
-    private boolean toggleSorting(@NotNull CommandContext context, @NotNull ParsedArguments arguments, @NotNull ToggleMode mode) {
+    private boolean toggleSorting(CommandContext context, ParsedArguments arguments, ToggleMode mode) {
         // TODO
-        /*Player target = this.getTargetOrSender(context, arguments, CommandArguments.PLAYER, true);
-        if (target == null) return false;
-
-        SunUser user = plugin.getUserManager().getOrFetch(target);
-        boolean state = mode.apply(SortManager.isChestSortEnabled(user));
-
-        user.setProperty(SortManager.SETTING_CHEST_SORT, state);
-        //this.plugin.getUserManager().save(user);
-        user.markDirty();
-
-        if (context.getSender() != target) {
-            context.send(ExtrasLang.COMMAND_CHEST_SORT_TARGET, replacer -> replacer
-                .replace(SLPlaceholders.forPlayer(target))
-                .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
-            );
-        }
-
-        if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-            ExtrasLang.COMMAND_CHEST_SORT_NOTIFY.message().send(target, replacer -> replacer
-                .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
-            );
-        }*/
+        /*
+         * Player target = this.getTargetOrSender(context, arguments,
+         * CommandArguments.PLAYER, true);
+         * if (target == null) return false;
+         * 
+         * SunUser user = plugin.getUserManager().getOrFetch(target);
+         * boolean state = mode.apply(SortManager.isChestSortEnabled(user));
+         * 
+         * user.setProperty(SortManager.SETTING_CHEST_SORT, state);
+         * //this.plugin.getUserManager().save(user);
+         * user.markDirty();
+         * 
+         * if (context.getSender() != target) {
+         * context.send(ExtrasLang.COMMAND_CHEST_SORT_TARGET, replacer -> replacer
+         * .replace(SLPlaceholders.forPlayer(target))
+         * .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
+         * );
+         * }
+         * 
+         * if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
+         * ExtrasLang.COMMAND_CHEST_SORT_NOTIFY.message().send(target, replacer ->
+         * replacer
+         * .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
+         * );
+         * }
+         */
 
         return true;
     }

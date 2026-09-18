@@ -15,16 +15,15 @@ import java.util.Set;
 
 public class SpawnRule implements Writeable {
 
-    private boolean     enabled;
+    private boolean enabled;
     private Set<String> ranks;
 
-    public SpawnRule(boolean enabled, @NotNull Set<String> ranks) {
+    public SpawnRule(boolean enabled, Set<String> ranks) {
         this.setEnabled(enabled);
         this.setRanks(ranks);
     }
 
-    @NotNull
-    public static SpawnRule read(@NotNull FileConfig config, @NotNull String path) {
+    public static SpawnRule read(FileConfig config, String path) {
         boolean enabled = config.getBoolean(path + ".Enabled");
         Set<String> ranks = Lists.modify(config.getStringSet(path + ".Ranks"), LowerCase.INTERNAL::apply);
 
@@ -32,14 +31,16 @@ public class SpawnRule implements Writeable {
     }
 
     @Override
-    public void write(@NotNull FileConfig config, @NotNull String path) {
+    public void write(FileConfig config, String path) {
         config.set(path + ".Enabled", this.enabled);
         config.set(path + ".Ranks", this.ranks);
     }
 
-    public boolean isApplicable(@NotNull Player player) {
-        if (!this.enabled) return false;
-        if (this.ranks.contains(SLPlaceholders.WILDCARD)) return true;
+    public boolean isApplicable(Player player) {
+        if (!this.enabled)
+            return false;
+        if (this.ranks.contains(SLPlaceholders.WILDCARD))
+            return true;
 
         Set<String> playerRanks = Players.getInheritanceGroups(player);
         return playerRanks.stream().anyMatch(this.ranks::contains);
@@ -53,12 +54,11 @@ public class SpawnRule implements Writeable {
         this.enabled = enabled;
     }
 
-    @NotNull
     public Set<String> getRanks() {
         return this.ranks;
     }
 
-    public void setRanks(@NotNull Collection<String> ranks) {
+    public void setRanks(Collection<String> ranks) {
         this.ranks = new HashSet<>(ranks);
     }
 }

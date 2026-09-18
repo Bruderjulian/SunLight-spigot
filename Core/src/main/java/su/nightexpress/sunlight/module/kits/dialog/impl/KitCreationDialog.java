@@ -33,8 +33,8 @@ public class KitCreationDialog extends Dialog<KitsModule> {
     private static final String JSON_ID = "id";
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull KitsModule module) {
+    
+    public WrappedDialog create( Player player,  KitsModule module) {
         return Dialogs.builder()
             .base(DialogBases.builder(TITLE)
                 .body(DialogBodies.plainMessage(BODY))

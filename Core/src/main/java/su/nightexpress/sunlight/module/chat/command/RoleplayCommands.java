@@ -21,32 +21,31 @@ public class RoleplayCommands extends AbstractCommandProvider {
 
     private final ChatModule module;
 
-    public RoleplayCommands(@NotNull SunLightPlugin plugin, @NotNull ChatModule module) {
+    public RoleplayCommands(SunLightPlugin plugin, ChatModule module) {
         super(plugin);
         this.module = module;
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("me", true, new String[]{"me"}, builder -> builder
-            .playerOnly()
-            .description(ChatLang.COMMAND_ME_DESC)
-            .permission(ChatPerms.COMMAND_ME)
-            .withArguments(Arguments.greedyString(CommandArguments.TEXT).localized(Lang.COMMAND_ARGUMENT_NAME_TEXT))
-            .executes(this::showAction)
-        );
+        this.registerLiteral("me", true, new String[] { "me" }, builder -> builder
+                .playerOnly()
+                .description(ChatLang.COMMAND_ME_DESC)
+                .permission(ChatPerms.COMMAND_ME)
+                .withArguments(Arguments.greedyString(CommandArguments.TEXT).localized(Lang.COMMAND_ARGUMENT_NAME_TEXT))
+                .executes(this::showAction));
     }
 
-    private boolean showAction(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean showAction(CommandContext context, ParsedArguments arguments) {
         Player player = context.getPlayerOrThrow();
         String text = arguments.getString(CommandArguments.TEXT);
         String format = this.module.getSettings().getRoleplayMeFormat();
 
         String formatted = PlaceholderContext.builder()
-            .with(SLPlaceholders.GENERIC_MESSAGE, () -> text)
-            .with(CommonPlaceholders.PLAYER.resolver(player))
-            .build()
-            .apply(format);
+                .with(SLPlaceholders.GENERIC_MESSAGE, () -> text)
+                .with(CommonPlaceholders.PLAYER.resolver(player))
+                .build()
+                .apply(format);
 
         this.plugin.getServer().getOnlinePlayers().forEach(other -> Players.sendMessage(other, formatted));
         return true;

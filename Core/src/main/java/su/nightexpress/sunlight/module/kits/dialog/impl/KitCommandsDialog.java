@@ -59,8 +59,8 @@ public class KitCommandsDialog extends Dialog<Kit> {
     private static final Function<Integer, String> JSON_COMMAND = index -> "command_" + index;
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull Kit kit) {
+    
+    public WrappedDialog create( Player player,  Kit kit) {
         List<WrappedDialogInput> inputs = new ArrayList<>();
         List<String> currentCommands = kit.definition().getCommands();
         int size = Math.max(COMMANDS_AMOUNT, currentCommands.size());

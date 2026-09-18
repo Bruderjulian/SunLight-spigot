@@ -30,16 +30,17 @@ import java.util.Map;
 
 public class ChairsManager extends AbstractManager<SunLightPlugin> {
 
-    public static final UserProperty<Boolean> SETTING_CHAIRS = UserProperty.create("chairs.enabled", Boolean.class, true, true);
+    public static final UserProperty<Boolean> SETTING_CHAIRS = UserProperty.create("chairs.enabled", Boolean.class,
+            true, true);
 
     private static final String SEAT_META = "seat";
 
-    //private final ExtrasModule           module;
+    // private final ExtrasModule module;
     private final Map<Block, ArmorStand> chairHolders;
 
-    public ChairsManager(@NotNull SunLightPlugin plugin, @NotNull ExtrasModule module) {
+    public ChairsManager(SunLightPlugin plugin, ExtrasModule module) {
         super(plugin);
-        //this.module = module;
+        // this.module = module;
         this.chairHolders = new HashMap<>();
     }
 
@@ -64,12 +65,11 @@ public class ChairsManager extends AbstractManager<SunLightPlugin> {
         // TODO ChairsCommands.load(this.plugin, this);
     }
 
-    public static boolean isChairsEnabled(@NotNull SunUser user) {
+    public static boolean isChairsEnabled(SunUser user) {
         return user.getPropertyOrDefault(SETTING_CHAIRS);
     }
 
-    @NotNull
-    private ArmorStand createChairHolder(@NotNull Player player, @NotNull Block chair) {
+    private ArmorStand createChairHolder(Player player, Block chair) {
         Vector vector;
         BlockData blockData = chair.getBlockData();
         if (blockData instanceof Directional directional) {
@@ -77,8 +77,7 @@ public class ChairsManager extends AbstractManager<SunLightPlugin> {
             Location blockLoc = chair.getLocation();
             Location faceLoc = chair.getRelative(facing.getOppositeFace()).getLocation();
             vector = faceLoc.clone().subtract(blockLoc.toVector()).toVector();
-        }
-        else {
+        } else {
             vector = player.getLocation().getDirection();
         }
 
@@ -97,8 +96,7 @@ public class ChairsManager extends AbstractManager<SunLightPlugin> {
         return armorStand;
     }
 
-    @NotNull
-    private Location getHolderLocation(@NotNull Block chair) {
+    private Location getHolderLocation(Block chair) {
         Location seat = LocationUtil.setCenter2D(chair.getLocation());
         double dY = 0.0D;
         double height = chair.getBoundingBox().getHeight();
@@ -108,8 +106,7 @@ public class ChairsManager extends AbstractManager<SunLightPlugin> {
             if (slab.getType() == Slab.Type.TOP) {
                 height *= 2;
             }
-        }
-        else if (data instanceof Stairs stairs) {
+        } else if (data instanceof Stairs stairs) {
             height = 0.5D;
         }
 
@@ -117,55 +114,60 @@ public class ChairsManager extends AbstractManager<SunLightPlugin> {
         return seat.add(0, normalized, 0);
     }
 
-    @Nullable
-    private ArmorStand getChairHolder(@NotNull Player player) {
-        if (!this.isSit(player)) return null;
+    private ArmorStand getChairHolder(Player player) {
+        if (!this.isSit(player))
+            return null;
         return (ArmorStand) player.getVehicle();
     }
 
-    public void standUp(@NotNull Player player, boolean force) {
+    public void standUp(Player player, boolean force) {
         this.standUp(player, null, force);
     }
 
-    public void standUp(@NotNull Player player, @Nullable ArmorStand stand, boolean force) {
-        if (stand == null) stand = this.getChairHolder(player);
-        if (stand == null || !stand.hasMetadata(SEAT_META)) return;
+    public void standUp(Player player, ArmorStand stand, boolean force) {
+        if (stand == null)
+            stand = this.getChairHolder(player);
+        if (stand == null || !stand.hasMetadata(SEAT_META))
+            return;
 
         Location chairBlockLocation = (Location) stand.getMetadata(SEAT_META).getFirst().value();
-        if (chairBlockLocation == null) return;
+        if (chairBlockLocation == null)
+            return;
 
         Block chairBlock = chairBlockLocation.getBlock();
-        if (!this.chairHolders.containsKey(chairBlock)) return;
+        if (!this.chairHolders.containsKey(chairBlock))
+            return;
 
         if (!player.isDead() && !force) {
             Location holderLocation = LocationUtil.setCenter2D(chairBlock.getRelative(BlockFace.UP).getLocation());
-            //this.plugin.runTask(task -> {
-                holderLocation.setDirection(player.getLocation().getDirection());
-                player.teleport(holderLocation);
-            //});
+            // this.plugin.runTask(task -> {
+            holderLocation.setDirection(player.getLocation().getDirection());
+            player.teleport(holderLocation);
+            // });
         }
 
         stand.remove();
         this.chairHolders.remove(chairBlock);
     }
 
-    public void sitPlayer(@NotNull Player player, @NotNull Block chair) {
-        if (this.isOccupied(chair)) return;
+    public void sitPlayer(Player player, Block chair) {
+        if (this.isOccupied(chair))
+            return;
 
         ArmorStand seat = this.createChairHolder(player, chair);
         seat.addPassenger(player);
     }
 
-    public boolean isSit(@NotNull Player player) {
+    public boolean isSit(Player player) {
         Entity holder = player.getVehicle();
         return holder != null && holder.hasMetadata(SEAT_META);
     }
 
-    public boolean isOccupied(@NotNull Block chair) {
+    public boolean isOccupied(Block chair) {
         return this.chairHolders.containsKey(chair);
     }
 
-    public static boolean isChair(@NotNull Block block) {
+    public static boolean isChair(Block block) {
         if (!block.getRelative(BlockFace.UP).isEmpty()) {
             return false;
         }

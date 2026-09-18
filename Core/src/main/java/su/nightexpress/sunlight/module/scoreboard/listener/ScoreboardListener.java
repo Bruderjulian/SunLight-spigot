@@ -17,7 +17,7 @@ public class ScoreboardListener extends AbstractListener<SunLightPlugin> {
 
     private final ScoreboardModule module;
 
-    public ScoreboardListener(@NotNull SunLightPlugin plugin, @NotNull ScoreboardModule module) {
+    public ScoreboardListener(SunLightPlugin plugin, ScoreboardModule module) {
         super(plugin);
         this.module = module;
     }
@@ -25,7 +25,8 @@ public class ScoreboardListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBoardWorldChange(PlayerChangedWorldEvent event) {
         Player player = event.getPlayer();
-        if (!this.module.isScoreboardEnabled(player)) return;
+        if (!this.module.isScoreboardEnabled(player))
+            return;
 
         Board board = this.module.getBoard(player);
         BoardDefinition currentBoard = board != null ? board.getBoardConfig() : null;
@@ -42,7 +43,8 @@ public class ScoreboardListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBoardJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (!this.module.isScoreboardEnabled(player)) return;
+        if (!this.module.isScoreboardEnabled(player))
+            return;
 
         this.module.addBoard(player);
     }

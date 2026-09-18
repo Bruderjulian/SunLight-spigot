@@ -20,7 +20,7 @@ public class SortListener extends AbstractListener<SunLightPlugin> {
 
     private final SortManager manager;
 
-    public SortListener(@NotNull SunLightPlugin plugin, @NotNull SortManager manager) {
+    public SortListener(SunLightPlugin plugin, SortManager manager) {
         super(plugin);
         this.manager = manager;
     }
@@ -28,16 +28,19 @@ public class SortListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onSortInventoryClose(InventoryCloseEvent e) {
         Player player = (Player) e.getPlayer();
-        if (player.getGameMode() == GameMode.SPECTATOR) return;
+        if (player.getGameMode() == GameMode.SPECTATOR)
+            return;
 
         Inventory inventory = e.getInventory();
         InventoryHolder holder = inventory.getHolder();
-        if (!(holder instanceof Chest) && !(holder instanceof DoubleChest) && !(holder instanceof ShulkerBox) && !(holder instanceof Barrel)) {
+        if (!(holder instanceof Chest) && !(holder instanceof DoubleChest) && !(holder instanceof ShulkerBox)
+                && !(holder instanceof Barrel)) {
             return;
         }
 
         SunUser user = plugin.getUserManager().getOrFetch(player);
-        if (!SortManager.isChestSortEnabled(user)) return;
+        if (!SortManager.isChestSortEnabled(user))
+            return;
 
         this.manager.sortInventory(inventory);
     }

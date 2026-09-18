@@ -12,18 +12,17 @@ import java.util.Set;
 
 public class TabNameFormat implements Writeable {
 
-    private final int         priority;
+    private final int priority;
     private final Set<String> ranks;
-    private final String      format;
+    private final String format;
 
-    public TabNameFormat(int priority, @NotNull Set<String> ranks, @NotNull String format) {
+    public TabNameFormat(int priority, Set<String> ranks, String format) {
         this.priority = priority;
         this.ranks = ranks;
         this.format = format;
     }
 
-    @NotNull
-    public static TabNameFormat read(@NotNull FileConfig config, @NotNull String path) {
+    public static TabNameFormat read(FileConfig config, String path) {
         int priority = config.getInt(path + ".Priority");
         Set<String> ranks = Lists.modify(config.getStringSet(path + ".Ranks"), String::toLowerCase);
         String format = config.getString(path + ".Format", SLPlaceholders.PLAYER_DISPLAY_NAME);
@@ -32,14 +31,15 @@ public class TabNameFormat implements Writeable {
     }
 
     @Override
-    public void write(@NotNull FileConfig config, @NotNull String path) {
+    public void write(FileConfig config, String path) {
         config.set(path + ".Priority", this.priority);
         config.set(path + ".Ranks", this.ranks);
         config.set(path + ".Format", this.format);
     }
 
-    public boolean isAvailable(@NotNull Player player) {
-        if (this.ranks.contains(SLPlaceholders.WILDCARD)) return true;
+    public boolean isAvailable(Player player) {
+        if (this.ranks.contains(SLPlaceholders.WILDCARD))
+            return true;
 
         Set<String> playerRanks = Players.getInheritanceGroups(player);
         return playerRanks.stream().anyMatch(this.ranks::contains);
@@ -49,12 +49,10 @@ public class TabNameFormat implements Writeable {
         return this.priority;
     }
 
-    @NotNull
     public Set<String> getRanks() {
         return this.ranks;
     }
 
-    @NotNull
     public String getFormat() {
         return this.format;
     }

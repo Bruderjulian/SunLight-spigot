@@ -10,12 +10,12 @@ import su.nightexpress.sunlight.module.ModuleContext;
 
 public class SocialsModule extends Module {
 
-    public SocialsModule(@NotNull ModuleContext context) {
+    public SocialsModule(ModuleContext context) {
         super(context);
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) throws ModuleLoadException {
+    protected void loadModule(FileConfig config) throws ModuleLoadException {
 
     }
 
@@ -25,7 +25,7 @@ public class SocialsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
 
     }
 
@@ -35,7 +35,7 @@ public class SocialsModule extends Module {
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 }

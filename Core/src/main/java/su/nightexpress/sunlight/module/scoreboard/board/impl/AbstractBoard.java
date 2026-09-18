@@ -14,16 +14,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractBoard<T> implements Board {
 
-    protected final PlaceholderContext   placeholderContext;
-    protected final BoardDefinition      boardDefinition;
-    protected final Player               player;
-    protected final String               identifier;
+    protected final PlaceholderContext placeholderContext;
+    protected final BoardDefinition boardDefinition;
+    protected final Player player;
+    protected final String identifier;
     protected final Map<Integer, String> scores;
 
     private boolean lock;
-    private long    nextUpdateTicks;
+    private long nextUpdateTicks;
 
-    public AbstractBoard(@NotNull Player player, @NotNull PlaceholderContext placeholderContext, @NotNull BoardDefinition boardDefinition) {
+    public AbstractBoard(Player player, PlaceholderContext placeholderContext, BoardDefinition boardDefinition) {
         this.placeholderContext = placeholderContext;
         this.boardDefinition = boardDefinition;
         this.player = player;
@@ -33,12 +33,11 @@ public abstract class AbstractBoard<T> implements Board {
     }
 
     @Override
-    @NotNull
+
     public final BoardDefinition getBoardConfig() {
         return boardDefinition;
     }
 
-    @NotNull
     private String getScoreIdentifier(int score) {
         return "line_" + score;
     }
@@ -49,18 +48,14 @@ public abstract class AbstractBoard<T> implements Board {
         UPDATE
     }
 
-    protected abstract void sendPacket(@NotNull Player player, @NotNull T packet);
+    protected abstract void sendPacket(Player player, T packet);
 
-    @NotNull
-    protected abstract T createObjectivePacket(ObjectiveMode mode, @NotNull String displayName);
+    protected abstract T createObjectivePacket(ObjectiveMode mode, String displayName);
 
-    @NotNull
-    protected abstract T createResetScorePacket(@NotNull String scoreId);
+    protected abstract T createResetScorePacket(String scoreId);
 
-    @NotNull
-    protected abstract T createScorePacket(@NotNull String scoreId, int score, @NotNull String text);
+    protected abstract T createScorePacket(String scoreId, int score, String text);
 
-    @NotNull
     protected abstract T createDisplayPacket();
 
     @Override
@@ -90,8 +85,10 @@ public abstract class AbstractBoard<T> implements Board {
 
     @Override
     public void update() {
-        // Fixes waterfall kick issue where scoreboard tries to be registered twice on login for whatever reason.
-        if (this.lock) return;
+        // Fixes waterfall kick issue where scoreboard tries to be registered twice on
+        // login for whatever reason.
+        if (this.lock)
+            return;
 
         this.lock = true;
         String title = this.placeholderContext.apply(this.boardDefinition.getTitle());

@@ -15,14 +15,14 @@ import java.util.stream.Collectors;
 
 public class Announcer {
 
-    private final int                       interval;
-    private final boolean                   randomOrder;
-    private final Set<String>               ranks;
+    private final int interval;
+    private final boolean randomOrder;
+    private final Set<String> ranks;
     private final Map<String, List<String>> texts;
 
     private final Set<String> usedTexts;
 
-    public Announcer(int interval, boolean randomOrder, @NotNull Set<String> ranks, @NotNull Map<String, List<String>> texts) {
+    public Announcer(int interval, boolean randomOrder, Set<String> ranks, Map<String, List<String>> texts) {
         this.interval = interval;
         this.randomOrder = randomOrder;
         this.ranks = ranks.stream().map(String::toLowerCase).collect(Collectors.toSet());
@@ -30,8 +30,7 @@ public class Announcer {
         this.usedTexts = new HashSet<>();
     }
 
-    @NotNull
-    public static Announcer fromFile(@NotNull Path path) {
+    public static Announcer fromFile(Path path) {
         FileConfig config = FileConfig.load(path);
 
         int interval = AnnouncerSchema.INTERVAL.resolveWithDefaults(config);
@@ -44,7 +43,7 @@ public class Announcer {
         return new Announcer(interval, randomOrder, ranks, texts);
     }
 
-    public void writeToFile(@NotNull Path path) {
+    public void writeToFile(Path path) {
         FileConfig.load(path).edit(config -> {
             AnnouncerSchema.INTERVAL.writeValue(config, this.interval);
             AnnouncerSchema.RANDOM_ORDER.writeValue(config, this.randomOrder);
@@ -53,26 +52,30 @@ public class Announcer {
         });
     }
 
-    public boolean canSee(@NotNull Player player) {
-        if (this.ranks.contains(SLPlaceholders.WILDCARD)) return true;
+    public boolean canSee(Player player) {
+        if (this.ranks.contains(SLPlaceholders.WILDCARD))
+            return true;
 
         Set<String> groups = Players.getInheritanceGroups(player);
         return this.ranks.stream().anyMatch(groups::contains);
     }
 
-    @Nullable
     public String selectMessage() {
-        if (this.texts.isEmpty()) return null;
-        if (this.usedTexts.size() >= this.texts.size()) this.usedTexts.clear();
+        if (this.texts.isEmpty())
+            return null;
+        if (this.usedTexts.size() >= this.texts.size())
+            this.usedTexts.clear();
 
         List<String> freeTexts = new ArrayList<>();
         for (String key : this.texts.keySet()) {
             if (!this.usedTexts.contains(key)) {
                 freeTexts.add(key);
-                if (!this.randomOrder) break;
+                if (!this.randomOrder)
+                    break;
             }
         }
-        if (freeTexts.isEmpty()) return null;
+        if (freeTexts.isEmpty())
+            return null;
 
         String index = this.randomOrder ? Rnd.get(freeTexts) : freeTexts.getFirst();
 
@@ -89,12 +92,10 @@ public class Announcer {
         return this.randomOrder;
     }
 
-    @NotNull
     public Set<String> getRanks() {
         return Set.copyOf(this.ranks);
     }
 
-    @NotNull
     public Map<String, List<String>> getTexts() {
         return Map.copyOf(this.texts);
     }

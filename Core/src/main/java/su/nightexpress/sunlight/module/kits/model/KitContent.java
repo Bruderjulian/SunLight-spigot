@@ -19,22 +19,22 @@ public class KitContent implements Writeable {
 
     private final Map<Integer, AdaptedItem> itemBySlotMap;
 
-    public KitContent(@NonNull Map<Integer, AdaptedItem> itemBySlotMap) {
+    public KitContent( Map<Integer, AdaptedItem> itemBySlotMap) {
         this.itemBySlotMap = itemBySlotMap;
     }
 
-    @NonNull
+    
     public static KitContent empty() {
         return new KitContent(new HashMap<>());
     }
 
-    @NonNull
-    public static KitContent copyOf(@NonNull KitContent other) {
+    
+    public static KitContent copyOf( KitContent other) {
         return new KitContent(new HashMap<>(other.getItemBySlotMap()));
     }
 
-    @NonNull
-    public static KitContent read(@NonNull FileConfig config, @NonNull String path) {
+    
+    public static KitContent read( FileConfig config,  String path) {
         Map<Integer, AdaptedItem> itemBySlotMap = new HashMap<>();
 
         config.getSection(path).forEach(sId -> {
@@ -51,14 +51,14 @@ public class KitContent implements Writeable {
     }
 
     @Override
-    public void write(@NonNull FileConfig config, @NonNull String path) {
+    public void write( FileConfig config,  String path) {
         config.remove(path);
 
         this.itemBySlotMap.forEach((slot, adaptedItem) -> config.set(path + "." + slot, adaptedItem));
     }
 
-    @NonNull
-    public List<ItemStack> give(@NonNull BiConsumer<Integer, ItemStack> consumer) {
+    
+    public List<ItemStack> give( BiConsumer<Integer, ItemStack> consumer) {
         List<ItemStack> leftovers = new ArrayList<>();
         this.itemBySlotMap.forEach((slot, adaptedItem) -> {
             adaptedItem.itemStack().ifPresent(itemStack -> {
@@ -69,7 +69,7 @@ public class KitContent implements Writeable {
         return leftovers;
     }
 
-    @NonNull
+    
     public Map<Integer, AdaptedItem> getItemBySlotMap() {
         return this.itemBySlotMap;
     }

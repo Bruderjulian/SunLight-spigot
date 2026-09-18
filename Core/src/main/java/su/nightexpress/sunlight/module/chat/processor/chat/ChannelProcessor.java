@@ -19,12 +19,12 @@ public class ChannelProcessor implements MessageProcessor {
 
     private final SunLightPlugin plugin;
 
-    public ChannelProcessor(@NonNull SunLightPlugin plugin) {
+    public ChannelProcessor( SunLightPlugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public void preProcess(@NonNull ChatModule module, @NonNull MessageContext context) {
+    public void preProcess( ChatModule module,  MessageContext context) {
         Player player = context.getPlayer();
         ChatChannel channel = context.getChannel();
         UserChatCache cache = context.getCache();
@@ -65,7 +65,7 @@ public class ChannelProcessor implements MessageProcessor {
     }
 
     @Override
-    public void postProcess(@NonNull ChatModule module, @NonNull MessageContext context) {
+    public void postProcess( ChatModule module,  MessageContext context) {
         Player player = context.getPlayer();
 
         if (this.isAlone(player, context)) {
@@ -86,7 +86,7 @@ public class ChannelProcessor implements MessageProcessor {
         }
     }
 
-    private boolean isAlone(@NonNull Player player, @NonNull MessageContext context) {
+    private boolean isAlone( Player player,  MessageContext context) {
         return context.getViewers().stream().noneMatch(
             sender -> sender != player && !(sender instanceof ConsoleCommandSender));
     }

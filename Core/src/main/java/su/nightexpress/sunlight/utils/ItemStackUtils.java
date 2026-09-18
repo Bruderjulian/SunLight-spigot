@@ -12,23 +12,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ItemStackUtils {
 
-    public static void repairItem(@Nullable ItemStack itemStack) {
-        if (itemStack == null || !isDamageable(itemStack)) return;
+    public static void repairItem(ItemStack itemStack) {
+        if (itemStack == null || !isDamageable(itemStack))
+            return;
 
         setItemDamage(itemStack, 0);
     }
 
-    public static boolean isDamageable(@NotNull ItemStack itemStack) {
+    public static boolean isDamageable(ItemStack itemStack) {
         return itemStack.getType().getMaxDurability() > 0;
     }
 
-    public static int setItemDamage(@NotNull ItemStack itemStack, int damage) {
-        if (!isDamageable(itemStack)) throw new IllegalStateException("Item can not be damaged");
+    public static int setItemDamage(ItemStack itemStack, int damage) {
+        if (!isDamageable(itemStack))
+            throw new IllegalStateException("Item can not be damaged");
 
         AtomicInteger result = new AtomicInteger(damage);
 
         ItemUtil.editMeta(itemStack, Damageable.class, meta -> {
-            if (meta.getDamage() == damage) return;
+            if (meta.getDamage() == damage)
+                return;
 
             int absDamage = Math.max(0, damage);
             int maxDamage = itemStack.getType().getMaxDurability();
@@ -41,40 +44,37 @@ public class ItemStackUtils {
         return result.get();
     }
 
-    public static void addEnchantment(@NotNull ItemStack itemStack, @NotNull Enchantment enchantment, int level) {
+    public static void addEnchantment(ItemStack itemStack, Enchantment enchantment, int level) {
         ItemUtil.editMeta(itemStack, meta -> {
             if (meta instanceof EnchantmentStorageMeta storageMeta) {
                 if (level > 0) {
                     storageMeta.addStoredEnchant(enchantment, level, true);
-                }
-                else storageMeta.removeStoredEnchant(enchantment);
-            }
-            else {
+                } else
+                    storageMeta.removeStoredEnchant(enchantment);
+            } else {
                 if (level > 0) {
                     meta.addEnchant(enchantment, level, true);
-                }
-                else meta.removeEnchant(enchantment);
+                } else
+                    meta.removeEnchant(enchantment);
             }
         });
     }
 
-    public static void removeEnchantment(@NotNull ItemStack itemStack, @NotNull Enchantment enchantment) {
+    public static void removeEnchantment(ItemStack itemStack, Enchantment enchantment) {
         ItemUtil.editMeta(itemStack, meta -> {
             if (meta instanceof EnchantmentStorageMeta storageMeta) {
                 storageMeta.removeStoredEnchant(enchantment);
-            }
-            else {
+            } else {
                 meta.removeEnchant(enchantment);
             }
         });
     }
 
-    public static void removeEnchantments(@NotNull ItemStack itemStack) {
+    public static void removeEnchantments(ItemStack itemStack) {
         ItemUtil.editMeta(itemStack, meta -> {
             if (meta instanceof EnchantmentStorageMeta storageMeta) {
                 storageMeta.getStoredEnchants().keySet().forEach(storageMeta::removeStoredEnchant);
-            }
-            else {
+            } else {
                 meta.getEnchants().keySet().forEach(meta::removeEnchant);
             }
         });

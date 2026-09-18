@@ -18,10 +18,10 @@ public class PlainsChunkGenerator extends ChunkGenerator {
     private final FastNoiseLite terrainNoise = new FastNoiseLite();
     private final FastNoiseLite detailNoise = new FastNoiseLite();
 
-    private static final List<Material> LAYER_SURFACE     = Lists.newList(Material.GRASS_BLOCK);
+    private static final List<Material> LAYER_SURFACE = Lists.newList(Material.GRASS_BLOCK);
     private static final List<Material> LAYER_SUB_SUFFACE = Lists.newList(Material.DIRT);
-    private static final List<Material> LAYER_ORES        = Lists.newList(Material.COAL_ORE, Material.IRON_ORE);
-    private static final List<Material> LAYER_BOTTOM      = Lists.newList(Material.BEDROCK);
+    private static final List<Material> LAYER_ORES = Lists.newList(Material.COAL_ORE, Material.IRON_ORE);
+    private static final List<Material> LAYER_BOTTOM = Lists.newList(Material.BEDROCK);
 
     public PlainsChunkGenerator() {
         // Set frequencies, lower frequency = slower change.
@@ -34,7 +34,7 @@ public class PlainsChunkGenerator extends ChunkGenerator {
     }
 
     @Override
-    public void generateNoise(@NotNull WorldInfo worldInfo, @NotNull Random random, int chunkX, int chunkZ, @NotNull ChunkData chunkData) {
+    public void generateNoise(WorldInfo worldInfo, Random random, int chunkX, int chunkZ, ChunkData chunkData) {
         for (int y = chunkData.getMinHeight(); y < Y_MAX && y < chunkData.getMaxHeight(); y++) {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
@@ -44,13 +44,16 @@ public class PlainsChunkGenerator extends ChunkGenerator {
                         continue;
                     }
 
-                    float terNoise = (terrainNoise.GetNoise(x + (chunkX * 16), z + (chunkZ * 16)) * 2) + (detailNoise.GetNoise(x + (chunkX * 16), z + (chunkZ * 16)) / 10);
+                    float terNoise = (terrainNoise.GetNoise(x + (chunkX * 16), z + (chunkZ * 16)) * 2)
+                            + (detailNoise.GetNoise(x + (chunkX * 16), z + (chunkZ * 16)) / 10);
                     float detNoise = detailNoise.GetNoise(x + (chunkX * 16), y, z + (chunkZ * 16));
                     float currentY = (Y_HALF + (terNoise * 10));
 
                     if (y < currentY) {
-                        float distanceToSurface = Math.abs(y - currentY); // The absolute y distance to the world surface.
-                        double function = .1 * Math.pow(distanceToSurface, 2) - 1; // A second grade polynomial offset to the noise max and min (1, -1).
+                        float distanceToSurface = Math.abs(y - currentY); // The absolute y distance to the world
+                                                                          // surface.
+                        double function = .1 * Math.pow(distanceToSurface, 2) - 1; // A second grade polynomial offset
+                                                                                   // to the noise max and min (1, -1).
 
                         if (detNoise > Math.min(function, -.3)) {
                             // Set grass if the block closest to the surface.
@@ -66,20 +69,22 @@ public class PlainsChunkGenerator extends ChunkGenerator {
                             else {
                                 Material neighbour = Material.STONE;
                                 List<Material> neighbourBlocks = new ArrayList<>(Arrays.asList(
-                                    chunkData.getType(Math.max(x - 1, 0), y, z),
-                                    chunkData.getType(x, Math.max(y - 1, 0), z),
-                                    chunkData.getType(x, y, Math.max(z - 1, 0))
-                                )); // A list of all neighbour blocks.
+                                        chunkData.getType(Math.max(x - 1, 0), y, z),
+                                        chunkData.getType(x, Math.max(y - 1, 0), z),
+                                        chunkData.getType(x, y, Math.max(z - 1, 0)))); // A list of all neighbour
+                                                                                       // blocks.
 
                                 // Randomly place vein anchors.
                                 if (random.nextFloat() < 0.002) {
-                                    neighbour = Rnd.get(LAYER_ORES); // A basic way to shift probability to lower values.
+                                    neighbour = Rnd.get(LAYER_ORES); // A basic way to shift probability to lower
+                                                                     // values.
                                 }
 
                                 // If the current block has an ore block as neighbour, try the current block.
                                 if ((!Collections.disjoint(neighbourBlocks, LAYER_ORES))) {
                                     for (Material neighbourBlock : neighbourBlocks) {
-                                        if (LAYER_ORES.contains(neighbourBlock) && random.nextFloat() < -0.01 * LAYER_ORES.indexOf(neighbourBlock) + 0.4) {
+                                        if (LAYER_ORES.contains(neighbourBlock) && random
+                                                .nextFloat() < -0.01 * LAYER_ORES.indexOf(neighbourBlock) + 0.4) {
                                             neighbour = neighbourBlock;
                                         }
                                     }
@@ -88,8 +93,7 @@ public class PlainsChunkGenerator extends ChunkGenerator {
                                 chunkData.setBlock(x, y, z, neighbour);
                             }
                         }
-                    }
-                    else if (y < Y_HALF) {
+                    } else if (y < Y_HALF) {
                         chunkData.setBlock(x, y, z, Material.WATER);
                     }
                 }

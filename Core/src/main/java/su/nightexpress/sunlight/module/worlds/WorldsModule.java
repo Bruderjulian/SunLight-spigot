@@ -41,21 +41,21 @@ import java.util.*;
 
 public class WorldsModule extends Module {
 
-    public static final String DIR_WORLDS      = "/worlds/";
+    public static final String DIR_WORLDS = "/worlds/";
     public static final String DIR_INVENTORIES = "/inventories/";
 
     private final TeleportManager teleportManager;
 
-    private final Map<String, ChunkGenerator>   generatorMap;
+    private final Map<String, ChunkGenerator> generatorMap;
     private final Map<String, WorldInventories> inventoryMap;
-    private final Map<String, WorldData>        dataMap;
+    private final Map<String, WorldData> dataMap;
 
-    private WorldListEditor       listEditor;
-    private WorldMainEditor       mainEditor;
-    private WorldRulesEditor      rulesEditor;
+    private WorldListEditor listEditor;
+    private WorldMainEditor mainEditor;
+    private WorldRulesEditor rulesEditor;
     private WorldGenerationEditor generationEditor;
 
-    public WorldsModule(@NotNull ModuleContext context, @NotNull TeleportManager teleportManager) {
+    public WorldsModule(ModuleContext context, TeleportManager teleportManager) {
         super(context);
         this.teleportManager = teleportManager;
         this.generatorMap = new HashMap<>();
@@ -64,7 +64,7 @@ public class WorldsModule extends Module {
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         config.initializeOptions(WorldsConfig.class);
         this.plugin.injectLang(WorldsLang.class);
 
@@ -86,10 +86,14 @@ public class WorldsModule extends Module {
 
     @Override
     protected void unloadModule() {
-        if (this.listEditor != null) this.listEditor.clear();
-        if (this.mainEditor != null) this.mainEditor.clear();
-        if (this.rulesEditor != null) this.rulesEditor.clear();
-        if (this.generationEditor != null) this.generationEditor.clear();
+        if (this.listEditor != null)
+            this.listEditor.clear();
+        if (this.mainEditor != null)
+            this.mainEditor.clear();
+        if (this.rulesEditor != null)
+            this.rulesEditor.clear();
+        if (this.generationEditor != null)
+            this.generationEditor.clear();
 
         this.getDatas().forEach(data -> this.unloadWorld(data, false));
 
@@ -101,7 +105,7 @@ public class WorldsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(WorldsPerms.MODULE);
     }
 
@@ -111,35 +115,38 @@ public class WorldsModule extends Module {
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
         // TODO
-        /*WorldData world = this.getWorld(module, subParams, "");
-        if (world != null) return SunUtils.formatDate(world.getNextWipe());
-
-        world = this.getWorld(module, subParams, "");
-        if (world != null) return TimeUtil.formatDuration(world.getNextWipe());
-
-        world = this.getWorld(module, subParams, "");
-        if (world != null) return SunUtils.formatDate(world.getLastResetDate());
-
-        world = this.getWorld(module, subParams, "");
-        if (world != null) return TimeUtil.formatDuration(world.getLastResetDate(), System.currentTimeMillis());
-
-        registry.register("autowipe_next_date", (player, payload) -> {
-
-        });
-
-        registry.register("autowipe_timelft", (player, payload) -> {
-
-        });
-
-        registry.register("autowipe_latest_date", (player, payload) -> {
-
-        });
-
-        registry.register("autowipe_latest_since", (player, payload) -> {
-
-        });*/
+        /*
+         * WorldData world = this.getWorld(module, subParams, "");
+         * if (world != null) return SunUtils.formatDate(world.getNextWipe());
+         * 
+         * world = this.getWorld(module, subParams, "");
+         * if (world != null) return TimeUtil.formatDuration(world.getNextWipe());
+         * 
+         * world = this.getWorld(module, subParams, "");
+         * if (world != null) return SunUtils.formatDate(world.getLastResetDate());
+         * 
+         * world = this.getWorld(module, subParams, "");
+         * if (world != null) return TimeUtil.formatDuration(world.getLastResetDate(),
+         * System.currentTimeMillis());
+         * 
+         * registry.register("autowipe_next_date", (player, payload) -> {
+         * 
+         * });
+         * 
+         * registry.register("autowipe_timelft", (player, payload) -> {
+         * 
+         * });
+         * 
+         * registry.register("autowipe_latest_date", (player, payload) -> {
+         * 
+         * });
+         * 
+         * registry.register("autowipe_latest_since", (player, payload) -> {
+         * 
+         * });
+         */
     }
 
     private void loadGenerators() {
@@ -156,8 +163,8 @@ public class WorldsModule extends Module {
                 if (worldData.isAutoLoad()) {
                     worldData.loadWorld();
                 }
-            }
-            else this.error("World data not loaded: '" + worldData.getFile().getName() + "'!");
+            } else
+                this.error("World data not loaded: '" + worldData.getFile().getName() + "'!");
         }
     }
 
@@ -176,36 +183,32 @@ public class WorldsModule extends Module {
         this.getDatas().forEach(WorldData::autoResetNotify);
     }
 
-    @NotNull
     public Map<String, WorldData> getDataMap() {
         return this.dataMap;
     }
 
-    @NotNull
     public Collection<WorldData> getDatas() {
         return this.dataMap.values();
     }
 
-    @Nullable
-    public WorldData getWorldData(@NotNull String id) {
+    public WorldData getWorldData(String id) {
         return this.dataMap.get(id.toLowerCase());
     }
 
-    @NotNull
     public Map<String, WorldInventories> getInventoryMap() {
         return inventoryMap;
     }
 
-    @NotNull
     public Map<String, ChunkGenerator> getGeneratorMap() {
         return generatorMap;
     }
 
-    @Nullable
-    public WorldData createWorldData(@NotNull String name) {
+    public WorldData createWorldData(String name) {
         name = StringUtil.lowerCaseUnderscore(name);
-        if (this.getWorldData(name) != null) return null;
-        if (this.plugin.getServer().getWorld(name) != null) return null;
+        if (this.getWorldData(name) != null)
+            return null;
+        if (this.plugin.getServer().getWorld(name) != null)
+            return null;
 
         File file = new File(this.getAbsolutePath() + DIR_WORLDS, name + ".yml");
         WorldData worldData = new WorldData(this.plugin, this, file);
@@ -215,7 +218,6 @@ public class WorldsModule extends Module {
         return worldData;
     }
 
-    @NotNull
     public Set<WrappedWorld> getWorlds() {
         Set<WrappedWorld> set = new HashSet<>();
 
@@ -226,8 +228,8 @@ public class WorldsModule extends Module {
             if (world != null) {
                 worlds.remove(world);
                 set.add(wrap(world));
-            }
-            else set.add(new WrappedWorld(null, worldConfig));
+            } else
+                set.add(new WrappedWorld(null, worldConfig));
         });
 
         worlds.forEach(world -> set.add(wrap(world)));
@@ -235,13 +237,14 @@ public class WorldsModule extends Module {
         return set;
     }
 
-    public boolean unloadWorld(@NotNull WorldData worldData) {
+    public boolean unloadWorld(WorldData worldData) {
         return this.unloadWorld(worldData, true);
     }
 
-    public boolean unloadWorld(@NotNull WorldData worldData, boolean movePlayers) {
+    public boolean unloadWorld(WorldData worldData, boolean movePlayers) {
         World world = worldData.getWorld();
-        if (world == null) return false;
+        if (world == null)
+            return false;
 
         if (movePlayers) {
             this.movePlayersOut(world);
@@ -250,26 +253,29 @@ public class WorldsModule extends Module {
         return this.plugin.getServer().unloadWorld(world, true);
     }
 
-    public boolean movePlayersOut(@NotNull World world) {
+    public boolean movePlayersOut(World world) {
         Location location = null;
         if (WorldsConfig.UNLOAD_MOVE_PLAYERS_TO_SPAWN_ENABLED.get()) {
             SpawnsModule spawnsModule = this.plugin.getModuleRegistry().byType(SpawnsModule.class).orElse(null);
-            Spawn spawn = spawnsModule == null ? null : spawnsModule.getSpawn(WorldsConfig.UNLOAD_MOVE_PLAYERS_TO_SPAWN_NAME.get());
+            Spawn spawn = spawnsModule == null ? null
+                    : spawnsModule.getSpawn(WorldsConfig.UNLOAD_MOVE_PLAYERS_TO_SPAWN_NAME.get());
             if (spawn != null) {
                 location = spawn.getLocation();
             }
         }
         if (location == null) {
-            World target = this.plugin.getServer().getWorlds().stream().filter(w -> w != world).findFirst().orElse(null);
-            if (target == null) return false;
+            World target = this.plugin.getServer().getWorlds().stream().filter(w -> w != world).findFirst()
+                    .orElse(null);
+            if (target == null)
+                return false;
 
             location = target.getSpawnLocation();
         }
 
         for (Player player : world.getPlayers()) {
             TeleportContext teleportContext = TeleportContext.builder(this, player, location)
-                .callback(() -> this.sendPrefixed(WorldsLang.UNLOAD_MOVE_OUT_INFO, player))
-                .build();
+                    .callback(() -> this.sendPrefixed(WorldsLang.UNLOAD_MOVE_OUT_INFO, player))
+                    .build();
 
             this.teleportManager.moveExact(teleportContext);
         }
@@ -277,59 +283,58 @@ public class WorldsModule extends Module {
         return world.getPlayers().isEmpty();
     }
 
-    public boolean isCustomWorld(@NotNull World world) {
+    public boolean isCustomWorld(World world) {
         return this.getWorldData(world.getName()) != null;
     }
 
-    @NotNull
-    public WrappedWorld wrap(@NotNull World world) {
+    public WrappedWorld wrap(World world) {
         WorldData worldData = this.getWorldData(world.getName());
         return new WrappedWorld(world, worldData);
     }
 
-    public void openEditor(@NotNull Player player) {
+    public void openEditor(Player player) {
         this.listEditor.open(player, this);
     }
 
-    public void openWorldSettings(@NotNull Player player, @NotNull WrappedWorld wrappedWorld) {
+    public void openWorldSettings(Player player, WrappedWorld wrappedWorld) {
         this.mainEditor.open(player, wrappedWorld);
     }
 
-    public void openGameRules(@NotNull Player player, @NotNull WrappedWorld wrappedWorld) {
+    public void openGameRules(Player player, WrappedWorld wrappedWorld) {
         this.rulesEditor.open(player, wrappedWorld);
     }
 
-    public void openGenerationSettings(@NotNull Player player, @NotNull WorldData worldData) {
+    public void openGenerationSettings(Player player, WorldData worldData) {
         this.generationEditor.open(player, worldData);
     }
 
-    @Nullable
-    public ChunkGenerator getChunkGenerator(@Nullable String id) {
-        if (id == null) return null;
+    public ChunkGenerator getChunkGenerator(String id) {
+        if (id == null)
+            return null;
 
         return this.generatorMap.get(id.toLowerCase());
     }
 
-    @Nullable
-    public ChunkGenerator getPluginGenerator(@NotNull String world, @Nullable String name) {
-        if (name == null || name.equalsIgnoreCase(Placeholders.DEFAULT)) return null;
+    public ChunkGenerator getPluginGenerator(String world, String name) {
+        if (name == null || name.equalsIgnoreCase(Placeholders.DEFAULT))
+            return null;
 
         ChunkGenerator generator = this.getChunkGenerator(name);
-        if (generator != null) return generator;
+        if (generator != null)
+            return generator;
 
         return WorldCreator.getGeneratorForName(world, name, null);
     }
 
-    public boolean isInventoryAffected(@NotNull Player player) {
+    public boolean isInventoryAffected(Player player) {
         return this.isInventoryAffected(player.getWorld());
     }
 
-    public boolean isInventoryAffected(@NotNull World world) {
+    public boolean isInventoryAffected(World world) {
         return this.getWorldGroup(world) != null;
     }
 
-    @NotNull
-    public WorldInventories getWorldInventory(@NotNull Player player) {
+    public WorldInventories getWorldInventory(Player player) {
         String id = player.getUniqueId().toString();
         if (this.inventoryMap.containsKey(id)) {
             return this.inventoryMap.get(id);
@@ -343,22 +348,22 @@ public class WorldsModule extends Module {
         return worldInventories;
     }
 
-    @Nullable
-    public String getWorldGroup(@NotNull World world) {
+    public String getWorldGroup(World world) {
         String worldName = world.getName();
 
         return WorldsConfig.INVENTORY_SPLIT_WORLD_GROUPS.get().entrySet().stream()
-            .filter(entry -> entry.getValue().contains(worldName))
-            .map(Map.Entry::getKey).findFirst().orElse(null);
+                .filter(entry -> entry.getValue().contains(worldName))
+                .map(Map.Entry::getKey).findFirst().orElse(null);
     }
 
-    public boolean canFlyThere(@NotNull Player player) {
-        if (player.hasPermission(WorldsPerms.BYPASS_FLY)) return true;
+    public boolean canFlyThere(Player player) {
+        if (player.hasPermission(WorldsPerms.BYPASS_FLY))
+            return true;
 
         return !this.isFlyDisabled(player.getWorld());
     }
 
-    public boolean isFlyDisabled(@NotNull World world) {
+    public boolean isFlyDisabled(World world) {
         return WorldsConfig.NO_FLY_WORLDS.get().contains(world.getName());
     }
 }

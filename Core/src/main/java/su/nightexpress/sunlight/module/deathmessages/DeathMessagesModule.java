@@ -40,14 +40,14 @@ public class DeathMessagesModule extends Module {
     private final DeathMessagesSettings settings;
     private final Map<UUID, TrackedAnvil> anvilPlacements;
 
-    public DeathMessagesModule(@NotNull ModuleContext context) {
+    public DeathMessagesModule(ModuleContext context) {
         super(context);
         this.settings = new DeathMessagesSettings();
         this.anvilPlacements = new ConcurrentHashMap<>();
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) throws ModuleLoadException {
+    protected void loadModule(FileConfig config) throws ModuleLoadException {
         this.settings.load(config);
 
         this.addListener(new DeathMessagesListener(this.plugin, this));
@@ -64,22 +64,23 @@ public class DeathMessagesModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
 
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 
-    public void handleDeathEvent(@NotNull PlayerDeathEvent event) {
+    public void handleDeathEvent(PlayerDeathEvent event) {
         EventUtils.getAdapter().setDeathMessage(event, null);
 
         Player player = event.getEntity();
 
         EntityDamageEvent lastEvent = player.getLastDamageCause();
-        if (lastEvent == null) return;
+        if (lastEvent == null)
+            return;
 
         DamageSource damageSource = lastEvent.getDamageSource();
 
@@ -95,15 +96,15 @@ public class DeathMessagesModule extends Module {
         Player playerCause = causingEntity instanceof Player causingPlayer ? causingPlayer : player.getKiller();
         String sourceName = causingEntity == null ? null : getName(causingEntity);
 
-        if (playerCause == null && damageSource.getDamageType() == DamageType.FALLING_ANVIL && directEnttiy instanceof FallingBlock fallingBlock) {
+        if (playerCause == null && damageSource.getDamageType() == DamageType.FALLING_ANVIL
+                && directEnttiy instanceof FallingBlock fallingBlock) {
             TrackedAnvil tracked = this.findAnvilPlacer(fallingBlock.getLocation());
             if (tracked != null) {
                 Player onlinePlacer = this.plugin.getServer().getPlayer(tracked.placerId());
                 if (onlinePlacer != null) {
                     playerCause = onlinePlacer;
                     sourceName = getName(onlinePlacer);
-                }
-                else {
+                } else {
                     sourceName = tracked.placerName();
                 }
             }
@@ -116,14 +117,16 @@ public class DeathMessagesModule extends Module {
         DeathContext context = new DeathContext(player, damageSource, causingEntity, directEnttiy, weapon);
 
         DeathMessage message = this.getMessage(context);
-        if (message == null) return;
+        if (message == null)
+            return;
 
         String rawMessage = message.selectMessage(playerCause != null);
-        if (rawMessage == null) return;
+        if (rawMessage == null)
+            return;
 
         PlaceholderContext.Builder builder = PlaceholderContext.builder()
-            .with(CommonPlaceholders.PLAYER.resolver(context.player()))
-            .andThen(CommonPlaceholders.forPlaceholderAPI(context.player()));
+                .with(CommonPlaceholders.PLAYER.resolver(context.player()))
+                .andThen(CommonPlaceholders.forPlaceholderAPI(context.player()));
 
         if (sourceName != null) {
             String finalSourceName = sourceName;
@@ -137,15 +140,15 @@ public class DeathMessagesModule extends Module {
         EventUtils.getAdapter().setDeathMessage(event, NightMessage.parse(deathMessage));
     }
 
-    public void trackAnvilPlacement(@NotNull Location location, @NotNull Player player) {
+    public void trackAnvilPlacement(Location location, Player player) {
         if (this.anvilPlacements.size() >= ANVIL_TRACK_MAX_SIZE) {
             this.purgeExpiredPlacements();
         }
-        this.anvilPlacements.put(UUID.randomUUID(), new TrackedAnvil(location.clone(), player.getUniqueId(), player.getName(), System.currentTimeMillis()));
+        this.anvilPlacements.put(UUID.randomUUID(),
+                new TrackedAnvil(location.clone(), player.getUniqueId(), player.getName(), System.currentTimeMillis()));
     }
 
-    @Nullable
-    public TrackedAnvil findAnvilPlacer(@NotNull Location location) {
+    public TrackedAnvil findAnvilPlacer(Location location) {
         TrackedAnvil best = null;
         long now = System.currentTimeMillis();
 
@@ -155,8 +158,10 @@ public class DeathMessagesModule extends Module {
                 this.anvilPlacements.remove(entry.getKey());
                 continue;
             }
-            if (tracked.location().getWorld() == null || !tracked.location().getWorld().equals(location.getWorld())) continue;
-            if (tracked.location().distanceSquared(location) > ANVIL_TRACK_RADIUS_SQUARED) continue;
+            if (tracked.location().getWorld() == null || !tracked.location().getWorld().equals(location.getWorld()))
+                continue;
+            if (tracked.location().distanceSquared(location) > ANVIL_TRACK_RADIUS_SQUARED)
+                continue;
             if (best == null || tracked.timestamp() > best.timestamp()) {
                 best = tracked;
             }
@@ -169,12 +174,11 @@ public class DeathMessagesModule extends Module {
         this.anvilPlacements.values().removeIf(tracked -> now - tracked.timestamp() > ANVIL_TRACK_TTL_MILLIS);
     }
 
-    public record TrackedAnvil(@NotNull Location location, @NotNull UUID placerId, @NotNull String placerName, long timestamp) {
+    public record TrackedAnvil(Location location, UUID placerId, String placerName, long timestamp) {
 
     }
 
-    @Nullable
-    public DeathMessage getMessage(@NotNull DeathContext context) {
+    public DeathMessage getMessage(DeathContext context) {
         DeathMessage deathMessage = null;
 
         Entity causingEntity = context.causingEntity();
@@ -194,8 +198,7 @@ public class DeathMessagesModule extends Module {
         return deathMessage;
     }
 
-    @NotNull
-    private static String getName(@NotNull Entity entity) {
+    private static String getName(Entity entity) {
         if (entity instanceof Player player) {
             return Players.getDisplayNameSerialized(player);
         }
@@ -203,12 +206,13 @@ public class DeathMessagesModule extends Module {
         return EntityUtil.getNameSerialized(entity);
     }
 
-    @NotNull
-    private static String getItemName(@NotNull Entity entity) {
-        if (!(entity instanceof LivingEntity living)) return "";
+    private static String getItemName(Entity entity) {
+        if (!(entity instanceof LivingEntity living))
+            return "";
 
         EntityEquipment equipment = living.getEquipment();
-        if (equipment == null) return "";
+        if (equipment == null)
+            return "";
 
         ItemStack item = equipment.getItemInMainHand();
         return ItemUtil.getNameSerialized(item);

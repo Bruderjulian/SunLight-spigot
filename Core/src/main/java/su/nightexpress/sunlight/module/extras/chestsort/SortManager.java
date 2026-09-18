@@ -17,13 +17,14 @@ import java.util.List;
 
 public class SortManager extends AbstractManager<SunLightPlugin> {
 
-    public static final UserProperty<Boolean> SETTING_CHEST_SORT = UserProperty.create("chest_sort", Boolean.class, false, true);
+    public static final UserProperty<Boolean> SETTING_CHEST_SORT = UserProperty.create("chest_sort", Boolean.class,
+            false, true);
 
-    //private final ExtrasModule module;
+    // private final ExtrasModule module;
 
-    public SortManager(@NotNull SunLightPlugin plugin, @NotNull ExtrasModule module) {
+    public SortManager(SunLightPlugin plugin, ExtrasModule module) {
         super(plugin);
-        //this.module = module;
+        // this.module = module;
     }
 
     @Override
@@ -43,12 +44,11 @@ public class SortManager extends AbstractManager<SunLightPlugin> {
         // TODO SortCommand.load(this.plugin, this);
     }
 
-    public static boolean isChestSortEnabled(@NotNull SunUser user) {
+    public static boolean isChestSortEnabled(SunUser user) {
         return user.getPropertyOrDefault(SETTING_CHEST_SORT);
     }
 
-    @NotNull
-    private String getItemSortedId(@NotNull ItemStack item) {
+    private String getItemSortedId(ItemStack item) {
         StringBuilder rules = new StringBuilder();
         ExtrasConfig.CHEST_SORT_RULES.get().forEach(rule -> {
             rules.append(rule.getRule(item));
@@ -56,10 +56,10 @@ public class SortManager extends AbstractManager<SunLightPlugin> {
         return rules.toString();
     }
 
-    public void sortInventory(@NotNull Inventory inventory) {
+    public void sortInventory(Inventory inventory) {
         List<ItemStack> sorted = Arrays.stream(inventory.getContents())
-            .filter(item -> item != null && !item.getType().isAir())
-            .sorted(Comparator.comparing(this::getItemSortedId)).toList();
+                .filter(item -> item != null && !item.getType().isAir())
+                .sorted(Comparator.comparing(this::getItemSortedId)).toList();
 
         inventory.clear();
 

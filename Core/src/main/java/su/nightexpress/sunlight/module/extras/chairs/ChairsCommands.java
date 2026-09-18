@@ -31,7 +31,7 @@ public class ChairsCommands extends AbstractCommandProvider {
     private final ChairsManager manager;
     private final UserManager userManager;
 
-    public ChairsCommands(@NonNull SunLightPlugin plugin, @NonNull ChairsManager manager, @NonNull UserManager userManager) {
+    public ChairsCommands( SunLightPlugin plugin,  ChairsManager manager,  UserManager userManager) {
         super(plugin);
         this.manager = manager;
         this.userManager = userManager;
@@ -65,7 +65,7 @@ public class ChairsCommands extends AbstractCommandProvider {
         );
     }
 
-    private boolean toggleChairs(@NonNull CommandContext context, @NonNull ParsedArguments arguments, @NonNull ToggleMode mode) {
+    private boolean toggleChairs( CommandContext context,  ParsedArguments arguments,  ToggleMode mode) {
         // TODO
         /*return this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.manager, this.userManager, (user, target) -> {
             boolean state = mode.apply(ChairsManager.isChairsEnabled(user));
@@ -90,7 +90,7 @@ public class ChairsCommands extends AbstractCommandProvider {
         return true;
     }
 
-    private boolean sit(@NonNull CommandContext context, @NonNull ParsedArguments arguments) {
+    private boolean sit( CommandContext context,  ParsedArguments arguments) {
         // TODO
         /*Player target = this.getTargetOrSender(context, arguments, CommandArguments.PLAYER, true);
         if (target == null || this.manager.isSit(target)) return false;

@@ -13,30 +13,31 @@ public class ProtectionManager {
 
     private final List<ProtectionHook> hooks;
 
-    public ProtectionManager(@NotNull BooleanSupplier ignoreGlobalRegion) {
+    public ProtectionManager(BooleanSupplier ignoreGlobalRegion) {
         this.hooks = new ArrayList<>();
         this.register(new WorldGuardHook(ignoreGlobalRegion));
         this.register(new GriefPreventionHook());
     }
 
-    public void register(@NotNull ProtectionHook hook) {
+    public void register(ProtectionHook hook) {
         this.hooks.add(hook);
     }
 
-    @NotNull
     public List<ProtectionHook> getHooks() {
         return this.hooks;
     }
 
-    public boolean isProtected(@NotNull Location location, @NotNull Set<String> ignoredHooks) {
+    public boolean isProtected(Location location, Set<String> ignoredHooks) {
         for (ProtectionHook hook : this.hooks) {
-            if (!hook.isEnabled()) continue;
-            if (ignoredHooks.contains(LowerCase.INTERNAL.apply(hook.getPluginName()))) continue;
+            if (!hook.isEnabled())
+                continue;
+            if (ignoredHooks.contains(LowerCase.INTERNAL.apply(hook.getPluginName())))
+                continue;
 
             try {
-                if (hook.isProtected(location)) return true;
-            }
-            catch (Exception exception) {
+                if (hook.isProtected(location))
+                    return true;
+            } catch (Exception exception) {
                 exception.printStackTrace();
             }
         }

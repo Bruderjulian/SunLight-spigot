@@ -13,13 +13,13 @@ import java.util.Set;
 
 public class NameTagFormat implements Writeable {
 
-    private final int         priority;
+    private final int priority;
     private final Set<String> ranks;
-    private final String      prefix;
-    private final String      suffix;
-    private final String      color;
+    private final String prefix;
+    private final String suffix;
+    private final String color;
 
-    public NameTagFormat(int priority, @NotNull Set<String> ranks, @NotNull String prefix, @NotNull String suffix, @NotNull String color) {
+    public NameTagFormat(int priority, Set<String> ranks, String prefix, String suffix, String color) {
         this.priority = priority;
         this.ranks = ranks;
         this.prefix = prefix;
@@ -27,8 +27,7 @@ public class NameTagFormat implements Writeable {
         this.color = color;
     }
 
-    @NotNull
-    public static NameTagFormat read(@NotNull FileConfig config, @NotNull String path) {
+    public static NameTagFormat read(FileConfig config, String path) {
         int priority = config.getInt(path + ".Priority");
         Set<String> ranks = Lists.modify(config.getStringSet(path + ".Ranks"), LowerCase.INTERNAL::apply);
         String prefix = config.getString(path + ".Prefix", "");
@@ -39,7 +38,7 @@ public class NameTagFormat implements Writeable {
     }
 
     @Override
-    public void write(@NotNull FileConfig config, @NotNull String path) {
+    public void write(FileConfig config, String path) {
         config.set(path + ".Priority", this.priority);
         config.set(path + ".Ranks", this.ranks);
         config.set(path + ".Prefix", this.prefix);
@@ -47,8 +46,9 @@ public class NameTagFormat implements Writeable {
         config.set(path + ".Color", this.color);
     }
 
-    public boolean isRankAvailable(@NotNull Player player) {
-        if (this.ranks.contains(SLPlaceholders.WILDCARD)) return true;
+    public boolean isRankAvailable(Player player) {
+        if (this.ranks.contains(SLPlaceholders.WILDCARD))
+            return true;
 
         Set<String> playerRanks = Players.getInheritanceGroups(player);
         return playerRanks.stream().anyMatch(this.ranks::contains);
@@ -58,22 +58,18 @@ public class NameTagFormat implements Writeable {
         return this.priority;
     }
 
-    @NotNull
     public Set<String> getRanks() {
         return this.ranks;
     }
 
-    @NotNull
     public String getPrefix() {
         return this.prefix;
     }
 
-    @NotNull
     public String getSuffix() {
         return this.suffix;
     }
 
-    @NotNull
     public String getColor() {
         return this.color;
     }

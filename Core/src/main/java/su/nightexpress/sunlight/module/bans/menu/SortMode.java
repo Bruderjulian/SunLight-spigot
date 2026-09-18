@@ -18,11 +18,10 @@ public enum SortMode {
 
     private final Comparator<AbstractPunishment> comparator;
 
-    SortMode(@NotNull Comparator<AbstractPunishment> comparator) {
+    SortMode(Comparator<AbstractPunishment> comparator) {
         this.comparator = comparator;
     }
 
-    @NotNull
     public Comparator<AbstractPunishment> comparator() {
         return this.comparator;
     }

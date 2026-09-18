@@ -24,22 +24,22 @@ public class WorldData extends AbstractFileData<SunLightPlugin> {
 
     private final WorldsModule module;
 
-    private boolean           autoLoad;
-    private String            generator;
+    private boolean autoLoad;
+    private String generator;
     private World.Environment environment;
-    private boolean           generateStructures;
+    private boolean generateStructures;
 
     private boolean autoReset;
-    private int  resetInterval;
+    private int resetInterval;
     private long lastResetDate;
 
-    public WorldData(@NotNull SunLightPlugin plugin, @NotNull WorldsModule module, @NotNull File file) {
+    public WorldData(SunLightPlugin plugin, WorldsModule module, File file) {
         super(plugin, file);
         this.module = module;
     }
 
     @Override
-    protected boolean onLoad(@NotNull FileConfig config) {
+    protected boolean onLoad(FileConfig config) {
         this.setAutoLoad(config.getBoolean("Auto_Load"));
         this.setGenerator(config.getString("Generator"));
         this.setEnvironment(config.getEnum("Environment", World.Environment.class));
@@ -51,7 +51,7 @@ public class WorldData extends AbstractFileData<SunLightPlugin> {
     }
 
     @Override
-    protected void onSave(@NotNull FileConfig config) {
+    protected void onSave(FileConfig config) {
         config.set("Auto_Load", this.isAutoLoad());
         config.set("Generator", this.getGenerator());
         config.set("Environment", this.getEnvironment().name());
@@ -61,9 +61,9 @@ public class WorldData extends AbstractFileData<SunLightPlugin> {
         config.set("Auto_Wipe.Last_Wipe", this.getLastResetDate());
     }
 
-    @Nullable
     public World loadWorld() {
-        if (this.isLoaded()) return this.getWorld();
+        if (this.isLoaded())
+            return this.getWorld();
 
         WorldCreator creator = new WorldCreator(this.getId());
         creator.environment(this.getEnvironment());
@@ -75,36 +75,40 @@ public class WorldData extends AbstractFileData<SunLightPlugin> {
         return this.getDirectory() != null;
     }
 
-    @Nullable
     public File getDirectory() {
         File dir = new File(plugin.getServer().getWorldContainer() + "/" + this.getId());
         return dir.exists() && dir.listFiles() != null ? dir : null;
     }
 
     private boolean deleteWorldFiles() {
-        //if (this.isLoaded()) return false;
+        // if (this.isLoaded()) return false;
 
         File dir = this.getDirectory();
-        if (dir == null) return false;
+        if (dir == null)
+            return false;
 
         return FileUtil.deleteRecursive(dir); // Delete bukkit world folder.
     }
 
     private boolean deleteRegionFiles() {
-        //if (this.isLoaded()) return false;
+        // if (this.isLoaded()) return false;
 
         File dir = this.getDirectory();
-        if (dir == null) return false;
+        if (dir == null)
+            return false;
 
         for (File folder : FileUtil.getFolders(dir.getAbsolutePath())) {
-            if (folder.getName().equalsIgnoreCase("datapacks")) continue;
+            if (folder.getName().equalsIgnoreCase("datapacks"))
+                continue;
 
             FileUtil.deleteRecursive(folder);
         }
 
         for (File file : FileUtil.getFiles(dir.getAbsolutePath(), false)) {
-            if (file.getName().equalsIgnoreCase("level.dat")) continue;
-            if (file.getName().equalsIgnoreCase("paper-world.yml")) continue;
+            if (file.getName().equalsIgnoreCase("level.dat"))
+                continue;
+            if (file.getName().equalsIgnoreCase("paper-world.yml"))
+                continue;
 
             file.delete();
         }
@@ -112,32 +116,33 @@ public class WorldData extends AbstractFileData<SunLightPlugin> {
         return true;
     }
 
-    public boolean delete(@NotNull DeletionType type) {
+    public boolean delete(DeletionType type) {
         if (this.isLoaded()) {
-            if (!this.module.unloadWorld(this, true)) return false;
+            if (!this.module.unloadWorld(this, true))
+                return false;
         }
 
         if (type == DeletionType.DATA || type == DeletionType.FULL) {
-            if (!this.getFile().delete()) return false;
+            if (!this.getFile().delete())
+                return false;
 
             this.module.getDataMap().remove(this.getId());
         }
 
         if (type == DeletionType.REGION) {
             this.deleteRegionFiles();
-        }
-        else if (type == DeletionType.DIRECTORY || type == DeletionType.FULL) {
+        } else if (type == DeletionType.DIRECTORY || type == DeletionType.FULL) {
             this.deleteWorldFiles();
         }
 
         return true;
     }
 
-
-
     public boolean autoReset() {
-        if (!this.isAutoReset()) return false;
-        if (!this.isResetTime()) return false;
+        if (!this.isAutoReset())
+            return false;
+        if (!this.isResetTime())
+            return false;
 
         this.module.info("Start Auto-Reset for world '" + this.getId() + "'...");
 
@@ -155,24 +160,34 @@ public class WorldData extends AbstractFileData<SunLightPlugin> {
     }
 
     public boolean autoResetNotify() {
-        if (!this.isAutoReset()) return false;
-        if (this.isResetTime()) return false;
+        if (!this.isAutoReset())
+            return false;
+        if (this.isResetTime())
+            return false;
 
         long wipeDate = this.getNextWipe();
-        if (wipeDate <= 0L) return false;
+        if (wipeDate <= 0L)
+            return false;
 
         long current = TimeUtil.toEpochMillis(TimeUtil.getCurrentDateTime().truncatedTo(ChronoUnit.SECONDS));
         long threshold = WorldsConfig.AUTO_RESET_NOTIFICATION_THRESHOLD.get() * 1000L;
         long diff = wipeDate - current;
-        if (diff > threshold) return false;
+        if (diff > threshold)
+            return false;
 
         if (TimeUnit.MILLISECONDS.toSeconds(diff) % WorldsConfig.AUTO_RESET_NOTIFICATION_INTERVAL.get() == 0L) {
             World world = this.getWorld();
-            if (world == null) return false;
+            if (world == null)
+                return false;
 
             world.getPlayers().forEach(player -> {
                 WorldsLang.AUTO_RESET_NOTIFY.message().send(player, replacer -> replacer
-                    .replace(Placeholders.GENERIC_TIME, TimeUtil.formatDuration(this.getNextWipe() + 1000L)) // add 1 second for good formatiing
+                        .replace(Placeholders.GENERIC_TIME, TimeUtil.formatDuration(this.getNextWipe() + 1000L)) // add
+                                                                                                                 // 1
+                                                                                                                 // second
+                                                                                                                 // for
+                                                                                                                 // good
+                                                                                                                 // formatiing
                 );
             });
             return true;
@@ -181,9 +196,6 @@ public class WorldData extends AbstractFileData<SunLightPlugin> {
         return false;
     }
 
-
-
-    @Nullable
     public World getWorld() {
         return this.plugin.getServer().getWorld(this.getId());
     }
@@ -193,17 +205,21 @@ public class WorldData extends AbstractFileData<SunLightPlugin> {
     }
 
     public long getNextWipe() {
-        if (!this.isAutoReset()) return -1L;
-        if (this.getLastResetDate() <= 0L || this.getResetInterval() <= 0L) return -1L;
+        if (!this.isAutoReset())
+            return -1L;
+        if (this.getLastResetDate() <= 0L || this.getResetInterval() <= 0L)
+            return -1L;
 
         return this.getLastResetDate() + (this.getResetInterval() * 1000L);
     }
 
     public boolean isResetTime() {
-        if (!this.isAutoReset()) return false;
+        if (!this.isAutoReset())
+            return false;
 
         long next = this.getNextWipe();
-        if (next <= 0L) return false;
+        if (next <= 0L)
+            return false;
 
         long now = TimeUtil.toEpochMillis(TimeUtil.getCurrentDateTime().truncatedTo(ChronoUnit.SECONDS));
         return now >= next;
@@ -217,21 +233,19 @@ public class WorldData extends AbstractFileData<SunLightPlugin> {
         this.autoLoad = autoLoad;
     }
 
-    @Nullable
     public String getGenerator() {
         return generator;
     }
 
-    public void setGenerator(@Nullable String generator) {
+    public void setGenerator(String generator) {
         this.generator = generator;
     }
 
-    @NotNull
     public World.Environment getEnvironment() {
         return environment == null ? World.Environment.NORMAL : this.environment;
     }
 
-    public void setEnvironment(@Nullable World.Environment environment) {
+    public void setEnvironment(World.Environment environment) {
         this.environment = environment == null ? World.Environment.NORMAL : environment;
     }
 

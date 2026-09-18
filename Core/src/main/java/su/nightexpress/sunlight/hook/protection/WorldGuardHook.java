@@ -17,26 +17,28 @@ public class WorldGuardHook implements ProtectionHook {
 
     private final BooleanSupplier ignoreGlobalRegion;
 
-    public WorldGuardHook(@NotNull BooleanSupplier ignoreGlobalRegion) {
+    public WorldGuardHook(BooleanSupplier ignoreGlobalRegion) {
         this.ignoreGlobalRegion = ignoreGlobalRegion;
     }
 
     @Override
-    @NotNull
+
     public String getPluginName() {
         return HookId.WORLD_GUARD;
     }
 
     @Override
-    public boolean isProtected(@NotNull Location location) {
+    public boolean isProtected(Location location) {
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         ApplicableRegionSet set = container.createQuery().getApplicableRegions(BukkitAdapter.adapt(location));
 
-        if (set.size() == 0) return false;
+        if (set.size() == 0)
+            return false;
 
         if (this.ignoreGlobalRegion.getAsBoolean() && set.size() == 1) {
             ProtectedRegion region = set.getRegions().iterator().next();
-            if (GLOBAL_REGION_ID.equalsIgnoreCase(region.getId())) return false;
+            if (GLOBAL_REGION_ID.equalsIgnoreCase(region.getId()))
+                return false;
         }
 
         return true;

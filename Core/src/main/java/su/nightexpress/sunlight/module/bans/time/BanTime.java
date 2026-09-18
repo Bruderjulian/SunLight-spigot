@@ -13,36 +13,33 @@ public class BanTime {
     private static final BanTime PERMANENT = new BanTime(quantity -> -1L, 1L);
 
     private final BanTimeAccumulator accumulator;
-    private final long               amount;
+    private final long amount;
 
-    private BanTime(@NotNull BanTimeAccumulator accumulator, long amount) {
+    private BanTime(BanTimeAccumulator accumulator, long amount) {
         this.accumulator = accumulator;
         this.amount = Math.abs(amount);
     }
 
-    @NotNull
-    public static BanTime temporary(@NotNull BanTimeAccumulator timeUnit, long quantity) {
+    public static BanTime temporary(BanTimeAccumulator timeUnit, long quantity) {
         return new BanTime(timeUnit, quantity);
     }
 
-    @NotNull
     public static BanTime permanent() {
         return PERMANENT;
     }
 
-    @Nullable
-    public static BanTime parse(@NotNull String string) {
+    public static BanTime parse(String string) {
         int index = string.indexOf(' ');
         String amountRaw = index > 0 ? string.substring(0, index) : string;
         String unitRaw = index > 0 ? string.substring(index) : null;
 
         int amount = Numbers.getAnyInteger(amountRaw, -1);
-        BanTimeUnit unit = Optional.ofNullable(unitRaw).map(raw -> Enums.get(raw, BanTimeUnit.class)).orElse(BanTimeUnit.SECONDS);
+        BanTimeUnit unit = Optional.ofNullable(unitRaw).map(raw -> Enums.get(raw, BanTimeUnit.class))
+                .orElse(BanTimeUnit.SECONDS);
 
         return temporary(unit, amount);
     }
 
-    @NotNull
     public String serialize() {
         long qty;
         BanTimeUnit banTimeUnit;
@@ -50,8 +47,7 @@ public class BanTime {
         if (this.accumulator instanceof BanTimeUnit unit) {
             qty = this.amount;
             banTimeUnit = unit;
-        }
-        else {
+        } else {
             qty = TimeUnit.SECONDS.convert(this.accumulated(), TimeUnit.MILLISECONDS);
             banTimeUnit = BanTimeUnit.SECONDS;
         }
@@ -72,33 +68,36 @@ public class BanTime {
         return this == PERMANENT;
     }
 
-    public boolean isGreater(@NotNull BanTime other) {
+    public boolean isGreater(BanTime other) {
         return this.isGreater(other.accumulated());
     }
 
     public boolean isGreater(long other) {
         long result = this.accumulated();
 
-        if (other < 0L) return false;
-        if (result < 0L) return true;
+        if (other < 0L)
+            return false;
+        if (result < 0L)
+            return true;
 
         return result > other;
     }
 
-    public boolean isSmaller(@NotNull BanTime other) {
+    public boolean isSmaller(BanTime other) {
         return this.isSmaller(other.accumulated());
     }
 
     public boolean isSmaller(long other) {
         long result = this.accumulated();
 
-        if (result < 0L) return false;
-        if (other < 0L) return true;
+        if (result < 0L)
+            return false;
+        if (other < 0L)
+            return true;
 
         return result < other;
     }
 
-    @NotNull
     public BanTimeAccumulator getAccumulator() {
         return this.accumulator;
     }

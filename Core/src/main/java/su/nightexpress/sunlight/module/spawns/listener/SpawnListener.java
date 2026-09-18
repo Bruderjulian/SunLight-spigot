@@ -17,7 +17,7 @@ public class SpawnListener extends AbstractListener<SunLightPlugin> {
 
     private final SpawnsModule module;
 
-    public SpawnListener(@NotNull SunLightPlugin plugin, @NotNull SpawnsModule module) {
+    public SpawnListener(SunLightPlugin plugin, SpawnsModule module) {
         super(plugin);
         this.module = module;
     }

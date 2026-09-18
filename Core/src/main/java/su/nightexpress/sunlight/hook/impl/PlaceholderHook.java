@@ -10,7 +10,7 @@ public class PlaceholderHook {
 
     private static Expansion expansion;
 
-    public static void setup(@NotNull SunLightPlugin plugin) {
+    public static void setup(SunLightPlugin plugin) {
         if (expansion == null) {
             expansion = new Expansion(plugin);
             expansion.register();
@@ -29,7 +29,7 @@ public class PlaceholderHook {
         private final SunLightPlugin plugin;
         private final PlaceholderRegistry registry;
 
-        public Expansion(@NotNull SunLightPlugin plugin) {
+        public Expansion(SunLightPlugin plugin) {
             this.plugin = plugin;
             this.registry = new PlaceholderRegistry();
 
@@ -39,19 +39,19 @@ public class PlaceholderHook {
         }
 
         @Override
-        @NotNull
+
         public String getIdentifier() {
             return plugin.getName().toLowerCase();
         }
 
         @Override
-        @NotNull
+
         public String getAuthor() {
             return plugin.getDescription().getAuthors().getFirst();
         }
 
         @Override
-        @NotNull
+
         public String getVersion() {
             return plugin.getDescription().getVersion();
         }
@@ -62,8 +62,9 @@ public class PlaceholderHook {
         }
 
         @Override
-        public String onPlaceholderRequest(Player player, @NotNull String params) {
-            if (player == null) return null;
+        public String onPlaceholderRequest(Player player, String params) {
+            if (player == null)
+                return null;
 
             if (this.registry != null) {
                 return this.registry.onPlaceholderRequest(player, params);

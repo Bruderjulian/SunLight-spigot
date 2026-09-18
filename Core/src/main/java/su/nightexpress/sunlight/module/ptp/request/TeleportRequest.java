@@ -12,16 +12,16 @@ import java.util.concurrent.TimeUnit;
 public class TeleportRequest {
 
     private final UUID targetId;
-    private final UUID         senderId;
+    private final UUID senderId;
     private final TeleportMode mode;
 
     private long expireDate;
 
-    public TeleportRequest(@NotNull Player sender, @NotNull Player target, @NotNull TeleportMode mode, int timeOut) {
+    public TeleportRequest(Player sender, Player target, TeleportMode mode, int timeOut) {
         this(sender.getUniqueId(), target.getUniqueId(), mode, timeOut);
     }
 
-    public TeleportRequest(@NotNull UUID senderId, @NotNull UUID targetId, @NotNull TeleportMode mode, int timeOut) {
+    public TeleportRequest(UUID senderId, UUID targetId, TeleportMode mode, int timeOut) {
         this.senderId = senderId;
         this.targetId = targetId;
         this.mode = mode;
@@ -36,37 +36,32 @@ public class TeleportRequest {
         this.expireDate = System.currentTimeMillis();
     }
 
-    public boolean isSender(@NotNull String name) {
+    public boolean isSender(String name) {
         return Players.getPlayer(name) == this.getSender();
-        //return this.senderInfo.getName().equalsIgnoreCase(name);
+        // return this.senderInfo.getName().equalsIgnoreCase(name);
     }
 
-    public boolean isTarget(@NotNull String name) {
+    public boolean isTarget(String name) {
         return Players.getPlayer(name) == this.getTarget();
-        //return this.targetInfo.getName().equalsIgnoreCase(name);
+        // return this.targetInfo.getName().equalsIgnoreCase(name);
     }
 
-    @Nullable
     public Player getSender() {
         return Bukkit.getPlayer(this.senderId);
     }
 
-    @Nullable
     public Player getTarget() {
         return Bukkit.getPlayer(this.targetId);
     }
 
-    @NotNull
     public UUID getSenderId() {
         return this.senderId;
     }
 
-    @NotNull
     public UUID getTargetId() {
         return this.targetId;
     }
 
-    @NotNull
     public TeleportMode getMode() {
         return this.mode;
     }
@@ -75,4 +70,3 @@ public class TeleportRequest {
         return this.expireDate;
     }
 }
-

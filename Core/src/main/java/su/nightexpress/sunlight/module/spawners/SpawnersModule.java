@@ -10,12 +10,12 @@ import su.nightexpress.sunlight.module.ModuleContext;
 
 public class SpawnersModule extends Module {
 
-    public SpawnersModule(@NotNull ModuleContext context) {
+    public SpawnersModule(ModuleContext context) {
         super(context);
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) throws ModuleLoadException {
+    protected void loadModule(FileConfig config) throws ModuleLoadException {
 
     }
 
@@ -25,7 +25,7 @@ public class SpawnersModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
 
     }
 
@@ -35,7 +35,7 @@ public class SpawnersModule extends Module {
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 }

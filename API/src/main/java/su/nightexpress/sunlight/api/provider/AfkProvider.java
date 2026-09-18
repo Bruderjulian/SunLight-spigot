@@ -5,5 +5,5 @@ import org.jspecify.annotations.NonNull;
 
 public interface AfkProvider {
 
-    boolean isAfk(@NonNull Player player);
+    boolean isAfk( Player player);
 }

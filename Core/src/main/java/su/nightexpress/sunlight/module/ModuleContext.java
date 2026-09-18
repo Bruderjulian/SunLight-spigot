@@ -25,14 +25,13 @@ import su.nightexpress.sunlight.user.UserManager;
  * @param definition      The configuration-defined definition for this module.
  */
 public record ModuleContext(
-                            @NotNull SunLightPlugin plugin,
-                            @NotNull DataHandler dataHandler,
-                            @NotNull UserManager userManager,
-                            @NotNull CommandRegistry commandRegistry,
-                            @NotNull DialogRegistry dialogRegistry,
-                            @NotNull String id,
-                            @NotNull Path path,
-                            @NotNull ModuleDefinition definition
-) {
+    SunLightPlugin plugin,
+    DataHandler dataHandler,
+    UserManager userManager,
+    CommandRegistry commandRegistry,
+    DialogRegistry dialogRegistry,
+    String id,
+    Path path,
+    ModuleDefinition definition) {
 
 }

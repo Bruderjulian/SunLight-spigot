@@ -19,7 +19,7 @@ public class DeathBackCommandProvider extends AbstractCommandProvider {
     private final BackLocationModule module;
     private final UserManager userManager;
 
-    public DeathBackCommandProvider(@NotNull SunLightPlugin plugin, @NotNull BackLocationModule module, @NotNull UserManager userManager) {
+    public DeathBackCommandProvider(SunLightPlugin plugin, BackLocationModule module, UserManager userManager) {
         super(plugin);
         this.module = module;
         this.userManager = userManager;
@@ -27,28 +27,30 @@ public class DeathBackCommandProvider extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("deathback", true, new String[]{"deathback", "dback"}, builder -> builder
-            .description(BackLocationLang.COMMAND_DEATH_BACK_DESC)
-            .permission(BackLocationPerms.COMMAND_DEATHBACK)
-            .withArguments(Arguments.playerName(CommandArguments.PLAYER).optional().permission(BackLocationPerms.COMMAND_DEATHBACK_OTHERS))
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes(this::moveToDeathLocation)
-        );
+        this.registerLiteral("deathback", true, new String[] { "deathback", "dback" }, builder -> builder
+                .description(BackLocationLang.COMMAND_DEATH_BACK_DESC)
+                .permission(BackLocationPerms.COMMAND_DEATHBACK)
+                .withArguments(Arguments.playerName(CommandArguments.PLAYER).optional()
+                        .permission(BackLocationPerms.COMMAND_DEATHBACK_OTHERS))
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes(this::moveToDeathLocation));
     }
 
-    private boolean moveToDeathLocation(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean moveToDeathLocation(CommandContext context, ParsedArguments arguments) {
         return this.loadPlayerOrSenderAndRunInMainThread(context, arguments, this.module, this.userManager, target -> {
 
             boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);
             if (!this.module.teleportToLocation(target, LocationType.DEATH, silent)) {
                 if (context.getSender() != target) {
-                    this.module.sendPrefixed(BackLocationLang.DEATH_ERROR_NOTHING_FEEDBACK, context.getSender(), builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(target)));
+                    this.module.sendPrefixed(BackLocationLang.DEATH_ERROR_NOTHING_FEEDBACK, context.getSender(),
+                            builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(target)));
                 }
                 return;
             }
 
             if (context.getSender() != target) {
-                this.module.sendPrefixed(BackLocationLang.DEATH_TELEPORT_FEEDBACK, context.getSender(), builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(target)));
+                this.module.sendPrefixed(BackLocationLang.DEATH_TELEPORT_FEEDBACK, context.getSender(),
+                        builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(target)));
             }
         });
     }

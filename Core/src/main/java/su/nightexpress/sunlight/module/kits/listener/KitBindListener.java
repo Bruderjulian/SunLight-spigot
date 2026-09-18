@@ -16,7 +16,7 @@ import su.nightexpress.sunlight.module.kits.KitsUtils;
 
 public class KitBindListener extends AbstractListener<SunLightPlugin> {
 
-    public KitBindListener(@NotNull SunLightPlugin plugin, @NotNull KitsModule module) {
+    public KitBindListener(SunLightPlugin plugin, KitsModule module) {
         super(plugin);
     }
 
@@ -32,7 +32,8 @@ public class KitBindListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onBindItemClick(InventoryClickEvent event) {
         ItemStack item = event.getCurrentItem();
-        if (item == null || item.getType().isAir()) return;
+        if (item == null || item.getType().isAir())
+            return;
 
         Player player = (Player) event.getWhoClicked();
         if (!KitsUtils.isItemOwner(item, player)) {

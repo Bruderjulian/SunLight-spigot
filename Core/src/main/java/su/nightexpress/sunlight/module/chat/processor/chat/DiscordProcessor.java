@@ -11,17 +11,17 @@ public class DiscordProcessor implements MessageProcessor {
 
     private final DiscordHandler discordHandler;
 
-    public DiscordProcessor(@NonNull DiscordHandler discordHandler) {
+    public DiscordProcessor( DiscordHandler discordHandler) {
         this.discordHandler = discordHandler;
     }
 
     @Override
-    public void preProcess(@NonNull ChatModule module, @NonNull MessageContext context) {
+    public void preProcess( ChatModule module,  MessageContext context) {
 
     }
 
     @Override
-    public void postProcess(@NonNull ChatModule module, @NonNull MessageContext context) {
+    public void postProcess( ChatModule module,  MessageContext context) {
         this.discordHandler.sendToChannel(context.getChannel(), context.getMessage());
     }
 }

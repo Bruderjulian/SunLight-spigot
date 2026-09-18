@@ -55,29 +55,28 @@ import su.nightexpress.sunlight.nms.mc_1_21_11.container.PlayerInventory;
 
 public class MC_1_21_11 implements SunNMS {
 
-    private static final Method SET_GAME_MODE         = Reflex.safeMethod(ServerPlayerGameMode.class,
-        "setGameModeForPlayer", "a", GameType.class, GameType.class);
+    private static final Method SET_GAME_MODE = Reflex.safeMethod(ServerPlayerGameMode.class,
+            "setGameModeForPlayer", "a", GameType.class, GameType.class);
     private static final Method OPEN_CUSTOM_INVENTORY = Reflex.safeMethod(CraftHumanEntity.class, "openCustomInventory",
-        Inventory.class, ServerPlayer.class, net.minecraft.world.inventory.MenuType.class);
+            Inventory.class, ServerPlayer.class, net.minecraft.world.inventory.MenuType.class);
 
     @Override
-    public void dropFallingContent(@NonNull FallingBlock fallingBlock) {
+    public void dropFallingContent(FallingBlock fallingBlock) {
         CraftFallingBlock craftBlock = (CraftFallingBlock) fallingBlock;
         FallingBlockEntity nmsBlock = craftBlock.getHandle();
 
         nmsBlock.spawnAtLocation((ServerLevel) nmsBlock.level(), nmsBlock.getBlockState().getBlock());
     }
 
-    @NonNull
-    public Object fineChatPacket(@NonNull Object packet) {
+    public Object fineChatPacket(Object packet) {
         ClientboundPlayerChatPacket chatPacket = (ClientboundPlayerChatPacket) packet;
         Component component = chatPacket.unsignedContent() == null ? Component.literal(chatPacket.body()
-            .content()) : chatPacket.unsignedContent();
+                .content()) : chatPacket.unsignedContent();
 
         Holder<ChatType> typeHolder = chatPacket.chatType().chatType();
 
         ChatType.Bound decorator = new ChatType.Bound(typeHolder, chatPacket.chatType().name(), chatPacket.chatType()
-            .targetName());
+                .targetName());
         component = decorator.decorate(component);
 
         return new ClientboundSystemChatPacket(component, false);
@@ -85,19 +84,20 @@ public class MC_1_21_11 implements SunNMS {
 
     @Override
 
-    public org.bukkit.entity.@NonNull Player loadPlayerData(@NonNull UUID id, @NonNull String name) {
+    public org.bukkit.entity.Player loadPlayerData(UUID id, String name) {
         CraftServer craftServer = (CraftServer) Bukkit.getServer();
         DedicatedServer server = craftServer.getServer();
         DedicatedPlayerList playerList = craftServer.getHandle();
         ServerLevel level = server.getLevel(Level.OVERWORLD);
-        if (level == null) throw new IllegalStateException("Server level is null");
+        if (level == null)
+            throw new IllegalStateException("Server level is null");
 
         GameProfile profile = new GameProfile(id, name);
-        ServerPlayer serverPlayer = new ServerPlayer(server, level, profile, ClientInformation.createDefault()); // GameMode reset
+        ServerPlayer serverPlayer = new ServerPlayer(server, level, profile, ClientInformation.createDefault()); // GameMode
+                                                                                                                 // reset
 
         ProblemReporter reporter = new ProblemReporter.Collector();
         RegistryAccess access = serverPlayer.registryAccess();
-
 
         NameAndId nameAndId = new NameAndId(id, name);
 
@@ -110,7 +110,7 @@ public class MC_1_21_11 implements SunNMS {
     }
 
     @Override
-    public void setGameMode(@NonNull Player player, @NonNull GameMode mode) {
+    public void setGameMode(Player player, GameMode mode) {
         CraftPlayer craftPlayer = (CraftPlayer) player;
         ServerPlayer serverPlayer = craftPlayer.getHandle();
 
@@ -122,7 +122,7 @@ public class MC_1_21_11 implements SunNMS {
     }
 
     @Override
-    public void teleport(@NonNull Player player, @NonNull Location location) {
+    public void teleport(Player player, Location location) {
         CraftPlayer craftPlayer = (CraftPlayer) player;
         ServerPlayer serverPlayer = craftPlayer.getHandle();
         serverPlayer.setPosRaw(location.getX(), location.getY(), location.getZ());
@@ -134,39 +134,43 @@ public class MC_1_21_11 implements SunNMS {
     }
 
     @Override
-    @NonNull
-    public Inventory getPlayerEnderChest(@NonNull Player player) {
+
+    public Inventory getPlayerEnderChest(Player player) {
         return new PlayerEnderChest((CraftPlayer) player).getInventory();
     }
 
     @Override
-    @NonNull
-    public Inventory getPlayerInventory(@NonNull Player player) {
+
+    public Inventory getPlayerInventory(Player player) {
         return new PlayerInventory((CraftPlayer) player).getInventory();
     }
 
     @Override
-    public void openPlayerInventory(@NonNull Player player, @NonNull Player owner) {
-        Inventory inventory = this.getPlayerInventory(owner);  // Patched CraftInventory used here to prevent inventory type & size mismatch.
+    public void openPlayerInventory(Player player, Player owner) {
+        Inventory inventory = this.getPlayerInventory(owner); // Patched CraftInventory used here to prevent inventory
+                                                              // type & size mismatch.
         CraftPlayer craftPlayer = (CraftPlayer) player;
         ServerPlayer serverPlayer = craftPlayer.getHandle();
 
-        // There is a "wrong" menu type obtained in the CraftHumanEntity#openInventory -> CraftContainer.getNotchInventoryType(inventory)
-        // This is caused by CraftInventory wrapper with the PlayerInventory container inside, which getNotchInventoryType takes it into an account and returns wrong MenuType.
-        // We have to hardcode the 'windowType' variable here as 9X5 menu type to prevent Network Protocol Error due to slots size mismatch.
+        // There is a "wrong" menu type obtained in the CraftHumanEntity#openInventory
+        // -> CraftContainer.getNotchInventoryType(inventory)
+        // This is caused by CraftInventory wrapper with the PlayerInventory container
+        // inside, which getNotchInventoryType takes it into an account and returns
+        // wrong MenuType.
+        // We have to hardcode the 'windowType' variable here as 9X5 menu type to
+        // prevent Network Protocol Error due to slots size mismatch.
         Reflex.invokeMethod(OPEN_CUSTOM_INVENTORY, null, inventory, serverPlayer,
-            net.minecraft.world.inventory.MenuType.GENERIC_9x5);
+                net.minecraft.world.inventory.MenuType.GENERIC_9x5);
     }
 
     @Override
-    public void openContainer(@NonNull Player player, @NonNull PortableContainer menuType) {
+    public void openContainer(Player player, PortableContainer menuType) {
         AbstractContainerMenu menu = this.createContainer(menuType, player);
 
         player.openInventory(menu.getBukkitView());
     }
 
-    @NonNull
-    private AbstractContainerMenu createContainer(@NonNull PortableContainer type, @NonNull Player player) {
+    private AbstractContainerMenu createContainer(PortableContainer type, Player player) {
         CraftPlayer craftPlayer = (CraftPlayer) player;
         ServerPlayer nmsPlayer = craftPlayer.getHandle();
         int contId = nmsPlayer.nextContainerCounter();

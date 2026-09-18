@@ -20,17 +20,15 @@ public enum SortRule {
     }),
     MATERIAL(item -> item.getType().name()),
     AMOUNT(item -> String.valueOf(item.getMaxStackSize() - item.getAmount())),
-    NAME(item -> Colorizer.strip(ItemUtil.getItemName(item)))
-    ;
+    NAME(item -> Colorizer.strip(ItemUtil.getItemName(item)));
 
     private final Function<ItemStack, String> function;
 
-    SortRule(@NotNull Function<ItemStack, String> function) {
+    SortRule(Function<ItemStack, String> function) {
         this.function = function;
     }
 
-    @NotNull
-    public String getRule(@NotNull ItemStack item) {
+    public String getRule(ItemStack item) {
         return this.function.apply(item);
     }
 }

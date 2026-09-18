@@ -29,23 +29,25 @@ import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_WORLD;
 
 public class WeatherCommandProvider extends AbstractCommandProvider {
 
-    private static final Permission PERMISSION_ROOT         = EssentialPerms.COMMAND.permission("weather.root");
-    private static final Permission PERMISSION_CLEAR        = EssentialPerms.COMMAND.permission("weather.clear");
-    private static final Permission PERMISSION_STORM        = EssentialPerms.COMMAND.permission("weather.storm");
+    private static final Permission PERMISSION_ROOT = EssentialPerms.COMMAND.permission("weather.root");
+    private static final Permission PERMISSION_CLEAR = EssentialPerms.COMMAND.permission("weather.clear");
+    private static final Permission PERMISSION_STORM = EssentialPerms.COMMAND.permission("weather.storm");
     private static final Permission PERMISSION_THUNDERSTORM = EssentialPerms.COMMAND.permission("weather.thunder");
 
-    private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Weather.Root.Desc").text("Weather commands.");
-    private static final TextLocale DESCRIPTION_TYPE = LangEntry.builder("Command.Weather.Type.Desc").text("Set world's weather to " + GENERIC_TYPE + ".");
+    private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Weather.Root.Desc")
+            .text("Weather commands.");
+    private static final TextLocale DESCRIPTION_TYPE = LangEntry.builder("Command.Weather.Type.Desc")
+            .text("Set world's weather to " + GENERIC_TYPE + ".");
 
     private static final MessageLocale MESSAGE_SET_FEEDBACK = LangEntry.builder("Command.Weather.Set").chatMessage(
-        GRAY.wrap("You have set " + WHITE.wrap(GENERIC_WORLD) + "'s weather to " + SOFT_YELLOW.wrap(GENERIC_TYPE) + ".")
-    );
+            GRAY.wrap("You have set " + WHITE.wrap(GENERIC_WORLD) + "'s weather to " + SOFT_YELLOW.wrap(GENERIC_TYPE)
+                    + "."));
 
     private static final EnumLocale<Type> WEATHER_TYPE = LangEntry.builder("WeatherType").enumeration(Type.class);
 
     private final EssentialModule module;
 
-    public WeatherCommandProvider(@NotNull SunLightPlugin plugin, @NotNull EssentialModule module) {
+    public WeatherCommandProvider(SunLightPlugin plugin, EssentialModule module) {
         super(plugin);
         this.module = module;
     }
@@ -63,32 +65,31 @@ public class WeatherCommandProvider extends AbstractCommandProvider {
                 case THUNDERSTORM -> PERMISSION_THUNDERSTORM;
             };
 
-            this.registerLiteral(name, true, new String[]{name}, builder -> builder
-                .description(DESCRIPTION_TYPE.text().replace(SLPlaceholders.GENERIC_TYPE, WEATHER_TYPE.getLocalized(type)))
-                .permission(permission)
-                .withArguments(Arguments.world(CommandArguments.WORLD).optional())
-                .executes((context, arguments) -> this.setWeather(context, arguments, type))
-            );
+            this.registerLiteral(name, true, new String[] { name }, builder -> builder
+                    .description(DESCRIPTION_TYPE.text().replace(SLPlaceholders.GENERIC_TYPE,
+                            WEATHER_TYPE.getLocalized(type)))
+                    .permission(permission)
+                    .withArguments(Arguments.world(CommandArguments.WORLD).optional())
+                    .executes((context, arguments) -> this.setWeather(context, arguments, type)));
 
             rootChildrens.put(name, name);
         }
 
-        this.registerRoot("Weather", true, new String[]{"weather"}, rootChildrens, builder -> builder
-            .description(DESCRIPTION_ROOT)
-            .permission(PERMISSION_ROOT)
-        );
+        this.registerRoot("Weather", true, new String[] { "weather" }, rootChildrens, builder -> builder
+                .description(DESCRIPTION_ROOT)
+                .permission(PERMISSION_ROOT));
     }
 
-    private boolean setWeather(@NotNull CommandContext context, @NotNull ParsedArguments arguments, @NotNull Type type) {
+    private boolean setWeather(CommandContext context, ParsedArguments arguments, Type type) {
         World world = this.getWorld(context, arguments, CommandArguments.WORLD);
-        if (world == null) return false;
+        if (world == null)
+            return false;
 
         type.apply(world);
 
         this.module.sendPrefixed(MESSAGE_SET_FEEDBACK, context.getSender(), replacer -> replacer
-            .with(GENERIC_TYPE, () -> WEATHER_TYPE.getLocalized(type))
-            .with(GENERIC_WORLD, () -> LangAssets.get(world))
-        );
+                .with(GENERIC_TYPE, () -> WEATHER_TYPE.getLocalized(type))
+                .with(GENERIC_WORLD, () -> LangAssets.get(world)));
 
         return true;
     }
@@ -110,11 +111,11 @@ public class WeatherCommandProvider extends AbstractCommandProvider {
 
         private final Consumer<World> consumer;
 
-        Type(@NotNull Consumer<World> consumer) {
+        Type(Consumer<World> consumer) {
             this.consumer = consumer;
         }
 
-        public void apply(@NotNull World world) {
+        public void apply(World world) {
             this.consumer.accept(world);
         }
     }

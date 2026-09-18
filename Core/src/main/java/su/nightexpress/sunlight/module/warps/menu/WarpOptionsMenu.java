@@ -48,7 +48,7 @@ public class WarpOptionsMenu extends AbstractObjectMenu<Warp> {
 
     private final WarpsModule manager;
 
-    public WarpOptionsMenu(@NonNull WarpsModule manager) {
+    public WarpOptionsMenu( WarpsModule manager) {
         super(MenuType.GENERIC_9X5, "Warp Settings", Warp.class);
         this.manager = manager;
     }
@@ -205,44 +205,44 @@ public class WarpOptionsMenu extends AbstractObjectMenu<Warp> {
         );
     }
 
-    protected void backToWarps(@NonNull ObjectActionContext<Warp> context) {
+    protected void backToWarps( ObjectActionContext<Warp> context) {
         this.manager.openWarpsMenu(context.getPlayer());
     }
 
-    private void editPermission(@NonNull ObjectActionContext<Warp> context) {
+    private void editPermission( ObjectActionContext<Warp> context) {
         Warp warp = context.getObject();
         warp.setPermissionRequired(!warp.isPermissionRequired());
         warp.markDirty();
         context.getViewer().refresh();
     }
 
-    private void editName(@NonNull ObjectActionContext<Warp> context) {
+    private void editName( ObjectActionContext<Warp> context) {
         this.openDialog(context, WarpsDialogKeys.WARP_NAME);
     }
 
-    private void editDescription(@NonNull ObjectActionContext<Warp> context) {
+    private void editDescription( ObjectActionContext<Warp> context) {
         this.openDialog(context, WarpsDialogKeys.WARP_DESCRIPTION);
     }
 
-    private void editSlots(@NonNull ObjectActionContext<Warp> context) {
+    private void editSlots( ObjectActionContext<Warp> context) {
         this.openDialog(context, WarpsDialogKeys.WARP_SLOTS);
     }
 
-    private void editCommand(@NonNull ObjectActionContext<Warp> context) {
+    private void editCommand( ObjectActionContext<Warp> context) {
         this.openDialog(context, WarpsDialogKeys.WARP_COMMAND);
     }
 
-    private void openDialog(@NonNull ObjectActionContext<Warp> context, @NonNull DialogKey<Warp> key) {
+    private void openDialog( ObjectActionContext<Warp> context,  DialogKey<Warp> key) {
         this.plugin.showDialog(context.getPlayer(), key, context.getObject(), () -> context.getViewer().refresh());
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
+    protected void onLoad( FileConfig config) {
 
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
         if (event.isRightClick() && event.getRawSlot() >= event.getInventory().getSize()) {
             ItemStack itemStack = event.getCurrentItem();
             if (itemStack == null || itemStack.getType().isAir()) return;
@@ -255,27 +255,27 @@ public class WarpOptionsMenu extends AbstractObjectMenu<Warp> {
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
 
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 }

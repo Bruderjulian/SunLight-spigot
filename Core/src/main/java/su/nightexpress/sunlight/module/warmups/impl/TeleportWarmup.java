@@ -15,7 +15,8 @@ public class TeleportWarmup extends Warmup {
     private final Location destination;
     private final Runnable callback;
 
-    public TeleportWarmup(@NotNull WarmupsModule module, @NotNull Player player, int countdown, @NotNull Location destination, @Nullable Runnable callback) {
+    public TeleportWarmup(WarmupsModule module, Player player, int countdown, Location destination,
+            Runnable callback) {
         super(module, player, countdown);
         this.destination = destination.clone();
         this.callback = callback;
@@ -33,34 +34,34 @@ public class TeleportWarmup extends Warmup {
 
     @Override
     protected void onCancel(boolean silent) {
-        if (!silent) this.module.sendPrefixed(WarmupsLang.WARMUP_TELEPORT_CANCEL, this.player);
+        if (!silent)
+            this.module.sendPrefixed(WarmupsLang.WARMUP_TELEPORT_CANCEL, this.player);
     }
 
     @Override
-    @NotNull
+
     public WarmupType getType() {
         return WarmupType.TELEPORT;
     }
 
     @Override
-    @NotNull
+
     protected String getIndicatorTitle() {
         return WarmupsConfig.BAR_INDICATOR_TELEPORT_TITLE.get();
     }
 
     @Override
-    @NotNull
+
     protected NightBarColor getIndicatorColor() {
         return WarmupsConfig.BAR_INDICATOR_TELEPORT_COLOR.get();
     }
 
     @Override
-    @NotNull
+
     protected NightBarOverlay getIndicatorStyle() {
         return WarmupsConfig.BAR_INDICATOR_TELEPORT_STYLE.get();
     }
 
-    @NotNull
     public Location getDestination() {
         return this.destination;
     }

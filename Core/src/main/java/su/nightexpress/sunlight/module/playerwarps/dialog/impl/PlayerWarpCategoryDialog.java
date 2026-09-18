@@ -53,13 +53,13 @@ public class PlayerWarpCategoryDialog extends Dialog<PlayerWarp> {
 
     private final PlayerWarpsModule module;
 
-    public PlayerWarpCategoryDialog(@NonNull PlayerWarpsModule module) {
+    public PlayerWarpCategoryDialog( PlayerWarpsModule module) {
         this.module = module;
     }
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull PlayerWarp warp) {
+    
+    public WrappedDialog create( Player player,  PlayerWarp warp) {
         List<WrappedActionButton> buttons = new ArrayList<>();
 
         this.module.getSettings().getCategories().forEach(category -> {

@@ -15,7 +15,7 @@ public class AfkListener extends AbstractListener<SunLightPlugin> {
 
     private final AfkModule module;
 
-    public AfkListener(@NotNull SunLightPlugin plugin, @NotNull AfkModule module) {
+    public AfkListener(SunLightPlugin plugin, AfkModule module) {
         super(plugin);
         this.module = module;
     }
@@ -42,7 +42,8 @@ public class AfkListener extends AbstractListener<SunLightPlugin> {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onActivityInteract(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getHand() != EquipmentSlot.HAND)
+            return;
 
         this.module.trackActivity(event.getPlayer(), ActivityType.INTERACT);
     }

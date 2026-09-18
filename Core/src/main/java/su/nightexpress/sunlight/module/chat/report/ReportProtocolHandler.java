@@ -15,7 +15,7 @@ public final class ReportProtocolHandler implements ReportHandler {
 
     private Listener listener;
 
-    public ReportProtocolHandler(@NotNull SunLightPlugin plugin) {
+    public ReportProtocolHandler(SunLightPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -38,13 +38,12 @@ public final class ReportProtocolHandler implements ReportHandler {
 
         private final SunLightPlugin plugin;
 
-        public Listener(@NotNull SunLightPlugin plugin) {
+        public Listener(SunLightPlugin plugin) {
             super(plugin, ListenerPriority.NORMAL,
-                PacketType.Play.Server.SERVER_DATA,
-                PacketType.Play.Server.CHAT,
-                PacketType.Play.Server.SYSTEM_CHAT,
-                PacketType.Play.Server.LOGIN
-            );
+                    PacketType.Play.Server.SERVER_DATA,
+                    PacketType.Play.Server.CHAT,
+                    PacketType.Play.Server.SYSTEM_CHAT,
+                    PacketType.Play.Server.LOGIN);
             this.plugin = plugin;
         }
 
@@ -53,8 +52,7 @@ public final class ReportProtocolHandler implements ReportHandler {
             if (event.getPacketType() == PacketType.Play.Server.LOGIN) {
                 PacketContainer container = event.getPacket();
                 container.getBooleans().write(4, true);
-            }
-            else if (event.getPacketType() == PacketType.Play.Server.CHAT) {
+            } else if (event.getPacketType() == PacketType.Play.Server.CHAT) {
                 PacketContainer container = event.getPacket();
 
                 this.plugin.internals().ifPresent(nms -> {

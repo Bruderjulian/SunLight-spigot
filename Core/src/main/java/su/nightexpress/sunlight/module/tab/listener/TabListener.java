@@ -14,7 +14,7 @@ public class TabListener extends AbstractListener<SunLightPlugin> {
 
     private final TabModule module;
 
-    public TabListener(@NotNull SunLightPlugin plugin, @NotNull TabModule module) {
+    public TabListener(SunLightPlugin plugin, TabModule module) {
         super(plugin);
         this.module = module;
     }

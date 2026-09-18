@@ -37,10 +37,10 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     private final CommandSettings settings;
 
     private final Map<String, CommandProvider> providers;
-    private final Map<String, Module>          providerModules;
-    private final Set<NightCommand>            commands;
+    private final Map<String, Module> providerModules;
+    private final Set<NightCommand> commands;
 
-    public CommandRegistry(@NotNull SunLightPlugin plugin) {
+    public CommandRegistry(SunLightPlugin plugin) {
         super(plugin);
         this.settings = new CommandSettings();
         this.providers = new LinkedHashMap<>();
@@ -62,11 +62,11 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
         this.providerModules.clear();
     }
 
-    public void addProvider(@NotNull String id, @NotNull CommandProvider provider) {
+    public void addProvider(String id, CommandProvider provider) {
         this.addProvider(id, provider, null);
     }
 
-    public void addProvider(@NotNull String id, @NotNull CommandProvider provider, @Nullable Module module) {
+    public void addProvider(String id, CommandProvider provider, Module module) {
         String key = LowerCase.INTERNAL.apply(id);
         this.providers.put(key, provider);
 
@@ -77,7 +77,8 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
     private void registerCommands() {
         this.providers.forEach((providerId, provider) -> {
-            FileConfig config = FileConfig.load(this.plugin.getDataFolder() + SLFiles.DIR_COMMANDS, FileConfig.withExtension(providerId));
+            FileConfig config = FileConfig.load(this.plugin.getDataFolder() + SLFiles.DIR_COMMANDS,
+                    FileConfig.withExtension(providerId));
 
             this.plugin.injectLang(provider); // Register and load command's locales.
 
@@ -88,7 +89,8 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
             provider.getLiteralBuilders().forEach((nodeId, consumer) -> {
                 LiteralDefinition literalDefinition = provider.getLiteralDefinitions().get(nodeId);
-                if (literalDefinition == null || !literalDefinition.enabled()) return;
+                if (literalDefinition == null || !literalDefinition.enabled())
+                    return;
 
                 this.register(NightCommand.literal(this.plugin, literalDefinition.aliases(), builder -> {
                     consumer.accept(builder);
@@ -103,22 +105,24 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
                 }));
             });
 
-
             provider.getRootBuilders().forEach((rootId, rootBuilder) -> {
                 HubDefinition rootDefinition = provider.getRootDefinitions().get(rootId);
-                if (rootDefinition == null || !rootDefinition.enabled()) return;
+                if (rootDefinition == null || !rootDefinition.enabled())
+                    return;
 
                 List<LiteralNode> childrens = new ArrayList<>();
 
                 provider.getLiteralBuilders().forEach((nodeId, consumer) -> {
                     String alias = rootDefinition.childrenAliases().get(nodeId);
-                    if (alias == null || alias.isBlank()) return;
+                    if (alias == null || alias.isBlank())
+                        return;
 
                     childrens.add(Commands.literal(alias, consumer));
                 });
 
                 if (childrens.isEmpty()) {
-                    this.plugin.warn("Root command '" + rootDefinition.name() + "' was not registered due to no sub-commands available.");
+                    this.plugin.warn("Root command '" + rootDefinition.name()
+                            + "' was not registered due to no sub-commands available.");
                     return;
                 }
 
@@ -133,24 +137,25 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
         });
     }
 
-    private void register(@NotNull NightCommand command) {
+    private void register(NightCommand command) {
         if (this.settings.isConflictUnregisterEnabled()) {
             this.unregisterConflicts(command);
         }
 
         if (!command.register()) {
-            this.plugin.warn("Command '%s' was not registered with the passed in label, which indicates the SunLight's fallback prefix was used one or more time. This usually means that there is a vanilla command with the same label.");
+            this.plugin.warn(
+                    "Command '%s' was not registered with the passed in label, which indicates the SunLight's fallback prefix was used one or more time. This usually means that there is a vanilla command with the same label.");
         }
 
         this.commands.add(command);
     }
 
-    @NotNull
     public Set<CommandProvider> getProviders() {
         return new HashSet<>(this.providers.values());
     }
 
-    private void wrapExecutorWithCost(@NotNull String providerId, @NotNull String nodeId, @NotNull LiteralDefinition definition, @NotNull LiteralNodeBuilder builder, @Nullable Module module) {
+    private void wrapExecutorWithCost(String providerId, String nodeId, LiteralDefinition definition,
+            LiteralNodeBuilder builder, Module module) {
         NodeExecutor executor = builder.getExecutor(); // Original executor set by the provider implementation.
 
         double cost = definition.cost();
@@ -159,13 +164,12 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
             Player player = context.getPlayer();
 
             boolean charge = cost > 0D && player != null && !EconomyUtils.hasBypass(player, module)
-                && EconomyBridge.api().hasVaultCurrency();
+                    && EconomyBridge.api().hasVaultCurrency();
 
             if (charge && !EconomyUtils.canAfford(player, cost)) {
                 Lang.COMMAND_COST_ERROR.message().sendWith(player, replacer -> replacer
-                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost))
-                    .with(SLPlaceholders.GENERIC_COMMAND, () -> "/" + context.getInput())
-                );
+                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost))
+                        .with(SLPlaceholders.GENERIC_COMMAND, () -> "/" + context.getInput()));
                 return false;
             }
 
@@ -178,7 +182,8 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
         });
     }
 
-    private void wrapExecutorWithCooldown(@NotNull String providerId, @NotNull String nodeId, @NotNull LiteralDefinition definition, @NotNull LiteralNodeBuilder builder, @Nullable Module module) {
+    private void wrapExecutorWithCooldown(String providerId, String nodeId, LiteralDefinition definition,
+            LiteralNodeBuilder builder, Module module) {
         NodeExecutor executor = builder.getExecutor(); // Original executor set by the provider implementation.
 
         int cooldown = definition.cooldown();
@@ -191,10 +196,11 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
             if (cooldown != 0 && user != null && !EconomyUtils.hasCooldownBypass(player, module)) {
                 Long expireDate = user.getCommandCooldown(key);
                 if (expireDate != null && !TimeUtil.isPassed(expireDate)) {
-                    (expireDate < 0 ? Lang.COMMAND_COOLDOWN_ONE_TIME : Lang.COMMAND_COOLDOWN_DEFAULT).message().sendWith(player, replacer -> replacer
-                        .with(SLPlaceholders.GENERIC_TIME, () -> TimeFormats.formatDuration(expireDate, TimeFormatType.LITERAL))
-                        .with(SLPlaceholders.GENERIC_COMMAND, () -> "/" + context.getInput())
-                    );
+                    (expireDate < 0 ? Lang.COMMAND_COOLDOWN_ONE_TIME : Lang.COMMAND_COOLDOWN_DEFAULT).message()
+                            .sendWith(player, replacer -> replacer
+                                    .with(SLPlaceholders.GENERIC_TIME,
+                                            () -> TimeFormats.formatDuration(expireDate, TimeFormatType.LITERAL))
+                                    .with(SLPlaceholders.GENERIC_COMMAND, () -> "/" + context.getInput()));
                     return false;
                 }
             }
@@ -211,7 +217,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
         });
     }
 
-    private void unregisterConflicts(@NotNull NightCommand command) {
+    private void unregisterConflicts(NightCommand command) {
         Set<String> aliases = new HashSet<>(command.getAliases());
         aliases.add(command.getName());
 
@@ -219,20 +225,22 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
             CommandUtil.getCommand(alias).ifPresent(other -> {
                 boolean result = CommandUtil.unregister(other);
                 String owner = getCommandOwner(other);
-                if (this.settings.getConflictUnregisterBlacklist().contains(LowerCase.INTERNAL.apply(owner))) return;
+                if (this.settings.getConflictUnregisterBlacklist().contains(LowerCase.INTERNAL.apply(owner)))
+                    return;
 
                 if (result) {
-                    this.plugin.info("Unregistered conflicting '%s' (%s) command in favor of SunLight's alternative.".formatted(other.getName(), owner));
-                }
-                else {
-                    this.plugin.warn("Could not unregister conflicting command '%s' (%s) in favor of SunLight's alternative.".formatted(other.getName(), owner));
+                    this.plugin.info("Unregistered conflicting '%s' (%s) command in favor of SunLight's alternative."
+                            .formatted(other.getName(), owner));
+                } else {
+                    this.plugin.warn(
+                            "Could not unregister conflicting command '%s' (%s) in favor of SunLight's alternative."
+                                    .formatted(other.getName(), owner));
                 }
             });
         });
     }
 
-    @NotNull
-    private static String getCommandOwner(@NotNull Command command) {
+    private static String getCommandOwner(Command command) {
         if (command instanceof PluginIdentifiableCommand identifiableCommand) {
             return identifiableCommand.getPlugin().getName();
         }

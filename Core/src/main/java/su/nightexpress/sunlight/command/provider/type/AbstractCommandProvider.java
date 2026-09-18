@@ -3,8 +3,6 @@ package su.nightexpress.sunlight.command.provider.type;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import su.nightexpress.nightcore.commands.builder.HubNodeBuilder;
 import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
 import su.nightexpress.nightcore.commands.context.CommandContext;
@@ -36,15 +34,15 @@ public abstract class AbstractCommandProvider implements CommandProvider {
     protected final SunLightPlugin plugin;
 
     protected final Map<String, Consumer<LiteralNodeBuilder>> literalBuilders;
-    protected final Map<String, Consumer<HubNodeBuilder>>     rootBuilder;
+    protected final Map<String, Consumer<HubNodeBuilder>> rootBuilder;
 
     protected final Map<String, LiteralDefinition> defaultLiterals;
-    protected final Map<String, HubDefinition>     defaultRoot;
+    protected final Map<String, HubDefinition> defaultRoot;
 
     protected final Map<String, LiteralDefinition> literals;
-    protected final Map<String, HubDefinition>     root;
+    protected final Map<String, HubDefinition> root;
 
-    public AbstractCommandProvider(@NonNull SunLightPlugin plugin) {
+    public AbstractCommandProvider(SunLightPlugin plugin) {
         this.plugin = plugin;
         this.literalBuilders = new HashMap<>();
         this.rootBuilder = new HashMap<>();
@@ -55,18 +53,21 @@ public abstract class AbstractCommandProvider implements CommandProvider {
     }
 
     @Override
-    public void load(@NonNull FileConfig config) {
-        //this.loadSettings(config, "Settings");
+    public void load(FileConfig config) {
+        // this.loadSettings(config, "Settings");
         this.loadLiterals(config, "LiteralNodes");
         this.loadRoot(config, "RootNodes");
     }
 
-    /*protected void loadSettings(@NonNull FileConfig config, @NonNull String path) {
-    
-    }*/
+    /*
+     * protected void loadSettings( FileConfig config, String path) {
+     * 
+     * }
+     */
 
-    private void loadLiterals(@NonNull FileConfig config, @NonNull String path) {
-        if (this.defaultLiterals.isEmpty()) return;
+    private void loadLiterals(FileConfig config, String path) {
+        if (this.defaultLiterals.isEmpty())
+            return;
 
         this.defaultLiterals.forEach((id, definition) -> {
             String defPath = path + "." + id;
@@ -80,7 +81,8 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         });
 
         config.getSection(path).forEach(sId -> {
-            if (!this.literalBuilders.containsKey(sId)) return;
+            if (!this.literalBuilders.containsKey(sId))
+                return;
 
             String defPath = path + "." + sId;
 
@@ -93,8 +95,9 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         });
     }
 
-    private void loadRoot(@NonNull FileConfig config, @NonNull String path) {
-        if (this.defaultRoot.isEmpty()) return;
+    private void loadRoot(FileConfig config, String path) {
+        if (this.defaultRoot.isEmpty())
+            return;
 
         this.defaultRoot.forEach((id, definition) -> {
             String defPath = path + "." + id;
@@ -104,12 +107,13 @@ public abstract class AbstractCommandProvider implements CommandProvider {
                 config.setStringArray(defPath + ".Aliases", definition.aliases());
                 config.set(defPath + ".Name", definition.name());
                 definition.childrenAliases().forEach((childName, childAlias) -> config.set(defPath + ".Childrens." +
-                    childName, childAlias));
+                        childName, childAlias));
             }
         });
 
         config.getSection(path).forEach(sId -> {
-            if (!this.rootBuilder.containsKey(sId)) return;
+            if (!this.rootBuilder.containsKey(sId))
+                return;
 
             String defPath = path + "." + sId;
 
@@ -120,9 +124,11 @@ public abstract class AbstractCommandProvider implements CommandProvider {
             Map<String, String> childrenAliases = new HashMap<>();
             config.getSection(defPath + ".Childrens").forEach(sId2 -> {
                 String alias = config.getString(defPath + ".Childrens." + sId2);
-                if (alias == null || alias.isBlank()) return;
+                if (alias == null || alias.isBlank())
+                    return;
 
-                if (!this.literalBuilders.containsKey(sId2)) return;
+                if (!this.literalBuilders.containsKey(sId2))
+                    return;
 
                 childrenAliases.put(LowerCase.INTERNAL.apply(sId2), alias);
             });
@@ -131,50 +137,48 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         });
     }
 
-    protected void registerLiteral(@NonNull String id, boolean enabled, @NonNull String[] aliases, @NonNull Consumer<LiteralNodeBuilder> consumer) {
+    protected void registerLiteral(String id, boolean enabled, String[] aliases,
+            Consumer<LiteralNodeBuilder> consumer) {
         this.defaultLiterals.put(LowerCase.INTERNAL.apply(id), new LiteralDefinition(enabled, aliases, 0, 0D));
         this.literalBuilders.put(LowerCase.INTERNAL.apply(id), consumer);
     }
 
-    protected void registerRoot(@NonNull String name, boolean enabled, @NonNull String[] aliases, @NonNull Consumer<Map<String, String>> mapConsumer, @NonNull Consumer<HubNodeBuilder> consumer) {
+    protected void registerRoot(String name, boolean enabled, String[] aliases,
+            Consumer<Map<String, String>> mapConsumer, Consumer<HubNodeBuilder> consumer) {
         Map<String, String> childrenAliases = new HashMap<>();
         mapConsumer.accept(childrenAliases);
 
         this.registerRoot(name, enabled, aliases, childrenAliases, consumer);
     }
 
-    protected void registerRoot(@NonNull String name, boolean enabled, @NonNull String[] aliases, @NonNull Map<String, String> childrenAliases, @NonNull Consumer<HubNodeBuilder> consumer) {
+    protected void registerRoot(String name, boolean enabled, String[] aliases, Map<String, String> childrenAliases,
+            Consumer<HubNodeBuilder> consumer) {
         this.defaultRoot.put(LowerCase.INTERNAL.apply(name), new HubDefinition(enabled, aliases, StringUtil
-            .capitalizeUnderscored(name), childrenAliases));
+                .capitalizeUnderscored(name), childrenAliases));
         this.rootBuilder.put(LowerCase.INTERNAL.apply(name), consumer);
     }
 
     @Override
-    @NonNull
     public Map<String, HubDefinition> getRootDefinitions() {
         return this.root;
     }
 
     @Override
-    @NonNull
     public Map<String, Consumer<HubNodeBuilder>> getRootBuilders() {
         return this.rootBuilder;
     }
 
     @Override
-    @NonNull
     public Map<String, LiteralDefinition> getLiteralDefinitions() {
         return this.literals;
     }
 
     @Override
-    @NonNull
     public Map<String, Consumer<LiteralNodeBuilder>> getLiteralBuilders() {
         return this.literalBuilders;
     }
 
-    @Nullable
-    protected World getWorld(@NonNull CommandContext context, @NonNull ParsedArguments arguments, @NonNull String argName) {
+    protected World getWorld(CommandContext context, ParsedArguments arguments, String argName) {
         if (arguments.contains(argName)) {
             return arguments.getWorld(argName);
         }
@@ -187,7 +191,8 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         return context.getPlayerOrThrow().getWorld();
     }
 
-    protected boolean runForOnlinePlayerOrSender(@NonNull CommandContext context, @NonNull ParsedArguments arguments, @NonNull Module module, @NonNull Function<Player, Boolean> consumer) {
+    protected boolean runForOnlinePlayerOrSender(CommandContext context, ParsedArguments arguments, Module module,
+            Function<Player, Boolean> consumer) {
         if (!arguments.contains(CommandArguments.PLAYER) && !context.isPlayer()) {
             context.printUsage();
             return false;
@@ -196,7 +201,8 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         return this.runForOnlinePlayer(context, arguments, module, consumer);
     }
 
-    protected boolean runForOnlinePlayer(@NonNull CommandContext context, @NonNull ParsedArguments arguments, @NonNull Module module, @NonNull Function<Player, Boolean> consumer) {
+    protected boolean runForOnlinePlayer(CommandContext context, ParsedArguments arguments, Module module,
+            Function<Player, Boolean> consumer) {
         String playerName = arguments.getString(CommandArguments.PLAYER, context.getSender().getName());
         Player target = Players.getPlayer(playerName);
 
@@ -208,7 +214,8 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         return consumer.apply(target);
     }
 
-    protected boolean loadPlayerOrSenderWithDataAndRunInMainThread(@NonNull CommandContext context, @NonNull ParsedArguments arguments, @NonNull Module module, @NonNull UserManager userManager, @NonNull BiConsumer<@NonNull SunUser, @NonNull Player> consumer) {
+    protected boolean loadPlayerOrSenderWithDataAndRunInMainThread(CommandContext context, ParsedArguments arguments,
+            Module module, UserManager userManager, BiConsumer<SunUser, Player> consumer) {
         if (!arguments.contains(CommandArguments.PLAYER) && !context.isPlayer()) {
             context.printUsage();
             return false;
@@ -217,7 +224,8 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         return this.loadPlayerWithDataAndRunInMainThread(context, arguments, module, userManager, consumer);
     }
 
-    protected boolean loadPlayerWithDataAndRunInMainThread(@NonNull CommandContext context, @NonNull ParsedArguments arguments, @NonNull Module module, @NonNull UserManager userManager, @NonNull BiConsumer<@NonNull SunUser, @NonNull Player> consumer) {
+    protected boolean loadPlayerWithDataAndRunInMainThread(CommandContext context, ParsedArguments arguments,
+            Module module, UserManager userManager, BiConsumer<SunUser, Player> consumer) {
 
         CommandSender sender = context.getSender();
         String playerName = arguments.getString(CommandArguments.PLAYER, sender.getName());
@@ -237,8 +245,9 @@ public abstract class AbstractCommandProvider implements CommandProvider {
 
                 consumer.accept(user, target);
 
-                return target.isOnline() ? CompletableFuture.completedFuture(null) : CompletableFuture.runAsync(
-                    target::saveData);
+                return target.isOnline() ? CompletableFuture.completedFuture(null)
+                        : CompletableFuture.runAsync(
+                                target::saveData);
 
             }, this.plugin::runTask);
         }).whenComplete(FutureUtils::printStacktrace);
@@ -246,7 +255,8 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         return true;
     }
 
-    protected boolean loadPlayerOrSenderAndRunInMainThread(@NonNull CommandContext context, @NonNull ParsedArguments arguments, @NonNull Module module, @NonNull UserManager userManager, @NonNull Consumer<@NonNull Player> consumer) {
+    protected boolean loadPlayerOrSenderAndRunInMainThread(CommandContext context, ParsedArguments arguments,
+            Module module, UserManager userManager, Consumer<Player> consumer) {
         if (!arguments.contains(CommandArguments.PLAYER) && !context.isPlayer()) {
             context.printUsage();
             return false;
@@ -255,13 +265,15 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         return this.loadPlayerAndRunInMainThread(context, arguments, module, userManager, consumer);
     }
 
-    protected boolean loadPlayerAndRunInMainThread(@NonNull CommandContext context, @NonNull ParsedArguments arguments, @NonNull Module module, @NonNull UserManager userManager, @NonNull Consumer<@NonNull Player> consumer) {
+    protected boolean loadPlayerAndRunInMainThread(CommandContext context, ParsedArguments arguments, Module module,
+            UserManager userManager, Consumer<Player> consumer) {
         String playerName = arguments.getString(CommandArguments.PLAYER, context.getSender().getName());
 
         return this.loadPlayerAndRunInMainThread(context, playerName, module, userManager, consumer);
     }
 
-    protected boolean loadPlayerAndRunInMainThread(@NonNull CommandContext context, @NonNull String playerName, @NonNull Module module, @NonNull UserManager userManager, @NonNull Consumer<@NonNull Player> consumer) {
+    protected boolean loadPlayerAndRunInMainThread(CommandContext context, String playerName, Module module,
+            UserManager userManager, Consumer<Player> consumer) {
         userManager.loadTargetPlayer(playerName).thenComposeAsync(target -> {
             if (target == null || !this.canSee(context, target)) {
                 module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, context.getSender());
@@ -270,15 +282,16 @@ public abstract class AbstractCommandProvider implements CommandProvider {
 
             consumer.accept(target);
 
-            return target.isOnline() ? CompletableFuture.completedFuture(null) : CompletableFuture.runAsync(
-                target::saveData);
+            return target.isOnline() ? CompletableFuture.completedFuture(null)
+                    : CompletableFuture.runAsync(
+                            target::saveData);
 
         }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
 
         return true;
     }
 
-    protected boolean canSee(@NonNull CommandContext context, @NonNull Player target) {
+    protected boolean canSee(CommandContext context, Player target) {
         return !(context.getSender() instanceof Player sender) || sender.canSee(target);
     }
 }

@@ -19,7 +19,7 @@ public class BackCommandProvider extends AbstractCommandProvider {
     private final BackLocationModule module;
     private final UserManager userManager;
 
-    public BackCommandProvider(@NotNull SunLightPlugin plugin, @NotNull BackLocationModule module, @NotNull UserManager userManager) {
+    public BackCommandProvider(SunLightPlugin plugin, BackLocationModule module, UserManager userManager) {
         super(plugin);
         this.module = module;
         this.userManager = userManager;
@@ -27,28 +27,30 @@ public class BackCommandProvider extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("back", true, new String[]{"back"}, builder -> builder
-            .description(BackLocationLang.COMMAND_BACK_DESC)
-            .permission(BackLocationPerms.COMMAND_BACK)
-            .withArguments(Arguments.playerName(CommandArguments.PLAYER).optional().permission(BackLocationPerms.COMMAND_BACK_OTHERS))
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes(this::moveToPreviousLocation)
-        );
+        this.registerLiteral("back", true, new String[] { "back" }, builder -> builder
+                .description(BackLocationLang.COMMAND_BACK_DESC)
+                .permission(BackLocationPerms.COMMAND_BACK)
+                .withArguments(Arguments.playerName(CommandArguments.PLAYER).optional()
+                        .permission(BackLocationPerms.COMMAND_BACK_OTHERS))
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes(this::moveToPreviousLocation));
     }
 
-    private boolean moveToPreviousLocation(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean moveToPreviousLocation(CommandContext context, ParsedArguments arguments) {
         return this.loadPlayerOrSenderAndRunInMainThread(context, arguments, this.module, this.userManager, target -> {
 
             boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);
             if (!this.module.teleportToLocation(target, LocationType.PREVIOUS, silent)) {
                 if (context.getSender() != target) {
-                    this.module.sendPrefixed(BackLocationLang.PREVIOUS_ERROR_NOTHING_FEEDBACK, context.getSender(), builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(target)));
+                    this.module.sendPrefixed(BackLocationLang.PREVIOUS_ERROR_NOTHING_FEEDBACK, context.getSender(),
+                            builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(target)));
                 }
                 return;
             }
 
             if (context.getSender() != target) {
-                this.module.sendPrefixed(BackLocationLang.PREVIOUS_TELEPORT_FEEDBACK, context.getSender(), builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(target)));
+                this.module.sendPrefixed(BackLocationLang.PREVIOUS_TELEPORT_FEEDBACK, context.getSender(),
+                        builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(target)));
             }
         });
     }

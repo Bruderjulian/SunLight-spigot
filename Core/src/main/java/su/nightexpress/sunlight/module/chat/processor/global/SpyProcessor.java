@@ -16,12 +16,12 @@ import su.nightexpress.sunlight.module.chat.spy.SpyType;
 public class SpyProcessor implements ChatProcessor<ChatContext> {
 
     @Override
-    public void preProcess(@NonNull ChatModule module, @NonNull ChatContext context) {
+    public void preProcess( ChatModule module,  ChatContext context) {
 
     }
 
     @Override
-    public void postProcess(@NonNull ChatModule module, @NonNull ChatContext context) {
+    public void postProcess( ChatModule module,  ChatContext context) {
         Player player = context.getPlayer();
         String message = context.getMessage();
         SpyType type;

@@ -9,28 +9,26 @@ public class PunishmentReason implements Writeable {
 
     private String text;
 
-    public PunishmentReason(@NotNull String text) {
+    public PunishmentReason(String text) {
         this.setText(text);
     }
 
-    @NotNull
-    public static PunishmentReason read(@NotNull FileConfig config, @NotNull String path) {
+    public static PunishmentReason read(FileConfig config, String path) {
         String message = ConfigValue.create(path + ".Message", "Violation of the rules.").read(config);
 
         return new PunishmentReason(message);
     }
 
     @Override
-    public void write(@NotNull FileConfig config, @NotNull String path) {
+    public void write(FileConfig config, String path) {
         config.set(path + ".Message", this.text);
     }
 
-    @NotNull
     public String getText() {
         return this.text;
     }
 
-    public void setText(@NotNull String text) {
+    public void setText(String text) {
         this.text = text;
     }
 }

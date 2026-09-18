@@ -72,19 +72,19 @@ import su.nightexpress.sunlight.utils.EconomyUtils;
 
 public class HomesModule extends Module {
 
-    private final TeleportManager      teleportManager;
-    private final HomeDataManager      dataManager;
+    private final TeleportManager teleportManager;
+    private final HomeDataManager dataManager;
     private final GlobalHomeRepository repository;
-    private final HomesSettings        settings;
+    private final HomesSettings settings;
 
-    private HomesMenu          homesMenu;
-    private HomeSettingsMenu   homeMenu;
-    private IconSelectionMenu  iconSelectionMenu;
+    private HomesMenu homesMenu;
+    private HomeSettingsMenu homeMenu;
+    private IconSelectionMenu iconSelectionMenu;
     private InvitedPlayersMenu invitedPlayersMenu;
 
     private boolean loaded;
 
-    public HomesModule(@NonNull ModuleContext context, @NonNull TeleportManager teleportManager) {
+    public HomesModule(ModuleContext context, TeleportManager teleportManager) {
         super(context);
         this.teleportManager = teleportManager;
         this.dataManager = new HomeDataManager(this, this.dataHandler);
@@ -93,7 +93,7 @@ public class HomesModule extends Module {
     }
 
     @Override
-    protected void loadModule(@NonNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         this.settings.load(config);
         this.plugin.injectLang(HomesLang.class);
         this.dataManager.init();
@@ -117,21 +117,21 @@ public class HomesModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NonNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(HomesPerms.ROOT);
     }
 
     @Override
     protected void registerCommands() {
         this.commandRegistry.addProvider("homes-common",
-            new HomeCommonCommandProvider(this.plugin, this, this.userManager), this);
+                new HomeCommonCommandProvider(this.plugin, this, this.userManager), this);
 
         this.commandRegistry.addProvider("homes-admin",
-            new HomeAdminCommandProvider(this.plugin, this, this.userManager), this);
+                new HomeAdminCommandProvider(this.plugin, this, this.userManager), this);
     }
 
     @Override
-    public void registerPlaceholders(@NonNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("homes_limit", (player, payload) -> {
             int limit = this.getMaxHomesValue(player);
             return limit >= 0 ? NumberUtil.format(limit) : CoreLang.OTHER_INFINITY.text();
@@ -154,7 +154,7 @@ public class HomesModule extends Module {
 
         this.dialogRegistry.register(HomeDialogKeys.HOME_NAME, new HomeNameDialog());
         this.dialogRegistry.register(HomeDialogKeys.HOME_INVITE_PLAYER_NAME,
-            new HomeInvitePlayerDialog(this.plugin, this, this.userManager));
+                new HomeInvitePlayerDialog(this.plugin, this, this.userManager));
         this.dialogRegistry.register(HomeDialogKeys.HOME_DELETION, () -> new HomeDeleteDialog(this));
     }
 
@@ -171,74 +171,65 @@ public class HomesModule extends Module {
 
     public void saveHomes() {
         Set<Home> homes = this.repository.getAll(Home::isDirty).stream().peek(Home::markClean).collect(Collectors
-            .toSet());
+                .toSet());
 
         this.dataManager.saveHomes(homes);
     }
 
-    public void deleteHome(@NonNull Home home) {
+    public void deleteHome(Home home) {
         this.repository.remove(home);
         this.plugin.runTaskAsync(() -> this.dataManager.deleteHome(home));
     }
 
-    @NonNull
     public HomesSettings getSettings() {
         return this.settings;
     }
 
-    @NonNull
     public GlobalHomeRepository getRepository() {
         return this.repository;
     }
 
-    @NonNull
-    public UserHomeRepository getUserRepository(@NonNull UUID playerId) {
+    public UserHomeRepository getUserRepository(UUID playerId) {
         return this.repository.getUserRepository(playerId);
     }
 
-    @NonNull
-    public Set<Home> getHomes(@NonNull Player player) {
+    public Set<Home> getHomes(Player player) {
         return this.getHomes(player.getUniqueId());
     }
 
-    @NonNull
-    public Set<Home> getHomes(@NonNull UUID playerId) {
+    public Set<Home> getHomes(UUID playerId) {
         return this.repository.getUserRepository(playerId).getAll();
     }
 
-    @Nullable
-    public Home getHome(@NonNull Player player, @NonNull String homeId) {
+    public Home getHome(Player player, String homeId) {
         return this.getHome(player.getUniqueId(), homeId);
     }
 
-    @Nullable
-    public Home getHome(@NonNull UUID playerId, @NonNull String homeId) {
+    public Home getHome(UUID playerId, String homeId) {
         return this.getUserRepository(playerId).getById(homeId);
     }
 
-    @Nullable
-    public Home getFavoriteHome(@NonNull Player player) {
+    public Home getFavoriteHome(Player player) {
         return this.getHomes(player).stream().filter(Home::isFavorite).findFirst().orElse(null);
     }
 
-    @NonNull
-    public Optional<Home> favoriteHome(@NonNull Player player) {
+    public Optional<Home> favoriteHome(Player player) {
         return Optional.ofNullable(this.getFavoriteHome(player));
     }
 
-    public boolean hasHome(@NonNull Player player) {
+    public boolean hasHome(Player player) {
         return this.countHomes(player) > 0;
     }
 
-    public int countHomes(@NonNull Player player) {
+    public int countHomes(Player player) {
         return this.getHomes(player).size();
     }
 
-    public int getMaxHomesValue(@NonNull Player player) {
+    public int getMaxHomesValue(Player player) {
         return this.settings.getHomesByRankAmount().getGreatestOrNegative(player).intValue();
     }
 
-    private boolean checkDataLoaded(@NonNull CommandSender sender) {
+    private boolean checkDataLoaded(CommandSender sender) {
         if (!this.loaded) {
             this.sendPrefixed(HomesLang.DATA_NOT_LOADED, sender);
             return false;
@@ -247,46 +238,52 @@ public class HomesModule extends Module {
         return true;
     }
 
-    public void openHomes(@NonNull Player player) {
+    public void openHomes(Player player) {
         this.openHomes(player, player.getUniqueId());
     }
 
-    public boolean openHomes(@NonNull Player player, @NonNull UUID target) {
+    public boolean openHomes(Player player, UUID target) {
         return this.homesMenu.show(this.plugin, player, target);
     }
 
-    public boolean openHomeSettings(@NonNull Player player, @NonNull Home home) {
+    public boolean openHomeSettings(Player player, Home home) {
         return this.homeMenu.show(this.plugin, player, home);
     }
 
-    public boolean openIconSelection(@NonNull Player player, @NonNull Home home) {
+    public boolean openIconSelection(Player player, Home home) {
         return this.iconSelectionMenu.show(this.plugin, player, home);
     }
 
-    public boolean openInvitedPlayersMenu(@NonNull Player player, @NonNull Home home) {
+    public boolean openInvitedPlayersMenu(Player player, Home home) {
         return this.invitedPlayersMenu.show(this.plugin, player, home);
     }
 
-    public boolean canCreateMoreHomes(@NonNull Player player) {
+    public boolean canCreateMoreHomes(Player player) {
         int max = this.getMaxHomesValue(player);
-        if (max < 0) return true;
+        if (max < 0)
+            return true;
 
         return this.countHomes(player) < max;
     }
 
-    public void handleRespawn(@NonNull PlayerRespawnEvent event) {
+    public void handleRespawn(PlayerRespawnEvent event) {
         this.favoriteHome(event.getPlayer()).filter(Home::isActive).ifPresent(home -> event.setRespawnLocation(home
-            .toLocation()));
+                .toLocation()));
     }
 
-    public void handleBedInteract(@NonNull PlayerInteractEvent event) {
-        if (!this.settings.isBedModeEnabled()) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.useInteractedBlock() == Event.Result.DENY) return;
+    public void handleBedInteract(PlayerInteractEvent event) {
+        if (!this.settings.isBedModeEnabled())
+            return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
+            return;
+        if (event.useInteractedBlock() == Event.Result.DENY)
+            return;
 
         Block block = event.getClickedBlock();
-        if (block == null || !(block.getBlockData() instanceof Bed)) return;
-        if (!(block.getState() instanceof Colorable colorable)) return;
+        if (block == null || !(block.getBlockData() instanceof Bed))
+            return;
+        if (!(block.getState() instanceof Colorable colorable))
+            return;
 
         Player player = event.getPlayer();
         Location location = block.getLocation();
@@ -297,8 +294,7 @@ public class HomesModule extends Module {
 
         if (this.settings.isBedModeWithColors()) {
             homeId = LowerCase.INTERNAL.apply(color.name());
-        }
-        else {
+        } else {
             homeId = HomeDefaults.DEFAULT_HOME_ID;
         }
 
@@ -315,14 +311,17 @@ public class HomesModule extends Module {
             }
 
             // Set or override home's location.
-            if (!this.setHome(player, homeId, location, false)) return;
+            if (!this.setHome(player, homeId, location, false))
+                return;
 
             Home setHome = this.getHome(player, homeId);
-            if (setHome == null) return;
+            if (setHome == null)
+                return;
 
             player.swingMainHand();
 
-            if (!overrideRespawn) return;
+            if (!overrideRespawn)
+                return;
 
             // Clear old favorite home.
             this.favoriteHome(player).ifPresent(favorite -> {
@@ -342,30 +341,31 @@ public class HomesModule extends Module {
         }
     }
 
-    public void handleWorldLoad(@NonNull WorldLoadEvent event) {
+    public void handleWorldLoad(WorldLoadEvent event) {
         World world = event.getWorld();
 
         this.repository.getAll().stream().filter(Home::isInactive).filter(home -> home.isWorld(world)).forEach(
-            home -> home.activate(world));
+                home -> home.activate(world));
     }
 
-    public void handleWorldUnload(@NonNull WorldUnloadEvent event) {
+    public void handleWorldUnload(WorldUnloadEvent event) {
         World world = event.getWorld();
 
         this.repository.getAll().stream().filter(Home::isActive).filter(home -> home.isWorld(world)).forEach(
-            Home::deactivate);
+                Home::deactivate);
     }
 
-    public boolean checkLocation(@NonNull Player player, @NonNull Location location, boolean notify) {
+    public boolean checkLocation(Player player, Location location, boolean notify) {
         if (this.settings.isCheckBuildAccess() && !player.hasPermission(HomesPerms.BYPASS_CREATION_PROTECTION)) {
             Block against = location.getBlock();
             Block placed = against.getRelative(BlockFace.UP);
             ItemStack item = new ItemStack(Material.STONE);
             BlockPlaceEvent event = new BlockPlaceEvent(placed, placed
-                .getState(), against, item, player, true, EquipmentSlot.HAND);
+                    .getState(), against, item, player, true, EquipmentSlot.HAND);
             plugin.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
-                if (notify) this.sendPrefixed(HomesLang.HOME_SET_ERROR_PROTECTION, player);
+                if (notify)
+                    this.sendPrefixed(HomesLang.HOME_SET_ERROR_PROTECTION, player);
                 return false;
             }
         }
@@ -373,15 +373,17 @@ public class HomesModule extends Module {
         return true;
     }
 
-    public boolean setHome(@NonNull Player player, @NonNull String name, boolean force) {
+    public boolean setHome(Player player, String name, boolean force) {
         Location location = player.getLocation();
-        if (location == null) return false;
+        if (location == null)
+            return false;
 
         return this.setHome(player, name, location, force);
     }
 
-    public boolean setHome(@NonNull Player player, @NonNull String aname, @NonNull Location location, boolean force) {
-        if (!this.checkDataLoaded(player)) return false;
+    public boolean setHome(Player player, String aname, Location location, boolean force) {
+        if (!this.checkDataLoaded(player))
+            return false;
 
         String id = StringUtil.lowerCaseUnderscore(aname);
 
@@ -395,9 +397,8 @@ public class HomesModule extends Module {
             int countHomes = this.countHomes(player);
             if (currentHome == null && maxHomesValue >= 0 && countHomes >= maxHomesValue) {
                 this.sendPrefixed(HomesLang.HOME_SET_ERROR_LIMIT, player, builder -> builder
-                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(countHomes))
-                    .with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(maxHomesValue))
-                );
+                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(countHomes))
+                        .with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(maxHomesValue)));
                 return false;
             }
 
@@ -406,22 +407,24 @@ public class HomesModule extends Module {
             }
 
             if (!player.hasPermission(HomesPerms.BYPASS_CREATION_WORLDS) && this.settings.isBlacklistedWorld(player
-                .getWorld().getName())) {
+                    .getWorld().getName())) {
                 this.sendPrefixed(HomesLang.HOME_SET_ERROR_WORLD, player);
                 return false;
             }
 
             PlayerHomeCreateEvent event = new PlayerHomeCreateEvent(player, id, location, currentHome == null);
             this.plugin.getPluginManager().callEvent(event);
-            if (event.isCancelled()) return false;
+            if (event.isCancelled())
+                return false;
 
             if (currentHome == null) {
-                chargeCreation = creationCost > 0D && !EconomyUtils.hasBypass(player, HomesPerms.BYPASS_COST) && EconomyUtils
-                    .hasCurrency();
+                chargeCreation = creationCost > 0D && !EconomyUtils.hasBypass(player, HomesPerms.BYPASS_COST)
+                        && EconomyUtils
+                                .hasCurrency();
 
                 if (chargeCreation && !EconomyUtils.canAfford(player, creationCost)) {
                     this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
-                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(creationCost)));
+                            .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(creationCost)));
                     return false;
                 }
             }
@@ -429,13 +432,13 @@ public class HomesModule extends Module {
 
         if (currentHome == null) {
             Home created = this.createHome(id, UserInfo.of(player), location);
-            if (chargeCreation) EconomyUtils.withdraw(player, creationCost);
+            if (chargeCreation)
+                EconomyUtils.withdraw(player, creationCost);
             if (this.countHomes(player) == 0) {
                 created.setFavorite(true);
             }
             this.sendPrefixed(HomesLang.HOME_SET_CREATED, player, builder -> builder.with(created.placeholders()));
-        }
-        else {
+        } else {
             currentHome.updateLocation(location);
             currentHome.markDirty();
             this.sendPrefixed(HomesLang.HOME_SET_MOVED, player, builder -> builder.with(currentHome.placeholders()));
@@ -443,10 +446,9 @@ public class HomesModule extends Module {
         return true;
     }
 
-    @NonNull
-    public Home createHome(@NonNull String id, @NonNull UserInfo owner, @NonNull Location location) {
+    public Home createHome(String id, UserInfo owner, Location location) {
         Home home = Home.createDefault(id, owner, this.settings.getDefaultIconId(), location.getWorld(), ExactPos.from(
-            location));
+                location));
         home.activate();
 
         this.repository.add(home);
@@ -454,7 +456,7 @@ public class HomesModule extends Module {
         return home;
     }
 
-    public boolean removeHome(@NonNull Player player, @NonNull Home home) {
+    public boolean removeHome(Player player, Home home) {
         this.deleteHome(home);
         this.sendPrefixed(HomesLang.HOME_DELETE_DONE, player, builder -> builder.with(home.placeholders()));
 
@@ -463,57 +465,60 @@ public class HomesModule extends Module {
         return true;
     }
 
-    public boolean teleportToHome(@NonNull Player player, @NonNull Home home) {
+    public boolean teleportToHome(Player player, Home home) {
         if (!home.isActive()) {
             this.sendPrefixed(HomesLang.HOME_TELEPORT_ERROR_INACTIVE, player, builder -> builder.with(home
-                .placeholders()));
+                    .placeholders()));
             return false;
         }
 
         PlayerHomeTeleportEvent event = new PlayerHomeTeleportEvent(player, home);
         this.plugin.getPluginManager().callEvent(event);
-        if (event.isCancelled()) return false;
+        if (event.isCancelled())
+            return false;
 
         boolean isOwner = home.isOwner(player);
         boolean bypass = player.hasPermission(HomesPerms.BYPASS_UNSAFE_LOCATION);
 
         double cost = this.settings.getTeleportCost();
-        boolean charge = cost > 0D && !EconomyUtils.hasBypass(player, HomesPerms.BYPASS_COST) && EconomyUtils.hasCurrency();
+        boolean charge = cost > 0D && !EconomyUtils.hasBypass(player, HomesPerms.BYPASS_COST)
+                && EconomyUtils.hasCurrency();
 
         if (charge && !EconomyUtils.canAfford(player, cost)) {
             this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
-                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
             return false;
         }
 
         Location location = home.toLocation();
 
         TeleportContext teleportContext = TeleportContext.builder(this, player, location)
-            .withFlag(TeleportFlag.CENTERED)
-            .withFlagIf(TeleportFlag.LOOK_FOR_SURFACE, () -> !isOwner && !bypass)
-            .withFlagIf(TeleportFlag.AVOID_LAVA, () -> !isOwner && !bypass)
-            .callback(() -> {
-                if (charge) EconomyUtils.withdraw(player, cost);
+                .withFlag(TeleportFlag.CENTERED)
+                .withFlagIf(TeleportFlag.LOOK_FOR_SURFACE, () -> !isOwner && !bypass)
+                .withFlagIf(TeleportFlag.AVOID_LAVA, () -> !isOwner && !bypass)
+                .callback(() -> {
+                    if (charge)
+                        EconomyUtils.withdraw(player, cost);
 
-                this.sendPrefixed(isOwner ? HomesLang.HOME_TELEPORT_SUCCESS : HomesLang.HOME_VISIT_SUCCESS, player,
-                    builder -> builder.with(home.placeholders()));
-            })
-            .build();
+                    this.sendPrefixed(isOwner ? HomesLang.HOME_TELEPORT_SUCCESS : HomesLang.HOME_VISIT_SUCCESS, player,
+                            builder -> builder.with(home.placeholders()));
+                })
+                .build();
 
         return this.teleportManager.teleport(teleportContext, TeleportType.HOME);
     }
 
-    public boolean visitHome(@NonNull Player player, @NonNull Home home) {
+    public boolean visitHome(Player player, Home home) {
         if (!home.canVisit(player)) {
             this.sendPrefixed(HomesLang.HOME_VISIT_ERROR_NOT_PERMITTED, player, builder -> builder.with(home
-                .placeholders()));
+                    .placeholders()));
             return false;
         }
 
         return this.teleportToHome(player, home);
     }
 
-    public boolean inviteToHome(@NonNull Player player, @NonNull Home home, @NonNull UserInfo profile) {
+    public boolean inviteToHome(Player player, Home home, UserInfo profile) {
         if (profile.isUser(player)) {
             this.sendPrefixed(HomesLang.HOME_INVITE_ERROR_YOURSELF, player);
             return false;
@@ -525,15 +530,13 @@ public class HomesModule extends Module {
         Player target = Players.getPlayer(profile.id());
         if (target != null) {
             this.sendPrefixed(HomesLang.HOME_INVITE_SUCCESS_NOTIFY, player, builder -> builder
-                .with(CommonPlaceholders.PLAYER.resolver(player))
-                .with(home.placeholders())
-            );
+                    .with(CommonPlaceholders.PLAYER.resolver(player))
+                    .with(home.placeholders()));
         }
 
         this.sendPrefixed(HomesLang.HOME_INVITE_SUCCESS_FEEDBACK, player, builder -> builder
-            .with(CommonPlaceholders.PLAYER_NAME, () -> target == null ? profile.name() : target.getName())
-            .with(home.placeholders())
-        );
+                .with(CommonPlaceholders.PLAYER_NAME, () -> target == null ? profile.name() : target.getName())
+                .with(home.placeholders()));
 
         return true;
     }

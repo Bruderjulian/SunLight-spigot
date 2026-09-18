@@ -17,16 +17,16 @@ import su.nightexpress.sunlight.module.warmups.config.WarmupsConfig;
 public abstract class Warmup {
 
     protected final WarmupsModule module;
-    protected final Player        player;
-    protected final int           value;
-    protected final long          initTime;
-    protected final long          finishTime;
-    protected final Location      originLocation;
+    protected final Player player;
+    protected final int value;
+    protected final long initTime;
+    protected final long finishTime;
+    protected final Location originLocation;
 
     protected NightBossBar indicator;
-    protected long         particleStep;
+    protected long particleStep;
 
-    public Warmup(@NotNull WarmupsModule module, @NotNull Player player, int countdown) {
+    public Warmup(WarmupsModule module, Player player, int countdown) {
         this.module = module;
         this.player = player;
         this.value = countdown;
@@ -35,28 +35,25 @@ public abstract class Warmup {
         this.originLocation = player.getLocation().clone();
     }
 
-    @NotNull
     public abstract WarmupType getType();
 
-    @NotNull
     protected abstract String getIndicatorTitle();
 
-    @NotNull
     protected abstract NightBarColor getIndicatorColor();
 
-    @NotNull
     protected abstract NightBarOverlay getIndicatorStyle();
 
     private void createIndicator() {
         this.indicator = BossBarUtils.createBossBar("", this.getIndicatorColor(), this.getIndicatorStyle());
         this.indicator.addViewer(this.player);
         this.indicator.setProgress(1F);
-        //this.indicator.setVisible(true);
+        // this.indicator.setVisible(true);
         this.updateIndicator();
     }
 
     public void updateIndicator() {
-        if (this.indicator == null) return;
+        if (this.indicator == null)
+            return;
 
         long current = System.currentTimeMillis();
         float currentDiff = current - this.initTime;
@@ -74,7 +71,8 @@ public abstract class Warmup {
     }
 
     private void removeIndicator() {
-        if (this.indicator == null) return;
+        if (this.indicator == null)
+            return;
 
         this.indicator.removeViewers();
         this.indicator.setProgress(0F);
@@ -144,7 +142,6 @@ public abstract class Warmup {
         this.removeIndicator();
     }
 
-    @NotNull
     public Player getPlayer() {
         return this.player;
     }
@@ -153,8 +150,7 @@ public abstract class Warmup {
         return this.value;
     }
 
-    @NotNull
-    private static Location getPointOnCircle(@NotNull Location location, boolean doCopy, double x, double z, double y) {
+    private static Location getPointOnCircle(Location location, boolean doCopy, double x, double z, double y) {
         return (doCopy ? location.clone() : location).add(Math.cos(x) * z, y, Math.sin(x) * z);
     }
 }

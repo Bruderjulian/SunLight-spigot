@@ -46,49 +46,46 @@ import static su.nightexpress.sunlight.module.warps.WarpsPlaceholders.*;
 public class PlayerWarpsListMenu extends AbstractObjectMenu<WarpsListData> implements LangContainer {
 
     private static final IconLocale ICON_WARP_DEFAULT = LangEntry.iconBuilder("PlayerWarps.UI.WarpsMenu.WarpDefault")
-        .rawName(WARP_NAME)
-        .rawLore(
-            DARK_GRAY.wrap("» ") + GRAY.wrap("Owner: " + WHITE.wrap(PlayerWarpsPlaceholders.WARP_OWNER_NAME)),
-            DARK_GRAY.wrap("» ") + GRAY.wrap("Visits: " + WHITE.wrap(PlayerWarpsPlaceholders.WARP_VISITS)),
-            DARK_GRAY.wrap("» ") + GRAY.wrap("Description:"),
-            WARP_DESCRIPTION,
-            "",
-            GOLD.wrap("→ " + UNDERLINED.wrap("Click to teleport"))
-        )
-        .build();
+            .rawName(WARP_NAME)
+            .rawLore(
+                    DARK_GRAY.wrap("» ") + GRAY.wrap("Owner: " + WHITE.wrap(PlayerWarpsPlaceholders.WARP_OWNER_NAME)),
+                    DARK_GRAY.wrap("» ") + GRAY.wrap("Visits: " + WHITE.wrap(PlayerWarpsPlaceholders.WARP_VISITS)),
+                    DARK_GRAY.wrap("» ") + GRAY.wrap("Description:"),
+                    WARP_DESCRIPTION,
+                    "",
+                    GOLD.wrap("→ " + UNDERLINED.wrap("Click to teleport")))
+            .build();
 
     private static final IconLocale ICON_WARP_OWN = LangEntry.iconBuilder("PlayerWarps.UI.WarpsMenu.WarpOwn")
-        .rawName(WARP_NAME)
-        .rawLore(
-            GREEN.wrap("✔ You own this warp."),
-            "",
-            DARK_GRAY.wrap("» ") + GRAY.wrap("Visits: " + WHITE.wrap(PlayerWarpsPlaceholders.WARP_VISITS)),
-            DARK_GRAY.wrap("» ") + GRAY.wrap("Description:"),
-            WARP_DESCRIPTION,
-            "",
-            GOLD.wrap("→ " + UNDERLINED.wrap("Left-Click to teleport")),
-            GOLD.wrap("→ " + UNDERLINED.wrap("Right-Click to edit"))
-        )
-        .build();
+            .rawName(WARP_NAME)
+            .rawLore(
+                    GREEN.wrap("✔ You own this warp."),
+                    "",
+                    DARK_GRAY.wrap("» ") + GRAY.wrap("Visits: " + WHITE.wrap(PlayerWarpsPlaceholders.WARP_VISITS)),
+                    DARK_GRAY.wrap("» ") + GRAY.wrap("Description:"),
+                    WARP_DESCRIPTION,
+                    "",
+                    GOLD.wrap("→ " + UNDERLINED.wrap("Left-Click to teleport")),
+                    GOLD.wrap("→ " + UNDERLINED.wrap("Right-Click to edit")))
+            .build();
 
     private static final IconLocale ICON_WARP_MODERATE = LangEntry.iconBuilder("PlayerWarps.UI.WarpsMenu.WarpModerate")
-        .rawName(WARP_NAME)
-        .rawLore(
-            GOLD.wrap("✎ You can edit this warp."),
-            "",
-            DARK_GRAY.wrap("» ") + GRAY.wrap("Owner: " + WHITE.wrap(PlayerWarpsPlaceholders.WARP_OWNER_NAME)),
-            DARK_GRAY.wrap("» ") + GRAY.wrap("Visits: " + WHITE.wrap(PlayerWarpsPlaceholders.WARP_VISITS)),
-            DARK_GRAY.wrap("» ") + GRAY.wrap("Description:"),
-            WARP_DESCRIPTION,
-            "",
-            GOLD.wrap("→ " + UNDERLINED.wrap("Left-Click to teleport")),
-            GOLD.wrap("→ " + UNDERLINED.wrap("Right-Click to edit"))
-        )
-        .build();
+            .rawName(WARP_NAME)
+            .rawLore(
+                    GOLD.wrap("✎ You can edit this warp."),
+                    "",
+                    DARK_GRAY.wrap("» ") + GRAY.wrap("Owner: " + WHITE.wrap(PlayerWarpsPlaceholders.WARP_OWNER_NAME)),
+                    DARK_GRAY.wrap("» ") + GRAY.wrap("Visits: " + WHITE.wrap(PlayerWarpsPlaceholders.WARP_VISITS)),
+                    DARK_GRAY.wrap("» ") + GRAY.wrap("Description:"),
+                    WARP_DESCRIPTION,
+                    "",
+                    GOLD.wrap("→ " + UNDERLINED.wrap("Left-Click to teleport")),
+                    GOLD.wrap("→ " + UNDERLINED.wrap("Right-Click to edit")))
+            .build();
 
     private final SunLightPlugin plugin;
-    private final PlayerWarpsModule    module;
-    //private final PlayerWarpsSettings   settings;
+    private final PlayerWarpsModule module;
+    // private final PlayerWarpsSettings settings;
     private final PlayerWarpRepository repository;
 
     private final MenuItemAction backAction;
@@ -98,11 +95,12 @@ public class PlayerWarpsListMenu extends AbstractObjectMenu<WarpsListData> imple
 
     private ItemPopulator<PlayerWarp> warpPopulator;
 
-    public PlayerWarpsListMenu(@NonNull SunLightPlugin plugin, @NonNull PlayerWarpsModule module, @NonNull PlayerWarpsSettings settings, @NonNull PlayerWarpRepository repository) {
+    public PlayerWarpsListMenu(SunLightPlugin plugin, PlayerWarpsModule module, PlayerWarpsSettings settings,
+            PlayerWarpRepository repository) {
         super(MenuType.GENERIC_9X6, "[Warps - " + GENERIC_CATEGORY + "]", WarpsListData.class);
         this.plugin = plugin;
         this.module = module;
-        //this.settings = settings;
+        // this.settings = settings;
         this.repository = repository;
 
         this.backAction = this.createObjectAction(this::backToMainMenu);
@@ -112,20 +110,22 @@ public class PlayerWarpsListMenu extends AbstractObjectMenu<WarpsListData> imple
     }
 
     @Override
-    @NonNull
-    protected String getRawTitle(@NonNull ViewerContext context) {
-        return PlaceholderContext.builder().with(GENERIC_CATEGORY, () -> this.getObject(context).category().name()).build().apply(super.getRawTitle(context));
+
+    protected String getRawTitle(ViewerContext context) {
+        return PlaceholderContext.builder().with(GENERIC_CATEGORY, () -> this.getObject(context).category().name())
+                .build().apply(super.getRawTitle(context));
     }
 
-    public boolean show(@NonNull Player player, @NonNull WarpCategory category, @Nullable PlayerWarpSortType sortType, @Nullable String searchText) {
-        if (sortType == null) sortType = PlayerWarpSortType.DATE_CREATION;
+    public boolean show(Player player, WarpCategory category, PlayerWarpSortType sortType, String searchText) {
+        if (sortType == null)
+            sortType = PlayerWarpSortType.DATE_CREATION;
 
         return this.show(this.plugin, player, new WarpsListData(category, sortType, searchText));
     }
 
     @Override
     public void registerActions() {
-        
+
     }
 
     @Override
@@ -142,119 +142,107 @@ public class PlayerWarpsListMenu extends AbstractObjectMenu<WarpsListData> imple
         this.addPreviousPageItem(Material.ARROW, 45);
 
         this.addDefaultButton("back", MenuItem.builder()
-            .defaultState(ItemState.defaultBuilder()
-                .icon(NightItem.fromType(Material.COMPASS)
-                    .setDisplayName(WHITE.wrap("Back to Main Menu"))
-                    .hideAllComponents()
-                )
-                .action(this.backAction)
-                .build()
-            )
-            .slots(49)
-            .build()
-        );
+                .defaultState(ItemState.defaultBuilder()
+                        .icon(NightItem.fromType(Material.COMPASS)
+                                .setDisplayName(WHITE.wrap("Back to Main Menu"))
+                                .hideAllComponents())
+                        .action(this.backAction)
+                        .build())
+                .slots(49)
+                .build());
 
         this.addDefaultButton("search", MenuItem.builder()
-            .defaultState(ItemState.defaultBuilder()
-                .icon(NightItem.fromType(Material.SPRUCE_SIGN)
-                    .setDisplayName(GOLD.and(BOLD).wrap("Search by Name"))
-                    .setLore(Lists.newList(
-                        GRAY.wrap("Search warps by keywords"),
-                        GRAY.wrap("in their names."),
-                        "",
-                        GOLD.wrap("→ " + UNDERLINED.wrap("Click to search"))
-                    ))
-                    .hideAllComponents()
-                )
-                .action(this.searchAction)
-                .build()
-            )
-            .state(ItemState.builder("with_input")
-                .icon(NightItem.fromType(Material.DARK_OAK_SIGN)
-                    .setDisplayName(YELLOW.and(BOLD).wrap("Search by Name"))
-                    .setLore(Lists.newList(
-                        DARK_GRAY.wrap("» " + GRAY.wrap("Current: ") + WHITE.wrap(GENERIC_INPUT)),
-                        "",
-                        GRAY.wrap("Search warps by keywords in their names."),
-                        "",
-                        YELLOW.wrap("→ " + UNDERLINED.wrap("Click to reset"))
-                    ))
-                    .hideAllComponents()
-                )
-                .displayModifier((context, item) -> item.replace(builder -> builder.with(GENERIC_INPUT, () -> this.getObject(context).searchText())))
-                .condition(context -> this.getObject(context).searchText() != null)
-                .action(this.searchResetAction)
-                .build()
-            )
-            .slots(47)
-            .build()
-        );
+                .defaultState(ItemState.defaultBuilder()
+                        .icon(NightItem.fromType(Material.SPRUCE_SIGN)
+                                .setDisplayName(GOLD.and(BOLD).wrap("Search by Name"))
+                                .setLore(Lists.newList(
+                                        GRAY.wrap("Search warps by keywords"),
+                                        GRAY.wrap("in their names."),
+                                        "",
+                                        GOLD.wrap("→ " + UNDERLINED.wrap("Click to search"))))
+                                .hideAllComponents())
+                        .action(this.searchAction)
+                        .build())
+                .state(ItemState.builder("with_input")
+                        .icon(NightItem.fromType(Material.DARK_OAK_SIGN)
+                                .setDisplayName(YELLOW.and(BOLD).wrap("Search by Name"))
+                                .setLore(Lists.newList(
+                                        DARK_GRAY.wrap("» " + GRAY.wrap("Current: ") + WHITE.wrap(GENERIC_INPUT)),
+                                        "",
+                                        GRAY.wrap("Search warps by keywords in their names."),
+                                        "",
+                                        YELLOW.wrap("→ " + UNDERLINED.wrap("Click to reset"))))
+                                .hideAllComponents())
+                        .displayModifier((context, item) -> item.replace(
+                                builder -> builder.with(GENERIC_INPUT, () -> this.getObject(context).searchText())))
+                        .condition(context -> this.getObject(context).searchText() != null)
+                        .action(this.searchResetAction)
+                        .build())
+                .slots(47)
+                .build());
 
         this.addDefaultButton("sorting", MenuItem.builder()
-            .defaultState(ItemState.defaultBuilder()
-                .icon(NightItem.fromType(Material.HOPPER)
-                    .setDisplayName(GOLD.and(BOLD).wrap("Sorting Mode"))
-                    .setLore(Lists.newList(
-                        DARK_GRAY.wrap("» " + GRAY.wrap("Current: ") + WHITE.wrap(GENERIC_TYPE)),
-                        "",
-                        GRAY.wrap("Toggle warps list order."),
-                        "",
-                        GOLD.wrap("→ " + UNDERLINED.wrap("Click to toggle"))
-                    ))
-                    .hideAllComponents()
-                )
-                .displayModifier((context, item) -> item.replace(builder -> builder
-                    .with(GENERIC_TYPE, () -> this.getObject(context).sortType().localized())
-                ))
-                .action(this.sortAction)
-                .build()
-            )
-            .slots(51)
-            .build()
-        );
+                .defaultState(ItemState.defaultBuilder()
+                        .icon(NightItem.fromType(Material.HOPPER)
+                                .setDisplayName(GOLD.and(BOLD).wrap("Sorting Mode"))
+                                .setLore(Lists.newList(
+                                        DARK_GRAY.wrap("» " + GRAY.wrap("Current: ") + WHITE.wrap(GENERIC_TYPE)),
+                                        "",
+                                        GRAY.wrap("Toggle warps list order."),
+                                        "",
+                                        GOLD.wrap("→ " + UNDERLINED.wrap("Click to toggle"))))
+                                .hideAllComponents())
+                        .displayModifier((context, item) -> item.replace(builder -> builder
+                                .with(GENERIC_TYPE, () -> this.getObject(context).sortType().localized())))
+                        .action(this.sortAction)
+                        .build())
+                .slots(51)
+                .build());
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
-        int[] warpSlots = ConfigProperty.of(ConfigTypes.INT_ARRAY, "Warps.Slots", IntStream.range(9, 45).toArray()).resolveWithDefaults(config);
+    protected void onLoad(FileConfig config) {
+        int[] warpSlots = ConfigProperty.of(ConfigTypes.INT_ARRAY, "Warps.Slots", IntStream.range(9, 45).toArray())
+                .resolveWithDefaults(config);
 
         this.warpPopulator = ItemPopulator.builder(PlayerWarp.class)
-            .itemProvider((context, warp) -> {
-                Player player = context.getPlayer();
+                .itemProvider((context, warp) -> {
+                    Player player = context.getPlayer();
 
-                return warp.getIcon()
-                    .hideAllComponents()
-                    .localized(warp.isOwner(player) ? ICON_WARP_OWN : (warp.canEdit(player) ? ICON_WARP_MODERATE : ICON_WARP_DEFAULT))
-                    .replace(builder -> builder.with(warp.placeholders()));
-                }
-            )
-            .actionProvider(warp -> context -> this.module.clickWarp(context, warp))
-            .slots(warpSlots)
-            .build();
+                    return warp.getIcon()
+                            .hideAllComponents()
+                            .localized(warp.isOwner(player) ? ICON_WARP_OWN
+                                    : (warp.canEdit(player) ? ICON_WARP_MODERATE : ICON_WARP_DEFAULT))
+                            .replace(builder -> builder.with(warp.placeholders()));
+                })
+                .actionProvider(warp -> context -> this.module.clickWarp(context, warp))
+                .slots(warpSlots)
+                .build();
     }
 
-    private void backToMainMenu(@NonNull ObjectActionContext<WarpsListData> context) {
+    private void backToMainMenu(ObjectActionContext<WarpsListData> context) {
         this.module.openWarpsMenu(context.getPlayer());
     }
 
-    private void searchWarps(@NonNull ObjectActionContext<WarpsListData> context) {
+    private void searchWarps(ObjectActionContext<WarpsListData> context) {
         this.module.openSearchDialog(context.getPlayer(), this.getObject(context));
     }
 
-    private void resetSearch(@NonNull ObjectActionContext<WarpsListData> context) {
+    private void resetSearch(ObjectActionContext<WarpsListData> context) {
         WarpsListData data = this.getObject(context);
 
         this.show(context.getPlayer(), data.category(), data.sortType(), null);
     }
 
-    private void toggleSorting(@NonNull ObjectActionContext<WarpsListData> context) {
+    private void toggleSorting(ObjectActionContext<WarpsListData> context) {
         WarpsListData data = this.getObject(context);
 
         this.show(context.getPlayer(), data.category(), data.sortType().next(), data.searchText());
     }
 
-    private boolean isGoodWarp(@NonNull PlayerWarp warp, @NonNull WarpsListData data) {
-        if (!data.category().isWarpOfThis(warp)) return false;
+    private boolean isGoodWarp(PlayerWarp warp, WarpsListData data) {
+        if (!data.category().isWarpOfThis(warp))
+            return false;
 
         if (data.searchText() != null) {
             String lowName = LowerCase.INTERNAL.apply(NightMessage.stripTags(warp.getName()));
@@ -265,36 +253,37 @@ public class PlayerWarpsListMenu extends AbstractObjectMenu<WarpsListData> imple
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick(ViewerContext context, InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag(ViewerContext context, InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose(ViewerContext context, InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare(ViewerContext context, InventoryView view, Inventory inventory, List<MenuItem> items) {
         WarpsListData data = this.getObject(context);
         PlayerWarpSortType sortType = data.sortType();
-        List<PlayerWarp> warps = this.repository.stream().filter(warp -> this.isGoodWarp(warp, data)).sorted(sortType.getComparator()).toList();
+        List<PlayerWarp> warps = this.repository.stream().filter(warp -> this.isGoodWarp(warp, data))
+                .sorted(sortType.getComparator()).toList();
 
         this.warpPopulator.populateTo(context, warps, items);
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender(ViewerContext context, InventoryView view, Inventory inventory) {
 
     }
 }

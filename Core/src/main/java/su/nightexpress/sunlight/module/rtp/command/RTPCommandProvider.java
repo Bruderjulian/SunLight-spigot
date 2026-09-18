@@ -14,22 +14,21 @@ public class RTPCommandProvider extends AbstractCommandProvider {
 
     private final RTPModule module;
 
-    public RTPCommandProvider(@NotNull SunLightPlugin plugin, @NotNull RTPModule module) {
+    public RTPCommandProvider(SunLightPlugin plugin, RTPModule module) {
         super(plugin);
         this.module = module;
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("rtp", true, new String[]{"rtp", "wild"}, builder -> builder
-            .playerOnly()
-            .description(RTPLang.COMMAND_RTP_DESC)
-            .permission(RTPPerms.COMMAND_RTP)
-            .executes(this::execute)
-        );
+        this.registerLiteral("rtp", true, new String[] { "rtp", "wild" }, builder -> builder
+                .playerOnly()
+                .description(RTPLang.COMMAND_RTP_DESC)
+                .permission(RTPPerms.COMMAND_RTP)
+                .executes(this::execute));
     }
 
-    private boolean execute(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean execute(CommandContext context, ParsedArguments arguments) {
         Player player = context.getPlayerOrThrow();
         this.module.teleportToRandomPlace(player);
         return true;

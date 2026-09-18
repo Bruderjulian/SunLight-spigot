@@ -47,7 +47,7 @@ public class HomeSettingsMenu extends AbstractObjectMenu<Home> {
 
     private final HomesModule module;
 
-    public HomeSettingsMenu(@NonNull SunLightPlugin plugin, @NonNull HomesModule module) {
+    public HomeSettingsMenu( SunLightPlugin plugin,  HomesModule module) {
         super(MenuType.GENERIC_9X5, "Home Settings", Home.class);
         this.module = module;
 
@@ -225,41 +225,41 @@ public class HomeSettingsMenu extends AbstractObjectMenu<Home> {
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
+    protected void onLoad( FileConfig config) {
 
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
 
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
-    private void handleDelete(@NonNull ActionContext context) {
+    private void handleDelete( ActionContext context) {
         Home home = this.getObject(context);
         Player player = context.getPlayer();
 

@@ -16,7 +16,7 @@ public class InventoryListener extends AbstractListener<SunLightPlugin> {
 
     private final WorldsModule module;
 
-    public InventoryListener(@NotNull SunLightPlugin plugin, @NotNull WorldsModule module) {
+    public InventoryListener(SunLightPlugin plugin, WorldsModule module) {
         super(plugin);
         this.module = module;
     }
@@ -24,7 +24,8 @@ public class InventoryListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onInventorySplitJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (this.module.getWorldGroup(player.getWorld()) == null) return;
+        if (this.module.getWorldGroup(player.getWorld()) == null)
+            return;
 
         this.module.getWorldInventory(player).loadInventory(player);
     }

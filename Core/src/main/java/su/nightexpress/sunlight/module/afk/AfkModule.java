@@ -35,18 +35,18 @@ import java.util.function.Predicate;
 public class AfkModule extends Module implements AfkProvider {
 
     private final Map<UUID, ActivityTracker> activityTrackerMap;
-    private final AfkSettings                settings;
+    private final AfkSettings settings;
 
     private UniversalChatEventHandler chatEventHandler;
 
-    public AfkModule(@NotNull ModuleContext context) {
+    public AfkModule(ModuleContext context) {
         super(context);
         this.activityTrackerMap = new ConcurrentHashMap<>();
         this.settings = new AfkSettings();
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         this.settings.load(config);
         this.plugin.injectLang(AfkLang.class);
         this.registerCommands();
@@ -75,7 +75,7 @@ public class AfkModule extends Module implements AfkProvider {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(AfkPerms.ROOT);
     }
 
@@ -85,16 +85,17 @@ public class AfkModule extends Module implements AfkProvider {
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("afk_state", (player, payload) -> {
             return CoreLang.STATE_YES_NO.get(this.isAfk(player));
         });
 
         registry.register("afk_mode", (player, payload) -> {
             return PlaceholderContext.builder()
-                .with(SLPlaceholders.GENERIC_TIME, () -> TimeFormats.formatSince(this.getAfkEnterTimestamp(player), TimeFormatType.LITERAL))
-                .build()
-                .apply(AfkLang.PLACEHOLDER_MODE.get(this.isAfk(player)));
+                    .with(SLPlaceholders.GENERIC_TIME,
+                            () -> TimeFormats.formatSince(this.getAfkEnterTimestamp(player), TimeFormatType.LITERAL))
+                    .build()
+                    .apply(AfkLang.PLACEHOLDER_MODE.get(this.isAfk(player)));
         });
 
         registry.register("afk_idle_time", (player, payload) -> {
@@ -102,60 +103,65 @@ public class AfkModule extends Module implements AfkProvider {
         });
 
         registry.register("afk_idle_time_formatted", (player, payload) -> {
-            return TimeFormats.formatAmount(TimeUnit.MILLISECONDS.convert(this.getIdleTime(player), TimeUnit.SECONDS), TimeFormatType.LITERAL);
+            return TimeFormats.formatAmount(TimeUnit.MILLISECONDS.convert(this.getIdleTime(player), TimeUnit.SECONDS),
+                    TimeFormatType.LITERAL);
         });
     }
 
-    public void kickForIdling(@NotNull Player player) {
+    public void kickForIdling(Player player) {
         String reason = PlaceholderContext.builder()
-            .with(SLPlaceholders.GENERIC_TIME, () -> TimeFormats.formatAmount(TimeUnit.MILLISECONDS.convert(this.getIdleTime(player), TimeUnit.SECONDS), TimeFormatType.LITERAL))
-            .andThen(SLPlaceholders.forPlayerWithPAPI(player))
-            .build()
-            .apply(String.join("\n", this.settings.kickText.get()));
+                .with(SLPlaceholders.GENERIC_TIME,
+                        () -> TimeFormats.formatAmount(
+                                TimeUnit.MILLISECONDS.convert(this.getIdleTime(player), TimeUnit.SECONDS),
+                                TimeFormatType.LITERAL))
+                .andThen(SLPlaceholders.forPlayerWithPAPI(player))
+                .build()
+                .apply(String.join("\n", this.settings.kickText.get()));
 
         Players.kick(player, reason);
     }
 
     @Override
-    public boolean isAfk(@NotNull Player player) {
+    public boolean isAfk(Player player) {
         return this.activityTracker(player).map(ActivityTracker::isAfk).orElse(false);
     }
 
-    public void track(@NotNull Player player) {
+    public void track(Player player) {
         ActivityTracker tracker = new ActivityTracker(this.settings);
         this.activityTrackerMap.put(player.getUniqueId(), tracker);
     }
 
-    public void untrack(@NotNull Player player, boolean silent) {
+    public void untrack(Player player, boolean silent) {
         this.exitAfk(player, silent);
         this.activityTrackerMap.remove(player.getUniqueId());
     }
 
-    public void exitAfk(@NotNull Player player, boolean silent) {
+    public void exitAfk(Player player, boolean silent) {
         this.activityTracker(player).filter(ActivityTracker::isAfk).ifPresent(tracker -> {
             this.handleAfkExit(player, tracker, silent);
             tracker.resetCounters();
         });
     }
 
-    public void enterAfk(@NotNull Player player, boolean silent) {
+    public void enterAfk(Player player, boolean silent) {
         this.activityTracker(player).filter(Predicate.not(ActivityTracker::isAfk)).ifPresent(tracker -> {
             this.handleAfkEnter(player, tracker, silent);
         });
     }
 
-    public void trackActivity(@NotNull Player player, @NotNull ActivityType type) {
+    public void trackActivity(Player player, ActivityType type) {
         this.activityTracker(player).ifPresent(tracker -> tracker.countActivity(type));
     }
 
-    public void trackActivity(@NotNull Player player, int amount) {
+    public void trackActivity(Player player, int amount) {
         this.activityTracker(player).ifPresent(tracker -> tracker.countActivity(amount));
     }
 
     private void tickTrackers() {
         Map.copyOf(this.activityTrackerMap).forEach((playerId, tracker) -> {
             Player player = Players.getPlayer(playerId);
-            if (player == null) return;
+            if (player == null)
+                return;
 
             tracker.updatePosition(BlockPos.from(player.getLocation()));
             tracker.tick();
@@ -168,14 +174,14 @@ public class AfkModule extends Module implements AfkProvider {
 
                 if (this.settings.afkStatusBarEnabled.get()) {
                     Players.sendActionBar(player, PlaceholderContext.builder()
-                        .with(SLPlaceholders.GENERIC_TIME, () -> TimeFormats.formatSince(tracker.getAfkEnterTimestamp(), TimeFormatType.LITERAL))
-                        .andThen(SLPlaceholders.forPlayerWithPAPI(player))
-                        .build()
-                        .apply(this.settings.afkStatusBarText.get())
-                    );
+                            .with(SLPlaceholders.GENERIC_TIME,
+                                    () -> TimeFormats.formatSince(tracker.getAfkEnterTimestamp(),
+                                            TimeFormatType.LITERAL))
+                            .andThen(SLPlaceholders.forPlayerWithPAPI(player))
+                            .build()
+                            .apply(this.settings.afkStatusBarText.get()));
                 }
-            }
-            else if (!tracker.isAfk()) {
+            } else if (!tracker.isAfk()) {
                 int idleTime = tracker.getIdleTime();
                 int timeToAfk = this.getTimeToAfk(player);
                 if (timeToAfk > 0 && idleTime >= timeToAfk) {
@@ -192,20 +198,21 @@ public class AfkModule extends Module implements AfkProvider {
         });
     }
 
-    private void handleChatEvent(@NotNull UniversalChatEvent event) {
-        if (event.isCancelled()) return;
+    private void handleChatEvent(UniversalChatEvent event) {
+        if (event.isCancelled())
+            return;
 
         this.trackActivity(event.getPlayer(), this.settings.getActivityPoints(ActivityType.CHAT));
     }
 
-    private void handleAfkEnter(@NotNull Player player, @NotNull ActivityTracker tracker, boolean silent) {
+    private void handleAfkEnter(Player player, ActivityTracker tracker, boolean silent) {
         tracker.resetCounters();
         tracker.setAfkTimestamp();
 
         PlaceholderContext context = PlaceholderContext.builder()
-            .with(CommonPlaceholders.PLAYER.resolver(player))
-            .andThen(CommonPlaceholders.forPlaceholderAPI(player))
-            .build();
+                .with(CommonPlaceholders.PLAYER.resolver(player))
+                .andThen(CommonPlaceholders.forPlaceholderAPI(player))
+                .build();
 
         List<String> commands = context.apply(this.settings.afkCommands.get());
         Players.dispatchCommands(player, commands);
@@ -213,15 +220,17 @@ public class AfkModule extends Module implements AfkProvider {
         PlayerAfkEvent event = new PlayerAfkEvent(player, true);
         this.plugin.getPluginManager().callEvent(event);
 
-        if (!silent) this.broadcastPrefixed(AfkLang.AFK_ENTER_BROADCAST, context);
+        if (!silent)
+            this.broadcastPrefixed(AfkLang.AFK_ENTER_BROADCAST, context);
     }
 
-    private void handleAfkExit(@NotNull Player player, @NotNull ActivityTracker tracker, boolean silent) {
+    private void handleAfkExit(Player player, ActivityTracker tracker, boolean silent) {
         PlaceholderContext context = PlaceholderContext.builder()
-            .with(SLPlaceholders.GENERIC_TIME, () -> TimeFormats.formatSince(tracker.getAfkEnterTimestamp(), TimeFormatType.LITERAL))
-            .with(CommonPlaceholders.PLAYER.resolver(player))
-            .andThen(CommonPlaceholders.forPlaceholderAPI(player))
-            .build();
+                .with(SLPlaceholders.GENERIC_TIME,
+                        () -> TimeFormats.formatSince(tracker.getAfkEnterTimestamp(), TimeFormatType.LITERAL))
+                .with(CommonPlaceholders.PLAYER.resolver(player))
+                .andThen(CommonPlaceholders.forPlaceholderAPI(player))
+                .build();
 
         List<String> commands = context.apply(this.settings.wakeUpCommands.get());
         Players.dispatchCommands(player, commands);
@@ -229,44 +238,41 @@ public class AfkModule extends Module implements AfkProvider {
         PlayerAfkEvent event = new PlayerAfkEvent(player, false);
         this.plugin.getPluginManager().callEvent(event);
 
-        if (!silent) this.broadcastPrefixed(AfkLang.AFK_EXIT_BROADCAST, context);
+        if (!silent)
+            this.broadcastPrefixed(AfkLang.AFK_EXIT_BROADCAST, context);
 
         tracker.resetCounters();
     }
 
-    @NotNull
     public Set<ActivityTracker> getActivityTrackers() {
         return new HashSet<>(this.activityTrackerMap.values());
     }
 
-    @Nullable
-    public ActivityTracker getActivityTracker(@NotNull Player player) {
+    public ActivityTracker getActivityTracker(Player player) {
         return this.getActivityTracker(player.getUniqueId());
     }
 
-    @Nullable
-    public ActivityTracker getActivityTracker(@NotNull UUID playerId) {
+    public ActivityTracker getActivityTracker(UUID playerId) {
         return this.activityTrackerMap.get(playerId);
     }
 
-    @NotNull
-    public Optional<ActivityTracker> activityTracker(@NotNull Player player) {
+    public Optional<ActivityTracker> activityTracker(Player player) {
         return Optional.ofNullable(this.getActivityTracker(player));
     }
 
-    public int getTimeToAfk(@NotNull Player player) {
+    public int getTimeToAfk(Player player) {
         return this.settings.idleAfkTimes.get().getGreatest(player).intValue();
     }
 
-    public int getTimeToKick(@NotNull Player player) {
+    public int getTimeToKick(Player player) {
         return this.settings.idleKickTimes.get().getGreatest(player).intValue();
     }
 
-    public int getIdleTime(@NotNull Player player) {
+    public int getIdleTime(Player player) {
         return this.activityTracker(player).map(ActivityTracker::getIdleTime).orElse(0);
     }
 
-    public long getAfkEnterTimestamp(@NotNull Player player) {
+    public long getAfkEnterTimestamp(Player player) {
         return this.activityTracker(player).map(ActivityTracker::getAfkEnterTimestamp).orElse(0L);
     }
 }

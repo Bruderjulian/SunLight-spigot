@@ -115,7 +115,7 @@ public class KitSettingsEditorMenu extends AbstractObjectMenu<Kit> implements La
 
     private boolean iconMode;
 
-    public KitSettingsEditorMenu(@NonNull SunLightPlugin plugin, @NonNull KitsModule module) {
+    public KitSettingsEditorMenu( SunLightPlugin plugin,  KitsModule module) {
         super(MenuType.GENERIC_9X5, KitsLang.EDITOR_TITLE_SETTINGS.text(), Kit.class);
         this.module = module;
 
@@ -275,12 +275,12 @@ public class KitSettingsEditorMenu extends AbstractObjectMenu<Kit> implements La
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
+    protected void onLoad( FileConfig config) {
 
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
         if (this.iconMode) {
             if (event.getRawSlot() <= event.getInventory().getSize()) return;
 
@@ -296,17 +296,17 @@ public class KitSettingsEditorMenu extends AbstractObjectMenu<Kit> implements La
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
         this.iconMode = false;
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
         items.add(MenuItem.builder()
             .defaultState(ItemState.defaultBuilder()
                 .icon(this.getObject(context).definition().getIcon().localized(ICON_ICON))
@@ -324,12 +324,12 @@ public class KitSettingsEditorMenu extends AbstractObjectMenu<Kit> implements La
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 }

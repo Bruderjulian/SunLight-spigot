@@ -45,13 +45,13 @@ public class PlayerWarpNameDialog extends Dialog<PlayerWarp> {
 
     private final PlayerWarpsSettings settings;
 
-    public PlayerWarpNameDialog(@NonNull PlayerWarpsSettings settings) {
+    public PlayerWarpNameDialog( PlayerWarpsSettings settings) {
         this.settings = settings;
     }
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull PlayerWarp warp) {
+    
+    public WrappedDialog create( Player player,  PlayerWarp warp) {
         return Dialogs.builder()
             .base(DialogBases.builder(TITLE)
                 .body(DialogBodies.plainMessage(BODY))

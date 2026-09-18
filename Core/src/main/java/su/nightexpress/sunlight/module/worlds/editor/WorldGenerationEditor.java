@@ -27,10 +27,10 @@ import java.util.List;
 
 public class WorldGenerationEditor extends EditorMenu<SunLightPlugin, WorldData> {
 
-    private static final String TEXTURE_LOAD   = "ff7416ce9e826e4899b284bb0ab94843a8f7586e52b71fc3125e0286f926a";
+    private static final String TEXTURE_LOAD = "ff7416ce9e826e4899b284bb0ab94843a8f7586e52b71fc3125e0286f926a";
     private static final String TEXTURE_DELETE = "b465f80bf02b408885987b00957ca5e9eb874c3fa88305099597a333a336ee15";
 
-    public WorldGenerationEditor(@NotNull SunLightPlugin plugin, @NotNull WorldsModule module) {
+    public WorldGenerationEditor(SunLightPlugin plugin, WorldsModule module) {
         super(plugin, WorldsLang.EDITOR_TITLE_GENERATION.text(), MenuSize.CHEST_18);
 
         this.addReturn(13, (viewer, event, data) -> {
@@ -38,7 +38,8 @@ public class WorldGenerationEditor extends EditorMenu<SunLightPlugin, WorldData>
         });
 
         this.addItem(ItemUtil.getSkinHead(TEXTURE_LOAD), WorldsLang.EDITOR_WORLD_LOAD, 7, (viewer, event, data) -> {
-            if (data.isLoaded()) return;
+            if (data.isLoaded())
+                return;
 
             World world = data.loadWorld();
             if (world != null) {
@@ -46,9 +47,9 @@ public class WorldGenerationEditor extends EditorMenu<SunLightPlugin, WorldData>
             }
         });
 
-
         this.addItem(ItemUtil.getSkinHead(TEXTURE_DELETE), WorldsLang.EDITOR_WORLD_DELETE, 8, (viewer, event, data) -> {
-            if (data.isLoaded()) return;
+            if (data.isLoaded())
+                return;
 
             if (event.getClick() == ClickType.DROP) {
                 data.delete(DeletionType.DIRECTORY);
@@ -60,7 +61,6 @@ public class WorldGenerationEditor extends EditorMenu<SunLightPlugin, WorldData>
                 this.runNextTick(() -> module.openEditor(viewer.getPlayer()));
             }
         });
-
 
         this.addItem(Material.OAK_SAPLING, WorldsLang.EDITOR_WORLD_SET_GENERATOR, 0, (viewer, event, data) -> {
             if (event.getClick() == ClickType.DROP) {
@@ -81,7 +81,8 @@ public class WorldGenerationEditor extends EditorMenu<SunLightPlugin, WorldData>
         });
 
         this.addItem(Material.DEAD_BUSH, WorldsLang.EDITOR_WORLD_SET_ENVIRONMENT, 1, (viewer, event, data) -> {
-            data.setEnvironment(Lists.next(data.getEnvironment(), environment -> environment != World.Environment.CUSTOM));
+            data.setEnvironment(
+                    Lists.next(data.getEnvironment(), environment -> environment != World.Environment.CUSTOM));
             this.save(viewer);
         });
 
@@ -90,24 +91,23 @@ public class WorldGenerationEditor extends EditorMenu<SunLightPlugin, WorldData>
             this.save(viewer);
         });
 
-
         this.getItems().forEach(menuItem -> menuItem.getOptions().addDisplayModifier((viewer, itemStack) -> {
             ItemReplacer.replace(itemStack, Placeholders.forGeneration(this.getLink(viewer)));
         }));
     }
 
-    private void save(@NotNull MenuViewer viewer) {
+    private void save(MenuViewer viewer) {
         this.getLink(viewer).save();
         this.runNextTick(() -> this.flush(viewer));
     }
 
     @Override
-    protected void onPrepare(@NotNull MenuViewer viewer, @NotNull MenuOptions options) {
+    protected void onPrepare(MenuViewer viewer, MenuOptions options) {
 
     }
 
     @Override
-    protected void onReady(@NotNull MenuViewer viewer, @NotNull Inventory inventory) {
+    protected void onReady(MenuViewer viewer, Inventory inventory) {
 
     }
 }

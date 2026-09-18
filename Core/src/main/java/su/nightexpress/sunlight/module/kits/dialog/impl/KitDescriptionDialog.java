@@ -36,8 +36,8 @@ public class KitDescriptionDialog extends Dialog<Kit> {
     private static final String JSON_DESCRIPTION = "description";
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull Kit kit) {
+    
+    public WrappedDialog create( Player player,  Kit kit) {
         return Dialogs.builder()
             .base(DialogBases.builder(TITLE)
                 .body(DialogBodies.plainMessage(BODY))

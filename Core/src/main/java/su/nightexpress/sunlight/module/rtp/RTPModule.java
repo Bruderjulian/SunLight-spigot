@@ -31,10 +31,10 @@ import java.util.Set;
 public class RTPModule extends Module {
 
     private final TeleportManager teleportManager;
-    private final RTPSettings     settings;
+    private final RTPSettings settings;
     private final ProtectionManager protectionManager;
 
-    public RTPModule(@NotNull ModuleContext context, @NotNull TeleportManager teleportManager) {
+    public RTPModule(ModuleContext context, TeleportManager teleportManager) {
         super(context);
         this.teleportManager = teleportManager;
         this.settings = new RTPSettings();
@@ -42,7 +42,7 @@ public class RTPModule extends Module {
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         this.settings.load(config);
         this.plugin.injectLang(RTPLang.class);
     }
@@ -53,7 +53,7 @@ public class RTPModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(RTPPerms.MODULE);
     }
 
@@ -63,11 +63,11 @@ public class RTPModule extends Module {
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 
-    public boolean teleportToRandomPlace(@NotNull Player player) {
+    public boolean teleportToRandomPlace(Player player) {
         World world = player.getWorld();
         LookupRange lookupRange = this.getWorldRange(world.getName());
 
@@ -105,52 +105,54 @@ public class RTPModule extends Module {
         Location destination = location.clone();
 
         double cost = this.settings.getTeleportCost();
-        boolean charge = cost > 0D && !EconomyUtils.hasBypass(player, RTPPerms.BYPASS_COST) && EconomyUtils.hasCurrency();
+        boolean charge = cost > 0D && !EconomyUtils.hasBypass(player, RTPPerms.BYPASS_COST)
+                && EconomyUtils.hasCurrency();
 
         if (charge && !EconomyUtils.canAfford(player, cost)) {
             this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
-                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
             return false;
         }
 
         TeleportContext teleportContext = TeleportContext.builder(this, player, destination)
-            .withFlag(TeleportFlag.CENTERED)
-            .withFlag(TeleportFlag.KEEP_DIRECTION)
-            .withFlag(TeleportFlag.AVOID_LAVA)
-            .callback(() -> {
-                if (charge) EconomyUtils.withdraw(player, cost);
+                .withFlag(TeleportFlag.CENTERED)
+                .withFlag(TeleportFlag.KEEP_DIRECTION)
+                .withFlag(TeleportFlag.AVOID_LAVA)
+                .callback(() -> {
+                    if (charge)
+                        EconomyUtils.withdraw(player, cost);
 
-                this.sendPrefixed(RTPLang.RANDOM_LOCATION_TELEPORT_SUCCESS, player, builder -> builder.with(CommonPlaceholders.LOCATION.resolver(destination)));
-            })
-            .build();
+                    this.sendPrefixed(RTPLang.RANDOM_LOCATION_TELEPORT_SUCCESS, player,
+                            builder -> builder.with(CommonPlaceholders.LOCATION.resolver(destination)));
+                })
+                .build();
 
         return this.teleportManager.teleport(teleportContext, TeleportType.RTP);
     }
 
-    @Nullable
-    public LookupRange getWorldRange(@NotNull String name) {
+    public LookupRange getWorldRange(String name) {
         return this.settings.getLookupRangesMap().get(LowerCase.INTERNAL.apply(name));
     }
 
-    public boolean isProtected(@NotNull Location location) {
-        if (!this.settings.isProtectionEnabled()) return false;
+    public boolean isProtected(Location location) {
+        if (!this.settings.isProtectionEnabled())
+            return false;
 
         return this.protectionManager.isProtected(location, this.settings.getProtectionIgnoredHooks());
     }
 
-    @NotNull
     public ProtectionManager getProtectionManager() {
         return this.protectionManager;
     }
 
-    @NotNull
-    public Optional<Location> pickLocation(@NotNull World world, @NotNull LookupRange lookupRange) {
+    public Optional<Location> pickLocation(World world, LookupRange lookupRange) {
         Set<BlockFace> directions = lookupRange.getDirections();
         Set<BlockFace> directionsX = Lists.newSet(BlockFace.EAST, BlockFace.WEST);
         Set<BlockFace> directionsZ = Lists.newSet(BlockFace.SOUTH, BlockFace.NORTH);
         directionsX.retainAll(directions);
         directionsZ.retainAll(directions);
-        if (directionsX.isEmpty() && directionsZ.isEmpty()) return Optional.empty();
+        if (directionsX.isEmpty() && directionsZ.isEmpty())
+            return Optional.empty();
 
         int distanceX = Rnd.get(lookupRange.getDistanceMin(), lookupRange.getDistanceMax());
         int distanceZ = Rnd.get(lookupRange.getDistanceMin(), lookupRange.getDistanceMax());
@@ -184,7 +186,8 @@ public class RTPModule extends Module {
         if (world.getEnvironment() == World.Environment.NETHER) {
             int start = world.getMinHeight();
             int end = snapshot.getHighestBlockYAt(bX, bZ);
-            if (end < start) return Optional.empty();
+            if (end < start)
+                return Optional.empty();
 
             Integer found = null;
             boolean wasAir = false;
@@ -198,17 +201,18 @@ public class RTPModule extends Module {
                 wasAir = blockType.isAir();
             }
 
-            if (found == null) return Optional.empty();
+            if (found == null)
+                return Optional.empty();
 
             bY = found;
-        }
-        else {
+        } else {
             bY = snapshot.getHighestBlockYAt(bX, bZ);
         }
 
         int minY = world.getMinHeight();
         int maxY = world.getMaxHeight();
-        if (bY < minY || bY > maxY) return Optional.empty();
+        if (bY < minY || bY > maxY)
+            return Optional.empty();
 
         Material material = snapshot.getBlockType(bX, bY, bZ);
         if (!material.isBlock() || !material.isSolid()) {

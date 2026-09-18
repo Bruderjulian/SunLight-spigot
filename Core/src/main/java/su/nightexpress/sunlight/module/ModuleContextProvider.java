@@ -7,6 +7,6 @@ import org.jspecify.annotations.NonNull;
 @FunctionalInterface
 public interface ModuleContextProvider {
 
-    @NonNull
-    ModuleContext createModuleContext(@NonNull String id, @NonNull Path path, @NonNull ModuleDefinition definition);
+    
+    ModuleContext createModuleContext( String id,  Path path,  ModuleDefinition definition);
 }

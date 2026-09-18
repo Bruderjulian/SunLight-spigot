@@ -8,13 +8,13 @@ import su.nightexpress.sunlight.hook.HookId;
 public class GriefPreventionHook implements ProtectionHook {
 
     @Override
-    @NotNull
+
     public String getPluginName() {
         return HookId.GRIEF_PREVENTION;
     }
 
     @Override
-    public boolean isProtected(@NotNull Location location) {
+    public boolean isProtected(Location location) {
         return GriefPrevention.instance.dataStore.getClaimAt(location, false, null) != null;
     }
 }

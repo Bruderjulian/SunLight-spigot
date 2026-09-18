@@ -31,7 +31,7 @@ public class WarpsSettings extends AbstractConfig {
         return this.warpSaveInterval.get();
     }
 
-    @NonNull
+    
     public NightItem getDefaultIcon() {
         return this.warpDefaultIcon.get().copy();
     }

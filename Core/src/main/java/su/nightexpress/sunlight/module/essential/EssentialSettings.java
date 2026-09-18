@@ -258,7 +258,7 @@ public class EssentialSettings extends AbstractConfig {
         return this.invulnerabilityEnabled.get();
     }
 
-    public boolean isInvulnerabilityAllowedInThisWorld(@NonNull World world) {
+    public boolean isInvulnerabilityAllowedInThisWorld( World world) {
         return !this.invulnerabilityDisabledWorlds.get().contains(LowerCase.INTERNAL.apply(world.getName()));
     }
 

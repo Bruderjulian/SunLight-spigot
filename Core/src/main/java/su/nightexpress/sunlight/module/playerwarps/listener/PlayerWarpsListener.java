@@ -13,7 +13,7 @@ public class PlayerWarpsListener extends AbstractListener<SunLightPlugin> {
 
     private final PlayerWarpsModule module;
 
-    public PlayerWarpsListener(@NonNull SunLightPlugin plugin, @NonNull PlayerWarpsModule module) {
+    public PlayerWarpsListener( SunLightPlugin plugin,  PlayerWarpsModule module) {
         super(plugin);
         this.module = module;
     }

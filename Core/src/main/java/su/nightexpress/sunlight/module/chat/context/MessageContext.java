@@ -17,58 +17,56 @@ public class MessageContext extends FormattedContext {
     private final Set<CommandSender> viewers;
 
     private ChatChannel channel;
-    //private String      format;
+    // private String format;
 
-    public MessageContext(@NotNull Player player,
-                          @NotNull UserChatCache cache,
-                          @NotNull String originalMessage,
-                          @NotNull String userFormat,
-                          @NotNull ChatChannel channel,
-                          @NotNull Set<CommandSender> viewers) {
+    public MessageContext(Player player,
+            UserChatCache cache,
+            String originalMessage,
+            String userFormat,
+            ChatChannel channel,
+            Set<CommandSender> viewers) {
         super(player, cache, originalMessage);
         this.viewers = viewers;
 
         this.setChannel(channel);
         this.setFormat(PlaceholderContext.builder()
-            .with(SLPlaceholders.GENERIC_FORMAT, () -> userFormat)
-            .with(SLPlaceholders.GENERIC_MESSAGE, () -> "") // old
-            .with(channel.placeholders())
-            .build()
-            .apply(channel.getDisplay().format())
-        );
+                .with(SLPlaceholders.GENERIC_FORMAT, () -> userFormat)
+                .with(SLPlaceholders.GENERIC_MESSAGE, () -> "") // old
+                .with(channel.placeholders())
+                .build()
+                .apply(channel.getDisplay().format()));
     }
 
-    @NotNull
     public Set<CommandSender> getViewers() {
         return this.viewers;
     }
 
     @Override
-    @Nullable
+
     public CachedContent getLastContent() {
         return this.cache.getLastMessage();
     }
 
     @Override
-    public void setLastContent(@NotNull String message, long lifeTime) {
+    public void setLastContent(String message, long lifeTime) {
         this.cache.setLastMessage(message, lifeTime);
     }
 
-    @NotNull
     public ChatChannel getChannel() {
         return this.channel;
     }
 
-    public void setChannel(@NotNull ChatChannel channel) {
+    public void setChannel(ChatChannel channel) {
         this.channel = channel;
     }
 
-    /*@NotNull
-    public String getFormat() {
-        return this.format;
-    }
-
-    public void setFormat(@NotNull String format) {
-        this.format = format;
-    }*/
+    /*
+     * public String getFormat() {
+     * return this.format;
+     * }
+     * 
+     * public void setFormat( String format) {
+     * this.format = format;
+     * }
+     */
 }

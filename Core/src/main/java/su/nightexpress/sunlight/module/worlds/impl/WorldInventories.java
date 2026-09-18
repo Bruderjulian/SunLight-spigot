@@ -20,19 +20,20 @@ import java.util.Map;
 
 public class WorldInventories extends AbstractFileData<SunLightPlugin> {
 
-    private final WorldsModule                                    module;
+    private final WorldsModule module;
     private final Map<String, Map<InventoryType, List<ItemStack>>> inventories;
 
-    public WorldInventories(@NotNull SunLightPlugin plugin, @NotNull WorldsModule module, @NotNull File file) {
+    public WorldInventories(SunLightPlugin plugin, WorldsModule module, File file) {
         super(plugin, file);
         this.module = module;
         this.inventories = new HashMap<>();
     }
 
     @Override
-    protected boolean onLoad(@NotNull FileConfig config) {
+    protected boolean onLoad(FileConfig config) {
         for (InventoryType type : WorldsConfig.INVENTORY_SPLIT_TYPES) {
-            if (!WorldsConfig.isInventoryAffected(type)) continue;
+            if (!WorldsConfig.isInventoryAffected(type))
+                continue;
 
             for (String worldGroup : config.getSection(type.name())) {
                 ItemStack[] items = config.getItemsEncoded(type.name() + "." + worldGroup);
@@ -43,7 +44,7 @@ public class WorldInventories extends AbstractFileData<SunLightPlugin> {
     }
 
     @Override
-    protected void onSave(@NotNull FileConfig config) {
+    protected void onSave(FileConfig config) {
         this.inventories.forEach((worldGroup, groupMap) -> {
             groupMap.forEach((type, items) -> {
                 config.setItemsEncoded(type.name() + "." + worldGroup, items);
@@ -53,10 +54,11 @@ public class WorldInventories extends AbstractFileData<SunLightPlugin> {
 
     /**
      * Saves current player's inventory to a specified world group.
+     * 
      * @param player Player to save inventories from.
-     * @param group Name of the world group.
+     * @param group  Name of the world group.
      */
-    public void saveInventory(@NotNull Player player, @NotNull String group) {
+    public void saveInventory(Player player, String group) {
         // Always save all inventories to avoid items losing when change settings
         for (InventoryType type : WorldsConfig.INVENTORY_SPLIT_TYPES) {
             this.getInventoryMap(group).put(type, this.copyContents(this.getInventory(player, type).getContents()));
@@ -65,18 +67,20 @@ public class WorldInventories extends AbstractFileData<SunLightPlugin> {
 
     /**
      * Loads inventories for a player in their current world group.
+     * 
      * @param player Player to load inventories for.
      */
-    public void loadInventory(@NotNull Player player) {
+    public void loadInventory(Player player) {
         String worldGroup = this.module.getWorldGroup(player.getWorld());
-        if (worldGroup == null) return;
+        if (worldGroup == null)
+            return;
 
         for (InventoryType type : WorldsConfig.INVENTORY_SPLIT_TYPES) {
             this.loadInventory(player, worldGroup, type);
         }
     }
 
-    private void loadInventory(@NotNull Player player, @NotNull String worldGroup, @NotNull InventoryType type) {
+    private void loadInventory(Player player, String worldGroup, InventoryType type) {
         ItemStack[] inventoryContent = this.getInventory(player, type).getContents();
         Arrays.fill(inventoryContent, null);
 
@@ -84,7 +88,8 @@ public class WorldInventories extends AbstractFileData<SunLightPlugin> {
         if (items != null) {
             for (int slot = 0; slot < items.size() && slot < inventoryContent.length; slot++) {
                 ItemStack item = items.get(slot);
-                if (item == null || item.getType().isAir()) continue;
+                if (item == null || item.getType().isAir())
+                    continue;
 
                 inventoryContent[slot] = new ItemStack(item);
             }
@@ -93,29 +98,27 @@ public class WorldInventories extends AbstractFileData<SunLightPlugin> {
         this.getInventory(player, type).setContents(inventoryContent);
     }
 
-    @NotNull
-    private Map<InventoryType, List<ItemStack>> getInventoryMap(@NotNull String group) {
+    private Map<InventoryType, List<ItemStack>> getInventoryMap(String group) {
         return this.inventories.computeIfAbsent(group, k -> new HashMap<>());
     }
 
-    @NotNull
-    private List<ItemStack> copyContents(@NotNull ItemStack[] contents) {
+    private List<ItemStack> copyContents(ItemStack[] contents) {
         List<ItemStack> list = new ArrayList<>(contents.length);
         for (ItemStack item : contents) {
             if (item == null || item.getType().isAir()) {
                 list.add(null);
-            }
-            else {
+            } else {
                 list.add(new ItemStack(item));
             }
         }
         return list;
     }
 
-    @NotNull
-    private Inventory getInventory(@NotNull Player player, @NotNull InventoryType type) {
-        if (type == InventoryType.PLAYER) return player.getInventory();
-        if (type == InventoryType.ENDER_CHEST) return player.getEnderChest();
+    private Inventory getInventory(Player player, InventoryType type) {
+        if (type == InventoryType.PLAYER)
+            return player.getInventory();
+        if (type == InventoryType.ENDER_CHEST)
+            return player.getEnderChest();
         throw new UnsupportedOperationException("Unsupported inventory type!");
     }
 }

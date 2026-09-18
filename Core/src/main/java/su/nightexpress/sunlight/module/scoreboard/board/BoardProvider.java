@@ -6,5 +6,5 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 
 public interface BoardProvider {
 
-    @NotNull Board create(@NotNull Player player, @NotNull PlaceholderContext context, @NotNull BoardDefinition config);
+    Board create(Player player, PlaceholderContext context, BoardDefinition config);
 }

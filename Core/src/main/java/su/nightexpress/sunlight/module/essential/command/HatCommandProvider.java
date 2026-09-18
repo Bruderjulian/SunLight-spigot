@@ -27,33 +27,30 @@ public class HatCommandProvider extends AbstractCommandProvider {
     private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("hat");
 
     private static final MessageLocale MESSAGE_HAT_FEEDBACK = LangEntry.builder("Command.Hat.Done").chatMessage(
-        Sound.ITEM_ARMOR_EQUIP_LEATHER,
-        GRAY.wrap("Enjoy your new hat!")
-    );
+            Sound.ITEM_ARMOR_EQUIP_LEATHER,
+            GRAY.wrap("Enjoy your new hat!"));
 
     private static final MessageLocale MESSAGE_EMPTY_HAND = LangEntry.builder("Command.Hat.EmptyHand").chatMessage(
-        Sound.ENTITY_VILLAGER_NO,
-        GRAY.wrap("You must hold an item in your hand to equip it!")
-    );
+            Sound.ENTITY_VILLAGER_NO,
+            GRAY.wrap("You must hold an item in your hand to equip it!"));
 
     private final EssentialModule module;
 
-    public HatCommandProvider(@NotNull SunLightPlugin plugin, @NotNull EssentialModule module) {
+    public HatCommandProvider(SunLightPlugin plugin, EssentialModule module) {
         super(plugin);
         this.module = module;
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("hat", true, new String[]{"hat"}, builder -> builder
-            .playerOnly()
-            .description(DESCRIPTION)
-            .permission(PERMISSION)
-            .executes(this::equipHat)
-        );
+        this.registerLiteral("hat", true, new String[] { "hat" }, builder -> builder
+                .playerOnly()
+                .description(DESCRIPTION)
+                .permission(PERMISSION)
+                .executes(this::equipHat));
     }
 
-    private boolean equipHat(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean equipHat(CommandContext context, ParsedArguments arguments) {
         Player player = context.getPlayerOrThrow();
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getType().isAir()) {

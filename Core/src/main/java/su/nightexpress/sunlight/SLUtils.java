@@ -26,11 +26,11 @@ public class SLUtils {
     private static DateTimeFormatter dateFormatter;
     private static DateTimeFormatter timeFormatter;
 
-    public static void setDateFormatter(@NotNull String pattern) {
+    public static void setDateFormatter(String pattern) {
         dateFormatter = DateTimeFormatter.ofPattern(pattern);
     }
 
-    public static void setTimeFormatter(@NotNull String pattern) {
+    public static void setTimeFormatter(String pattern) {
         timeFormatter = DateTimeFormatter.ofPattern(pattern);
     }
 
@@ -38,9 +38,8 @@ public class SLUtils {
         return Plugins.isInstalled(HookId.PACKET_EVENTS) || Plugins.isInstalled(HookId.PROTOCOL_LIB);
     }
 
-    @NotNull
     @Deprecated
-    public static String createIdentifier(@NotNull Player player) {
+    public static String createIdentifier(Player player) {
         String uuid = player.getUniqueId().toString();
 
         // Bedrock players have UUIDs leading with zeros.
@@ -51,20 +50,20 @@ public class SLUtils {
         return uuid;
     }
 
-    public static boolean isVanished(@NotNull Player player) {
+    public static boolean isVanished(Player player) {
         return player.hasMetadata("vanished");
     }
 
     private static final Direction[] DIRECTIONS = {
-        Direction.EAST, Direction.NORTH_EAST, Direction.NORTH, Direction.NORTH_WEST,
-        Direction.WEST, Direction.SOUTH_WEST, Direction.SOUTH, Direction.SOUTH_EAST
+            Direction.EAST, Direction.NORTH_EAST, Direction.NORTH, Direction.NORTH_WEST,
+            Direction.WEST, Direction.SOUTH_WEST, Direction.SOUTH, Direction.SOUTH_EAST
     };
 
-    @NotNull
-    public static Direction getDirection(@NotNull Location from, @NotNull Location to) {
+    public static Direction getDirection(Location from, Location to) {
         int dx = to.getBlockX() - from.getBlockX();
         int dz = to.getBlockZ() - from.getBlockZ();
-        if (Math.abs(dx) == 0 && Math.abs(dz) == 0) return Direction.HERE;
+        if (Math.abs(dx) == 0 && Math.abs(dz) == 0)
+            return Direction.HERE;
 
         // "y" is -dx (because -Z is North) and "x" is dx.
         double angle = Math.toDegrees(Math.atan2(-dz, dx));
@@ -90,19 +89,16 @@ public class SLUtils {
         return (int) Math.min(max, Math.max(value, min));
     }
 
-    @NotNull
     public static String formatDate(long timestamp) {
         return dateFormatter.format(TimeUtil.getLocalDateTimeOf(timestamp));
     }
 
-    @NotNull
-    public static String formatTime(@NotNull LocalTime localTime) {
+    public static String formatTime(LocalTime localTime) {
         return timeFormatter.format(localTime);
     }
 
-    @NotNull
     @Deprecated
-    public static String getSenderName(@NotNull String name) {
+    public static String getSenderName(String name) {
         if (name.equalsIgnoreCase(CONSOLE_NAME)) {
             return Config.CONSOLE_NAME.get();
         }
@@ -113,9 +109,8 @@ public class SLUtils {
         return name;
     }
 
-    @NotNull
     @Deprecated
-    public static String getSenderName(@NotNull CommandSender sender) {
+    public static String getSenderName(CommandSender sender) {
         if (sender instanceof ConsoleCommandSender) {
             return Config.CONSOLE_NAME.get();
         }
@@ -125,8 +120,7 @@ public class SLUtils {
         return sender.getName();
     }
 
-    @NotNull
-    public static Optional<InetAddress> getInetAddress(@NotNull Player player) {
+    public static Optional<InetAddress> getInetAddress(Player player) {
         return Optional.ofNullable(player.getAddress()).map(InetSocketAddress::getAddress);
     }
 }

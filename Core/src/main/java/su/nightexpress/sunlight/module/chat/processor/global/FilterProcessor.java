@@ -11,19 +11,19 @@ public class FilterProcessor implements ChatProcessor<ChatContext> {
 
     private final WordFilter filter;
 
-    public FilterProcessor(@NonNull WordFilter filter) {
+    public FilterProcessor( WordFilter filter) {
         this.filter = filter;
     }
 
     @Override
-    public void preProcess(@NonNull ChatModule module, @NonNull ChatContext context) {
+    public void preProcess( ChatModule module,  ChatContext context) {
         String message = context.getMessage();
 
         context.setMessage(this.filter.censor(message, '*'));
     }
 
     @Override
-    public void postProcess(@NonNull ChatModule module, @NonNull ChatContext context) {
+    public void postProcess( ChatModule module,  ChatContext context) {
 
     }
 }

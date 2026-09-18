@@ -22,13 +22,13 @@ import java.util.Optional;
 
 public class PacketBoard extends AbstractBoard<PacketWrapper<?>> {
 
-    public PacketBoard(@NotNull Player player, @NotNull PlaceholderContext placeholderContext, @NotNull BoardDefinition boardDefinition) {
+    public PacketBoard(Player player, PlaceholderContext placeholderContext, BoardDefinition boardDefinition) {
         super(player, placeholderContext, boardDefinition);
     }
 
     @Override
-    @NotNull
-    protected WrapperPlayServerScoreboardObjective createObjectivePacket(ObjectiveMode mode, @NotNull String displayName) {
+
+    protected WrapperPlayServerScoreboardObjective createObjectivePacket(ObjectiveMode mode, String displayName) {
         WrapperPlayServerScoreboardObjective.ObjectiveMode objectiveMode = switch (mode) {
             case CREATE -> WrapperPlayServerScoreboardObjective.ObjectiveMode.CREATE;
             case REMOVE -> WrapperPlayServerScoreboardObjective.ObjectiveMode.REMOVE;
@@ -36,29 +36,27 @@ public class PacketBoard extends AbstractBoard<PacketWrapper<?>> {
         };
 
         return new WrapperPlayServerScoreboardObjective(
-            this.identifier,
-            objectiveMode,
-            adaptComponent(displayName),
-            WrapperPlayServerScoreboardObjective.RenderType.INTEGER,
-            ScoreFormat.blankScore()
-        );
+                this.identifier,
+                objectiveMode,
+                adaptComponent(displayName),
+                WrapperPlayServerScoreboardObjective.RenderType.INTEGER,
+                ScoreFormat.blankScore());
     }
 
     @Override
-    @NotNull
-    protected WrapperPlayServerResetScore createResetScorePacket(@NotNull String scoreId) {
+
+    protected WrapperPlayServerResetScore createResetScorePacket(String scoreId) {
         return new WrapperPlayServerResetScore(scoreId, this.identifier);
     }
 
     @Override
-    @NotNull
-    protected WrapperPlayServerUpdateScore createScorePacket(@NotNull String scoreId, int score, @NotNull String text) {
+
+    protected WrapperPlayServerUpdateScore createScorePacket(String scoreId, int score, String text) {
         WrapperPlayServerUpdateScore scorePacket = new WrapperPlayServerUpdateScore(
-            scoreId,
-            WrapperPlayServerUpdateScore.Action.CREATE_OR_UPDATE_ITEM,
-            this.identifier,
-            Optional.of(score)
-        );
+                scoreId,
+                WrapperPlayServerUpdateScore.Action.CREATE_OR_UPDATE_ITEM,
+                this.identifier,
+                Optional.of(score));
 
         scorePacket.setEntityDisplayName(adaptComponent(text));
         scorePacket.setScoreFormat(ScoreFormat.blankScore());
@@ -67,22 +65,20 @@ public class PacketBoard extends AbstractBoard<PacketWrapper<?>> {
     }
 
     @Override
-    @NotNull
+
     protected WrapperPlayServerDisplayScoreboard createDisplayPacket() {
         return new WrapperPlayServerDisplayScoreboard(1, this.identifier);
     }
 
     @Override
-    protected void sendPacket(@NotNull Player player, @NotNull PacketWrapper<?> wrapper) {
+    protected void sendPacket(Player player, PacketWrapper<?> wrapper) {
         PacketEvents.getAPI().getPlayerManager().sendPacket(player, wrapper);
     }
 
-    @NotNull
-    private static Component adaptComponent(@NotNull String string) {
+    private static Component adaptComponent(String string) {
         if (Version.isPaper()) {
-            return ((PaperBridge)Software.get()).getTextComponentAdapter().adaptComponent(NightMessage.parse(string));
-        }
-        else {
+            return ((PaperBridge) Software.get()).getTextComponentAdapter().adaptComponent(NightMessage.parse(string));
+        } else {
             return GsonComponentSerializer.gson().deserialize(NightMessage.asJson(string));
         }
     }

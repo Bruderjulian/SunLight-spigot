@@ -73,11 +73,11 @@ public class KitsMenu extends AbstractMenu {
 
         private final String defaultText;
 
-        KitStatus(@NonNull String defaultText) {
+        KitStatus( String defaultText) {
             this.defaultText = defaultText;
         }
 
-        @NonNull
+        
         public String getDefaultText() {
             return this.defaultText;
         }
@@ -87,7 +87,7 @@ public class KitsMenu extends AbstractMenu {
 
     private ItemPopulator<Kit> kitPopulator;
 
-    public KitsMenu(@NonNull SunLightPlugin plugin, @NonNull KitsModule module) {
+    public KitsMenu( SunLightPlugin plugin,  KitsModule module) {
         super(MenuType.GENERIC_9X4, "Kits");
         this.module = module;
 
@@ -115,7 +115,7 @@ public class KitsMenu extends AbstractMenu {
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
+    protected void onLoad( FileConfig config) {
         int[] kitSlots = ConfigProperty.of(ConfigTypes.INT_ARRAY, "Kit.Slots", new int[]{10, 11, 12, 13, 14, 15, 16})
             .resolveWithDefaults(config);
 
@@ -149,22 +149,22 @@ public class KitsMenu extends AbstractMenu {
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
         Collection<Kit> availableKits;
         if (this.module.getSettings().isHideNoPermKits()) {
             availableKits = this.module.getKits(context.getPlayer());
@@ -180,17 +180,17 @@ public class KitsMenu extends AbstractMenu {
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
-    @NonNull
-    private KitStatus getKitStatus(@NonNull Player player, @NonNull Kit kit) {
+    
+    private KitStatus getKitStatus( Player player,  Kit kit) {
         if (!kit.hasPermission(player))
             return KitStatus.NO_PERMISSION;
 

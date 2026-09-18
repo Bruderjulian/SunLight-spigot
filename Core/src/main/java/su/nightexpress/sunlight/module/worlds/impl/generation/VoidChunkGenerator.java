@@ -11,7 +11,7 @@ public class VoidChunkGenerator extends ChunkGenerator {
     public static final String NAME = "void";
 
     @Override
-    public void generateNoise(@NotNull WorldInfo worldInfo, @NotNull Random random, int x, int z, @NotNull ChunkGenerator.ChunkData chunkData) {
+    public void generateNoise(WorldInfo worldInfo, Random random, int x, int z, ChunkGenerator.ChunkData chunkData) {
 
     }
 }

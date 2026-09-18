@@ -16,7 +16,7 @@ public class PlayerSpawnTeleportEvent extends Event implements Cancellable {
 
     private boolean cancelled;
 
-    public PlayerSpawnTeleportEvent(@NotNull Player player, @NotNull Spawn spawn) {
+    public PlayerSpawnTeleportEvent(Player player, Spawn spawn) {
         this.player = player;
         this.spawn = spawn;
     }
@@ -25,18 +25,15 @@ public class PlayerSpawnTeleportEvent extends Event implements Cancellable {
         return HANDLER_LIST;
     }
 
-    @NotNull
     @Override
     public HandlerList getHandlers() {
         return HANDLER_LIST;
     }
 
-    @NotNull
     public Player getPlayer() {
         return player;
     }
 
-    @NotNull
     public Spawn getSpawn() {
         return spawn;
     }

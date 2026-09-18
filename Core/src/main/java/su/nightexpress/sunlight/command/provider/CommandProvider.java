@@ -13,15 +13,15 @@ import java.util.function.Consumer;
 
 public interface CommandProvider extends LangContainer {
 
-    void load(@NotNull FileConfig config);
+    void load(FileConfig config);
 
     void registerDefaults();
 
-    @NotNull Map<String, HubDefinition> getRootDefinitions();
+    Map<String, HubDefinition> getRootDefinitions();
 
-    @NotNull Map<String, Consumer<HubNodeBuilder>> getRootBuilders();
+    Map<String, Consumer<HubNodeBuilder>> getRootBuilders();
 
-    @NotNull Map<String, LiteralDefinition> getLiteralDefinitions();
+    Map<String, LiteralDefinition> getLiteralDefinitions();
 
-    @NotNull Map<String, Consumer<LiteralNodeBuilder>> getLiteralBuilders();
+    Map<String, Consumer<LiteralNodeBuilder>> getLiteralBuilders();
 }

@@ -21,7 +21,7 @@ import su.nightexpress.sunlight.SunLightPlugin;
 
 public class ProtocolTagHandler extends NametagHandler {
 
-    public ProtocolTagHandler(@NonNull SunLightPlugin plugin) {
+    public ProtocolTagHandler( SunLightPlugin plugin) {
         super(plugin);
     }
 
@@ -36,13 +36,13 @@ public class ProtocolTagHandler extends NametagHandler {
     }
 
     @Override
-    protected void sendPacket(NametagHandler.@NonNull TeamMode mode,
-                              @NonNull String teamId,
-                              @NonNull String teamPrefix,
-                              @NonNull String teamSuffix,
-                              @NonNull String teamColorRaw,
-                              @NonNull Player playerOfTeam,
-                              @NonNull Collection<? extends Player> receivers) {
+    protected void sendPacket(NametagHandler. TeamMode mode,
+                               String teamId,
+                               String teamPrefix,
+                               String teamSuffix,
+                               String teamColorRaw,
+                               Player playerOfTeam,
+                               Collection<? extends Player> receivers) {
         PacketContainer packetTeam = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
         Collection<String> entities = Lists.newList(playerOfTeam.getName());
         ChatFormatting teamColor = Enums.parse(teamColorRaw, ChatFormatting.class).orElse(ChatFormatting.GRAY);

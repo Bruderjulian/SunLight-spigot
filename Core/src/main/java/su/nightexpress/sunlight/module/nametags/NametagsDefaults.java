@@ -12,13 +12,15 @@ public class NametagsDefaults {
 
     private static final String PLAYER_LEVEL = "%player_level%";
 
-    @NotNull
     public static Map<String, NameTagFormat> getDefaultNameTagFormats() {
         Map<String, NameTagFormat> map = new LinkedHashMap<>();
 
-        map.put("default", new NameTagFormat(1, Set.of("default"), AQUA.wrap("Member "), GRAY.wrap("Lv. ") + AQUA.wrap(PLAYER_LEVEL), "white"));
-        map.put("admin", new NameTagFormat(100, Set.of("admin"), RED.wrap("Admin "), GRAY.wrap("Lv. ") + RED.wrap(PLAYER_LEVEL), "white"));
-        map.put("owner", new NameTagFormat(10_000, Set.of("owner"), PURPLE.wrap("Owner "), GRAY.wrap("Lv. ") + PURPLE.wrap(PLAYER_LEVEL), "white"));
+        map.put("default", new NameTagFormat(1, Set.of("default"), AQUA.wrap("Member "),
+                GRAY.wrap("Lv. ") + AQUA.wrap(PLAYER_LEVEL), "white"));
+        map.put("admin", new NameTagFormat(100, Set.of("admin"), RED.wrap("Admin "),
+                GRAY.wrap("Lv. ") + RED.wrap(PLAYER_LEVEL), "white"));
+        map.put("owner", new NameTagFormat(10_000, Set.of("owner"), PURPLE.wrap("Owner "),
+                GRAY.wrap("Lv. ") + PURPLE.wrap(PLAYER_LEVEL), "white"));
 
         return map;
     }

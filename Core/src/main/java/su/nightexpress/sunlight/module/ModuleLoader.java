@@ -20,9 +20,9 @@ public class ModuleLoader {
     private final ModuleRegistry moduleRegistry;
 
     private final Map<String, ModuleRegistration> registrationMap;
-    private final Map<String, ModuleDefinition>   definitionMap;
+    private final Map<String, ModuleDefinition> definitionMap;
 
-    public ModuleLoader(@NotNull SunLightPlugin plugin, @NotNull ModuleRegistry moduleRegistry) {
+    public ModuleLoader(SunLightPlugin plugin, ModuleRegistry moduleRegistry) {
         this.plugin = plugin;
         this.moduleRegistry = moduleRegistry;
 
@@ -30,14 +30,14 @@ public class ModuleLoader {
         this.definitionMap = new LinkedHashMap<>();
     }
 
-    public <T extends Module> void register(@NotNull String id, @NotNull ModuleDefinition definition, @NotNull ModuleFactory<T> factory) {
+    public <T extends Module> void register(String id, ModuleDefinition definition, ModuleFactory<T> factory) {
         this.register(id, definition, factory, LoadCondition::success);
     }
 
-    public <T extends Module> void register(@NotNull String id,
-                                            @NotNull ModuleDefinition definition,
-                                            @NotNull ModuleFactory<T> factory,
-                                            @NotNull Supplier<LoadCondition> condition) {
+    public <T extends Module> void register(String id,
+            ModuleDefinition definition,
+            ModuleFactory<T> factory,
+            Supplier<LoadCondition> condition) {
         this.definitionMap.put(id, definition);
         this.registrationMap.put(id, new ModuleRegistration(factory, condition));
     }
@@ -56,13 +56,14 @@ public class ModuleLoader {
             }
             // ========== MIGRATION FROM THE CONFIG.YML - END ==========
 
-            ModuleDefinition definition = config.get(SLConfigTypes.MODULE_DEFINITION, "Modules." + id, defaultDefinition);
+            ModuleDefinition definition = config.get(SLConfigTypes.MODULE_DEFINITION, "Modules." + id,
+                    defaultDefinition);
 
             try {
                 this.loadModule(id, definition);
-            }
-            catch (ModuleLoadException exception) {
-                this.plugin.error("Fatal error when trying to load module '%s': %s".formatted(id, exception.getMessage()));
+            } catch (ModuleLoadException exception) {
+                this.plugin
+                        .error("Fatal error when trying to load module '%s': %s".formatted(id, exception.getMessage()));
             }
         });
 
@@ -72,8 +73,9 @@ public class ModuleLoader {
         pluginConfig.saveChanges();
     }
 
-    private boolean loadModule(@NotNull String id, @NotNull ModuleDefinition definition) throws ModuleLoadException {
-        if (!definition.enabled()) return false;
+    private boolean loadModule(String id, ModuleDefinition definition) throws ModuleLoadException {
+        if (!definition.enabled())
+            return false;
 
         ModuleRegistration registration = this.registrationMap.remove(id);
         if (registration == null) {

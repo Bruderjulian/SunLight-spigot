@@ -24,41 +24,38 @@ public class SmiteCommandProvider extends AbstractCommandProvider {
     private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("smite");
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Smite.Desc").text(
-        "Smite player with lightning.");
+            "Smite player with lightning.");
 
     private static final MessageLocale COMMAND_SMITE_TARGET = LangEntry.builder("Command.Smite.Target").chatMessage(
-        GRAY.wrap("You have smited " + SOFT_YELLOW.wrap(PLAYER_NAME) + "!")
-    );
+            GRAY.wrap("You have smited " + SOFT_YELLOW.wrap(PLAYER_NAME) + "!"));
 
     private static final MessageLocale COMMAND_SMITE_NOTIFY = LangEntry.builder("Command.Smite.Notify").chatMessage(
-        GRAY.wrap("You have been smited!")
-    );
+            GRAY.wrap("You have been smited!"));
 
     private final EssentialModule module;
 
-    public SmiteCommandProvider(@NotNull SunLightPlugin plugin, @NotNull EssentialModule module) {
+    public SmiteCommandProvider(SunLightPlugin plugin, EssentialModule module) {
         super(plugin);
         this.module = module;
     }
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("smite", true, new String[]{"smite"}, builder -> builder
-            .description(DESCRIPTION)
-            .permission(PERMISSION)
-            .withArguments(Arguments.playerName(CommandArguments.PLAYER))
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes(this::execute)
-        );
+        this.registerLiteral("smite", true, new String[] { "smite" }, builder -> builder
+                .description(DESCRIPTION)
+                .permission(PERMISSION)
+                .withArguments(Arguments.playerName(CommandArguments.PLAYER))
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes(this::execute));
     }
 
-    private boolean execute(@NotNull CommandContext context, @NotNull ParsedArguments arguments) {
+    private boolean execute(CommandContext context, ParsedArguments arguments) {
         return this.runForOnlinePlayer(context, arguments, this.module, target -> {
             target.getWorld().strikeLightning(target.getLocation());
 
             if (context.getSender() != target) {
                 this.module.sendPrefixed(COMMAND_SMITE_TARGET, context.getSender(), replacer -> replacer.with(
-                    CommonPlaceholders.PLAYER.resolver(target)));
+                        CommonPlaceholders.PLAYER.resolver(target)));
             }
             if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
                 this.module.sendPrefixed(COMMAND_SMITE_NOTIFY, target);

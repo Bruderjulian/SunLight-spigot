@@ -14,7 +14,7 @@ public class BansListener extends AbstractListener<SunLightPlugin> {
 
     private final BansModule module;
 
-    public BansListener(@NotNull SunLightPlugin plugin, @NotNull BansModule module) {
+    public BansListener(SunLightPlugin plugin, BansModule module) {
         super(plugin);
         this.module = module;
     }

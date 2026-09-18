@@ -24,35 +24,32 @@ public class GlobalHomeRepository {
         this.homesByOwnerMap.clear();
     }
 
-    @NotNull
-    public UserHomeRepository getUserRepository(@NotNull UUID playerId) {
+    public UserHomeRepository getUserRepository(UUID playerId) {
         return this.homesByOwnerMap.computeIfAbsent(playerId, k -> new UserHomeRepository());
     }
 
-    public synchronized void add(@NotNull Home home) {
+    public synchronized void add(Home home) {
         UUID ownerId = home.getOwner().id();
         this.getUserRepository(ownerId).add(home);
 
     }
 
-    public synchronized void remove(@NotNull Home home) {
+    public synchronized void remove(Home home) {
         UUID ownerId = home.getOwner().id();
         this.getUserRepository(ownerId).remove(home);
     }
 
-    @NotNull
     public Set<Home> getAll() {
         return this.getAll(home -> true);
     }
 
-    @NotNull
-    public Set<Home> getAll(@NotNull Predicate<Home> predicate) {
-        return this.homesByOwnerMap.values().stream().flatMap(repository -> repository.getAll().stream()).collect(Collectors.toSet());
+    public Set<Home> getAll(Predicate<Home> predicate) {
+        return this.homesByOwnerMap.values().stream().flatMap(repository -> repository.getAll().stream())
+                .collect(Collectors.toSet());
     }
 
-    @NotNull
     @Deprecated
-    public Set<Home> getAvailableForVisit(@NotNull Player player) {
+    public Set<Home> getAvailableForVisit(Player player) {
         return this.getAll(home -> home.canVisit(player));
     }
 }

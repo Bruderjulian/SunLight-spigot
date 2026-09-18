@@ -14,7 +14,7 @@ public class PlayerTeleportRequestEvent extends Event implements Cancellable {
 
     private boolean isCancelled;
 
-    public PlayerTeleportRequestEvent(@NotNull TeleportRequest request) {
+    public PlayerTeleportRequestEvent(TeleportRequest request) {
         this.request = request;
     }
 
@@ -22,7 +22,6 @@ public class PlayerTeleportRequestEvent extends Event implements Cancellable {
         return handlerList;
     }
 
-    @NotNull
     @Override
     public HandlerList getHandlers() {
         return handlerList;
@@ -33,7 +32,6 @@ public class PlayerTeleportRequestEvent extends Event implements Cancellable {
         return isCancelled;
     }
 
-    @NotNull
     public TeleportRequest getRequest() {
         return this.request;
     }

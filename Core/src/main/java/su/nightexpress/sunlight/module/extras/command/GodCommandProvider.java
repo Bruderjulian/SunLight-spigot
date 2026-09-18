@@ -22,9 +22,9 @@ import su.nightexpress.sunlight.user.UserManager;
 public class GodCommandProvider extends AbstractCommandProvider {
 
     private final ExtrasModule module;
-    private final UserManager  userManager;
+    private final UserManager userManager;
 
-    public GodCommandProvider(@NotNull SunLightPlugin plugin, @NotNull ExtrasModule module, @NotNull UserManager userManager) {
+    public GodCommandProvider(SunLightPlugin plugin, ExtrasModule module, UserManager userManager) {
         super(plugin);
         this.module = module;
         this.userManager = userManager;
@@ -32,39 +32,39 @@ public class GodCommandProvider extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral("toggle", true, new String[]{"god"}, builder -> builder
-            .description(ExtrasLang.COMMAND_GOD_DESC)
-            .permission(ExtrasPerms.COMMAND_GOD)
-            .withArguments(Arguments.playerName(CommandArguments.PLAYER).permission(ExtrasPerms.COMMAND_GOD_OTHERS).optional())
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes((context, arguments) -> this.toggleGod(context, arguments, ToggleMode.TOGGLE))
-        );
+        this.registerLiteral("toggle", true, new String[] { "god" }, builder -> builder
+                .description(ExtrasLang.COMMAND_GOD_DESC)
+                .permission(ExtrasPerms.COMMAND_GOD)
+                .withArguments(Arguments.playerName(CommandArguments.PLAYER).permission(ExtrasPerms.COMMAND_GOD_OTHERS)
+                        .optional())
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes((context, arguments) -> this.toggleGod(context, arguments, ToggleMode.TOGGLE)));
     }
 
-    private boolean toggleGod(@NotNull CommandContext context, @NotNull ParsedArguments arguments, @NotNull ToggleMode mode) {
-        return this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager, (user, target) -> {
-            boolean state = mode.apply(user.getPropertyOrDefault(ExtrasProperties.GOD));
-            user.setProperty(ExtrasProperties.GOD, state);
-            user.markDirty();
+    private boolean toggleGod(CommandContext context, ParsedArguments arguments, ToggleMode mode) {
+        return this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager,
+                (user, target) -> {
+                    boolean state = mode.apply(user.getPropertyOrDefault(ExtrasProperties.GOD));
+                    user.setProperty(ExtrasProperties.GOD, state);
+                    user.markDirty();
 
-            if (state) this.clearAggro(target);
+                    if (state)
+                        this.clearAggro(target);
 
-            if (context.getSender() != target) {
-                this.module.sendPrefixed(ExtrasLang.COMMAND_GOD_TARGET, context.getSender(), builder -> builder
-                    .with(CommonPlaceholders.PLAYER.resolver(target))
-                    .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.getEnabledOrDisabled(state))
-                );
-            }
+                    if (context.getSender() != target) {
+                        this.module.sendPrefixed(ExtrasLang.COMMAND_GOD_TARGET, context.getSender(), builder -> builder
+                                .with(CommonPlaceholders.PLAYER.resolver(target))
+                                .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.getEnabledOrDisabled(state)));
+                    }
 
-            if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                this.module.sendPrefixed(ExtrasLang.COMMAND_GOD_NOTIFY, target, builder -> builder
-                    .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.getEnabledOrDisabled(state))
-                );
-            }
-        });
+                    if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
+                        this.module.sendPrefixed(ExtrasLang.COMMAND_GOD_NOTIFY, target, builder -> builder
+                                .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.getEnabledOrDisabled(state)));
+                    }
+                });
     }
 
-    private void clearAggro(@NotNull Player player) {
+    private void clearAggro(Player player) {
         player.getNearbyEntities(32D, 32D, 32D).forEach(entity -> {
             if (entity instanceof Mob mob && player.equals(mob.getTarget())) {
                 mob.setTarget(null);

@@ -16,7 +16,7 @@ import su.nightexpress.sunlight.module.chat.processor.ChatProcessor;
 public class ItemDisplayProcessor implements ChatProcessor<FormattedContext> {
 
     @Override
-    public void preProcess(@NonNull ChatModule module, @NonNull FormattedContext context) {
+    public void preProcess( ChatModule module,  FormattedContext context) {
         String format = context.getFormat();
 
         String placeholder = module.getSettings().getItemShowPlaceholder();
@@ -42,12 +42,12 @@ public class ItemDisplayProcessor implements ChatProcessor<FormattedContext> {
     }
 
     @Override
-    public void postProcess(@NonNull ChatModule module, @NonNull FormattedContext context) {
+    public void postProcess( ChatModule module,  FormattedContext context) {
 
     }
 
-    /*@NonNull
-    private static ItemStack getLiteCopy(@NonNull ItemStack origin) {
+    /*
+    private static ItemStack getLiteCopy( ItemStack origin) {
         ItemStack copy = new ItemStack(origin);
     
         ItemMeta meta = copy.getItemMeta();

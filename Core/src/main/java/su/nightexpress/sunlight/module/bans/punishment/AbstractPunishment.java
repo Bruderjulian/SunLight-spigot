@@ -14,19 +14,20 @@ public abstract class AbstractPunishment implements PlaceholderResolvable {
     protected boolean active;
     protected boolean dirty;
 
-    public AbstractPunishment(@NotNull PunishmentData data, boolean active) {
+    public AbstractPunishment(PunishmentData data, boolean active) {
         this.data = data;
         this.active = active;
     }
 
-    public abstract boolean isApplicable(@NotNull Player player);
+    public abstract boolean isApplicable(Player player);
 
-    public boolean isNewer(@NotNull AbstractPunishment other) {
+    public boolean isNewer(AbstractPunishment other) {
         return this.getCreationDate() > other.getCreationDate();
     }
 
-    public boolean isLonger(@NotNull AbstractPunishment other) {
-        if (this.isPermanent() && other.isPermanent()) return false;
+    public boolean isLonger(AbstractPunishment other) {
+        if (this.isPermanent() && other.isPermanent())
+            return false;
 
         return this.isPermanent() || this.getExpirationDate() > other.getExpirationDate();
     }
@@ -63,25 +64,20 @@ public abstract class AbstractPunishment implements PlaceholderResolvable {
         this.active = active;
     }
 
-    @NotNull
     public abstract String getName();
 
-    @NotNull
     public UUID getId() {
         return this.data.id();
     }
 
-    @NotNull
     public PunishmentType getType() {
         return this.data.type();
     }
 
-    @NotNull
     public String getReason() {
         return this.data.reason();
     }
 
-    @NotNull
     public String getWho() {
         return this.data.who();
     }

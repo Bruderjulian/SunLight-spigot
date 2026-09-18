@@ -17,21 +17,23 @@ import java.util.concurrent.TimeUnit;
 
 public class SpyLogger {
 
-    private final SunLightPlugin          plugin;
+    private final SunLightPlugin plugin;
     private final BlockingQueue<LogEntry> queue;
-    private final BufferedWriter          writer;
+    private final BufferedWriter writer;
 
     private boolean running;
 
-    public SpyLogger(@NotNull SunLightPlugin plugin, @NotNull Path filePath) throws IOException {
+    public SpyLogger(SunLightPlugin plugin, Path filePath) throws IOException {
         this.plugin = plugin;
         this.queue = new LinkedBlockingQueue<>();
 
-        this.writer = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        this.writer = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8, StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND);
         this.running = true;
     }
 
-    private record LogEntry(@NotNull String log, long timestamp) {}
+    private record LogEntry(String log, long timestamp) {
+    }
 
     public void shutdown() {
         this.running = false;
@@ -40,14 +42,13 @@ public class SpyLogger {
         if (this.writer != null) {
             try {
                 this.writer.close();
-            }
-            catch (IOException exception) {
+            } catch (IOException exception) {
                 exception.printStackTrace();
             }
         }
     }
 
-    public void addEntry(@NotNull String log) {
+    public void addEntry(String log) {
         String stripped = NightMessage.stripTags(log);
 
         this.plugin.info(stripped);
@@ -65,8 +66,7 @@ public class SpyLogger {
                     this.writer.flush();
                 }
             }
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             exception.printStackTrace();
         }
     }

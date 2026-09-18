@@ -4,12 +4,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record PunishmentData(@NotNull UUID id,
-                             @NotNull PunishmentType type,
-                             @NotNull String reason,
-                             @NotNull String who,
-                             long duration,
-                             long creationTimestamp,
-                             long expirationTimestamp) {
+public record PunishmentData(UUID id,
+    PunishmentType type,
+    String reason,
+    String who,
+    long duration,
+    long creationTimestamp,
+    long expirationTimestamp) {
 
 }

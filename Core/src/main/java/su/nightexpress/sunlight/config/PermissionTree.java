@@ -11,77 +11,67 @@ import java.util.Map;
 
 public class PermissionTree {
 
-    private final String                      name;
-    private final String                      prefix;
+    private final String name;
+    private final String prefix;
     private final Map<String, PermissionTree> branches;
-    private final Map<String, Permission>     permissions;
+    private final Map<String, Permission> permissions;
 
-    private PermissionTree(@NotNull String name, @NotNull String prefix) {
+    private PermissionTree(String name, String prefix) {
         this.name = name;
         this.prefix = prefix;
         this.branches = new HashMap<>();
         this.permissions = new HashMap<>();
     }
 
-    @NotNull
     public String getName() {
         return this.name;
     }
 
-    @NotNull
     public String getPrefix() {
         return this.prefix;
     }
 
-    @NotNull
-    public static PermissionTree root(@NotNull String name) {
+    public static PermissionTree root(String name) {
         return new PermissionTree(name, name);
     }
 
-    @NotNull
-    public PermissionTree detached(@NotNull String name) {
+    public PermissionTree detached(String name) {
         return new PermissionTree(name, this.childrenNode(name));
     }
 
-    @NotNull
-    public PermissionTree branch(@NotNull String prefix) {
+    public PermissionTree branch(String prefix) {
         PermissionTree tree = this.detached(prefix);
         this.merge(tree);
         return tree;
     }
 
-    public void merge(@NotNull PermissionTree other) {
+    public void merge(PermissionTree other) {
         this.branches.put(other.name, other);
     }
 
-    @NotNull
-    public Permission permission(@NotNull String name) {
+    public Permission permission(String name) {
         Permission permission = this.children(name);
 
         this.permissions.put(permission.getName(), permission);
         return permission;
     }
 
-    @NotNull
     public Permission getRoot() {
         return new Permission(this.childrenNode("*"));
     }
 
-    @NotNull
-    public Permission children(@NotNull String name) {
+    public Permission children(String name) {
         return new Permission(this.childrenNode(name));
     }
 
-    @NotNull
-    public String childrenNode(@NotNull String name) {
+    public String childrenNode(String name) {
         return this.prefix + "." + name;
     }
 
-    public boolean hasChildAccess(@NotNull CommandSender sender, @NotNull String name) {
+    public boolean hasChildAccess(CommandSender sender, String name) {
         return sender.hasPermission(this.childrenNode("*")) || sender.hasPermission(this.childrenNode(name));
     }
 
-    @NotNull
     public List<Permission> toList() {
         List<Permission> accumulated = new ArrayList<>();
 
@@ -95,7 +85,6 @@ public class PermissionTree {
         return accumulated;
     }
 
-    @NotNull
     public Permission accumulate() {
         Permission root = this.getRoot();
 

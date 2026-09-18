@@ -22,32 +22,31 @@ public class HomeNameDialog extends Dialog<Home> {
     private static final TextLocale TITLE = LangEntry.builder("Homes.Dialog.HomeName.Title").text("Home Name");
 
     private static final DialogElementLocale BODY = LangEntry.builder("Homes.Dialog.HomeName.Body").dialogElement(400,
-        "Enter a new name for your home."
-    );
+            "Enter a new name for your home.");
 
     private static final TextLocale INPUT_NAME = LangEntry.builder("Homes.Dialog.HomeName.Input.Name").text("Name");
 
     private static final String JSON_NAME = "name";
 
     @Override
-    @NotNull
-    public WrappedDialog create(@NotNull Player player, @NotNull Home home) {
+
+    public WrappedDialog create(Player player, Home home) {
         return Dialogs.builder()
-            .base(DialogBases.builder(TITLE)
-                .body(DialogBodies.plainMessage(BODY))
-                .inputs(DialogInputs.text(JSON_NAME, INPUT_NAME).initial(home.getName()).maxLength(128).build())
-                .build()
-            )
-            .type(DialogTypes.multiAction(DialogButtons.ok()).exitAction(DialogButtons.back()).build())
-            .handleResponse(DialogActions.OK, (viewer, identifier, nbtHolder) -> {
-                if (nbtHolder == null) return;
+                .base(DialogBases.builder(TITLE)
+                        .body(DialogBodies.plainMessage(BODY))
+                        .inputs(DialogInputs.text(JSON_NAME, INPUT_NAME).initial(home.getName()).maxLength(128).build())
+                        .build())
+                .type(DialogTypes.multiAction(DialogButtons.ok()).exitAction(DialogButtons.back()).build())
+                .handleResponse(DialogActions.OK, (viewer, identifier, nbtHolder) -> {
+                    if (nbtHolder == null)
+                        return;
 
-                String name = nbtHolder.getText(JSON_NAME, home.getName());
-                home.setName(name);
-                home.markDirty();
+                    String name = nbtHolder.getText(JSON_NAME, home.getName());
+                    home.setName(name);
+                    home.markDirty();
 
-                viewer.callback();
-            })
-            .build();
+                    viewer.callback();
+                })
+                .build();
     }
 }

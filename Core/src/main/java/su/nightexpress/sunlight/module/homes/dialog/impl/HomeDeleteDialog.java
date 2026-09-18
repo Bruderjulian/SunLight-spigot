@@ -33,13 +33,13 @@ public class HomeDeleteDialog extends Dialog<Home> {
 
     private final HomesModule module;
 
-    public HomeDeleteDialog(@NonNull HomesModule module) {
+    public HomeDeleteDialog( HomesModule module) {
         this.module = module;
     }
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull Home home) {
+    
+    public WrappedDialog create( Player player,  Home home) {
         return Dialogs.builder()
             .base(DialogBases.builder(TITLE)
                 .body(DialogBodies.plainMessage(BODY.replace(PlaceholderContext.builder().with(home.placeholders())

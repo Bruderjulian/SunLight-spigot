@@ -23,30 +23,27 @@ public class UserHomeRepository {
         this.homByIdMap.clear();
     }
 
-    synchronized void add(@NotNull Home home) {
+    synchronized void add(Home home) {
         this.homByIdMap.put(home.getId(), home);
     }
 
-    synchronized void remove(@NotNull Home home) {
+    synchronized void remove(Home home) {
         this.remove(home.getId());
     }
 
-    synchronized void remove(@NotNull String id) {
+    synchronized void remove(String id) {
         this.homByIdMap.remove(LowerCase.INTERNAL.apply(id));
     }
 
-    @NotNull
     public Set<Home> getAll() {
         return Set.copyOf(this.homByIdMap.values());
     }
 
-    @NotNull
-    public Set<Home> getAll(@NotNull Predicate<Home> predicate) {
+    public Set<Home> getAll(Predicate<Home> predicate) {
         return this.homByIdMap.values().stream().filter(predicate).collect(Collectors.toSet());
     }
 
-    @Nullable
-    public Home getById(@NotNull String id) {
+    public Home getById(String id) {
         return this.homByIdMap.get(LowerCase.INTERNAL.apply(id));
     }
 }

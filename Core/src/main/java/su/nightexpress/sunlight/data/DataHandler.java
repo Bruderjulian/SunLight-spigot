@@ -27,26 +27,26 @@ import java.util.UUID;
 public class DataHandler extends AbstractDatabaseManager<SunLightPlugin> implements UserDataSchema<SunUser> {
 
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting()
-        .enableComplexMapKeySerialization() // To trigger adapters for custom Map keys (used by commandCooldowns).
-        .registerTypeAdapter(UserInfo.class, new UserInfoSerializer())
-        .registerTypeAdapter(CommandKey.class, new CommandKeySerializer())
-        .create();
+            .enableComplexMapKeySerialization() // To trigger adapters for custom Map keys (used by commandCooldowns).
+            .registerTypeAdapter(UserInfo.class, new UserInfoSerializer())
+            .registerTypeAdapter(CommandKey.class, new CommandKeySerializer())
+            .create();
 
     private final Table usersTable;
 
-    public DataHandler(@NotNull SunLightPlugin plugin) {
+    public DataHandler(SunLightPlugin plugin) {
         super(plugin);
 
         this.usersTable = Table.builder(this.getTablePrefix() + "_users")
-            .withColumn(UserColumns.ID)
-            .withColumn(UserColumns.UUID)
-            .withColumn(UserColumns.NAME)
-            .withColumn(UserColumns.DATE_CREATED)
-            .withColumn(UserColumns.LAST_ONLINE)
-            .withColumn(UserColumns.INET_ADDRESS)
-            .withColumn(UserColumns.COMMAND_COOLDOWNS)
-            .withColumn(UserColumns.PROPERTIES)
-            .build();
+                .withColumn(UserColumns.ID)
+                .withColumn(UserColumns.UUID)
+                .withColumn(UserColumns.NAME)
+                .withColumn(UserColumns.DATE_CREATED)
+                .withColumn(UserColumns.LAST_ONLINE)
+                .withColumn(UserColumns.INET_ADDRESS)
+                .withColumn(UserColumns.COMMAND_COOLDOWNS)
+                .withColumn(UserColumns.PROPERTIES)
+                .build();
     }
 
     @Override
@@ -72,61 +72,61 @@ public class DataHandler extends AbstractDatabaseManager<SunLightPlugin> impleme
     }
 
     @Override
-    @NotNull
+
     public Table getUsersTable() {
         return this.usersTable;
     }
 
     @Override
-    @NotNull
+
     public Column<UUID> getUserIdColumn() {
         return UserColumns.UUID;
     }
 
     @Override
-    @NotNull
+
     public Column<String> getUserNameColumn() {
         return UserColumns.NAME;
     }
 
     @Override
-    @NotNull
+
     public SelectStatement<SunUser> getUserSelectStatement() {
         return DataQueries.SELECT_USER;
     }
 
     @Override
-    @NotNull
+
     public UpdateStatement<SunUser> getUserUpdateStatement() {
         return DataQueries.UPDATE_USER;
     }
 
     @Override
-    @NotNull
+
     public UpdateStatement<SunUser> getUserTinyUpdateStatement() {
         return DataQueries.UPDATE_USER_TINY;
     }
 
     @Override
-    @NotNull
+
     public InsertStatement<SunUser> getUserInsertStatement() {
         return DataQueries.INSERT_USER;
     }
 
-    @NotNull
-    public Optional<UserInfo> loadProfile(@NotNull String playerName) {
-        return this.selectFirst(this.usersTable, DataQueries.SELECT_PROFILE, Wheres.where(UserColumns.NAME, Operator.EQUALS_IGNORE_CASE, o -> playerName));
+    public Optional<UserInfo> loadProfile(String playerName) {
+        return this.selectFirst(this.usersTable, DataQueries.SELECT_PROFILE,
+                Wheres.where(UserColumns.NAME, Operator.EQUALS_IGNORE_CASE, o -> playerName));
     }
 
-    @NotNull
-    public Optional<InetAddress> loadInetAddress(@NotNull UUID playerId) {
-        return this.selectFirst(this.usersTable, DataQueries.SELECT_INET, Wheres.whereUUID(UserColumns.UUID, o -> playerId));
+    public Optional<InetAddress> loadInetAddress(UUID playerId) {
+        return this.selectFirst(this.usersTable, DataQueries.SELECT_INET,
+                Wheres.whereUUID(UserColumns.UUID, o -> playerId));
     }
 
-    @NotNull
-    public List<UserInfo> getProfilesByInet(@NotNull InetAddress address) {
+    public List<UserInfo> getProfilesByInet(InetAddress address) {
         String host = address.getHostAddress();
 
-        return this.selectWhere(this.usersTable, DataQueries.SELECT_PROFILE, Wheres.where(UserColumns.INET_ADDRESS, Operator.EQUALS, o -> host));
+        return this.selectWhere(this.usersTable, DataQueries.SELECT_PROFILE,
+                Wheres.where(UserColumns.INET_ADDRESS, Operator.EQUALS, o -> host));
     }
 }

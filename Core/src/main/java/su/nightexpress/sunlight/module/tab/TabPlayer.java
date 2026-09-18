@@ -16,15 +16,18 @@ public class TabPlayer {
     private TabLayoutFormat layoutFormat;
     private TabNameFormat nameFormat;
 
-    public TabPlayer(@NotNull Player player, @NotNull PlaceholderContext placeholderContext) {
+    public TabPlayer(Player player, PlaceholderContext placeholderContext) {
         this.player = player;
         this.placeholderContext = placeholderContext;
     }
 
     public void updatePlayerList() {
-        String listName = this.nameFormat == null ? this.player.getName() : this.placeholderContext.apply(this.nameFormat.getFormat());
-        String header = this.layoutFormat == null ? null : this.placeholderContext.apply(String.join("\n", this.layoutFormat.getHeader()));
-        String footer = this.layoutFormat == null ? null : this.placeholderContext.apply(String.join("\n", this.layoutFormat.getFooter()));
+        String listName = this.nameFormat == null ? this.player.getName()
+                : this.placeholderContext.apply(this.nameFormat.getFormat());
+        String header = this.layoutFormat == null ? null
+                : this.placeholderContext.apply(String.join("\n", this.layoutFormat.getHeader()));
+        String footer = this.layoutFormat == null ? null
+                : this.placeholderContext.apply(String.join("\n", this.layoutFormat.getFooter()));
 
         Players.setPlayerListName(this.player, listName);
         Players.setPlayerListHeaderFooter(this.player, header, footer);
@@ -34,36 +37,31 @@ public class TabPlayer {
         return this.player.isOnline();
     }
 
-    @NotNull
-    public String withPlaceholders(@NotNull String string) {
+    public String withPlaceholders(String string) {
         return this.placeholderContext.apply(string);
     }
 
-    @NotNull
     public Player getPlayer() {
         return this.player;
     }
 
-    @NotNull
     public PlaceholderContext getPlaceholderContext() {
         return this.placeholderContext;
     }
 
-    @Nullable
     public TabLayoutFormat getLayoutFormat() {
         return layoutFormat;
     }
 
-    public void setLayoutFormat(@Nullable TabLayoutFormat layoutFormat) {
+    public void setLayoutFormat(TabLayoutFormat layoutFormat) {
         this.layoutFormat = layoutFormat;
     }
 
-    @Nullable
     public TabNameFormat getNameFormat() {
         return this.nameFormat;
     }
 
-    public void setNameFormat(@Nullable TabNameFormat nameFormat) {
+    public void setNameFormat(TabNameFormat nameFormat) {
         this.nameFormat = nameFormat;
     }
 }

@@ -7,12 +7,11 @@ import java.util.concurrent.CompletableFuture;
 
 public class FutureUtils {
 
-    @NonNull
-    public static <T> CompletableFuture<T> loggable(@NonNull CompletableFuture<T> future) {
+    public static <T> CompletableFuture<T> loggable(CompletableFuture<T> future) {
         return future.whenComplete(FutureUtils::printStacktrace);
     }
 
-    public static <T> void printStacktrace(@NonNull T object, @Nullable Throwable throwable) {
+    public static <T> void printStacktrace(T object, Throwable throwable) {
         if (throwable != null) {
             throwable.printStackTrace();
         }

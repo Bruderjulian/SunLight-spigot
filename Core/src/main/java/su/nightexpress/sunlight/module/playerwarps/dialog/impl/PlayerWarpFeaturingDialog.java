@@ -67,17 +67,17 @@ public class PlayerWarpFeaturingDialog extends Dialog<PlayerWarpFeaturingDialog.
     private final PlayerWarpsModule module;
     private final Map<UUID, String> idCache;
 
-    public record Data(@NonNull FeaturedSlot slot, int slotIndex) {
+    public record Data( FeaturedSlot slot, int slotIndex) {
     }
 
-    public PlayerWarpFeaturingDialog(@NonNull PlayerWarpsModule module) {
+    public PlayerWarpFeaturingDialog( PlayerWarpsModule module) {
         this.module = module;
         this.idCache = new HashMap<>();
     }
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull Data data) {
+    
+    public WrappedDialog create( Player player,  Data data) {
         List<WrappedActionButton> buttons = new ArrayList<>();
 
         PlaceholderContext.Builder bodyPlaceholders = PlaceholderContext.builder().with(data.slot.placeholders());

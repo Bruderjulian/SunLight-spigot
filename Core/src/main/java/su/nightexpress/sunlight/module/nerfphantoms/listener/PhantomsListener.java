@@ -15,16 +15,17 @@ import su.nightexpress.sunlight.module.nerfphantoms.config.PhantomsConfig;
 
 public class PhantomsListener extends AbstractListener<SunLightPlugin> {
 
-    //private final PhantomsModule module;
+    // private final PhantomsModule module;
 
-    public PhantomsListener(@NotNull SunLightPlugin plugin, @NotNull PhantomsModule module) {
+    public PhantomsListener(SunLightPlugin plugin, PhantomsModule module) {
         super(plugin);
-        //this.module = module;
+        // this.module = module;
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPhantomSpawn(CreatureSpawnEvent event) {
-        if (!(event.getEntity() instanceof Phantom phantom)) return;
+        if (!(event.getEntity() instanceof Phantom phantom))
+            return;
 
         if (PhantomsConfig.DISABLE_SPAWN_ENABLED.get()) {
             if (PhantomsConfig.DISABLE_SPAWN_REASONS.get().contains(event.getSpawnReason())) {
@@ -41,9 +42,10 @@ public class PhantomsListener extends AbstractListener<SunLightPlugin> {
         }
     }
 
-    private void modifyAttribute(@NotNull Phantom phantom, @NotNull Attribute attribute, double value) {
+    private void modifyAttribute(Phantom phantom, Attribute attribute, double value) {
         AttributeInstance instance = phantom.getAttribute(attribute);
-        if (instance == null) return;
+        if (instance == null)
+            return;
 
         if (attribute == Attribute.ATTACK_DAMAGE) {
             value = EntityUtil.getAttribute(phantom, attribute) * value;

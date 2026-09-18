@@ -12,7 +12,7 @@ public class NametagsListener extends AbstractListener<SunLightPlugin> {
 
     private final NametagsModule module;
 
-    public NametagsListener(@NotNull SunLightPlugin plugin, @NotNull NametagsModule module) {
+    public NametagsListener(SunLightPlugin plugin, NametagsModule module) {
         super(plugin);
         this.module = module;
     }

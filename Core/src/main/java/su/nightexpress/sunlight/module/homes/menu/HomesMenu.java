@@ -41,7 +41,7 @@ public class HomesMenu extends AbstractObjectMenu<UUID> {
     private ItemPopulator<Home>    teleportPopulator;
     private ItemPopulator<Integer> lockPopulator;
 
-    public HomesMenu(@NonNull SunLightPlugin plugin, @NonNull HomesModule module) {
+    public HomesMenu( SunLightPlugin plugin,  HomesModule module) {
         super(MenuType.GENERIC_9X6, BLACK.wrap("Homes"), UUID.class);
         this.module = module;
 
@@ -67,7 +67,7 @@ public class HomesMenu extends AbstractObjectMenu<UUID> {
     }
 
     @Override
-    protected void onLoad(@NonNull FileConfig config) {
+    protected void onLoad( FileConfig config) {
         this.totalSlots = ConfigValue.create("Homes.Total-Slots", 14).read(config);
 
         int[] homeSlots = ConfigValue.create("Homes.Slots-Homes", IntStream.range(19, 26).toArray()).read(config);
@@ -138,22 +138,22 @@ public class HomesMenu extends AbstractObjectMenu<UUID> {
     }
 
     @Override
-    protected void onClick(@NonNull ViewerContext context, @NonNull InventoryClickEvent event) {
+    protected void onClick( ViewerContext context,  InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag(@NonNull ViewerContext context, @NonNull InventoryDragEvent event) {
+    protected void onDrag( ViewerContext context,  InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(@NonNull ViewerContext context, @NonNull InventoryCloseEvent event) {
+    protected void onClose( ViewerContext context,  InventoryCloseEvent event) {
 
     }
 
     @Override
-    public void onPrepare(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory, @NonNull List<MenuItem> items) {
+    public void onPrepare( ViewerContext context,  InventoryView view,  Inventory inventory,  List<MenuItem> items) {
         UUID targetId = this.getObject(context);
 
         List<Home> homes = this.module.getHomes(targetId).stream().sorted(Comparator.comparing(Home::getId)).toList();
@@ -165,12 +165,12 @@ public class HomesMenu extends AbstractObjectMenu<UUID> {
     }
 
     @Override
-    public void onReady(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onReady( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 
     @Override
-    public void onRender(@NonNull ViewerContext context, @NonNull InventoryView view, @NonNull Inventory inventory) {
+    public void onRender( ViewerContext context,  InventoryView view,  Inventory inventory) {
 
     }
 }

@@ -17,17 +17,16 @@ public class TrieNode {
         this.children = new HashMap<>();
     }
 
-    public void add(@NotNull String word) {
+    public void add(String word) {
         String lowered = LowerCase.USER_LOCALE.apply(word);
         TrieNode node = this;
 
         for (char c : lowered.toCharArray()) {
-            node = node.children.computeIfAbsent(c,  k -> new TrieNode());
+            node = node.children.computeIfAbsent(c, k -> new TrieNode());
         }
         node.isEnd = true;
     }
 
-    @Nullable
     public TrieNode children(char c) {
         return this.children.get(c);
     }

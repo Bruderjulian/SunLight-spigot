@@ -31,8 +31,8 @@ public class SpawnNameDialog extends Dialog<Spawn> {
     private static final String JSON_NAME = "name";
 
     @Override
-    @NonNull
-    public WrappedDialog create(@NonNull Player player, @NonNull Spawn spawn) {
+    
+    public WrappedDialog create( Player player,  Spawn spawn) {
         return Dialogs.builder()
             .base(DialogBases.builder(TITLE)
                 .body(DialogBodies.plainMessage(BODY))

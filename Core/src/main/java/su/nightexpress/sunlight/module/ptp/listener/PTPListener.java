@@ -12,13 +12,13 @@ public class PTPListener extends AbstractListener<SunLightPlugin> {
 
     private final PTPModule module;
 
-    public PTPListener(@NotNull SunLightPlugin plugin, @NotNull PTPModule module) {
+    public PTPListener(SunLightPlugin plugin, PTPModule module) {
         super(plugin);
         this.module = module;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onQuit(@NotNull PlayerQuitEvent event) {
+    public void onQuit(PlayerQuitEvent event) {
         this.module.clearRequests(event.getPlayer());
     }
 }

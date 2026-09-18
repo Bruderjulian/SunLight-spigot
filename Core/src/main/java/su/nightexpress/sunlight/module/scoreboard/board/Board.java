@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface Board {
 
-    @NotNull BoardDefinition getBoardConfig();
+    BoardDefinition getBoardConfig();
 
     void create();
 

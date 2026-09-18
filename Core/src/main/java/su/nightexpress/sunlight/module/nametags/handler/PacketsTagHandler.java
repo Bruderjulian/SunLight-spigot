@@ -20,7 +20,7 @@ import java.util.Collection;
 
 public class PacketsTagHandler extends NametagHandler {
 
-    public PacketsTagHandler(@NotNull SunLightPlugin plugin) {
+    public PacketsTagHandler(SunLightPlugin plugin) {
         super(plugin);
     }
 
@@ -35,36 +35,37 @@ public class PacketsTagHandler extends NametagHandler {
     }
 
     @Override
-    protected void sendPacket(@NotNull NametagHandler.TeamMode mode,
-                              @NotNull String teamId,
-                              @NotNull String teamPrefix,
-                              @NotNull String teamSuffix,
-                              @NotNull String teamColorRaw,
-                              @NotNull Player playerOfTeam,
-                              @NotNull Collection<? extends Player> receivers) {
+    protected void sendPacket(NametagHandler.TeamMode mode,
+            String teamId,
+            String teamPrefix,
+            String teamSuffix,
+            String teamColorRaw,
+            Player playerOfTeam,
+            Collection<? extends Player> receivers) {
 
         Scoreboard scoreboard = playerOfTeam.getScoreboard();
         Team team = scoreboard.getEntryTeam(playerOfTeam.getName());
         Team.OptionStatus status = team == null ? null : team.getOption(Team.Option.COLLISION_RULE);
 
-        WrapperPlayServerTeams.CollisionRule collisionRule = status == null ? WrapperPlayServerTeams.CollisionRule.ALWAYS : switch (status) {
-            case NEVER -> WrapperPlayServerTeams.CollisionRule.NEVER;
-            case ALWAYS -> WrapperPlayServerTeams.CollisionRule.ALWAYS;
-            case FOR_OWN_TEAM -> WrapperPlayServerTeams.CollisionRule.PUSH_OWN_TEAM;
-            case FOR_OTHER_TEAMS -> WrapperPlayServerTeams.CollisionRule.PUSH_OTHER_TEAMS;
-        };
+        WrapperPlayServerTeams.CollisionRule collisionRule = status == null
+                ? WrapperPlayServerTeams.CollisionRule.ALWAYS
+                : switch (status) {
+                    case NEVER -> WrapperPlayServerTeams.CollisionRule.NEVER;
+                    case ALWAYS -> WrapperPlayServerTeams.CollisionRule.ALWAYS;
+                    case FOR_OWN_TEAM -> WrapperPlayServerTeams.CollisionRule.PUSH_OWN_TEAM;
+                    case FOR_OTHER_TEAMS -> WrapperPlayServerTeams.CollisionRule.PUSH_OTHER_TEAMS;
+                };
 
         WrapperPlayServerTeams.ScoreBoardTeamInfo info = null;
         if (mode == TeamMode.CREATE) {
             info = new WrapperPlayServerTeams.ScoreBoardTeamInfo(
-                Component.text(teamId),
-                adaptComponent(teamPrefix),
-                adaptComponent(teamSuffix),
-                WrapperPlayServerTeams.NameTagVisibility.ALWAYS,
-                collisionRule,
-                NamedTextColor.NAMES.valueOr(teamColorRaw.toLowerCase(), NamedTextColor.GRAY),
-                WrapperPlayServerTeams.OptionData.NONE
-            );
+                    Component.text(teamId),
+                    adaptComponent(teamPrefix),
+                    adaptComponent(teamSuffix),
+                    WrapperPlayServerTeams.NameTagVisibility.ALWAYS,
+                    collisionRule,
+                    NamedTextColor.NAMES.valueOr(teamColorRaw.toLowerCase(), NamedTextColor.GRAY),
+                    WrapperPlayServerTeams.OptionData.NONE);
         }
 
         WrapperPlayServerTeams.TeamMode teamMode = switch (mode) {
@@ -81,12 +82,10 @@ public class PacketsTagHandler extends NametagHandler {
         }
     }
 
-    @NotNull
-    private static Component adaptComponent(@NotNull String string) {
+    private static Component adaptComponent(String string) {
         if (Version.isPaper()) {
             return ((PaperBridge) Software.get()).getTextComponentAdapter().adaptComponent(NightMessage.parse(string));
-        }
-        else {
+        } else {
             return GsonComponentSerializer.gson().deserialize(NightMessage.asJson(string));
         }
     }

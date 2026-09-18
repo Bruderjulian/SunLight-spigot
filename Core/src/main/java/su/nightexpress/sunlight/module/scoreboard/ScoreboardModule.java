@@ -35,11 +35,11 @@ public class ScoreboardModule extends Module {
 
     private final SBConfig settings;
     private final Map<String, DynamicText> animationMap;
-    private final Map<Player, Board>       boardMap;
+    private final Map<Player, Board> boardMap;
 
     private BoardProvider provider;
 
-    public ScoreboardModule(@NotNull ModuleContext context) {
+    public ScoreboardModule(ModuleContext context) {
         super(context);
         this.settings = new SBConfig();
         this.animationMap = new HashMap<>();
@@ -49,7 +49,7 @@ public class ScoreboardModule extends Module {
     // TODO Auto update scoreboard if player rank/perm changed
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         this.settings.load(config);
         this.plugin.injectLang(SBLang.class);
         UserPropertyRegistry.register(ScoreboardProperties.SCOREBOARD);
@@ -71,17 +71,18 @@ public class ScoreboardModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(SBPerms.MODULE);
     }
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("scoreboard", new ScoreboardCommand(this.plugin, this, this.userManager), this);
+        this.commandRegistry.addProvider("scoreboard", new ScoreboardCommand(this.plugin, this, this.userManager),
+                this);
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("scoreboard_state", (player, payload) -> {
             return CoreLang.STATE_YES_NO.get(this.isScoreboardEnabled(player));
         });
@@ -90,8 +91,7 @@ public class ScoreboardModule extends Module {
     private void loadProvider() {
         if (Plugins.isInstalled(HookId.PACKET_EVENTS)) {
             this.provider = PacketBoard::new;
-        }
-        else if (Plugins.isInstalled(HookId.PROTOCOL_LIB)) {
+        } else if (Plugins.isInstalled(HookId.PROTOCOL_LIB)) {
             this.provider = ProtocolBoard::new;
         }
     }
@@ -99,7 +99,8 @@ public class ScoreboardModule extends Module {
     private void loadAnimations() {
         FileConfig config = FileConfig.load(this.getSystemPath(), ScoreboardDefaults.FILE_ANIMATIONS);
         if (config.getSection("").isEmpty()) {
-            ScoreboardDefaults.getDefaultAnimations().forEach(dynamicText -> dynamicText.write(config, dynamicText.getId()));
+            ScoreboardDefaults.getDefaultAnimations()
+                    .forEach(dynamicText -> dynamicText.write(config, dynamicText.getId()));
         }
 
         for (String sId : config.getSection("")) {
@@ -111,91 +112,90 @@ public class ScoreboardModule extends Module {
 
     private void loadPlayerBoards() {
         this.plugin.getServer().getOnlinePlayers().forEach(player -> {
-            if (this.isScoreboardEnabled(player)) this.addBoard(player);
+            if (this.isScoreboardEnabled(player))
+                this.addBoard(player);
         });
     }
 
-
-
-    @Nullable
-    public BoardDefinition getBoardDefinition(@NotNull Player player) {
+    public BoardDefinition getBoardDefinition(Player player) {
         return this.settings.getBoardDefinitionMap().values().stream()
-            .filter(board -> board.isAvailable(player))
-            .max(Comparator.comparingInt(BoardDefinition::getPriority))
-            .orElse(null);
+                .filter(board -> board.isAvailable(player))
+                .max(Comparator.comparingInt(BoardDefinition::getPriority))
+                .orElse(null);
     }
 
-    @NotNull
     public Set<DynamicText> getAnimations() {
         return Set.copyOf(this.animationMap.values());
     }
 
-    @NotNull
     public Map<Player, Board> getBoardMap() {
         return Map.copyOf(this.boardMap);
     }
 
-    @NotNull
     public Set<Board> getBoards() {
         return Set.copyOf(this.boardMap.values());
     }
 
-    @Nullable
-    public Board getBoard(@NotNull Player player) {
+    public Board getBoard(Player player) {
         return this.boardMap.get(player);
     }
 
-
     public void updateBoards() {
-        if (this.boardMap.isEmpty()) return;
+        if (this.boardMap.isEmpty())
+            return;
 
         this.getBoards().forEach(Board::updateIfReady);
     }
 
-    public boolean hasBoard(@NotNull Player player) {
+    public boolean hasBoard(Player player) {
         return this.getBoard(player) != null;
     }
 
-    public void addBoard(@NotNull Player player) {
+    public void addBoard(Player player) {
         BoardDefinition boardDefinition = this.getBoardDefinition(player);
-        if (boardDefinition == null) return;
+        if (boardDefinition == null)
+            return;
 
         this.addBoard(player, boardDefinition);
     }
 
-    public synchronized void addBoard(@NotNull Player player, @NotNull BoardDefinition boardDefinition) {
-        if (this.provider == null) return;
-        if (this.hasBoard(player)) return;
+    public synchronized void addBoard(Player player, BoardDefinition boardDefinition) {
+        if (this.provider == null)
+            return;
+        if (this.hasBoard(player))
+            return;
 
-        this.boardMap.computeIfAbsent(player, k -> this.provider.create(player, this.createPlaceholderContext(player), boardDefinition)).create();
+        this.boardMap
+                .computeIfAbsent(player,
+                        k -> this.provider.create(player, this.createPlaceholderContext(player), boardDefinition))
+                .create();
     }
 
-    public synchronized void removeBoard(@NotNull Player player) {
+    public synchronized void removeBoard(Player player) {
         Board board = this.boardMap.remove(player);
-        if (board == null) return;
+        if (board == null)
+            return;
 
         board.remove();
     }
 
-    public void toggleBoard(@NotNull Player player) {
+    public void toggleBoard(Player player) {
         if (!this.hasBoard(player)) {
             this.addBoard(player);
-        }
-        else {
+        } else {
             this.removeBoard(player);
         }
     }
 
-    public boolean isScoreboardEnabled(@NotNull Player player) {
+    public boolean isScoreboardEnabled(Player player) {
         SunUser user = plugin.getUserManager().getOrFetch(player);
         return user.getPropertyOrDefault(ScoreboardProperties.SCOREBOARD);
     }
 
-    @NotNull
-    private PlaceholderContext createPlaceholderContext(@NotNull Player player) {
+    private PlaceholderContext createPlaceholderContext(Player player) {
         PlaceholderContext.Builder builder = PlaceholderContext.builder()
-            .with(CommonPlaceholders.PLAYER.resolver(player))
-            .andThen(CommonPlaceholders.forPlaceholderAPI(player));
+                .with(CommonPlaceholders.PLAYER.resolver(player))
+                .andThen(CommonPlaceholders.forPlaceholderAPI(player));
 
         for (DynamicText animator : this.getAnimations()) {
             builder.with(SLPlaceholders.ANIMATION.apply(animator.getId()), animator::getMessage);

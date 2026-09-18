@@ -10,28 +10,27 @@ public class ConversationContext extends FormattedContext {
 
     protected final Player target;
 
-    public ConversationContext(@NotNull Player player,
-                               @NotNull UserChatCache cache,
-                               @NotNull String originalMessage,
-                               @NotNull String proxyFormat,
-                               @NotNull Player target) {
+    public ConversationContext(Player player,
+            UserChatCache cache,
+            String originalMessage,
+            String proxyFormat,
+            Player target) {
         super(player, cache, originalMessage);
         this.target = target;
         this.setFormat(proxyFormat);
     }
 
     @Override
-    @Nullable
+
     public CachedContent getLastContent() {
         return null;
     }
 
     @Override
-    public void setLastContent(@NotNull String message, long lifeTime) {
+    public void setLastContent(String message, long lifeTime) {
 
     }
 
-    @NotNull
     public Player getTarget() {
         return this.target;
     }

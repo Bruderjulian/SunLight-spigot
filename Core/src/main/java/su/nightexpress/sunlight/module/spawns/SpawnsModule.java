@@ -40,14 +40,14 @@ import java.util.*;
 
 public class SpawnsModule extends Module {
 
-    private final TeleportManager    teleportManager;
-    private final SpawnsSettings     settings;
+    private final TeleportManager teleportManager;
+    private final SpawnsSettings settings;
     private final Map<String, Spawn> spawnMap;
 
-    private SpawnListEditor     listEditor;
+    private SpawnListEditor listEditor;
     private SpawnSettingsEditor settingsEditor;
 
-    public SpawnsModule(@NotNull ModuleContext context, @NotNull TeleportManager teleportManager) {
+    public SpawnsModule(ModuleContext context, TeleportManager teleportManager) {
         super(context);
         this.teleportManager = teleportManager;
         this.settings = new SpawnsSettings();
@@ -55,7 +55,7 @@ public class SpawnsModule extends Module {
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         this.settings.load(config);
         this.plugin.injectLang(SpawnsLang.class);
 
@@ -77,7 +77,7 @@ public class SpawnsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
         root.merge(SpawnsPerms.MODULE);
     }
 
@@ -87,7 +87,7 @@ public class SpawnsModule extends Module {
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 
@@ -95,9 +95,9 @@ public class SpawnsModule extends Module {
         this.dialogRegistry.register(SpawnsDialogKeys.SPAWN_NAME, SpawnNameDialog::new);
         this.dialogRegistry.register(SpawnsDialogKeys.SPAWN_PRIORITY, SpawnPriorityDialog::new);
         this.dialogRegistry.register(SpawnsDialogKeys.SPAWN_LOGIN_RULES,
-            () -> new SpawnRulesDialog(Spawn::getLoginRule));
+                () -> new SpawnRulesDialog(Spawn::getLoginRule));
         this.dialogRegistry.register(SpawnsDialogKeys.SPAWN_RESPAWN_RULES,
-            () -> new SpawnRulesDialog(Spawn::getRespawnRule));
+                () -> new SpawnRulesDialog(Spawn::getRespawnRule));
     }
 
     private void loadSpawns() {
@@ -116,13 +116,12 @@ public class SpawnsModule extends Module {
         this.info("Loaded " + this.spawnMap.size() + " spawns!");
     }
 
-    private void loadSpawn(@NotNull Spawn spawn) {
+    private void loadSpawn(Spawn spawn) {
         try {
             spawn.load();
             spawn.activate();
             this.spawnMap.put(spawn.getId(), spawn);
-        }
-        catch (IllegalStateException exception) {
+        } catch (IllegalStateException exception) {
             exception.printStackTrace();
             this.warn("Spawn not loaded: '" + spawn.getFile() + "'!");
         }
@@ -132,64 +131,56 @@ public class SpawnsModule extends Module {
         this.getSpawns().forEach(Spawn::saveIfDirty);
     }
 
-    public void openEditor(@NotNull Player player) {
+    public void openEditor(Player player) {
         this.listEditor.show(this.plugin, player);
     }
 
-    public void openSpawnSettings(@NotNull Player player, @NotNull Spawn spawn) {
+    public void openSpawnSettings(Player player, Spawn spawn) {
         this.settingsEditor.show(this.plugin, player, spawn);
     }
 
-    @NotNull
     public Map<String, Spawn> getSpawnMap() {
         return Map.copyOf(this.spawnMap);
     }
 
-    @NotNull
     public Set<Spawn> getSpawns() {
         return Set.copyOf(this.spawnMap.values());
     }
 
-    @NotNull
     public List<String> getSpawnIds() {
         return new ArrayList<>(this.spawnMap.keySet());
     }
 
-    @Nullable
-    public Spawn getSpawn(@NotNull String id) {
+    public Spawn getSpawn(String id) {
         return this.spawnMap.get(id.toLowerCase());
     }
 
-    @Nullable
     public Spawn getDefaultSpawn() {
         return this.getSpawn(this.settings.getDefaultSpawnId());
     }
 
-    @Nullable
-    public Spawn getSpawnOrDefault(@NotNull String id) {
+    public Spawn getSpawnOrDefault(String id) {
         return this.spawnMap.getOrDefault(id.toLowerCase(), this.getDefaultSpawn());
     }
 
-    @Nullable
-    public Spawn getNewbieSpawn(@NotNull Player player) {
+    public Spawn getNewbieSpawn(Player player) {
         return this.getSpawn(this.settings.getNewPlayersSpawnId());
     }
 
-    @Nullable
-    public Spawn getLoginSpawn(@NotNull Player player) {
+    public Spawn getLoginSpawn(Player player) {
         return this.getSpawns().stream().filter(spawn -> spawn.isAvailableForJoin(player)).max(Comparator.comparingInt(
-            Spawn::getPriority)).orElse(null);
+                Spawn::getPriority)).orElse(null);
     }
 
-    @Nullable
-    public Spawn getDeathSpawn(@NotNull Player player) {
+    public Spawn getDeathSpawn(Player player) {
         return this.getSpawns().stream().filter(spawn -> spawn.isAvailableForRespawn(player)).max(Comparator
-            .comparingInt(Spawn::getPriority)).orElse(null);
+                .comparingInt(Spawn::getPriority)).orElse(null);
     }
 
-    public boolean createSpawn(@NotNull Player player, @NotNull String id) {
+    public boolean createSpawn(Player player, String id) {
         Location location = player.getLocation();
-        if (location == null) return false;
+        if (location == null)
+            return false;
 
         id = StringUtil.lowerCaseUnderscore(id);
 
@@ -209,90 +200,100 @@ public class SpawnsModule extends Module {
         return true;
     }
 
-    public boolean deleteSpawn(@NotNull Spawn spawn) {
+    public boolean deleteSpawn(Spawn spawn) {
         try {
             if (Files.deleteIfExists(spawn.getFile())) {
                 this.spawnMap.remove(spawn.getId());
                 return true;
             }
-        }
-        catch (IOException exception) {
+        } catch (IOException exception) {
             exception.printStackTrace();
         }
         return false;
     }
 
-    public void handleJoin(@NotNull PlayerJoinEvent event) {
+    public void handleJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         SunUser user = this.plugin.getUserManager().getOrFetch(player);
         Spawn spawn;
         if (!user.hasPlayedBefore()) {
-            if (!this.settings.isNewPlayersSpawnEnabled()) return;
+            if (!this.settings.isNewPlayersSpawnEnabled())
+                return;
 
             spawn = this.getNewbieSpawn(player);
-        }
-        else spawn = this.getLoginSpawn(player);
+        } else
+            spawn = this.getLoginSpawn(player);
 
-        if (spawn == null || !spawn.isActive()) return;
+        if (spawn == null || !spawn.isActive())
+            return;
 
         this.teleport(spawn, player, true, true);
     }
 
-    public void handleRespawn(@NotNull PlayerRespawnEvent event) {
+    public void handleRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
-        if (player.getRespawnLocation() != null && !this.settings.isOverridePlayerRespawnLocation()) return;
+        if (player.getRespawnLocation() != null && !this.settings.isOverridePlayerRespawnLocation())
+            return;
 
         Spawn spawn = this.getDeathSpawn(player);
-        if (spawn == null || !spawn.isActive()) return;
+        if (spawn == null || !spawn.isActive())
+            return;
 
         event.setRespawnLocation(spawn.getLocation());
     }
 
-    public void teleport(@NotNull Spawn spawn, @NotNull Player player) {
+    public void teleport(Spawn spawn, Player player) {
         this.teleport(spawn, player, true, false);
     }
 
-    public boolean teleport(@NotNull Spawn spawn, @NotNull Player player, boolean forced, boolean silent) {
+    public boolean teleport(Spawn spawn, Player player, boolean forced, boolean silent) {
         if (!spawn.isActive()) {
-            if (!silent) SpawnsLang.ERROR_SPAWN_INACTIVE.message().send(player);
+            if (!silent)
+                SpawnsLang.ERROR_SPAWN_INACTIVE.message().send(player);
             return false;
         }
 
         if (!forced) {
             if (!spawn.hasPermission(player)) {
-                if (!silent) this.sendPrefixed(CoreLang.ERROR_NO_PERMISSION, player); // TODO CUstom
+                if (!silent)
+                    this.sendPrefixed(CoreLang.ERROR_NO_PERMISSION, player); // TODO CUstom
                 return false;
             }
         }
 
         PlayerSpawnTeleportEvent event = new PlayerSpawnTeleportEvent(player, spawn);
         plugin.getPluginManager().callEvent(event);
-        if (event.isCancelled()) return false;
+        if (event.isCancelled())
+            return false;
 
         double cost = this.settings.getTeleportCost();
-        boolean charge = !forced && cost > 0D && !EconomyUtils.hasBypass(player, SpawnsPerms.BYPASS_COST) && EconomyUtils
-            .hasCurrency();
+        boolean charge = !forced && cost > 0D && !EconomyUtils.hasBypass(player, SpawnsPerms.BYPASS_COST)
+                && EconomyUtils
+                        .hasCurrency();
 
         if (charge && !EconomyUtils.canAfford(player, cost)) {
-            if (!silent) this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
-                .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+            if (!silent)
+                this.sendPrefixed(Lang.COST_ERROR_NOT_ENOUGH_FUNDS, player, builder -> builder
+                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
             return false;
         }
 
         Location location = spawn.getLocation();
 
         TeleportContext teleportContext = TeleportContext.builder(this, player, location)
-            .withFlag(TeleportFlag.LOOK_FOR_SURFACE)
-            .withFlag(TeleportFlag.AVOID_LAVA)
-            .withFlag(TeleportFlag.CENTERED)
-            .withFlagIf(TeleportFlag.BYPASS_WARMUP, () -> forced)
-            .callback(() -> {
-                if (charge) EconomyUtils.withdraw(player, cost);
+                .withFlag(TeleportFlag.LOOK_FOR_SURFACE)
+                .withFlag(TeleportFlag.AVOID_LAVA)
+                .withFlag(TeleportFlag.CENTERED)
+                .withFlagIf(TeleportFlag.BYPASS_WARMUP, () -> forced)
+                .callback(() -> {
+                    if (charge)
+                        EconomyUtils.withdraw(player, cost);
 
-                if (!silent) this.sendPrefixed(SpawnsLang.SPAWN_TELEPORT_NOTIFY, player, replacer -> replacer.with(spawn
-                    .placeholders()));
-            })
-            .build();
+                    if (!silent)
+                        this.sendPrefixed(SpawnsLang.SPAWN_TELEPORT_NOTIFY, player, replacer -> replacer.with(spawn
+                                .placeholders()));
+                })
+                .build();
 
         return this.teleportManager.teleport(teleportContext, TeleportType.SPAWN);
     }

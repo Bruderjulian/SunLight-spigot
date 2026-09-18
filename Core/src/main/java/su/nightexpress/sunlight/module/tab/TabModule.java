@@ -27,9 +27,9 @@ public class TabModule extends Module {
     private final TabSettings settings;
 
     private final Map<String, DynamicText> animationMap;
-    private final Map<UUID, TabPlayer>     playerMap;
+    private final Map<UUID, TabPlayer> playerMap;
 
-    public TabModule(@NotNull ModuleContext context) {
+    public TabModule(ModuleContext context) {
         super(context);
         this.settings = new TabSettings();
         this.animationMap = new HashMap<>();
@@ -37,7 +37,7 @@ public class TabModule extends Module {
     }
 
     @Override
-    protected void loadModule(@NotNull FileConfig config) {
+    protected void loadModule(FileConfig config) {
         this.settings.load(config);
 
         this.loadAnimations();
@@ -71,7 +71,7 @@ public class TabModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(@NotNull PermissionTree root) {
+    protected void registerPermissions(PermissionTree root) {
 
     }
 
@@ -81,55 +81,48 @@ public class TabModule extends Module {
     }
 
     @Override
-    public void registerPlaceholders(@NotNull PlaceholderRegistry registry) {
+    public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 
-    @NotNull
     public Set<DynamicText> getAnimations() {
         return Set.copyOf(this.animationMap.values());
     }
 
-    @NotNull
     public Set<TabPlayer> getPlayers() {
         return Set.copyOf(this.playerMap.values());
     }
 
-    @Nullable
-    public TabPlayer getPlayer(@NotNull UUID playerId) {
+    public TabPlayer getPlayer(UUID playerId) {
         return this.playerMap.get(playerId);
     }
 
-    public synchronized void loadPlayer(@NotNull Player player) {
+    public synchronized void loadPlayer(Player player) {
         PlaceholderContext context = this.createPlaceholderContext(player);
         TabPlayer tabPlayer = new TabPlayer(player, context);
 
         this.playerMap.put(player.getUniqueId(), tabPlayer);
     }
 
-    public synchronized void unloadPlayer(@NotNull UUID playerId) {
+    public synchronized void unloadPlayer(UUID playerId) {
         this.playerMap.remove(playerId);
     }
 
-    @Nullable
-    public TabLayoutFormat getPlayerListLayoutFormat(@NotNull Player player) {
+    public TabLayoutFormat getPlayerListLayoutFormat(Player player) {
         return this.settings.getPlayerListLayoutFormatsMap().values().stream()
-            .filter(format -> format.isAvailable(player))
-            .max(Comparator.comparingInt(TabLayoutFormat::getPriority))
-            .orElse(null);
+                .filter(format -> format.isAvailable(player))
+                .max(Comparator.comparingInt(TabLayoutFormat::getPriority))
+                .orElse(null);
     }
 
-    @Nullable
-    public TabNameFormat getPlayerListNameFormat(@NotNull Player player) {
+    public TabNameFormat getPlayerListNameFormat(Player player) {
         return this.settings.getPlayerListNameFormatsMap().values().stream()
-            .filter(format -> format.isAvailable(player))
-            .max(Comparator.comparingInt(TabNameFormat::getPriority))
-            .orElse(null);
+                .filter(format -> format.isAvailable(player))
+                .max(Comparator.comparingInt(TabNameFormat::getPriority))
+                .orElse(null);
     }
 
-
-
-    public void handleJoin(@NotNull PlayerJoinEvent event) {
+    public void handleJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
         this.loadPlayer(player);
@@ -137,13 +130,13 @@ public class TabModule extends Module {
         this.sortPlayerList();
     }
 
-    public void handleQuit(@NotNull PlayerQuitEvent event) {
+    public void handleQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
         this.unloadPlayer(player.getUniqueId());
     }
 
-    public void updatePlayerList(@NotNull TabPlayer tabPlayer) {
+    public void updatePlayerList(TabPlayer tabPlayer) {
         Player player = tabPlayer.getPlayer();
 
         TabNameFormat nameFormat = this.getPlayerListNameFormat(player);
@@ -154,9 +147,10 @@ public class TabModule extends Module {
         tabPlayer.updatePlayerList();
     }
 
-    public void updatePlayerList(@NotNull Player player) {
+    public void updatePlayerList(Player player) {
         TabPlayer tabPlayer = this.getPlayer(player.getUniqueId());
-        if (tabPlayer == null) return;
+        if (tabPlayer == null)
+            return;
 
         this.updatePlayerList(tabPlayer);
     }
@@ -167,9 +161,10 @@ public class TabModule extends Module {
 
     public void sortPlayerList() {
         List<? extends Player> sorted = this.plugin.getServer().getOnlinePlayers().stream()
-            .sorted(Comparator.comparingInt(this::getRankOrder).reversed().thenComparing(Player::getName))
-            .toList();
-        if (sorted.isEmpty()) return;
+                .sorted(Comparator.comparingInt(this::getRankOrder).reversed().thenComparing(Player::getName))
+                .toList();
+        if (sorted.isEmpty())
+            return;
 
         int size = sorted.size();
 
@@ -181,7 +176,7 @@ public class TabModule extends Module {
         }
     }
 
-    private int getRankOrder(@NotNull Player player) {
+    private int getRankOrder(Player player) {
         Map<String, Integer> rankOrderMap = this.settings.getPlayerListRankOrderMap();
         int defValue = rankOrderMap.getOrDefault(SLPlaceholders.DEFAULT, 0);
 
@@ -190,11 +185,10 @@ public class TabModule extends Module {
         return ranks.stream().mapToInt(rank -> rankOrderMap.getOrDefault(rank, defValue)).max().orElse(defValue);
     }
 
-    @NotNull
-    private PlaceholderContext createPlaceholderContext(@NotNull Player player) {
+    private PlaceholderContext createPlaceholderContext(Player player) {
         PlaceholderContext.Builder builder = PlaceholderContext.builder()
-            .with(CommonPlaceholders.PLAYER.resolver(player))
-            .andThen(CommonPlaceholders.forPlaceholderAPI(player));
+                .with(CommonPlaceholders.PLAYER.resolver(player))
+                .andThen(CommonPlaceholders.forPlaceholderAPI(player));
 
         for (DynamicText animator : this.getAnimations()) {
             builder.with(SLPlaceholders.ANIMATION.apply(animator.getId()), animator::getMessage);

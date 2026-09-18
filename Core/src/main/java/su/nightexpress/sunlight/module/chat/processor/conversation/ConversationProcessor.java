@@ -14,12 +14,12 @@ import su.nightexpress.sunlight.module.chat.processor.ChatProcessor;
 public class ConversationProcessor implements ChatProcessor<ConversationContext> {
 
     @Override
-    public void preProcess(@NonNull ChatModule module, @NonNull ConversationContext context) {
+    public void preProcess( ChatModule module,  ConversationContext context) {
 
     }
 
     @Override
-    public void postProcess(@NonNull ChatModule module, @NonNull ConversationContext context) {
+    public void postProcess( ChatModule module,  ConversationContext context) {
         String rawIncoming = module.getSettings().getConversationIncomingFormat();
         String rawOutgoing = module.getSettings().getConversationOutgoingFormat();
 
@@ -38,8 +38,8 @@ public class ConversationProcessor implements ChatProcessor<ConversationContext>
         module.getChatCache(context.getTarget()).setLastConversationWith(context.getPlayer().getUniqueId());
     }
 
-    @NonNull
-    private String format(@NonNull ConversationContext context, @NonNull Player player, @NonNull String rawFormat) {
+    
+    private String format( ConversationContext context,  Player player,  String rawFormat) {
         PlaceholderContext messageContext = PlaceholderContext.builder()
             .with(SLPlaceholders.GENERIC_MESSAGE, context::getMessage)
             .build();
