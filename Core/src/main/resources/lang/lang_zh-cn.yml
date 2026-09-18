@@ -1630,17 +1630,6 @@ RTP:
       - <green><b>随机位置</b></green>
       - <gray>你在这里：<red>%location_x%</red>, <green>%location_y%</green>, <blue>%location_z%</blue></gray>
       Failure: '[sound="minecraft:entity.villager.no;0.8;1.0"]<gray>无法找到有效位置。请重试</gray>'
-Scoreboard:
-  Command:
-    Scoreboard-Toggle:
-      Desc: 切换记分板。
-    Scoreboard-On:
-      Desc: 启用记分板。
-    Scoreboard-Off:
-      Desc: 禁用记分板。
-    Scoreboard:
-      Notify: <gray>你已设置记分板为 <orange>%state%</orange></gray>
-      Target: <gray>你已为 <white>%player_name%</white> 设置记分板为 <orange>%state%</orange></gray>
 Spawns:
   Command:
     Spawns:

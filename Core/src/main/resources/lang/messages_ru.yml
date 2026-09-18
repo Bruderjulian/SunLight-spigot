@@ -1766,12 +1766,6 @@ PTP:
     - ' '
     - <lyellow>            <hover:show_text:"<gray>Нажмите, чтобы телепортировать <green>%player_display_name%</green></gray>"><click:run_command:"/tpyes %player_name%"><lgreen><b>[Принять]</b></lgreen></click></hover>      <hover:show_text:"<gray>Нажмите, чтобы отклонить телепортацию <red>%player_display_name%</red>.</gray>"><click:run_command:"/tpno %player_name%"><lred><b>[Отклонить]</b></lred></click></hover></lyellow>
     - ' '
-Scoreboard:
-  Command:
-    Scoreboard:
-      Desc: Включить/выключить отображение скорборда.
-      Notify: '<lgray>Скорборд: <lyellow>%state%</lyellow></lgray>'
-      Target: <lgray>Скорборд установлен на <lyellow>%state%</lyellow> для <lyellow>%player_name%</lyellow>.</lgray>
 RTP:
   Command:
     RTP:

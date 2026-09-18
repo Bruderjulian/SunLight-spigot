@@ -1752,12 +1752,6 @@ PTP:
         - ' '
         - <lyellow>      <hover:show_text:'<gray>Haz clic para teletransportar a <green>%player_display_name%</green></gray>'><click:run_command:"/tpyes %player_name%"><lgreen><b>[Aceptar]</b></lgreen></click></hover>   <hover:show_text:'<gray>Haz clic para denegar el teletransporte de <red>%player_display_name%</red>.</gray>'><click:run_command:"/tpno %player_name%"><lred><b>[Rechazar]</b></lred></click></hover></lyellow>
         - ' '
-Scoreboard:
-  Command:
-    Scoreboard:
-      Desc: Activar/desactivar marcador.
-      Notify: '<lgray>Marcador: <lyellow>%state%</lyellow>.</lgray>'
-      Target: <lgray>Se estableció el marcador en <lyellow>%state%</lyellow> para <lyellow>%player_name%</lyellow>.</lgray>
 RTP:
   Command:
     RTP:
