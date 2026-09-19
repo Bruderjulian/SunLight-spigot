@@ -1,0 +1,1892 @@
+#    ________  ________  ________  ________  ________ 
+#   ╱        ╲╱    ╱   ╲╱        ╲╱    ╱   ╲╱    ╱   ╲
+#  ╱         ╱         ╱       __╱_       _╱_       _╱
+# ╱       __╱         ╱        _╱         ╱         ╱ 
+# ╲______╱  ╲___╱____╱╲_______╱ ╲___╱____╱╲___╱____╱  
+#
+# Translated by phantomfighterxx
+
+EquipmentSlot:
+  HAND: Рука
+  OFF_HAND: Вторая рука
+  FEET: Ноги
+  LEGS: Поножи
+  CHEST: Нагрудник
+  HEAD: Шлем
+  BODY: Тело
+  SADDLE: Седло
+GameMode:
+  CREATIVE: Творческий режим
+  SURVIVAL: Режим выживания
+  ADVENTURE: Режим приключений
+  SPECTATOR: Режим наблюдателя
+ExperienceType:
+  POINTS: очков
+  LEVELS: уровней
+WeatherType:
+  CLEAR: Ясно
+  STORM: Осадки
+  THUNDER: Гроза
+MenuType:
+  ANVIL: Наковальня
+  CRAFTING: Верстак
+  ENCHANTMENT: Зачарование
+  GRINDSTONE: Точило
+  LOOM: Ткацкий станок
+  SMITHING: Кузница
+  CARTOGRAPHY: Картографический стол
+  STONECUTTER: Камнерез
+Command:
+  Argument:
+    Name:
+      Slot: слот
+      Enchant: зачарование
+      Level: уровень
+      Target: цель
+      Type: тип
+      Time: время
+      Mode: режим
+      IPAddress: адрес
+      Radius: радиус
+      Text: текст
+      Position: позиция
+      X: x
+      Y: y
+      Z: z
+      Reason: причина
+      IPorName: имя | адрес
+  Air:
+    Add:
+      Desc: Добавить тики воздуха.
+    Set:
+      Desc: Установить тики воздуха.
+      Target: '<lgray>Установлено <lyellow>%amount%</lyellow> тиков воздуха для игрока <lyellow>%player_display_name%</lyellow>. Новое значение: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+      Notify:
+      - <output:"action_bar">
+      - '<lgray>Ваши тики воздуха установлены на <lyellow>%amount%</lyellow>: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+    Remove:
+      Desc: Удалить тики воздуха.
+    Give:
+      Target: '<lgray>Добавлено <lyellow>%amount%</lyellow> тиков воздуха игроку <lyellow>%player_display_name%</lyellow>. Новое значение: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+      Notify:
+      - <output:"action_bar">
+      - '<lgray>Вы получили <lyellow>%amount%</lyellow> тиков воздуха: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+    Take:
+      Target: '<lgray>Удалено <lyellow>%amount%</lyellow> тиков воздуха у игрока <lyellow>%player_display_name%</lyellow>. Новое значение: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+      Notify:
+      - <output:"action_bar">
+      - '<lgray>Вы потеряли <lyellow>%amount%</lyellow> тиков воздуха: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+  Broadcast:
+    Desc: Транслировать сообщение в общий чат.
+  Condense:
+    Desc: Сжать предметы в блоки.
+    Error:
+      Nothing:
+      - <sound:"minecraft:entity.villager.no;0.8;1.0">
+      - <lgray>Нет предметов для сжатия.</lgray>
+      NotEnough: <lgray>Недостаточно предметов для преобразования <lred>%source%</lred> в <lred>%result%</lred>. Необходимо минимум <lred>%amount%</lred>.</lgray>
+    Done: <lgray>Преобразовано <lyellow>x%total% %source%</lyellow> в <lyellow>x%amount% %result%</lyellow>.</lgray>
+  Container:
+    Type:
+      Desc: Открыть виртуальный %type%.
+    Notify:
+    - <output:"action_bar">
+    - <lgray>Интерфейс <lyellow>%type%</lyellow> открыт.</lgray>
+    Target: <lgray>Открыт интерфейс <lyellow>%type%</lyellow> для игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+  Disposal:
+    Desc: Открыть меню утилизации.
+    Target: <lgray>Открыто меню утилизации для игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+    Notify:
+    - <output:"action_bar"><sound:"minecraft:block.chest.open;0.8;1.0">
+    - <lgray>Вы открыли меню утилизации.</lgray>
+  Dimension:
+    Desc: Телепортироваться в мир.
+    Target: <lgray>Игрок <lyellow>%player_display_name%</lyellow> был телепортирован в мир <lyellow>%world%</lyellow>.</lgray>
+    Notify:
+    - <output:"action_bar"><sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+    - <lgray>Вы переместились в мир <lyellow>%world%</lyellow>.</lgray>
+  Enchant:
+    Desc: Зачаровать или снять чары с предмета в слоте.
+    Error:
+      NoItem: <lred>Нет предмета для зачарования!</lred>
+    Enchanted:
+      Target:
+      - <sound:"minecraft:block.enchantment_table.use;0.8;1.0">
+      - <lgray>Предмет <lyellow>%item%</lyellow> был зачарован на <lyellow>%name% %amount%</lyellow> в слоте <lyellow>%type%</lyellow> игрока <lyellow>%player_display_name%</lyellow>!</lgray>
+      Notify:
+      - <sound:"minecraft:block.enchantment_table.use;0.8;1.0">
+      - <lgray>Ваш предмет <lyellow>%item%</lyellow> был зачарован на <lyellow>%name% %amount%</lyellow>!</lgray>
+    Disenchanted:
+      Target:
+      - <sound:"minecraft:block.grindstone.use;0.8;1.0">
+      - <lgray>Чары <lyellow>%name%</lyellow> были сняты с предмета <lyellow>%item%</lyellow> в слоте <lyellow>%type%</lyellow> игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+      Notify:
+      - <sound:"minecraft:block.grindstone.use;0.8;1.0">
+      - <lgray>С вашего предмета <lyellow>%item%</lyellow> были сняты чары <lyellow>%name%</lyellow>!</lgray>
+  Experience:
+    Add:
+      Desc: Добавить очки опыта или уровни.
+      Info:
+      - <noprefix>
+      - ' '
+      - <lgray>Добавлено <lyellow>%amount%</lyellow> %type% игроку <lyellow>%player_display_name%</lyellow>.</lgray>
+      - '<lgray>Новый уровень: <lyellow>%level%</lyellow></lgray>'
+      - '<lgray>Всего опыта: <lyellow>%total%</lyellow></lgray>'
+      - ' '
+      Notify:
+      - <noprefix>
+      - ' '
+      - <lgray><lyellow>%amount%</lyellow> %type% добавлено к вашему опыту!</lgray>
+      - '<lgray>Новый уровень: <lyellow>%level%</lyellow></lgray>'
+      - '<lgray>Всего опыта: <lyellow>%total%</lyellow></lgray>'
+      - ' '
+    Remove:
+      Desc: Удалить очки опыта или уровни.
+      Info:
+      - <noprefix>
+      - ' '
+      - <lgray>Удалено <lyellow>%amount%</lyellow> %type% у игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+      - '<lgray>Новый уровень: <lyellow>%level%</lyellow></lgray>'
+      - '<lgray>Всего опыта: <lyellow>%total%</lyellow></lgray>'
+      - ' '
+      Notify:
+      - <noprefix>
+      - ' '
+      - <lgray><lyellow>%amount%</lyellow> %type% удалено из вашего опыта!</lgray>
+      - '<lgray>Новый уровень: <lyellow>%level%</lyellow></lgray>'
+      - '<lgray>Всего опыта: <lyellow>%total%</lyellow></lgray>'
+      - ' '
+    Set:
+      Desc: Установить очки опыта или уровни.
+      Info:
+      - <noprefix>
+      - ' '
+      - <lgray>Установлено <lyellow>%amount%</lyellow> %type% для игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+      - '<lgray>Новый уровень: <lyellow>%level%</lyellow></lgray>'
+      - '<lgray>Всего опыта: <lyellow>%total%</lyellow></lgray>'
+      - ' '
+      Notify:
+      - <noprefix>
+      - ' '
+      - <lgray><lyellow>%amount%</lyellow> %type% установлено как ваш опыт!</lgray>
+      - '<lgray>Новый уровень: <lyellow>%level%</lyellow></lgray>'
+      - '<lgray>Всего опыта: <lyellow>%total%</lyellow></lgray>'
+      - ' '
+    View:
+      Desc: Просмотреть состояние опыта.
+    Info:
+      Info:
+      - <noprefix>
+      - ' '
+      - <lyellow><b>Опыт игрока %player_display_name%:</b></lyellow>
+      - '<lgray>Уровень: <lyellow>%level%</lyellow></lgray>'
+      - '<lgray>Всего опыта: <lyellow>%total%</lyellow></lgray>'
+      - '<lgray>До следующего уровня: <lyellow>%max%</lyellow></lgray>'
+      - ' '
+  Enderchest:
+    Clear:
+      Desc: Очистить сундук Края.
+      Done:
+        Target:
+        - <sound:"minecraft:block.fire.extinguish;0.8;1.0">
+        - <lgray>Сундук Края игрока <lyellow>%player_display_name%</lyellow> был очищен!</lgray>
+        Notify:
+        - <sound:"minecraft:block.fire.extinguish;0.8;1.0">
+        - <lgray>Ваш сундук Края был очищен!</lgray>
+    Copy:
+      Desc: Скопировать содержимое сундука Края игрока.
+      Done:
+        Executor:
+        - <sound:"minecraft:item.armor.equip_leather;0.8;1.0">
+        - <lgray>Содержимое сундука Края игрока <lyellow>%player_display_name%</lyellow> скопировано.</lgray>
+        Others:
+        - <sound:"minecraft:item.armor.equip_leather;0.8;1.0">
+        - <lgray>Содержимое сундука Края игрока <lyellow>%source%</lyellow> скопировано в сундук Края игрока <lyellow>%target%</lyellow>.</lgray>
+    Fill:
+      Desc: Заполнить сундук Края указанным предметом.
+      Done:
+        Executor:
+        - <sound:"minecraft:entity.item.pickup;0.8;1.0">
+        - <lgray>Сундук Края игрока <lyellow>%player_display_name%</lyellow> заполнен предметом <lyellow>%item%</lyellow>.</lgray>
+    Open:
+      Desc: Открыть сундук Края.
+      Done:
+        Executor:
+        - <sound:"minecraft:block.ender_chest.open;0.8;1.0">
+        - <lgray>Открыт сундук Края игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+    Repair:
+      Desc: Починить все предметы в сундуке Края.
+      Notify:
+      - <sound:"minecraft:block.anvil.use;0.8;1.0">
+      - <lgray>Все предметы в вашем сундуке Края починены!</lgray>
+      Target:
+      - <sound:"minecraft:block.anvil.use;0.8;1.0">
+      - <lgray>Все предметы в сундуке Края игрока <lyellow>%player_display_name%</lyellow> починены!</lgray>
+  Hat:
+    Desc: Надеть предмет на голову.
+    Done:
+    - <sound:"minecraft:item.armor.equip_leather;0.8;1.0">
+    - <lgray>Наслаждайтесь своей новой шляпой!</lgray>
+  Fly:
+    Desc: Переключить полёт.
+    Target: <lgray>Режим полёта для игрока <lyellow>%player_display_name%</lyellow> установлен на <lyellow>%state%</lyellow>.</lgray>
+    Notify: <lgray>Полёт <lyellow>%state%</lyellow>.</lgray>
+  FlySpeed:
+    Desc: Изменить скорость полёта.
+    Done:
+      Notify: <lgray>Ваша скорость полёта установлена на <lyellow>%amount%</lyellow>.</lgray>
+      Target: <lgray>Скорость полёта игрока <lyellow>%player_display_name%</lyellow> установлена на <lyellow>%amount%</lyellow>.</lgray>
+  Fire:
+    Set:
+      Desc: Установить тики огня.
+      Info: '<lgray>Установлено значение тиков огня для игрока <lyellow>%player_display_name%</lyellow> на <lyellow>%amount%</lyellow>, что соответствует возгоранию на <lyellow>%time%</lyellow> сек.</lgray>'
+      Target: <lgray>Вы подожжены на <lyellow>%time%</lyellow> сек.</lgray>
+    Reset:
+      Desc: Сбросить тики огня.
+      Info:
+      - <sound:"minecraft:block.fire.extinguish;0.8;1.0">
+      - <lgray>Значение тиков огня игрока <lyellow>%player_display_name%</lyellow> сброшено, огонь потушен.</lgray>
+      Target:
+      - <sound:"minecraft:block.fire.extinguish;0.8;1.0">
+      - <lgray>Вы потушены.</lgray>
+  Food:
+    Add:
+      Desc: Добавить очки сытости.
+    Set:
+      Desc: Установить уровень сытости.
+      Target: <lgray>Уровень сытости игрока <lyellow>%player_display_name%</lyellow> установлен на <lyellow>%amount%</lyellow>.</lgray>
+      Notify: <lgray>Ваш уровень сытости установлен на <lyellow>%amount%</lyellow>.</lgray>
+    Remove:
+      Desc: Удалить очки сытости.
+    Restore:
+      Desc: Восстановить уровень сытости.
+      Notify:
+      - <sound:"minecraft:entity.generic.eat;0.8;1.0">
+      - <lgray>Ваш уровень сытости восстановлен!</lgray>
+      Info:
+      - <sound:"minecraft:entity.generic.eat;0.8;1.0">
+      - <lgray>Уровень сытости игрока <lyellow>%player_display_name%</lyellow> восстановлен!</lgray>
+    Give:
+      Target: '<lgray>Добавлено <lyellow>%amount%</lyellow> очков сытости игроку <lyellow>%player_display_name%</lyellow>. Новый уровень сытости: <lyellow>%current%</lyellow>.</lgray>'
+      Notify: <lgray>Ваш уровень сытости увеличен на <lyellow>%amount%</lyellow>.</lgray>
+    Take:
+      Target: '<lgray>Удалено <lyellow>%amount%</lyellow> очков сытости у игрока <lyellow>%player_display_name%</lyellow>. Новый уровень сытости: <lyellow>%current%</lyellow>.</lgray>'
+      Notify: <lgray>Ваш уровень сытости уменьшен на <lyellow>%amount%</lyellow>.</lgray>
+  GameMode:
+    Type:
+      Desc: Установить режим игры %type%.
+    Notify: <lgray>Ваш режим игры установлен на <lyellow>%type%</lyellow>.</lgray>
+    Target: <lgray>Режим игры <lyellow>%type%</lyellow> установлен для игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+  Health:
+    Add:
+      Desc: Добавить очки здоровья.
+      Target: '<lgray>Добавлено <lyellow>%amount%</lyellow> здоровья игроку <lyellow>%player_display_name%</lyellow>. Новое здоровье: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+      Notify:
+      - <output:"action_bar">
+      - '<lgray>Вы получили <lyellow>%amount%</lyellow> здоровья: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+    Set:
+      Desc: Установить количество здоровья.
+      Target: '<lgray>Установлено <lyellow>%amount%</lyellow> здоровья для игрока <lyellow>%player_display_name%</lyellow>. Новое здоровье: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+      Notify:
+      - <output:"action_bar">
+      - <lgray>Ваше здоровье установлено на <lyellow>%amount%</lyellow>/<lyellow>%max%</lyellow>.</lgray>
+    Remove:
+      Desc: Удалить очки здоровья.
+      Target: '<lgray>Удалено <lyellow>%amount%</lyellow> здоровья у игрока <lyellow>%player_display_name%</lyellow>. Новое здоровье: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+      Notify:
+      - <output:"action_bar">
+      - '<lgray>Вы потеряли <lyellow>%amount%</lyellow> здоровья: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
+    Restore:
+      Desc: Восстановить здоровье.
+      Notfiy: <lgray>Вы были исцелены!</lgray>
+      Info: <lgray>Игрок <lyellow>%player_display_name%</lyellow> был исцелен.</lgray>
+  Ignore:
+    Add:
+      Desc: Добавить игрока в чёрный список.
+      Done:
+      - <noprefix>
+      - <lyellow><b>Игрок заблокирован!</b></lyellow>
+      - <lgray>Игрок <lyellow>%player_display_name%</lyellow> добавлен в чёрный список.</lgray>
+      - <lgray>Вы можете изменить настройки или разблокировать его с помощью команды <lyellow>/ignorelist</lyellow></lgray>
+      Error:
+        AlreadyIn: <lgray>Игрок уже заблокирован.</lgray>
+    List:
+      Desc: Открыть чёрный список игроков.
+    Remove:
+      Desc: Удалить игрока из чёрного списка.
+      Done: <lgray>Игрок <lyellow>%player_name%</lyellow> был разблокирован.</lgray>
+      Error:
+        NotIn: <lgray>Игрок не заблокирован.</lgray>
+  Inventory:
+    Clear:
+      Desc: Очистить инвентарь.
+      Done:
+        Target:
+        - <sound:"minecraft:block.fire.extinguish;0.8;1.0">
+        - <lgray>Инвентарь игрока <lyellow>%player_display_name%</lyellow> был очищен!</lgray>
+        Notify:
+        - <sound:"minecraft:block.fire.extinguish;0.8;1.0">
+        - <lgray>Ваш инвентарь был очищен!</lgray>
+    Copy:
+      Desc: Скопировать инвентарь игрока.
+      Done:
+        Notify:
+        - <sound:"minecraft:item.armor.equip_leather;0.8;1.0">
+        - <lgray>Инвентарь игрока <lyellow>%player_display_name%</lyellow> скопирован.</lgray>
+        Target:
+        - <sound:"minecraft:item.armor.equip_leather;0.8;1.0">
+        - <lgray>Инвентарь игрока <lyellow>%source%</lyellow> скопирован в инвентарь игрока <lyellow>%target%</lyellow>.</lgray>
+    Fill:
+      Desc: Заполнить инвентарь указанными предметами.
+      Done:
+      - <sound:"minecraft:entity.item.pickup;0.8;1.0">
+      - <lgray>Инвентарь игрока <lyellow>%player_display_name%</lyellow> заполнен предметом <lyellow>%item%</lyellow>.</lgray>
+    Open:
+      Desc: Открыть инвентарь игрока.
+      Done:
+      - <sound:"minecraft:block.chest.open;0.8;1.0">
+      - <lgray>Открыт инвентарь игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+    Repair:
+      Desc: Починить все предметы в инвентаре.
+      Notify:
+      - <sound:"minecraft:block.anvil.use;0.8;1.0">
+      - <lgray>Все предметы в вашем инвентаре починены!</lgray>
+      Target:
+      - <sound:"minecraft:block.anvil.use;0.8;1.0">
+      - <lgray>Все предметы в инвентаре игрока <lyellow>%player_display_name%</lyellow> починены!</lgray>
+  Item:
+    Amount:
+      Desc: Изменить количество предметов.
+      Done:
+      - <sound:"minecraft:entity.item.pickup;0.8;1.0">
+      - <lgray>Установлено количество предметов <lyellow>%item%</lyellow> в стопке на x<lyellow>%amount%</lyellow>.</lgray>
+    Damage:
+      Desc: Изменить повреждение предмета.
+      Done:
+      - <sound:"minecraft:block.anvil.use;0.8;1.0">
+      - <lgray>Установлено повреждение предмета <lyellow>%item%</lyellow> на <lyellow>%amount%</lyellow>.</lgray>
+    Enchant:
+      Desc: Зачаровать или снять чары с предмета в руке.
+      Error:
+        NotCompatible:
+        - <sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lgray><lred>%item%</lred> нельзя зачаровать на <lred>%name%</lred>!</lgray>
+        Overpowered:
+        - <sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lgray>Максимальный уровень чара <lred>%name%</lred> — <lred>%level%</lred>!</lgray>
+      Done:
+        Enchanted:
+        - <sound:"minecraft:block.enchantment_table.use;0.8;1.0">
+        - <lgray><lyellow>%item%</lyellow> зачарован на <lyellow>%name% %level%</lyellow>!</lgray>
+        Disenchanted:
+        - <sound:"minecraft:block.enchantment_table.use;0.8;1.0">
+        - <lgray>С предмета <lyellow>%item%</lyellow> сняты чары <lyellow>%name%</lyellow>!</lgray>
+    Get:
+      Desc: Получить указанный предмет.
+      Done:
+      - <sound:"minecraft:entity.item.pickup;0.8;1.0">
+      - <lgray>Вы получили <lyellow>x%amount% %type%</lyellow>!</lgray>
+    Give:
+      Desc: Выдать указанный предмет игроку.
+      Done:
+      - <sound:"minecraft:entity.item.pickup;0.8;1.0">
+      - <lgray>Выдано <lyellow>x%amount% %type%</lyellow> игроку <lyellow>%player_display_name%</lyellow>!</lgray>
+      Notify:
+      - <sound:"minecraft:entity.item.pickup;0.8;1.0">
+      - <lgray><lyellow>x%amount% %type%</lyellow> добавлено в ваш инвентарь!</lgray>
+    Take:
+      Desc: Забрать предмет у игрока.
+      Done:
+      - <sound:"minecraft:entity.glow_item_frame.remove_item;0.8;1.0">
+      - <lgray>Удалено <lyellow>x%amount%</lyellow> предметов <lyellow>%type%</lyellow> у игрока <lyellow>%player_display_name%</lyellow>!</lgray>
+      Error:
+        NotEnough:
+        - <sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lgray>Не удалось забрать предмет(ы). У игрока недостаточно <lred>%type%</lred> (<white>%amount%</white>/<white>%total%</white>)!</lgray>
+      Notify:
+      - <sound:"minecraft:entity.glow_item_frame.remove_item;0.8;1.0">
+      - <lgray><lyellow>x%amount%</lyellow> предметов <lyellow>%type%</lyellow> было изъято из вашего инвентаря!</lgray>
+    Lore:
+      Add:
+        Desc: Добавить описание.
+        Done:
+        - <sound:"minecraft:block.anvil.use;0.8;1.0">
+        - <lgray>Описание добавлено!</lgray>
+      Remove:
+        Desc: Удалить описание.
+        Done:
+        - <sound:"minecraft:block.anvil.use;0.8;1.0">
+        - <lgray>Описание удалено!</lgray>
+      Clear:
+        Desc: Очистить описание.
+        Done:
+        - <sound:"minecraft:block.anvil.use;0.8;1.0">
+        - <lgray>Описание очищено!</lgray>
+    Model:
+      Desc: Изменить данные модели предмета.
+      Done:
+      - <sound:"minecraft:block.anvil.use;0.8;1.0">
+      - <lgray>Установлено <lyellow>%amount%</lyellow> как данные модели предмета <lyellow>%item%</lyellow>!</lgray>
+    Name:
+      Desc: Изменить отображаемое имя предмета.
+      Done:
+        Changed:
+        - <sound:"minecraft:block.anvil.use;0.8;1.0">
+        - <lgray>Предмет переименован!</lgray>
+    Potion:
+      Add:
+        Desc: Добавить эффект в зелье.
+        Done: <lgray>Эффект зелья добавлен!</lgray>
+    Repair:
+      Desc: Починить предмет.
+      Done:
+      - <sound:"minecraft:block.anvil.use;0.8;1.0">
+      - <lgray>Предмет <lyellow>%item%</lyellow> починен!</lgray>
+    Spawn:
+      Desc: Создать предмет в мире.
+      Done:
+      - <sound:"minecraft:entity.item.pickup;0.8;1.0">
+      - <lgray>Создано <lyellow>x%amount%</lyellow> <lyellow>%type%</lyellow> на координатах <lyellow>%location_x%, %location_y%, %location_z%</lyellow> в мире <lyellow>%location_world%</lyellow>!</lgray>
+    Unbreakable:
+      Desc: Переключить состояние «неломаемый».
+      Done:
+      - <sound:"minecraft:block.anvil.use;0.8;1.0">
+      - '<lgray>Установлено для предмета <lyellow>%item%</lyellow> свойство «Неломаемый»: <lyellow>%state%</lyellow>.</lgray>'
+  Mob:
+    Kill:
+      Desc: Убить указанного моба.
+      Done:
+      - <sound:"minecraft:entity.zombie.death;0.8;1.0">
+      - <lgray>Убито <lyellow>x%amount% %type%</lyellow> в мире <lyellow>%world%</lyellow> в радиусе <lyellow>%radius%</lyellow> блоков.</lgray>
+    Clear:
+      Desc: Убить всех мобов.
+      Done:
+      - <sound:"minecraft:entity.zombie.death;0.8;1.0">
+      - <lgray>Убито <lyellow>%amount%</lyellow> мобов в мире <lyellow>%world%</lyellow> в радиусе <lyellow>%radius%</lyellow> блоков.</lgray>
+    Spawn:
+      Desc: Призвать моба.
+      Done: <lgray>Создано <lyellow>x%amount% %type%</lyellow>.</lgray>
+  Near:
+    Desc: Показать ближайших игроков.
+    Error:
+      Nothing: <lgray>Нет игроков в радиусе <lyellow>%radius%</lyellow> блоков.</lgray>
+  Nick:
+    Clear:
+      Desc: Удалить кастомный никнейм.
+      Target: <lgray>Кастомный никнейм игрока <lyellow>%player_display_name%</lyellow> удалён.</lgray>
+      Notify: <lgray>Ваш кастомный никнейм был удалён.</lgray>
+    Set:
+      Desc: Установить кастомный никнейм игрока.
+      Target: <lgray>Кастомный никнейм игрока <lyellow>%player_name%</lyellow> установлен на <lyellow>%name%</lyellow>.</lgray>
+      Notify: '<lgray>Вам установлен новый кастомный никнейм: <lyellow>%name%</lyellow>.</lgray>'
+    Change:
+      Desc: Установить кастомный никнейм.
+      Done: <lgray>Вы изменили свой кастомный никнейм на <lyellow>%name%</lyellow>.</lgray>
+    Error:
+      BadWords: <lred>Этот никнейм недопустим.</lred>
+      Regex: <lred>Никнейм содержит запрещённые символы.</lred>
+      TooLong: <lgray>Никнейм не может быть длиннее <lred>%amount%</lred> символов.</lgray>
+      TooShort: <lred>Никнейм не может быть короче <lred>%amount%</lred> символов.</lred>
+  PlayerInfo:
+    Desc: Показать информацию об игроке.
+  Skull:
+    Custom:
+      Desc: Создать кастомную голову.
+      Done: <lgray>Кастомная голова создана.</lgray>
+    Player:
+      Desc: Получить голову игрока.
+      Done: <lgray>Вы получили голову игрока <lyellow>%player_name%</lyellow>.</lgray>
+  Staff:
+    Desc: Показать онлайн персонал.
+    Empty: <lgray>Персонал не в сети.</lgray>
+  Spawner:
+    Desc: Изменить тип спавнера.
+    Done: <lgray>Тип спавнера изменён на <lyellow>%type%</lyellow>.</lgray>
+    Error:
+      Type: <lred>Этот тип нельзя установить для спавнера.</lred>
+      Block: <lred>Вы должны смотреть на блок спавнера!</lred>
+  Speed:
+    Desc: Изменить скорость ходьбы.
+    Done:
+      Notify: <lgray>Ваша скорость ходьбы установлена на <lyellow>%amount%</lyellow>.</lgray>
+      Target: <lgray>Скорость ходьбы игрока <lyellow>%player_display_name%</lyellow> установлена на <lyellow>%amount%</lyellow>.</lgray>
+  Sudo:
+    Command:
+      Desc: Заставить игрока выполнить команду.
+    Chat:
+      Desc: Заставить игрока отправить сообщение в чат.
+    Done:
+      Command: '<lgray>Игрок <lyellow>%player_display_name%</lyellow> принудительно выполнил: <lyellow>/%command%</lyellow></lgray>'
+      Chat: '<lgray>Игрок <lyellow>%player_display_name%</lyellow> принудительно сказал: <lyellow>%command%</lyellow></lgray>'
+  Suicide:
+    Desc: Совершить самоубийство.
+    Done:
+    - <noprefix>
+    - <lgray><lyellow>%player_display_name%</lyellow> совершил самоубийство.</lgray>
+  Teleport:
+    Location:
+      Desc: Телепортироваться по координатам.
+      Done:
+        Target:
+        - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+        - <lgray>Игрок <lyellow>%player_display_name%</lyellow> телепортирован в <lyellow>%location_x%, %location_y%, %location_z%</lyellow> в мире <lyellow>%location_world%</lyellow>.</lgray>
+        Notify:
+        - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+        - <lgray>Телепортация в <lyellow>%location_x%, %location_y%, %location_z%</lyellow> в мире <lyellow>%location_world%</lyellow>.</lgray>
+    Summon:
+      Desc: Призвать игрока к себе.
+      Target:
+      - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lgray>Вы призвали игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+      Notify:
+      - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lgray>Вы были призваны игроком <lyellow>%player_display_name%</lyellow>.</lgray>
+    To:
+      Desc: Телепортироваться к игроку.
+      Done:
+      - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lgray>Телепортация к игроку <lyellow>%player_display_name%</lyellow>...</lgray>
+    Send:
+      Desc: Телепортировать одного игрока к другому.
+      Target:
+      - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lgray>Игрок <lyellow>%source%</lyellow> телепортирован к игроку <lyellow>%target%</lyellow>.</lgray>
+      Notify:
+      - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lgray>Вы были телепортированы к игроку <lyellow>%player_display_name%</lyellow>.</lgray>
+    Top:
+      Desc: Телепортироваться на самый высокий блок.
+      Target:
+      - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lgray>Игрок <lyellow>%player_display_name%</lyellow> телепортирован на самый высокий блок.</lgray>
+      Notify:
+      - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lgray>Телепортация на самый высокий блок...</lgray>
+  Time:
+    Show:
+      Desc: Показать текущее время в мире.
+      Print:
+      - <noprefix>
+      - ' '
+      - <lyellow><b>Информация о времени:</b></lyellow>
+      - '<lgray><lyellow>▪ </lyellow>Время в мире %world%: <lyellow>%time%</lyellow> (<white>%ticks% тиков</white>)</lgray>'
+      - '<lgray><lyellow>▪ </lyellow>Время на сервере: <lyellow>%global%</lyellow></lgray>'
+      - ' '
+    Set:
+      Desc: Установить время в мире.
+      Done: <lgray>Время установлено на <lyellow>%time%</lyellow> (<white>%total% тиков</white>) в мире <lyellow>%world%</lyellow>.</lgray>
+    Personal:
+      Set:
+        Desc: Установить личное время.
+        Target: <lgray>Личное время игрока <lyellow>%player_display_name%</lyellow> установлено на <lyellow>%time%</lyellow> (<white>%total% тиков</white>).</lgray>
+        Notify: <lgray>Ваше личное время установлено на <lyellow>%time%</lyellow> (<white>%total% тиков</white>).</lgray>
+      Reset:
+        Desc: Сбросить личное время.
+        Target: <lgray>Личное время игрока <lyellow>%player_display_name%</lyellow> сброшено.</lgray>
+        Notify: <lgray>Ваше личное время сброшено.</lgray>
+  Smite:
+    Desc: Поразить игрока молнией.
+    Target: <lgray>Игрок <lyellow>%player_name%</lyellow> поражён молнией!</lgray>
+    Notify: <lgray>Вы были поражены молнией!</lgray>
+  Weather:
+    Type:
+      Desc: Установить погоду %type%.
+    Set: <lgray>Погода <lyellow>%type%</lyellow> установлена в мире <lyellow>%world%</lyellow>.</lgray>
+  FoodGod:
+    Desc: Переключить режим «Бог еды».
+  Vanish:
+    Desc: Переключить режим невидимости.
+    Notify: <lgray>Режим невидимости установлен на <lyellow>%state%</lyellow>.</lgray>
+    Target: <lgray>Режим невидимости для игрока <lyellow>%player_display_name%</lyellow> установлен на <lyellow>%state%</lyellow>.</lgray>
+Generic:
+  Command:
+    Cooldown:
+      Default:
+      - <noprefix>
+      - <lred>Вам нужно подождать <lorange>%time%</lorange>, прежде чем снова использовать команду <lorange>%command%</lorange>.</lred>
+      OneTime:
+      - <noprefix>
+      - <lred>Эта команда одноразовая и вы уже её использовали.</lred>
+Error:
+  ItemNotAPotion: <lred>Вы должны держать зелье!</lred>
+  EmptyHand:
+  - <sound:"minecraft:block.anvil.place;0.8;1.0">
+  - <lred>Вы должны держать предмет!</lred>
+  ItemNotDamageable:
+  - <sound:"minecraft:block.anvil.place;0.8;1.0">
+  - <lgray>Предмет <lred>%item%</lred> не имеет прочности.</lgray>
+  Command:
+    Argument:
+      InvalidSlot: <lgray><lred>%value%</lred> не является допустимым слотом экипировки!</lgray>
+      InvalidType: <lgray><lred>%value%</lred> не является допустимым типом!</lgray>
+      InvalidTime: <lgray><lred>%value%</lred> не является допустимым временем!</lgray>
+      InvalidMode: <lgray><lred>%value%</lred> не является допустимым режимом!</lgray>
+      InvalidIPAddress: <lgray><lred>%value%</lred> не является IP-адресом!</lgray>
+      InvalidReason: <lgray><lred>%value%</lred> не является допустимой причиной!</lgray>
+Editor:
+  Input:
+    Generic:
+      Value: <lgray>Введите <lgreen>[Значение]</lgreen></lgray>
+      Seconds: <lgray>Введите <lgreen>[Количество секунд]</lgreen></lgray>
+      Name: <lgray>Введите <lgreen>[Имя]</lgreen></lgray>
+  SpawnsEditorType:
+    DeathTeleport:
+      Ranks:
+        Name: <lyellow><b>Группы при смерти</b></lyellow>
+        Lore:
+        - '%spawn_respawn_teleport_groups%'
+        - ''
+        - <lgray>Список групп с правами, на которые</lgray>
+        - <lgray>влияет настройка телепортации после смерти.</lgray>
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>Shift-ЛКМ, чтобы <lyellow>добавить группу</lyellow>.</lgray>
+        - <lyellow>[▶]</lyellow> <lgray>Shift-ПКМ, чтобы <lyellow>очистить группы</lyellow>.</lgray>
+      Toggle:
+        Name: <lyellow><b>Телепортация после смерти</b></lyellow>
+        Lore:
+        - '<lyellow>● <lgray>Включено: </lgray>%spawn_respawn_teleport_enabled%</lyellow>'
+        - ''
+        - <lgray>Телепортирует игроков из указанных</lgray>
+        - <lgray>групп на эту точку возрождения после смерти.</lgray>
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>переключить</lyellow>.</lgray>
+    LoginTeleport:
+      Ranks:
+        Name: <lyellow><b>Группы при входе</b></lyellow>
+        Lore:
+        - '%spawn_login_teleport_groups%'
+        - ''
+        - <lgray>Список групп с правами, на которые</lgray>
+        - <lgray>влияет настройка телепортации при входе.</lgray>
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>Shift-ЛКМ, чтобы <lyellow>добавить группу</lyellow>.</lgray>
+        - <lyellow>[▶]</lyellow> <lgray>Shift-ПКМ, чтобы <lyellow>очистить группы</lyellow>.</lgray>
+      Toggle:
+        Name: <lyellow><b>Телепортация при входе</b></lyellow>
+        Lore:
+        - '<lyellow>● <lgray>Включено: </lgray>%spawn_login_teleport_enabled%</lyellow>'
+        - ''
+        - <lgray>Телепортирует игроков из указанных</lgray>
+        - <lgray>групп на эту точку возрождения при входе.</lgray>
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>переключить</lyellow>.</lgray>
+    SPAWN_CHANGE_PRIORITY:
+      Name: <lyellow><b>Приоритет</b></lyellow>
+      Lore:
+      - '<lyellow>● <lgray>Текущий: </lgray>%spawn_priority%</lyellow>'
+      - ''
+      - <lgray>Если игроку доступно несколько</lgray>
+      - <lgray>точек возрождения при смерти/входе,</lgray>
+      - <lgray>будет использована точка</lgray>
+      - <lgray>с наивысшим приоритетом.</lgray>
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>изменить</lyellow>.</lgray>
+    SPAWN_CHANGE_PERMISSION:
+      Name: <lyellow><b>Требование права</b></lyellow>
+      Lore:
+      - '<lyellow>● <lgray>Включено: </lgray>%spawn_permission_required%</lyellow>'
+      - '<lyellow>● <lgray>Узел права: </lgray>%spawn_permission_node%</lyellow>'
+      - ''
+      - <lgray>Определяет, нужно ли игрокам</lgray>
+      - <lgray>иметь право, чтобы использовать</lgray>
+      - <lgray>эту точку возрождения.</lgray>
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>переключить</lyellow>.</lgray>
+    SPAWN_CHANGE_LOCATION:
+      Name: <lyellow><b>Местоположение</b></lyellow>
+      Lore:
+      - '<lyellow>● <lgray>Текущие: </lgray>%spawn_location_x%, %spawn_location_y%, %spawn_location_z% в %spawn_location_world%</lyellow>'
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>установить на вашу позицию</lyellow>.</lgray>
+      - <lyellow>[▶]</lyellow> <lgray>ПКМ, чтобы <lyellow>сделать точкой возрождения мира</lellow>.</lgray>
+    SPAWN_CHANGE_NAME:
+      Name: <lyellow><b>Отображаемое имя</b></lyellow>
+      Lore:
+      - '<lyellow>● <lgray>Текущее: </lgray>%spawn_name%</lyellow>'
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>изменить</lyellow>.</lgray>
+    SPAWN_OBJECT:
+      Name: '<lyellow><b>%spawn_name%<reset><lgray> (ID: <white>%spawn_id%</white>)</lgray></b></lyellow>'
+      Lore:
+      - '<lyellow>● <lgray>Приоритет: </lgray>%spawn_priority%</lyellow>'
+      - '<lyellow>● <lgray>Требуется право: </lgray>%spawn_permission_required%</lyellow>'
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>редактировать</lyellow>.</lgray>
+      - <lyellow>[▶]</lyellow> <lgray>Shift-ПКМ, чтобы <lyellow>удалить <lred>(без возврата)</lred></lyellow>.</lgray>
+  KitsEditorType:
+    KIT_CHANGE_ARMOR:
+      Name: <lyellow><b>Содержимое брони</b></lyellow>
+      Lore:
+      - ''
+      - '<lgray><lyellow>Слот #1: <lgray>Ботинки</lgray></lyellow></lgray>'
+      - '<lgray><lyellow>Слот #2: <lgray>Поножи</lgray></lyellow></lgray>'
+      - '<lgray><lyellow>Слот #3: <lgray>Нагрудник</lgray></lyellow></lgray>'
+      - '<lgray><lyellow>Слот #4: <lgray>Шлем</lgray></lyellow></lgray>'
+      - '<lgray><lyellow>Слот #5: <lgray>Вторая рука</lgray></lyellow></lgray>'
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>перейти</lyellow>.</lgray>
+    KIT_CHANGE_INVENTORY:
+      Name: <lyellow><b>Содержимое инвентаря</b></lyellow>
+      Lore:
+      - ''
+      - '<lgray><lyellow>Ряд #1: <lgray>Панель быстрого доступа</lgray></lyellow></lgray>'
+      - '<lgray><lyellow>Ряды #2+: <lgray>Инвентарь</lgray></lyellow></lgray>'
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>перейти</lyellow>.</lgray>
+    KIT_CHANGE_COMMANDS:
+      Name: <lyellow><b>Команды</b></lyellow>
+      Lore:
+      - '%kit_commands%'
+      - ''
+      - <lgray>Перечисленные команды будут выполнены,</lgray>
+      - <lgray>когда игрок получит набор.</lgray>
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>добавить команду</lyellow>.</lgray>
+      - <lyellow>[▶]</lyellow> <lgray>ПКМ, чтобы <lyellow>очистить</lyellow>.</lgray>
+    KIT_CHANGE_ICON:
+      Name: <lyellow><b>Иконка</b></lyellow>
+      Lore:
+      - <lyellow>[▶]</lyellow> <lgray>Перетащите, чтобы <lyellow>изменить</lyellow>.</lgray>
+    KIT_CHANGE_PRIORITY:
+      Name: <lyellow><b>Приоритет</b></lyellow>
+      Lore:
+      - '<lyellow>● <lgray>Текущий: </lgray>%kit_priority%</lyellow>'
+      - ''
+      - <lgray>Наборы с более высоким приоритетом</lgray>
+      - <lgray>будут отображаться первыми</lgray>
+      - <lgray>в интерфейсе.</lgray>
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>изменить</lyellow>.</lgray>
+    KIT_CHANGE_COST:
+      Name: <lyellow><b>Стоимость</b></lyellow>
+      Lore:
+      - '<lyellow>● <lgray>Текущая: </lgray>%kit_cost_money%</lyellow>'
+      - ''
+      - <lgray>Определяет, сколько игрок должен</lgray>
+      - <lgray>заплатить, чтобы использовать</lgray>
+      - <lgray>этот набор.</lgray>
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>изменить</lyellow>.</lgray>
+      - <lyellow>[▶]</lyellow> <lgray>ПКМ, чтобы <lyellow>отключить</lyellow>.</lgray>
+    KIT_CHANGE_PERMISSION:
+      Name: <lyellow><b>Требование права</b></lyellow>
+      Lore:
+      - '<lyellow>● <lgray>Требуется: </lgray>%kit_permission_required%</lyellow>'
+      - '<lyellow>● <lgray>Узел: </lgray>%kit_permission_node%</lyellow>'
+      - ''
+      - <lgray>Определяет, требуется ли игроку</lgray>
+      - <lgray>право, чтобы использовать</lgray>
+      - <lgray>этот набор.</lgray>
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>переключить</lyellow>.</lgray>
+    KIT_CHANGE_COOLDOWN:
+      Name: <lyellow><b>Перезарядка</b></lyellow>
+      Lore:
+      - '<lyellow>● <lgray>Текущая: </lgray>%kit_cooldown%</lyellow>'
+      - ''
+      - <lgray>Устанавливает время перезарядки</lgray>
+      - <lgray>для повторного использования набора.</lgray>
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>изменить</lyellow>.</lgray>
+      - <lyellow>[▶]</lyellow> <lgray>Клавиша [F / Swap], чтобы <lyellow>сделать одноразовым</lyellow>.</lgray>
+      - <lyellow>[▶]</lyellow> <lgray>Клавиша [Q / Drop], чтобы <lyellow>отключить</lyellow>.</lgray>
+    KIT_CHANGE_DESCRIPTION:
+      Name: <lyellow><b>Описание</b></lyellow>
+      Lore:
+      - '%kit_description%'
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>добавить строку</lyellow>.</lgray>
+      - <lyellow>[▶]</lyellow> <lgray>ПКМ, чтобы <lyellow>очистить</lyellow>.</lgray>
+    KIT_CHANGE_NAME:
+      Name: <lyellow><b>Отображаемое имя</b></lyellow>
+      Lore:
+      - '<lyellow>● <lgray>Текущее: </lgray>%kit_name%</lyellow>'
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>изменить</lyellow>.</lgray>
+    KIT_OBJECT:
+      Name: <lyellow><b>%kit_name%<reset> <gray>(<white>%kit_id%</white>)</gray></b></lyellow>
+      Lore:
+      - '<lyellow>● <lgray>Приоритет: </lgray>%kit_priority%</lyellow>'
+      - '<lyellow>● <lgray>Требуется право: </lgray>%kit_permission_required%</lyellow>'
+      - ''
+      - <lyellow>[▶]</lyellow> <lgray>ЛКМ, чтобы <lyellow>редактировать</lyellow>.</lgray>
+      - <lyellow>[▶]</lyellow> <lgray>Shift-ПКМ, чтобы <lyellow>удалить <lred>(без возврата)</lred></lyellow>.</lgray>
+Bans:
+  SortMode:
+    NAME: Никнейм
+    DATE: Дата
+    PUNISHER: Модератор
+    REASON: Причина
+  Command:
+    History:
+      Ban:
+        Desc: Просмотреть историю банов игрока или IP.
+      Mute:
+        Desc: Просмотреть историю мутов игрока или IP.
+      Warn:
+        Desc: Просмотреть историю предупреждений игрока или IP.
+    BanList:
+      Desc: Список забаненных игроков и IP.
+    MuteList:
+      Desc: Список игроков в муте.
+    WarnList:
+      Desc: Список предупреждённых игроков.
+    Ban:
+      Desc: Забанить игрока.
+      Done:
+        Permanent:
+        - <noprefix>
+        - ' '
+        - <lred>🛈 <b>Информация о бане</b></lred>
+        - <lgray><lred>»</lred> Вы навсегда забанили <lred>%punishment_user%</lred>.</lgray>
+        - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+        - ' '
+        Temporary:
+        - <noprefix>
+        - ' '
+        - <lred>🛈 <b>Информация о бане</b></lred>
+        - <lgray><lred>»</lred> Вы забанили <lred>%punishment_user%</lred>.</lgray>
+        - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+        - '<lgray><lred>»</lred> Длительность: <lred>%punishment_expires_in%</lred></lgray>'
+        - ' '
+    Banip:
+      Desc: Забанить IP-адрес.
+    Mute:
+      Desc: Выдать мут игроку.
+      Done:
+        Permanent:
+        - <noprefix>
+        - ' '
+        - <lred>🛈 <b>Информация о муте</b></lred>
+        - <lgray><lred>»</lred> Вы навсегда выдали мут <lred>%punishment_user%</lred>.</lgray>
+        - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+        - ' '
+        Temporary:
+        - <noprefix>
+        - ' '
+        - <lred>🛈 <b>Информация о муте</b></lred>
+        - <lgray><lred>»</lred> Вы выдали мут <lred>%punishment_user%</lred>.</lgray>
+        - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+        - '<lgray><lred>»</lred> Длительность: <lred>%punishment_expires_in%</lred></lgray>'
+        - ' '
+    Kick:
+      Desc: Кикнуть игрока.
+    Unmute:
+      Desc: Снять мут с игрока.
+    Unban:
+      Desc: Разбанить игрока или IP-адрес.
+    Warn:
+      Desc: Выдать предупреждение игроку.
+      Done:
+        Permanent:
+        - <noprefix>
+        - ' '
+        - <lred>🛈 <b>Информация о предупреждении</b></lred>
+        - <lgray><lred>»</lred> Вы навсегда выдали предупреждение <lred>%punishment_user%</lred>.</lgray>
+        - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+        - ' '
+        Temporary:
+        - <noprefix>
+        - ' '
+        - <lred>🛈 <b>Информация о предупреждении</b></lred>
+        - <lgray><lred>»</lred> Вы выдали предупреждение <lred>%punishment_user%</lred>.</lgray>
+        - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+        - '<lgray><lred>»</lred> Длительность: <lred>%punishment_expires_in%</lred></lgray>'
+        - ' '
+    Unwarn:
+      Desc: Удалить последнее предупреждение игрока.
+    Alts:
+      Desc: Показать игроков с того же IP.
+    BanIP:
+      Done:
+        Permanent:
+        - <noprefix>
+        - ' '
+        - <lred>🛈 <b>Информация о бане</b></lred>
+        - '<lgray><lred>»</lred> Вы навсегда забанили IP: <lred>%punishment_user%</lred>.</lgray>'
+        - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+        - ' '
+        Temporary:
+        - <noprefix>
+        - ' '
+        - <lred>🛈 <b>Информация о бане</b></lred>
+        - '<lgray><lred>»</lred> Вы забанили IP: <lred>%punishment_user%</lred>.</lgray>'
+        - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+        - '<lgray><lred>»</lred> Длительность: <lred>%punishment_expires_in%</lred></lgray>'
+        - ' '
+  Alts:
+    Global:
+      Nothing: Нет игроков с таким же IP.
+      List:
+      - <noprefix>
+      - <lyellow><b>Список альтов:</b></lyellow>
+      - ' '
+      - '%entry%'
+      - ' '
+      Entry: '<lgray><lorange>%source%</lorange>: %name%</lgray>'
+  Punishment:
+    Error:
+      RankPriority:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Ошибка!</b></lred>
+      - <lgray><lred>»</lred> Вы не можете наказать <lred>%punishment_user%</lred>!</lgray>
+      - ' '
+      PunishDuration:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Ошибка!</b></lred>
+      - <lgray><lred>»</lred> Вы не можете наказать на срок более <lred>%time%</lred>!</lgray>
+      - ' '
+      UnPunishDuration:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Ошибка!</b></lred>
+      - <lgray><lred>»</lred> Вы не можете снять наказание, если его длительность более <lred>%time%</lred>!</lgray>
+      - ' '
+      Immune:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Ошибка!</b></lred>
+      - <lgray><lred>»</lred> Игрок <lred>%punishment_user%</lred> не может быть наказан!</lgray>
+      - ' '
+      PlayerNotBanned:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Ошибка!</b></lred>
+      - <lgray><lred>»</lred> Игрок <lred>%punishment_user%</lred> не забанен!</lgray>
+      - ' '
+      IPNotBanned:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Ошибка!</b></lred>
+      - <lgray><lred>»</lred> IP-адрес <lred>%punishment_user%</lred> не забанен!</lgray>
+      - ' '
+      NotMuted:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Ошибка!</b></lred>
+      - <lgray><lred>»</lred> Игрок <lred>%punishment_user%</lred> не в муте!</lgray>
+      - ' '
+      NotWarned:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Ошибка!</b></lred>
+      - <lgray><lred>»</lred> У игрока <lred>%punishment_user%</lred> нет предупреждений!</lgray>
+      - ' '
+  Kick:
+    Done:
+    - <noprefix>
+    - <lgray><lred>🛈</lred> Игрок <lred>%punishment_user%</lred> кикнут по причине: <lred>%punishment_reason%</lred>.</lgray>
+    Broadcast:
+    - <noprefix>
+    - ' '
+    - <lred>🛈 <b>Уведомление о кике</b></lred>
+    - <lgray><lred>»</lred> Игрок <lred>%punishment_user%</lred> был кикнут!</lgray>
+    - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+    - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+    - ' '
+  Ban:
+    Permanent:
+      Broadcast:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о бане</b></lred>
+      - <lgray><lred>»</lred> Игрок <lred>%punishment_user%</lred> был навсегда забанен!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - ' '
+    Temporary:
+      Broadcast:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о бане</b></lred>
+      - <lgray><lred>»</lred> Игрок <lred>%punishment_user%</lred> был забанен!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - '<lgray><lred>»</lred> Длительность: <lred>%punishment_expires_in%</lred></lgray>'
+      - ' '
+  BanIP:
+    Permanent:
+      Broadcast:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о бане</b></lred>
+      - <lgray><lred>»</lred> IP-адрес <lred>%punishment_user%</lred> был навсегда забанен!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - ' '
+    Temporary:
+      Broadcast:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о бане</b></lred>
+      - <lgray><lred>»</lred> IP-адрес <lred>%punishment_user%</lred> был забанен!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - '<lgray><lred>»</lred> Длительность: <lred>%punishment_expires_in%</lred></lgray>'
+      - ' '
+  UnBan:
+    Done:
+    - <noprefix>
+    - ' '
+    - <lgreen>🛈 <b>Информация о бане</b></lgreen>
+    - <lgray><lgreen>»</lgreen> Вы разбанили <lgreen>%punishment_user%</lgreen>.</lgray>
+    - ' '
+    Broadcast:
+    - <noprefix>
+    - ' '
+    - <lgreen>🛈 <b>Информация о бане</b></lgreen>
+    - <lgray><lgreen>»</lgreen> Игрок <lgreen>%punishment_user%</lgreen> был разбанен.</lgray>
+    - '<lgray><lgreen>»</lgreen> Модератор: <lgreen>%punishment_punisher%</lgreen></lgray>'
+    - ' '
+  UnBanIP:
+    Done:
+    - <noprefix>
+    - ' '
+    - <lgreen>🛈 <b>Информация о бане</b></lgreen>
+    - <lgray><lgreen>»</lgreen> Вы разбанили IP <lgreen>%punishment_user%</lgreen>.</lgray>
+    - ' '
+    Broadcast:
+    - <noprefix>
+    - ' '
+    - <lgreen>🛈 <b>Информация о бане</b></lgreen>
+    - <lgray><lgreen>»</lgreen> IP-адрес <lgreen>%punishment_user%</lgreen> был разбанен.</lgray>
+    - '<lgray><lgreen>»</lgreen> Модератор: <lgreen>%punishment_punisher%</lgreen></lgray>'
+    - ' '
+  Mute:
+    Permanent:
+      Notify:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о муте</b></lred>
+      - <lgray><lred>»</lred> Вам был выдан перманентный мут!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - ' '
+      Broadcast:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о муте</b></lred>
+      - <lgray><lred>»</lred> Игрок <lred>%punishment_user%</lred> получил перманентный мут!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - ' '
+    Temporary:
+      Notify:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о муте</b></lred>
+      - <lgray><lred>»</lred> Вам был выдан мут!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - '<lgray><lred>»</lred> Длительность: <lred>%punishment_expires_in%</lred></lgray>'
+      - ' '
+      Broadcast:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о муте</b></lred>
+      - <lgray><lred>»</lred> Игрок <lred>%punishment_user%</lred> получил мут!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - '<lgray><lred>»</lred> Длительность: <lred>%punishment_expires_in%</lred></lgray>'
+      - ' '
+  Unmute:
+    Done:
+    - <noprefix>
+    - ' '
+    - <lgreen>🛈 <b>Информация о муте</b></lgreen>
+    - <lgray><lgreen>»</lgreen> Вы сняли мут с <lgreen>%punishment_user%</lgreen>.</lgray>
+    - ' '
+    Notify:
+    - <noprefix>
+    - ' '
+    - <lgreen>🛈 <b>Информация о муте</b></lgreen>
+    - <lgray><lgreen>»</lgreen> С вас сняли мут.</lgray>
+    - '<lgray><lgreen>»</lgreen> Модератор: <lgreen>%punishment_punisher%</lgreen></lgray>'
+    - ' '
+    Broadcast:
+    - <noprefix>
+    - ' '
+    - <lgreen>🛈 <b>Информация о муте</b></lgreen>
+    - <lgray><lgreen>»</lgreen> С игрока <lgreen>%punishment_user%</lgreen> сняли мут.</lgray>
+    - '<lgray><lgreen>»</lgreen> Модератор: <lgreen>%punishment_punisher%</lgreen></lgray>'
+    - ' '
+  Warn:
+    Permanent:
+      Notify:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о предупреждении</b></lred>
+      - <lgray><lred>»</lred> Вам было выдано перманентное предупреждение!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - ' '
+      Broadcast:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о предупреждении</b></lred>
+      - <lgray><lred>»</lred> Игрок <lred>%punishment_user%</lred> получил перманентное предупреждение!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - ' '
+    Temporary:
+      Notify:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о предупреждении</b></lred>
+      - <lgray><lred>»</lred> Вам было выдано предупреждение!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - '<lgray><lred>»</lred> Длительность: <lred>%punishment_expires_in%</lred></lgray>'
+      - ' '
+      Broadcast:
+      - <noprefix>
+      - ' '
+      - <lred>🛈 <b>Уведомление о предупреждении</b></lred>
+      - <lgray><lred>»</lred> Игрок <lred>%punishment_user%</lred> получил предупреждение!</lgray>
+      - '<lgray><lred>»</lred> Модератор: <lred>%punishment_punisher%</lred></lgray>'
+      - '<lgray><lred>»</lred> Причина: <lred>%punishment_reason%</lred></lgray>'
+      - '<lgray><lred>»</lred> Длительность: <lred>%punishment_expires_in%</lred></lgray>'
+      - ' '
+  Unwarn:
+    Done:
+    - <noprefix>
+    - ' '
+    - <lgreen>🛈 <b>Информация о предупреждении</b></lgreen>
+    - <lgray><lgreen>»</lgreen> Вы сняли предупреждение с <lgreen>%punishment_user%</lgreen>.</lgray>
+    - ' '
+    Notify:
+    - <noprefix>
+    - ' '
+    - <lgreen>🛈 <b>Информация о предупреждении</b></lgreen>
+    - <lgray><lgreen>»</lgreen> С вас сняли последнее предупреждение.</lgray>
+    - '<lgray><lgreen>»</lgreen> Модератор: <lgreen>%punishment_punisher%</lgreen></lgray>'
+    - ' '
+    Broadcast:
+    - <noprefix>
+    - ' '
+    - <lgreen>🛈 <b>Информация о предупреждении</b></lgreen>
+    - <lgray><lgreen>»</lgreen> Последнее предупреждение снято с <lgreen>%punishment_user%</lgreen>.</lgray>
+    - '<lgray><lgreen>»</lgreen> Модератор: <lgreen>%punishment_punisher%</lgreen></lgray>'
+    - ' '
+  Other:
+    NoReason: <no reason>
+Worlds:
+  Difficulty:
+    PEACEFUL: Мирная
+    EASY: Лёгкая
+    NORMAL: Нормальная
+    HARD: Сложная
+  Command:
+    Worlds:
+      Create:
+        Desc: Создать новый мир.
+        Error: <lred>Мир с таким названием уже существует!</lred>
+        Done: '<lgray>Создан мир: <lyellow>%world_id%</lyellow>!</lgray>'
+      Delete:
+        Desc: Удалить пользовательский мир.
+        Error: '<lgray>Не удалось удалить мир: <lred>%world_id%</lred>!</lgray>'
+        Done: '<lgray>Мир удалён: <lyellow>%world_id%</lyellow>!</lgray>'
+      Editor:
+        Desc: Открыть редактор миров.
+      Load:
+        Desc: Загрузить пользовательский мир.
+        Error: '<lgray>Не удалось загрузить мир: <lred>%world_id%</lred>!</lgray>'
+        Done: '<lgray>Мир загружен: <lyellow>%world_id%</lyellow>!</lgray>'
+      Unload:
+        Desc: Выгрузить пользовательский мир.
+        Error: '<lgray>Не удалось выгрузить мир: <lred>%world_id%</lred>!</lgray>'
+        Done: '<lgray>Мир выгружен: <lyellow>%world_id%</lyellow>!</lgray>'
+  AutoWipe:
+    MoveOut: <lgray>Вы были телепортированы из-за выгрузки мира.</lgray>
+    Notify:
+    - <noprefix>
+    - ''
+    - <lred><b>Предупреждение об авто-сбросе:</b></lred>
+    - <lgray>Мир будет автоматически сброшен через <lred>%time%</lred></lgray>
+  Error:
+    CommandBlocked: <lred>Вы не можете использовать эту команду в данном мире!</lred>
+    FlyDisabled: <lred>Полёт запрещён в данном мире!</lred>
+    Command:
+      Argument:
+        InvalidWorldData: <lgray><lred>%value%</lred> не является корректным миром!</lgray>
+  Editor:
+    Title:
+      List: <black>Список миров</black>
+      Settings: <black>Настройки мира</black>
+      Generation: <black>Загрузка/Генерация мира</black>
+      GameRules: <black>Правила игры</black>
+    World:
+      Rule:
+        Object:
+          Name: '<lyellow><b>Правило: <reset><white>%name%</white></b></lyellow>'
+          Lore:
+          - '<lyellow>● <lgray>Значение: </lgray>%value%</lyellow>'
+          - ''
+          - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>изменить</lyellow>.</lgray>
+      Difficulty:
+        Name: <lyellow><b>Сложность</b></lyellow>
+        Lore:
+        - '<lyellow>● <lgray>Текущая: </lgray>%world_difficulty%</lyellow>'
+        - ''
+        - <lgray>Устанавливает сложность мира.</lgray>
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>переключить</lyellow>.</lgray>
+      AutoWipe:
+        Name: <lyellow><b>Авто-сброс</b></lyellow>
+        Lore:
+        - <lgray>Определяет, будет ли этот мир</lgray>
+        - <lgray>автоматически сбрасываться</lgray>
+        - <lgray>через определённый интервал.</lgray>
+        - ''
+        - '<lyellow>● <lgray>Включено: </lgray>%world_auto_wipe_enabled%</lyellow>'
+        - '<lyellow>● <lgray>Интервал: </lgray>%world_auto_wipe_interval%</lyellow>'
+        - '<lyellow>● <lgray>Последний сброс: </lgray>%world_auto_wipe_last_wipe%</lyellow>'
+        - '<lyellow>● <lgray>Следующий сброс: </lgray>%world_auto_wipe_next_wipe%</lyellow>'
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>ЛКМ — <lyellow>вкл/выкл</lyellow>.</lgray>
+        - <lyellow>[▶]</lyellow> <lgray>ПКМ — <lyellow>изменить интервал</lyellow>.</lgray>
+        - <lyellow>[▶]</lyellow> <lgray>Клавиша [Q / выброс] — <lyellow>установить время последнего сброса</lyellow>.</lgray>
+      GameRules:
+        Name: <lyellow><b>Правила игры</b></lyellow>
+        Lore:
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>перейти</lyellow>.</lgray>
+      Structures:
+        Name: <lyellow><b>Генерация структур</b></lyellow>
+        Lore:
+        - '<lyellow>● <lgray>Включено: </lgray>%world_structures%</lyellow>'
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>вкл/выкл</lyellow>.</lgray>
+      Environment:
+        Name: <lyellow><b>Окружение</b></lyellow>
+        Lore:
+        - '<lyellow>● <lgray>Текущее: </lgray>%world_environment%</lyellow>'
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>переключить</lyellow>.</lgray>
+      Generator:
+        Name: <lyellow><b>Генератор чанков</b></lyellow>
+        Lore:
+        - '<lyellow>● <lgray>Текущий: </lgray>%world_generator%</lyellow>'
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>изменить</lyellow>.</lgray>
+      Delete:
+        Name: <lyellow><b>Удалить данные</b></lyellow>
+        Lore:
+        - <lgray><lred>(Без возможности отмены)</lred></lgray>
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>Клавиша [Q / выброс] — <lyellow>удалить файлы мира</lyellow>.</lgray>
+        - <lyellow>[▶]</lyellow> <lgray>ПКМ — <lyellow>удалить конфигурацию</lyellow>.</lgray>
+        - <lyellow>[▶]</lyellow> <lgray>Shift+ПКМ — <lyellow>удалить всё</lyellow>.</lgray>
+      Unload:
+        Name: <lyellow><b>Выгрузить мир</b></lyellow>
+        Lore: []
+      Load:
+        Name: <lyellow><b>Загрузить мир</b></lyellow>
+        Lore: []
+      AutoLoad:
+        Name: <lyellow><b>Автозагрузка</b></lyellow>
+        Lore:
+        - '<lyellow>● <lgray>Включено: </lgray>%world_auto_load%</lyellow>'
+        - ''
+        - <lgray>Загружает мир при старте сервера.</lgray>
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>вкл/выкл</lyellow>.</lgray>
+      Object:
+        Name: '<lyellow><b>Мир: <reset><white>%world_id%</white></b></lyellow>'
+        Lore:
+        - '<lyellow>● <lgray>Создан: </lgray>%world_is_created%</lyellow>'
+        - '<lyellow>● <lgray>Загружен: </lgray>%world_is_loaded%</lyellow>'
+        - '<lyellow>● <lgray>Автозагрузка: </lgray>%world_auto_load%</lyellow>'
+        - ''
+        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>редактировать</lyellow>.</lgray>
+Spawns:
+  Command:
+    Spawns:
+      Delete:
+        Desc: Удалить точку спавна.
+        Done:
+        - <output:"titles:20:60:20">
+        - <lyellow><b>Точка спавна удалена!</b></lyellow>
+        - <lgray>Вы удалили спавн <lyellow>%spawn_name%</lyellow>.</lgray>
+      Create:
+        Desc: Установить точку спавна.
+        Done:
+        - <output:"titles:20:60:20">
+        - '<lgreen><b>Точка спавна установлена: </b><white>%spawn_name%</white></lgreen>'
+        - <lgray>Используйте <lgreen>/editspawn</lgreen> для её настройки.</lgray>
+      Teleport:
+        Desc: Телепортироваться к точке спавна.
+        Notify: <lgray>Телепортация <lyellow>%player_display_name%</lyellow> на спавн <lyellow>%spawn_name%</lyellow>.</lgray>
+        Done:
+        - <output:"titles:20:60:20">
+        - <lyellow><b>Спавн</b></lyellow>
+        - <lgray>Вы телепортировались на спавн <lyellow>%spawn_name%</lyellow>.</lgray>
+      Editor:
+        Desc: Открыть редактор точек спавна.
+    Spawn:
+      Error:
+        NoDefault: <lred>Вы должны указать имя спавна.</lred>
+  Spawn:
+    Teleport:
+      Error:
+        World: <lred>Этот спавн находится в мире, который сейчас недоступен.</lred>
+    Error:
+      Invalid: <lgray><lred>%value%</lred> не является корректным спавном!</lgray>
+  Editor:
+    Title:
+      List: <black>Редактор спавнов</black>
+      Settings: <black>Настройки спавна</black>
+    Enter:
+      Name: <lgray>Введите <lgreen>[Имя спавна]</lgreen></lgray>
+      Priority: <lgray>Введите <lgreen>[Приоритет]</lgreen></lgray>
+      Group: <lgray>Введите <lgreen>[Имя группы]</lgreen></lgray>
+Homes:
+  HomeType:
+    PUBLIC: Публичный
+    PRIVATE: Приватный
+  Command:
+    Argument:
+      Name:
+        Home: дом
+    Homes:
+      Delete:
+        Desc: Удалить дом.
+      Teleport:
+        Desc: Телепортироваться в дом.
+      Set:
+        Desc: Установить точку дома.
+      Visit:
+        Desc: Посетить дом.
+      Invite:
+        Desc: Пригласить игрока в дом.
+      List:
+        Desc: Список домов.
+      Invute:
+        Usage: <lgray>Вы пригласили <lyellow>%player_name%</lyellow> в свой дом <lyellow>%home_name%</lyellow>.</lgray>
+    HomesAdmin:
+      Delete:
+        Desc: Удалить дом игрока.
+        Done:
+          Single: <lgray>Вы удалили дом <lyellow>%home_id%</lyellow> игрока <lyellow>%player_name%</lyellow>.</lgray>
+          All: <lgray>Вы удалили все дома игрока <lyellow>%player_name%</lyellow>.</lgray>
+      Create:
+        Desc: Создать дом для игрока.
+        Done:
+          Fresh: <lgray>Установлен дом <lyellow>%home_id%</lyellow> для игрока <lyellow>%player_name%</lyellow>.</lgray>
+          Edited: <lgray>Дом <lyellow>%home_id%</lyellow> игрока <lyellow>%player_name%</lyellow> обновлён.</lgray>
+    Error:
+      Argument:
+        InvalidHome: <lgray><lred>%value%</lred> не является корректным домом.</lgray>
+  Home:
+    Teleport:
+    - <output:"titles:20:60:20"><sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+    - <lyellow><b>Дом</b></lyellow>
+    - <lgray>Вы телепортировались в дом <lyellow>%home_name%</lyellow>.</lgray>
+    Visit:
+      Success:
+      - <output:"titles:20:60:20"><sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lyellow><b>Посещение дома</b></lyellow>
+      - <lgray>Вы посетили дом <lyellow>%home_name%</lyellow> игрока <lyellow>%home_owner%</lyellow>.</lgray>
+      Error:
+        NotPermitted:
+        - <sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred>У вас нет приглашения в этот дом!</lred>
+        UnsafeLocation:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Небезопасное место!</b></lred>
+        - <lred>Посещение было отменено.</lred>
+    Set:
+      Error:
+        Limit:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Достигнут лимит!</b></lred>
+        - <lred>Вы не можете создать больше домов.</lred>
+        World:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Ошибка мира!</b></lred>
+        - <lred>Вы не можете создавать дома в этом мире.</lred>
+        UnsafeLocation:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Небезопасное место!</b></lred>
+        - <lred>Вы не можете создать дом здесь.</lred>
+        Protection:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Защищённая территория!</b></lred>
+        - <lred>Вы не можете создать дом здесь.</lred>
+      Success:
+      - <output:"titles:20:60:20"><sound:"minecraft:block.wooden_door.open;0.8;1.0">
+      - <lyellow><b>Дом установлен!</b></lyellow>
+      - '<lgray>Используйте: <lyellow>/home %home_id%</lyellow> | Список домов: <lyellow>/homelist</lyellow></lgray>'
+      Edited:
+      - <output:"titles:20:60:20"><sound:"minecraft:block.wooden_door.close;0.8;1.0">
+      - <lyellow><b>Дом обновлён!</b></lyellow>
+      - <lgray>Местоположение дома было обновлено.</lgray>
+    Delete:
+      Done:
+      - <output:"titles:20:60:20"><sound:"minecraft:entity.zombie.break_wooden_door;0.8;1.0">
+      - <lyellow><b>Дом удалён!</b></lyellow>
+      - <lgray>Вы удалили дом <lyellow>%home_name%</lyellow>.</lgray>
+  Error:
+    NoHomes: <lred>У вас нет домов!</lred>
+  Editor:
+    Enter:
+      PlayerName: <lgray>Введите <lgreen>[Никнейм игрока]</lgreen></lgray>
+      HomeName: <lgray>Введите <lgreen>[Название дома]</lgreen></lgray>
+Kits:
+  Command:
+    Kits:
+      Editor:
+        Desc: Открыть редактор наборов.
+      Preview:
+        Desc: Просмотреть набор.
+        Others: <lgray>Открыт предпросмотр набора <lyellow>%kit_name%</lyellow> для игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+      Give:
+        Desc: Выдать набор.
+        Done: <lgray>Выдан набор <lyellow>%kit_name%</lyellow> игроку <lyellow>%player_display_name%</lyellow>.</lgray>
+      List:
+        Desc: Открыть меню наборов.
+        Others: <lgray>Открыто меню наборов для игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+      ResetCooldown:
+        Desc: Сбросить кулдаун набора игрока.
+        Done: <lgray>Сброшен кулдаун набора <lyellow>%kit_name%</lyellow> для игрока <lyellow>%player_name%</lyellow>.</lgray>
+        Notify: <lgray>Кулдаун набора <lyellow>%kit_name%</lyellow> был сброшен!</lgray>
+      SetCooldown:
+        Desc: Установить кулдаун набора игрока.
+        Done: <lgray>Установлен кулдаун набора <lyellow>%kit_name%</lyellow> на <lyellow>%amount%</lyellow> для игрока <lyellow>%player_name%</lyellow>.</lgray>
+        Notify: <lgray>Кулдаун набора <lyellow>%kit_name%</lyellow> установлен на <lyellow>%amount%</lyellow>.</lgray>
+    Error:
+      Argument:
+        InvalidKit: <lgray><lred>%value%</lred> не является корректным набором.</lgray>
+  Kit:
+    Get:
+    - <output:"titles:20:60:20"><sound:"minecraft:item.armor.equip_leather;0.8;1.0">
+    - <lyellow><b>Набор получен!</b></lyellow>
+    - <lgray>Вы получили набор <lyellow>%kit_name%</lyellow>.</lgray>
+    Error:
+      NoPermission: <lred>У вас нет прав на использование этого набора!</lred>
+      NotEnoughFunds: <lred>У вас недостаточно средств для этого набора! Требуется <lred>$%kit_cost_money%</lred>.</lred>
+      Cooldown:
+        Expirable: <lred>Вы сможете использовать этот набор снова через <lred>%cooldown%</lred>.</lred>
+        OneTimed: <lred>Вы уже использовали этот набор и не можете использовать его снова.</lred>
+  Editor:
+    Title:
+      List: <black>Редактор наборов</black>
+      Settings: <black>Настройки набора</black>
+      Content: <black>Содержимое набора</black>
+    Enter:
+      Id: <lgray>Введите <lgreen>[Идентификатор набора]</lgreen></lgray>
+      Command: <lgray>Введите <lgreen>[Команду]</lgreen></lgray>
+      Cost: <lgray>Введите <lgreen>[Стоимость в валюте]</lgreen></lgray>
+      Description: <lgray>Введите <lgreen>[Описание]</lgreen></lgray>
+      Priority: <lgray>Введите <lgreen>[Приоритет]</lgreen></lgray>
+    Error:
+      AlreadyExists: <lgray>Такой набор уже существует!</lgray>
+Warps:
+  WarpType:
+    SERVER: Серверный
+    PLAYER: Игрока
+  SortType:
+    WARP_NAME: Название варпа
+    WARP_ID: ID варпа
+    WARP_TYPE: Тип варпа
+    VISIT_COST: Стоимость посещения
+  Command:
+    Warps:
+      Delete:
+        Desc: Удалить варп.
+      Create:
+        Desc: Создать новый варп.
+      Teleport:
+        Desc: Телепортироваться к варпу.
+        Others: <lgray>Игрок <lyellow>%player_display_name%</lyellow> телепортирован к варпу <lyellow>%warp_name%</lyellow>.</lgray>
+      ResetCooldown:
+        Desc: Сбросить кулдаун варпа.
+        Done: <lgray>Кулдаун варпа <lyellow>%warp_name%</lyellow> сброшен для игрока <lyellow>%player_name%</lyellow>.</lgray>
+        Notify: <lgray>Кулдаун варпа <lyellow>%warp_name%</lyellow> был сброшен!</lgray>
+      SetCooldown:
+        Desc: Установить кулдаун варпа.
+        Done: <lgray>Кулдаун варпа <lyellow>%warp_name%</lyellow> установлен на <lyellow>%amount%</lyellow> для игрока <lyellow>%player_name%</lyellow>.</lgray>
+        Notify: <lgray>Кулдаун варпа <lyellow>%warp_name%</lyellow> установлен на <lyellow>%amount%</lyellow>.</lgray>
+      List:
+        Desc: Открыть меню варпов.
+        Others: <lgray>Открыто меню варпов для игрока <lyellow>%player_display_name%</lyellow>.</lgray>
+  Delete:
+    Done:
+    - <output:"titles:20:60:20"><sound:"minecraft:block.glass.break;0.8;1.0">
+    - <lyellow><b>Варп удалён!</b></lyellow>
+    - <lgray>Вы удалили варп <lyellow>%warp_name%</lyellow>.</lgray>
+  Warp:
+    Creation:
+      New:
+      - <output:"titles:20:60:20"><sound:"minecraft:block.anvil.place;0.8;1.0">
+      - <lgreen><b>Варп создан!</b></lgreen>
+      - '<lgray>Телепорт: <lgreen>/warp %warp_id%</lgreen> | Редактирование: <lgreen>/warplist</lgreen></lgray>'
+      Relocate:
+      - <output:"titles:20:60:20"><sound:"minecraft:block.anvil.place;0.8;1.0">
+      - <lgreen><b>Варп перемещён!</b></lgreen>
+      - <lgray>Вы переместили варп <lgreen>%warp_name%</lgreen>.</lgray>
+      Error:
+        Limit:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Достигнут лимит!</b></lred>
+        - <lgray>Вы не можете создать больше варпов!</lgray>
+        World:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Запрещённый мир!</b></lred>
+        - <lgray>Вы не можете создавать варпы в этом мире!</lgray>
+        Exists:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Уже существует!</b></lred>
+        - <lgray>Варп с таким именем уже существует.</lgray>
+        Unsafe:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Опасная локация!</b></lred>
+        - <lgray>Пожалуйста, выберите другое место.</lgray>
+    Teleport:
+      Done:
+      - <output:"titles:20:60:20"><sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lyellow><b>%warp_name%</b></lyellow>
+      - <lgray>%warp_description%</lgray>
+      Error:
+        NotEnoughFunds:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Недостаточно средств!</b></lred>
+        - <lgray>Вам нужно <lred>$%warp_visit_cost%</lred> для посещения этого варпа!</lgray>
+        NoPermission:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Нет доступа!</b></lred>
+        - <lgray>У вас нет доступа к варпу <lred>%warp_name%</lred>!</lgray>
+        Cooldown:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Кулдаун!</b></lred>
+        - <lgray>Вы сможете посетить варп <lred>%warp_name%</lred> снова через <lred>%cooldown%</lred>.</lgray>
+        Unreachable:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Варп недоступен!</b></lred>
+        - <lgray>Варп <lred>%warp_name%</lred> находится в недоступном мире.</lgray>
+        Time:
+        - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lred><b>Неверное время!</b></lred>
+        - <lgray>Варп <lred>%warp_name%</lred> сейчас недоступен для посещения.</lgray>
+  Error:
+    Command:
+      Argument:
+        InvalidWarp: <lgray><lred>%value%</lred> не является корректным варпом!</lgray>
+  Editor:
+    Enter:
+      CostMoney: <lgray>Введите <lgreen>[Стоимость]</lgreen></lgray>
+      Command: <lgray>Введите <lgreen>[Название команды]</lgreen></lgray>
+      Times: <lgray>Введите <lgreen>[Время]</lgreen> <lgray>></lgray> 10:00 14:00</lgray>
+      Cooldown: <lgray>Введите <lgreen>[Кулдаун]</lgreen></lgray>
+      Name: <lgray>Введите <lgreen>[Отображаемое имя]</lgreen></lgray>
+      Description: <lgray>Введите <lgreen>[Описание]</lgreen></lgray>
+Chat:
+  SpyType:
+    SOCIAL: Социальный
+    COMMAND: Командный
+    CHAT: Чат
+  Commant:
+    Argument:
+      Name:
+        Channel: канал
+  Command:
+    ShortChannel:
+      Desc: Переключить канал или отправить сообщение.
+    Channel:
+      Join:
+        Desc: Присоединиться к каналу.
+      Leave:
+        Desc: Покинуть канал.
+      Set:
+        Desc: Установить активный канал.
+    Mentions:
+      Desc: Включить/выключить упоминания.
+      Toggle:
+        Notify: '<lgray>Уведомления об упоминаниях: <lyellow>%state%</lyellow>.</lgray>'
+        Target: <lgray>Установлены уведомления об упоминаниях на <lyellow>%state%</lyellow> для <lyellow>%player_name%</lyellow>.</lgray>
+    TogglePM:
+      Desc: Включить/выключить личные сообщения.
+      Toggle:
+        Notify: '<lgray>Личные сообщения: <lyellow>%state%</lyellow>.</lgray>'
+        Target: <lgray>Личные сообщения установлены на <lyellow>%state%</lyellow> для <lyellow>%player_name%</lyellow>.</lgray>
+    ClearChat:
+      Desc: Очистить чат.
+      Done:
+      - <noprefix>
+      - <lgray>Чат был очищен игроком <lyellow>%name%</lyellow>.</lgray>
+    Me:
+      Desc: Показать действие в чате.
+    Tell:
+      Desc: Отправить личное сообщение.
+    Spy:
+      Mode:
+        Desc: Включить/выключить шпионаж %type%.
+        Done:
+          Others: <lgray>Шпионаж <lyellow>%type%</lyellow> для игрока <lyellow>%player_display_name%</lyellow> установлен на <lyellow>%state%</lyellow>.</lgray>
+          Notify: '<lgray>Шпионаж <lyellow>%type%</lyellow>: <lyellow>%state%</lyellow></lgray>'
+      Logger:
+        Desc: Включить/выключить лог шпионажа.
+        Done: <lgray>Лог шпионажа <lyellow>%type%</lyellow> для игрока <lyellow>%player_display_name%</lyellow> установлен на <lyellow>%state%</lyellow>.</lgray>
+    Reply:
+      Desc: Быстрый ответ на последнее личное сообщение.
+      Error:
+        Empty:
+        - <noprefix>
+        - <lred>Вы не получали личных сообщений.</lred>
+  Chat:
+    AntiSpam:
+      Similar:
+        Msg:
+        - <noprefix>
+        - <lred>Не спамьте сообщениями!</lred>
+        Cmd:
+        - <noprefix>
+        - <lred>Не спамьте командами!</lred>
+      Delay:
+        Msg:
+        - <noprefix>
+        - <lred>Подождите <orange>%time%</orange>, прежде чем отправить следующее сообщение.</lred>
+        Cmd:
+        - <noprefix>
+        - <lred>Подождите <orange>%time%</orange>, прежде чем использовать следующую команду.</lred>
+    Mention:
+      Error:
+        Cooldown:
+        - <noprefix>
+        - <lred>Вы сможете упомянуть <orange>%name%</orange> снова через <orange>%time%</orange>.</lred>
+  Channel:
+    Join:
+      Success:
+      - <noprefix>
+      - <lgray>Вы присоединились к каналу чата <lyellow>%channel_name%</lyellow>.</lgray>
+      Error:
+        NoPermission:
+        - <noprefix>
+        - <lred>У вас нет прав для входа в этот канал.</lred>
+        AlreadyIn:
+        - <noprefix>
+        - <lred>Вы уже находитесь в этом канале!</lred>
+    Leave:
+      Success:
+      - <noprefix>
+      - <lgray>Вы покинули канал чата <lyellow>%channel_name%</lyellow>.</lgray>
+      Error:
+        NotIn:
+        - <noprefix>
+        - <lred>Вы не находитесь в этом канале!</lred>
+    Set:
+      Success:
+      - <noprefix>
+      - <lgray>Канал <lyellow>%channel_name%</lyellow> установлен как основной чат-канал.</lgray>
+  Mentions:
+    Notify:
+    - <output:"titles:20:60:20"><sound:"minecraft:block.note_block.bell;0.8;1.0">
+    - <lgreen><b>Вас упомянули!</b></lgreen>
+    - <lgray>Игрок <lgreen>%player_display_name%</lgreen> упомянул вас в чате.</lgray>
+  PrivateMessage:
+    Error:
+      Disabled: <lgray>Игрок <lred>%player_display_name%</lred> не принимает сообщения.</lgray>
+      Ignorance: <lgray>Игрок <lred>%player_display_name%</lred> не принимает ваши сообщения.</lgray>
+  Error:
+    Command:
+      Argument:
+        InvalidChannel: <lgray><lred>%value%</lred> не является корректным каналом!</lgray>
+PTP:
+  Command:
+    Teleport:
+      Invite:
+        Desc: Попросить игрока телепортировать вас к нему.
+        Notify:
+          Sender:
+          - <noprefix><sound:"minecraft:entity.ender_pearl.throw;0.8;1.0">
+          - <lgray>Запрос на призыв отправлен игроку <lyellow>%player_display_name%</lyellow>.</lgray>
+          Target:
+          - <noprefix><sound:"minecraft:entity.ender_pearl.throw;0.8;1.0">
+          - ' '
+          - <lyellow><b>Приглашение на телепортацию:</b></lyellow>
+          - ' '
+          - <lyellow>Игрок <orange>%player_display_name%</orange> хочет призвать вас к себе.</lyellow>
+          - <lyellow>Введите <lgreen>/tpyes %player_name%</lgreen>, чтобы принять и быть телепортированным.</lyellow>
+          - <lyellow>или <lred>/tpno %player_name%</lred>, чтобы отклонить.</lyellow>
+          - ' '
+          - <lyellow>            <hover:show_text:"<gray>Нажмите, чтобы быть телепортированным к <green>%player_display_name%</green></gray>"><click:run_command:"/tpyes %player_name%"><lgreen><b>[Принять]</b></lgreen></click></hover>      <hover:show_text:"<gray>Нажмите, чтобы отклонить призыв от <red>%player_display_name%</red></gray>"><click:run_command:"/tpno %player_name%"><lred><b>[Отклонить]</b></lred></click></hover></lyellow>
+          - ' '
+      Request:
+        Desc: Попросить игрока телепортировать вас к нему.
+      Accept:
+        Desc: Принять запрос на телепортацию.
+      Decline:
+        Desc: Отклонить запрос на телепортацию.
+    Toggle:
+      Desc: Включить/выключить получение запросов/приглашений на телепортацию.
+      Target: <lgray>Запросы на телепортацию установлены на <lyellow>%state%</lyellow> для <lyellow>%player_display_name%</lyellow>.</lgray>
+      Notify: '<lgray>Запросы на телепортацию: <lyellow>%state%</lyellow>.</lgray>'
+  Request:
+    Accept:
+      Done:
+      - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lgray>Вы приняли запрос на телепортацию от <lgreen>%player_display_name%</lgreen>!</lgray>
+      Notify:
+      - <sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lgray><lgreen>%player_display_name%</lgreen> принял ваш запрос на телепортацию!</lgray>
+      Nothing:
+      - <sound:"minecraft:entity.villager.no;0.8;1.0">
+      - <lgray>У вас нет активных запросов.</lgray>
+    Decline:
+      Done:
+      - <sound:"minecraft:entity.villager.no;0.8;1.0">
+      - <lgray>Вы отклонили запрос на телепортацию от <lred>%player_display_name%</lred>.</lgray>
+      Notify:
+      - <sound:"minecraft:entity.villager.no;0.8;1.0">
+      - <lgray><lred>%player_display_name%</lred> отклонил ваш запрос на телепортацию.</lgray>
+      Nothing:
+      - <sound:"minecraft:entity.villager.no;0.8;1.0">
+      - <lgray>У вас нет активных запросов.</lgray>
+    Send:
+      Error:
+        Cooldown:
+        - <sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lgray>Вы сможете отправить следующий запрос через <lred>%time%</lred>.</lgray>
+        Disabled:
+        - <sound:"minecraft:entity.villager.no;0.8;1.0">
+        - <lgray>Вы не можете отправлять запросы на телепортацию игроку <lred>%player_name%</lred>.</lgray>
+    Sent:
+    - <noprefix><sound:"minecraft:entity.ender_pearl.throw;0.8;1.0">
+    - <lgray>Запрос на телепортацию отправлен игроку <lyellow>%player_display_name%</lyellow>.</lgray>
+    Notify:
+    - <noprefix><sound:"minecraft:entity.ender_pearl.throw;0.8;1.0">
+    - ' '
+    - <lyellow><b>Запрос на телепортацию:</b></lyellow>
+    - ' '
+    - <lyellow>Игрок <orange>%player_display_name%</orange> хочет телепортироваться к вам.</lyellow>
+    - <lyellow>Введите <lgreen>/tpyes %player_name%</lgreen>, чтобы принять и призвать его.</lyellow>
+    - <lyellow>или <lred>/tpno %player_name%</lred>, чтобы отклонить.</lyellow>
+    - ' '
+    - <lyellow>            <hover:show_text:"<gray>Нажмите, чтобы телепортировать <green>%player_display_name%</green></gray>"><click:run_command:"/tpyes %player_name%"><lgreen><b>[Принять]</b></lgreen></click></hover>      <hover:show_text:"<gray>Нажмите, чтобы отклонить телепортацию <red>%player_display_name%</red>.</gray>"><click:run_command:"/tpno %player_name%"><lred><b>[Отклонить]</b></lred></click></hover></lyellow>
+    - ' '
+RTP:
+  Command:
+    RTP:
+      Desc: Телепортироваться в случайное место.
+  Teleport:
+    Error:
+      AlreadyIn: <lred>Вы уже используете случайную телепортацию!</lred>
+      InvalidRange: <lred>Случайная телепортация недоступна для этого мира или имеет неверные настройки диапазона.</lred>
+    Notify:
+      Done:
+      - <output:"titles:20:80:20"><sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lgreen><b>Телепортация выполнена!</b></lgreen>
+      - '<lgray>Координаты: <lgreen>%location_x%</lgreen>, <lgreen>%location_y%</lgreen>, <lgreen>%location_z%</lgreen></lgray>'
+      Search:
+      - <output:"titles:20:80:20"><sound:"minecraft:block.lava.pop;0.8;1.0">
+      - <lyellow><b>Поиск подходящей локации...</b></lyellow>
+      - '<lgray>Шаг: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow></lgray>'
+      Failure:
+      - <output:"titles:20:80:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+      - <lred><b>Телепортация не удалась</b></lred>
+      - <lgray>Не удалось найти подходящее место.</lgray>
+Extras:
+  Command:
+    Chairs:
+      Desc: Включить/выключить возможность садиться на стулья.
+      Notify: '<lgray>Стулья: <lyellow>%state%</lyellow>.</lgray>'
+      Target: '<lgray>Стулья для <lyellow>%player_display_name%</lyellow>: <lyellow>%state%</lyellow>.</lgray>'
+    Sit:
+      Desc: Сесть на блок.
+      Notify: <lgray>Вы сели.</lgray>
+      Target: <lgray><lyellow>%player_name%</lyellow> посажен.</lgray>
+    ChestSort:
+      Desc: Включить/выключить автосортировку сундуков.
+      Notify: '<lgray>Сортировка сундуков: <lyellow>%state%</lyellow>.</lgray>'
+      Target: '<lgray>Сортировка сундуков для <lyellow>%player_display_name%</lyellow>: <lyellow>%state%</lyellow>.</lgray>'
+BackLocation:
+  Command:
+    Back:
+      Desc: Вернуться на предыдущую локацию.
+      Others:
+        Done: <lgray>Игрок <lyellow>%player_display_name%</lyellow> телепортирован на предыдущую локацию.</lgray>
+        Nothing: <lgray>У игрока <lred>%player_display_name%</lred> нет предыдущей локации.</lgray>
+    DeathBack:
+      Desc: Вернуться на место смерти.
+      Others:
+        Done: <lgray>Игрок <lyellow>%player_display_name%</lyellow> телепортирован на место смерти.</lgray>
+        Nothing: <lgray>У игрока <lred>%player_display_name%</lred> нет места смерти.</lgray>
+  Previous:
+    Teleport:
+      Nothing:
+      - <sound:"minecraft:entity.villager.no;0.8;1.0">
+      - <lgray>У вас нет предыдущей локации.</lgray>
+      Notify:
+      - <output:"action_bar"><sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lyellow>Возврат на предыдущую локацию...</lyellow>
+  Death:
+    Teleport:
+      Nothing:
+      - <sound:"minecraft:entity.villager.no;0.8;1.0">
+      - <lgray>У вас нет места смерти.</lgray>
+      Notify:
+      - <output:"action_bar"><sound:"minecraft:entity.enderman.teleport;0.8;1.0">
+      - <lyellow>Возврат на место смерти...</lyellow>
+NerfPhantoms:
+  Command:
+    NoPhantom:
+      Desc: Включить/выключить режим защиты от фантомов.
+      Toggle:
+        Notify: '<lgray>Режим защиты от фантомов: <lyellow>%state%</lyellow>.</lgray>'
+        Others: '<lgray>Режим защиты от фантомов для <lyellow>%player_display_name%</lyellow>: <lyellow>%state%</lyellow>.</lgray>'
+Afk:
+  Command:
+    Afk:
+      Desc: Включить/выключить режим AFK.
+      Done:
+        Others: '<lgray>Режим AFK для <lyellow>%player_display_name%</lyellow>: <lyellow>%state%</lyellow>.</lgray>'
+  Mode:
+    Enter:
+    - <noprefix>
+    - <lgray>Игрок <lyellow>%player_display_name%</lyellow> теперь AFK.</lgray>
+    Exit:
+    - <noprefix>
+    - <lgray>Игрок <lyellow>%player_display_name%</lyellow> вернулся после <lyellow>%time%</lyellow> в AFK.</lgray>
+  Notify:
+    PrivateMessage:
+    - <noprefix>
+    - <lgray>Игрок <lred>%player_display_name%</lred> сейчас AFK и может не ответить.</lgray>
+    TeleportRequest:
+    - <noprefix>
+    - <lgray>Игрок <lred>%player_display_name%</lred> сейчас AFK и может не ответить.</lgray>
+CustomText:
+  Command:
+    Text:
+      Desc: Показать кастомный текст.
+  Error:
+    Command:
+      Argument:
+        InvalidCustomText: <lgray><lred>%value%</lred> — некорректный кастомный текст!</lgray>
+GodMode:
+  Command:
+    God:
+      Desc: Включить/выключить режим бога.
+      Notify: '<lgray>Режим бога: <lyellow>%state%</lyellow>.</lgray>'
+      Target: '<lgray>Режим бога для <lyellow>%player_display_name%</lyellow>: <lyellow>%state%</lyellow>.</lgray>'
+    FoodGod:
+      Target: '<lgray>Режим бесконечной еды для <lyellow>%player_display_name%</lyellow>: <lyellow>%state%</lyellow>.</lgray>'
+      Notify: '<lgray>Режим бесконечной еды: <lyellow>%state%</lyellow>.</lgray>'
+  Notify:
+    DamageDisabled:
+    - <output:"action_bar">
+    - <lred>Вы не можете наносить урон в режиме бога!</lred>
+    BadWorld:
+    - <lred><b>Информация о режиме бога:</b></lred>
+    - <lgray>Режим бога не действует в этом мире!</lgray>
+Warmup:
+  Teleport:
+    Notify:
+    - <output:"titles:20:60:20"><sound:"minecraft:block.lava.pop;0.8;1.0">
+    - <lgreen><b>Подготовка к телепортации</b></lgreen>
+    - <lgray>Не двигайтесь, скоро произойдет телепортация...</lgray>
+    Cancel:
+    - <output:"titles:20:60:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
+    - <lred><b>Телепортация отменена</b></lred>
+    - <lgray>Телепортация отменена из-за движения.</lgray>
