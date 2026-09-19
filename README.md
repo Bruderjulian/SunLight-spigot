@@ -4,7 +4,7 @@
 
 **SunLight** is a modern, lightweight, all-in-one core solution featuring the essential tools every server needs. 
 
-It includes **27** fully optional and customizable modules, allowing you to select only what your server actually requires!
+It includes **28** fully optional and customizable modules, allowing you to select only what your server actually requires!
 
 ---
 
@@ -41,6 +41,7 @@ It includes **27** fully optional and customizable modules, allowing you to sele
 - **Kits**: Create unlimited item sets with a GUI editor, kit previews, cooldowns, and claim costs.
 - **Nametags**: Configure packet-based, client-side nametags with rank-based prefixes, suffixes, and colors.
 - **Nerf Phantoms**: Control Phantom behavior by disabling spawns, modifying damage/HP, or allowing players to personally reset their insomnia timer.
+- **Nick**: Let players set custom nicknames with length/regex/banned-word validation, color permissions, and tablist support.
 - **Player Warps**: Allow players to create warps with categories, featured slots, top used warps, and more!
 - **Player Teleports**: A player-to-player teleport request system with customizable timeouts and a toggle to block incoming requests.
 - **Random Teleport**: Randomly teleports players within world-specific coordinates, featuring chunk safety checks and automatic world redirection.

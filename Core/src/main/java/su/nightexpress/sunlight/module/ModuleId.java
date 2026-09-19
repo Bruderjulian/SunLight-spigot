@@ -15,6 +15,7 @@ public class ModuleId {
     public static final String MENU = "menu";
     public static final String NAME_TAGS = "nametags";
     public static final String NERF_PHANTOMS = "nerf_phantoms";
+    public static final String NICK = "nick";
     public static final String HOMES = "homes";
     public static final String INVENTORIES = "inventories";
     public static final String ITEMS = "items";

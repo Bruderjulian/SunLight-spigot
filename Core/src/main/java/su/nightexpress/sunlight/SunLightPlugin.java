@@ -13,6 +13,7 @@ import su.nightexpress.nightcore.util.Version;
 import su.nightexpress.sunlight.api.SunlightAPI;
 import su.nightexpress.sunlight.api.provider.AfkProvider;
 import su.nightexpress.sunlight.api.provider.FreezeProvider;
+import su.nightexpress.sunlight.api.provider.NickProvider;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.command.CommandRegistry;
 import su.nightexpress.sunlight.config.Config;
@@ -43,6 +44,7 @@ import su.nightexpress.sunlight.moduleImpl.items.ItemsModule;
 import su.nightexpress.sunlight.moduleImpl.kits.KitsModule;
 import su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.PhantomsModule;
+import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsModule;
 import su.nightexpress.sunlight.moduleImpl.ptp.PTPModule;
 import su.nightexpress.sunlight.moduleImpl.rtp.RTPModule;
@@ -187,6 +189,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
         loader.register(ModuleId.NAME_TAGS, ModuleDefinition.named("Nametags"), NametagsModule::new,
                 LoadCondition::packetLibrary);
         loader.register(ModuleId.NERF_PHANTOMS, ModuleDefinition.named("Nerf Phantoms"), PhantomsModule::new);
+        loader.register(ModuleId.NICK, ModuleDefinition.named("Nick"), NickModule::new);
         loader.register(ModuleId.PLAYER_WARPS, ModuleDefinition.named("Player Warps"),
                 context -> new PlayerWarpsModule(context, this.teleportManager));
         loader.register(ModuleId.PTP, ModuleDefinition.named("PTP"),
@@ -315,5 +318,11 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
 
     public Optional<? extends FreezeProvider> freezeProvider() {
         return this.moduleRegistry.byType(FreezeModule.class);
+    }
+
+    @Override
+
+    public Optional<? extends NickProvider> nickProvider() {
+        return this.moduleRegistry.byType(NickModule.class);
     }
 }

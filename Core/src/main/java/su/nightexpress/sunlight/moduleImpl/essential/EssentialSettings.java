@@ -139,16 +139,6 @@ public class EssentialSettings extends AbstractConfig {
             "Direction arrow glyphs used by the '%s' placeholder when '%s' is enabled.".formatted(GENERIC_DIRECTION,
                     "Near.Format.Use_Arrows"));
 
-    public final ConfigProperty<Integer> nickMinLength = this.addProperty(ConfigTypes.INT, "Nick.Length.Min", 3);
-
-    public final ConfigProperty<Integer> nickMaxLength = this.addProperty(ConfigTypes.INT, "Nick.Length.Max", 16);
-
-    public final ConfigProperty<Set<String>> nickBannedWords = this.addProperty(ConfigTypes.STRING_SET,
-            "Nick.Banned-Words", Lists.newSet("admin", "ass", "shit"));
-
-    public final ConfigProperty<String> nickRegex = this.addProperty(ConfigTypes.STRING, "Nick.Regex-Pattern",
-            "[a-zA-Zа-яА-Я0-9_\\s]*");
-
     public final ConfigProperty<List<String>> playerInfoFormat = this.addProperty(ConfigTypes.STRING_LIST,
             "PlayerInfo.Format",
             Lists.newList(
