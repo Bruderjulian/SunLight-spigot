@@ -20,12 +20,15 @@ public class CommandSettings extends AbstractConfig {
     private final ConfigProperty<Boolean> conflictUnregisterEnabled = this.addProperty(ConfigTypes.BOOLEAN,
             "Commands.Conflict-Unregister.Enabled",
             false,
-            "");
+            "When enabled, SunLight will unregister conflicting commands from other plugins",
+            "in favor of its own alternatives.",
+            "Vanilla/Minecraft commands are always replaced regardless of this setting.");
 
     private final ConfigProperty<Set<String>> conflictUnregisterBlacklist = this.addProperty(
             ConfigTypes.STRING_SET_LOWER_CASE, "Commands.Conflict-Unregister.Blacklist",
             Set.of("WorldEdit", "WorldGuard", "FastAsyncWorldEdit"),
-            "");
+            "Plugin (or Vanilla/Bukkit) names that will never be unregistered",
+            "when resolving command conflicts.");
 
     public boolean isCooldownsEnabled() {
         return this.cooldownsEnabled.get();

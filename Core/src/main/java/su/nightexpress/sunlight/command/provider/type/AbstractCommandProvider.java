@@ -22,15 +22,16 @@ import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.FutureUtils;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class 
-AbstractCommandProvider implements CommandProvider {
+public abstract class AbstractCommandProvider implements CommandProvider {
 
     protected final SunLightPlugin plugin;
 
@@ -88,7 +89,9 @@ AbstractCommandProvider implements CommandProvider {
             String defPath = path + "." + sId;
 
             boolean enabled = config.getBoolean(defPath + ".Enabled");
-            String[] aliases = config.getStringArray(defPath + ".Aliases");
+            LiteralDefinition defaultDefinition = this.defaultLiterals.get(LowerCase.INTERNAL.apply(sId));
+            String[] aliases = readAliases(config, defPath + ".Aliases",
+                    defaultDefinition == null ? new String[0] : defaultDefinition.aliases(), defPath);
             int cooldown = config.getInt(defPath + ".Cooldown");
             double cost = config.getDouble(defPath + ".Cost");
 
@@ -119,23 +122,84 @@ AbstractCommandProvider implements CommandProvider {
             String defPath = path + "." + sId;
 
             boolean enabled = config.getBoolean(defPath + ".Enabled");
-            String[] aliases = config.getStringArray(defPath + ".Aliases");
+            HubDefinition defaultDefinition = this.defaultRoot.get(LowerCase.INTERNAL.apply(sId));
+            String[] aliases = readAliases(config, defPath + ".Aliases",
+                    defaultDefinition == null ? new String[0] : defaultDefinition.aliases(), defPath);
             String name = config.getString(defPath + ".Name", "null");
 
             Map<String, String> childrenAliases = new HashMap<>();
             config.getSection(defPath + ".Childrens").forEach(sId2 -> {
                 String alias = config.getString(defPath + ".Childrens." + sId2);
-                if (alias == null || alias.isBlank())
+                if (alias == null || alias.isBlank() || isListArtifact(alias))
                     return;
 
                 if (!this.literalBuilders.containsKey(sId2))
                     return;
 
-                childrenAliases.put(LowerCase.INTERNAL.apply(sId2), alias);
+                childrenAliases.put(LowerCase.INTERNAL.apply(sId2), alias.trim());
             });
 
             this.root.put(LowerCase.INTERNAL.apply(sId), new HubDefinition(enabled, aliases, name, childrenAliases));
         });
+    }
+
+    /**
+     * Reads command aliases from the config.
+     * <p>
+     * NightCore stores aliases as a single comma-separated string, but users (or editors)
+     * may write them as a YAML list instead. Bukkit's {@code getString()} coerces such a list
+     * via {@code toString()}, turning e.g. an empty list into the literal string {@code "[]"}.
+     * Splitting that produces a phantom command literally named {@code []} (visible and
+     * executable as {@code sunlight:[]}). This method reads the raw value to support both
+     * formats, repairs {@code "[...]"} coercion artifacts, drops blank entries, and falls back
+     * to (and rewrites) the defaults when nothing valid remains.
+     *
+     * @param config   The config to read from (and repair).
+     * @param path     The aliases config path.
+     * @param defaults The default aliases to restore when the configured value is unusable.
+     * @param defPath  The node path, used for warnings.
+     * @return A non-null array of usable aliases (may be empty only when no defaults exist).
+     */
+    private String[] readAliases(FileConfig config, String path, String[] defaults, String defPath) {
+        Object raw = config.get(path);
+
+        List<String> aliases;
+        if (raw instanceof List<?> list) {
+            aliases = list.stream()
+                    .map(entry -> entry == null ? "" : entry.toString().trim())
+                    .filter(entry -> !entry.isBlank())
+                    .toList();
+        } else if (raw instanceof String string) {
+            String cleaned = string.trim();
+            // Repair YAML-list-to-string coercion artifacts like "[]" or "[a, b]".
+            if (cleaned.startsWith("[") && cleaned.endsWith("]") && cleaned.length() >= 2) {
+                cleaned = cleaned.substring(1, cleaned.length() - 1);
+            }
+            aliases = Arrays.stream(cleaned.split(","))
+                    .map(String::trim)
+                    .filter(entry -> !entry.isBlank() && !isListArtifact(entry))
+                    .toList();
+        } else {
+            aliases = List.of();
+        }
+
+        if (aliases.isEmpty()) {
+            if (defaults.length == 0)
+                return new String[0];
+
+            this.plugin.warn("Command node '" + defPath + "' has no valid aliases. Restored defaults: "
+                    + String.join(", ", defaults)
+                    + ". To disable the command, set 'Enabled' to false instead of clearing 'Aliases'.");
+            config.setStringArray(path, defaults);
+            return defaults.clone();
+        }
+
+        return aliases.toArray(String[]::new);
+    }
+
+    private static boolean isListArtifact(String alias) {
+        String entry = alias.trim();
+        return entry.equals("[]") || entry.equals("[") || entry.equals("]");
     }
 
     protected void registerLiteral(String id, boolean enabled, String[] aliases,

@@ -19,6 +19,7 @@ import su.nightexpress.sunlight.command.mode.ToggleMode;
 import su.nightexpress.sunlight.config.Lang;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -128,8 +129,13 @@ public class CommandArguments {
         }
 
         public static ArgumentNodeBuilder<InetAddress> inetAddress(String name) {
-                return Commands.argument(INET_ADDRESS, ArgumentTypes.INET_ADDRESS)
-                                .localized(Lang.COMMAND_ARGUMENT_NAME_INET_ADDRESS);
+                return Commands.argument(INET_ADDRESS, (builder, string) -> {
+                        try {
+                                return InetAddress.getByName(string);
+                        } catch (UnknownHostException exception) {
+                                throw CommandSyntaxException.custom(Lang.COMMAND_SYNTAX_INVALID_INET_ADDRESS);
+                        }
+                }).localized(Lang.COMMAND_ARGUMENT_NAME_INET_ADDRESS);
         }
 
         public static boolean handleItemInHandOrError(CommandContext context,

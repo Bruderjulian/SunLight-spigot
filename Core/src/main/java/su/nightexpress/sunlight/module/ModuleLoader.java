@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 public class ModuleLoader {
 
     private static final String MODULE_DIR = "/modules/";
+    private static final String FILE_MODULES = "modules.yml";
     private final SunLightPlugin plugin;
     private final ModuleRegistry moduleRegistry;
 
@@ -42,7 +43,7 @@ public class ModuleLoader {
     }
 
     public void loadAll() {
-        FileConfig config = FileConfig.load(this.plugin.getDataFolder().getAbsolutePath(), MODULE_DIR);
+        FileConfig config = FileConfig.load(this.plugin.getDataFolder().getAbsolutePath(), FILE_MODULES);
         FileConfig pluginConfig = this.plugin.getConfig();
 
         this.definitionMap.forEach((id, defaultDefinition) -> {

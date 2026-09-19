@@ -90,7 +90,14 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
                 if (literalDefinition == null || !literalDefinition.enabled())
                     return;
 
-                this.register(NightCommand.literal(this.plugin, literalDefinition.aliases(), builder -> {
+                String[] aliases = sanitizeAliases(literalDefinition.aliases());
+                if (aliases.length == 0) {
+                    this.plugin.warn("Command node '" + nodeId + "' in '" + providerId
+                            + ".yml' was skipped: no valid aliases configured.");
+                    return;
+                }
+
+                this.register(NightCommand.literal(this.plugin, aliases, builder -> {
                     consumer.accept(builder);
 
                     if (this.settings.isCostsEnabled()) {
@@ -108,6 +115,13 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
                 if (rootDefinition == null || !rootDefinition.enabled())
                     return;
 
+                String[] aliases = sanitizeAliases(rootDefinition.aliases());
+                if (aliases.length == 0) {
+                    this.plugin.warn("Root command '" + rootDefinition.name() + "' in '" + providerId
+                            + ".yml' was skipped: no valid aliases configured.");
+                    return;
+                }
+
                 List<LiteralNode> childrens = new ArrayList<>();
 
                 provider.getLiteralBuilders().forEach((nodeId, consumer) -> {
@@ -124,7 +138,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
                     return;
                 }
 
-                this.register(NightCommand.hub(this.plugin, rootDefinition.aliases(), builder -> {
+                this.register(NightCommand.hub(this.plugin, aliases, builder -> {
                     rootBuilder.accept(builder);
                     builder.localized(rootDefinition.name());
                     builder.branch(childrens.toArray(new LiteralNode[0]));
@@ -135,14 +149,32 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
         });
     }
 
+    /**
+     * Drops blank entries so an empty/blank alias can never be registered as a
+     * (phantom) Bukkit command. Empty arrays would also make NightCore throw.
+     */
+    private static String[] sanitizeAliases(String[] aliases) {
+        if (aliases == null)
+            return new String[0];
+
+        return Arrays.stream(aliases).filter(alias -> alias != null && !alias.isBlank()).toArray(String[]::new);
+    }
+
     private void register(NightCommand command) {
+        // Always replace server built-in (vanilla/bukkit) commands, otherwise Bukkit registers
+        // ours with the fallback prefix (sunlight:label) and command.register() returns false.
+        this.unregisterConflicts(command, true);
+
         if (this.settings.isConflictUnregisterEnabled()) {
-            this.unregisterConflicts(command);
+            this.unregisterConflicts(command, false);
         }
 
         if (!command.register()) {
-            this.plugin.warn(
-                    "Command '%s' was not registered with the passed in label, which indicates the SunLight's fallback prefix was used one or more time. This usually means that there is a vanilla command with the same label.");
+            this.plugin.warn("Command '" + command.getName() + "' (aliases: " + command.getAliases()
+                    + ") was not registered with the passed in label, which indicates the SunLight's fallback prefix was used one or more times. "
+                    + "This usually means that another plugin has a command with the same label. "
+                    + "Enable 'Commands.Conflict-Unregister' in the config to let SunLight replace conflicting commands, "
+                    + "or change the command's aliases in 'plugins/SunLight/commands/' configs.");
         }
 
         this.commands.add(command);
@@ -215,17 +247,33 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
         });
     }
 
-    private void unregisterConflicts(NightCommand command) {
+    private void unregisterConflicts(NightCommand command, boolean vanillaOnly) {
         Set<String> aliases = new HashSet<>(command.getAliases());
         aliases.add(command.getName());
 
         aliases.forEach(alias -> {
             CommandUtil.getCommand(alias).ifPresent(other -> {
-                boolean result = CommandUtil.unregister(other);
-                String owner = getCommandOwner(other);
-                if (this.settings.getConflictUnregisterBlacklist().contains(LowerCase.INTERNAL.apply(owner)))
+                // Skip our own commands (e.g. re-registration on reload).
+                if (other instanceof PluginIdentifiableCommand identifiableCommand
+                        && identifiableCommand.getPlugin().getName().equalsIgnoreCase(this.plugin.getName())) {
                     return;
+                }
 
+                String owner = getCommandOwner(other);
+                boolean isVanilla = owner.equalsIgnoreCase("Vanilla") || owner.equalsIgnoreCase("Bukkit")
+                        || owner.equalsIgnoreCase("Unknown") || owner.equalsIgnoreCase("Minecraft");
+
+                // When vanillaOnly, leave third-party plugin commands alone.
+                // They are handled only when 'Commands.Conflict-Unregister.Enabled' is true.
+                if (vanillaOnly && !isVanilla) {
+                    return;
+                }
+
+                if (this.settings.getConflictUnregisterBlacklist().contains(LowerCase.INTERNAL.apply(owner))) {
+                    return;
+                }
+
+                boolean result = CommandUtil.unregister(other);
                 if (result) {
                     this.plugin.info("Unregistered conflicting '%s' (%s) command in favor of SunLight's alternative."
                             .formatted(other.getName(), owner));
@@ -245,7 +293,14 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
         if (command instanceof BukkitCommand bukkitCommand) {
             String permission = bukkitCommand.getPermission();
-            if (permission != null && permission.startsWith("minecraft")) {
+            if (permission != null && (permission.startsWith("minecraft") || permission.startsWith("bukkit"))) {
+                return "Vanilla";
+            }
+
+            // Paper wraps vanilla (brigadier) commands, they are not PluginIdentifiableCommand.
+            String className = command.getClass().getName().toLowerCase();
+            if (className.contains("vanilla") || className.contains("minecraft") || className.contains("mojang")
+                    || className.contains("brigadier")) {
                 return "Vanilla";
             }
 
