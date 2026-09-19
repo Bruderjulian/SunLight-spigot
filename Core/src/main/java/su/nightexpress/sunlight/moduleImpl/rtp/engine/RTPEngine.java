@@ -12,7 +12,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
-import org.bukkit.block.Biome;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
@@ -89,8 +88,7 @@ public class RTPEngine {
     }
 
     public void load() {
-        cache.clearCache();
-        cache.restartCacheRefill();
+        cache.start();
     }
 
     public void shutdown() {
@@ -133,16 +131,11 @@ public class RTPEngine {
         final Location origin = player.getLocation().clone();
 
         if (module.getSettings().isCacheEnabled()) {
-            final Location cached = cache.retrieveLocation(world, worldName);
+            final Location cached = cache.retrieveLocation(world, lookupRange, worldName);
             if (cached != null) {
                 this.completeTeleport(player, origin, Optional.of(cached));
-
-                cache.checkRefillThreshold(world, lookupRange);
-            } else {
-                cache.refillCache(world, lookupRange);
+                return true;
             }
-
-            return true;
         }
 
         this.findLocation(world, lookupRange)
@@ -199,11 +192,13 @@ public class RTPEngine {
         if (particle.isEmpty() || location.getWorld() == null)
             return;
 
-        final int count = module.getSettings().getTeleportParticleCount();
         final double offset = module.getSettings().getTeleportParticleOffset();
-        final double speed = module.getSettings().getTeleportParticleSpeed();
-
-        location.getWorld().spawnParticle(particle.get(), location, count, offset, offset, offset, speed);
+        location.getWorld().spawnParticle(
+                particle.get(),
+                location,
+                module.getSettings().getTeleportParticleCount(),
+                offset, offset, offset,
+                module.getSettings().getTeleportParticleSpeed());
     }
 
     public boolean isProtected(final Location location) {
@@ -310,14 +305,12 @@ public class RTPEngine {
         if (!material.isBlock() || !material.isSolid() || range.getBlockedBlocks().contains(material))
             return Optional.empty();
 
-        final Biome biome = world.getBiome(locX, bY, bZ);
-        final String biomeKey = biome.getKey().toString();
+        final String biomeKey = world.getBiome(locX, bY, bZ).getKey().toString();
 
-        if (!range.getBiomeWhitelist().isEmpty() && !range.getBiomeWhitelist().contains(biomeKey))
+        if (!range.getBiomeWhitelist().isEmpty() && !range.getBiomeWhitelist().contains(biomeKey)
+                || range.getBiomeBlacklist().contains(biomeKey)) {
             return Optional.empty();
-        if (range.getBiomeBlacklist().contains(biomeKey))
-            return Optional.empty();
-
+        }
         return Optional.of(new Location(world, locX, bY + 1, locZ));
     }
 }

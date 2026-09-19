@@ -12,7 +12,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 
 import su.nightexpress.nightcore.bridge.scheduler.AdaptedTask;
-import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.TimeUtil;
 import su.nightexpress.sunlight.moduleImpl.rtp.RTPModule;
@@ -29,9 +28,16 @@ public class RtpCache {
     this.refilling = ConcurrentHashMap.newKeySet();
   }
 
-  public void start(final FileConfig config) {
-    this.clearCache();
-    this.restartCacheRefill();
+  public void start() {
+    shutdown();
+
+    final int interval = module.getSettings().getCacheRefillInterval();
+    if (!module.getSettings().isCacheEnabled() || interval <= 0)
+      return;
+
+    final long ticks = TimeUtil.secondsToTicks(interval);
+    this.cacheRefillTask = this.module.plugin().scheduler()
+        .runTaskTimer(this::refillCachedWorlds, ticks, ticks);
   }
 
   public void shutdown() {
@@ -44,64 +50,28 @@ public class RtpCache {
     this.refilling.clear();
   }
 
-  public void clearCache() {
-    this.locationCache.clear();
-    this.refilling.clear();
-  }
-
-  public void restartCacheRefill() {
-    if (this.cacheRefillTask != null) {
-      this.cacheRefillTask.cancel();
-      this.cacheRefillTask = null;
-    }
-
-    final int interval = module.getSettings().getCacheRefillInterval();
-    if (!module.getSettings().isCacheEnabled() || interval <= 0)
-      return;
-
-    final long ticks = TimeUtil.secondsToTicks(interval);
-    this.cacheRefillTask = this.module.plugin().scheduler()
-        .runTaskTimer(this::refillCachedWorlds, ticks, ticks);
-  }
-
-  private void refillCachedWorlds() {
-    for (final String worldName : this.locationCache.keySet()) {
-      final World world = this.module.plugin().getServer().getWorld(worldName);
-      if (world == null)
-        return;
-
-      final LookupRange range = module.getEngine().getWorldRange(world.getName());
-      if (range != null) {
-        this.refillCache(world, range);
-      }
-    }
-  }
-
-  public Location retrieveLocation(final String worldName) {
-    final Queue<Location> queue = locationCache.get();
+  public Location retrieveLocation(final World world, final LookupRange lookupRange, final String worldName) {
+    final Queue<Location> queue = locationCache.get(worldName);
     if (queue != null) {
       Location location;
       while ((location = queue.poll()) != null) {
-        if (location.getWorld() == null)
+        if (location.getWorld() == null
+            || module.getSettings().isProtectionEnabled() && module.getEngine().isProtected(location)) {
           continue;
-        if (module.getSettings().isProtectionEnabled() && module.getEngine().isProtected(location))
-          continue;
-
+        }
+        if (queue.size() <= module.getSettings().getCacheRefillThreshold()) {
+          Bukkit.getScheduler().runTaskAsynchronously(module.plugin(), () -> {
+            refillCache(world, lookupRange);
+          });
+        }
         return location;
       }
     }
 
     Bukkit.getScheduler().runTaskAsynchronously(module.plugin(), () -> {
-
+      refillCache(world, lookupRange);
     });
     return null;
-  }
-
-  public void checkRefillThreshold(final World world, final LookupRange lookupRange) {
-    final Queue<Location> queue = this.locationCache.get(LowerCase.INTERNAL.apply(world.getName()));
-    if (queue == null || queue.size() <= module.getSettings().getCacheRefillThreshold()) {
-      refillCache(world, lookupRange);
-    }
   }
 
   public void refillCache(final World world, final LookupRange range) {
@@ -127,5 +97,18 @@ public class RtpCache {
 
       this.refilling.remove(key);
     });
+  }
+
+  private void refillCachedWorlds() {
+    for (final String worldName : this.locationCache.keySet()) {
+      final World world = this.module.plugin().getServer().getWorld(worldName);
+      if (world == null)
+        return;
+
+      final LookupRange range = module.getEngine().getWorldRange(world.getName());
+      if (range != null) {
+        this.refillCache(world, range);
+      }
+    }
   }
 }
