@@ -17,7 +17,7 @@ import su.nightexpress.nightcore.util.ItemUtil;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 
@@ -29,7 +29,7 @@ import java.util.Set;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
-public class CondenseCommandProvider extends AbstractCommandProvider {
+public class CondenseCommandProvider extends CommandProvider {
 
     private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("condense");
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Condense.Desc")

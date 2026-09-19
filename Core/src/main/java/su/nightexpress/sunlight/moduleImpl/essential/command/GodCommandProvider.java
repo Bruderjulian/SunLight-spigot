@@ -11,14 +11,14 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialLang;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.user.UserManager;
 
-public class GodCommandProvider extends AbstractCommandProvider {
+public class GodCommandProvider extends CommandProvider {
 
     private final EssentialModule module;
     private final UserManager userManager;
@@ -34,8 +34,9 @@ public class GodCommandProvider extends AbstractCommandProvider {
         this.registerLiteral("toggle", true, new String[] { "god" }, builder -> builder
                 .description(EssentialLang.COMMAND_GOD_DESC)
                 .permission(EssentialPerms.COMMAND_GOD)
-                .withArguments(Arguments.playerName(CommandArguments.PLAYER).permission(EssentialPerms.COMMAND_GOD_OTHERS)
-                        .optional())
+                .withArguments(
+                        Arguments.playerName(CommandArguments.PLAYER).permission(EssentialPerms.COMMAND_GOD_OTHERS)
+                                .optional())
                 .withFlags(CommandArguments.FLAG_SILENT)
                 .executes((context, arguments) -> this.toggleGod(context, arguments, ToggleMode.TOGGLE)));
     }
@@ -51,9 +52,11 @@ public class GodCommandProvider extends AbstractCommandProvider {
                         this.clearAggro(target);
 
                     if (context.getSender() != target) {
-                        this.module.sendPrefixed(EssentialLang.GOD_TOGGLE_FEEDBACK, context.getSender(), builder -> builder
-                                .with(CommonPlaceholders.PLAYER.resolver(target))
-                                .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.getEnabledOrDisabled(state)));
+                        this.module.sendPrefixed(EssentialLang.GOD_TOGGLE_FEEDBACK, context.getSender(),
+                                builder -> builder
+                                        .with(CommonPlaceholders.PLAYER.resolver(target))
+                                        .with(SLPlaceholders.GENERIC_STATE,
+                                                () -> CoreLang.getEnabledOrDisabled(state)));
                     }
 
                     if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {

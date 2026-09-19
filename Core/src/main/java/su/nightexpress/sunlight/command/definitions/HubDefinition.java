@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.command.provider.definition;
+package su.nightexpress.sunlight.command.definitions;
 
 import java.util.Map;
 

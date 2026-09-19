@@ -13,7 +13,7 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.spawns.Spawn;
 import su.nightexpress.sunlight.moduleImpl.spawns.SpawnsModule;
 import su.nightexpress.sunlight.moduleImpl.spawns.config.SpawnsLang;
@@ -22,7 +22,7 @@ import su.nightexpress.sunlight.user.UserManager;
 
 import java.util.Optional;
 
-public class SpawnCommands extends AbstractCommandProvider {
+public class SpawnCommands extends CommandProvider {
 
     private static final String COMMAND_CREATE = "spawn_create";
     private static final String COMMAND_DELETE = "spawn_delete";

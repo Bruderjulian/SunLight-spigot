@@ -9,7 +9,7 @@ import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.nightcore.commands.exceptions.CommandSyntaxException;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.channel.ChatChannel;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
@@ -18,7 +18,7 @@ import su.nightexpress.sunlight.moduleImpl.chat.core.ChatPerms;
 import java.util.Map;
 import java.util.Optional;
 
-public class ChannelCommandsProvider extends AbstractCommandProvider {
+public class ChannelCommandsProvider extends CommandProvider {
 
         private static final String ARG_CHANNEL = "channel";
 

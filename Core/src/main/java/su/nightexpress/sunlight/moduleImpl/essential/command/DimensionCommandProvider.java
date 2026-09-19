@@ -16,7 +16,7 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.teleport.TeleportContext;
@@ -28,7 +28,7 @@ import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_WORLD;
 import static su.nightexpress.sunlight.SLPlaceholders.PLAYER_DISPLAY_NAME;
 
-public class DimensionCommandProvider extends AbstractCommandProvider {
+public class DimensionCommandProvider extends CommandProvider {
 
         private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("dimension");
         private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("dimension.others");

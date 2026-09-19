@@ -9,7 +9,7 @@ import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.nightcore.util.ItemUtil;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.items.ItemsLang;
 import su.nightexpress.sunlight.moduleImpl.items.ItemsModule;
@@ -21,7 +21,7 @@ import java.util.stream.IntStream;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_ITEM;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_TEXT;
 
-public class LoreCommandsProvider extends AbstractCommandProvider {
+public class LoreCommandsProvider extends CommandProvider {
 
     private static final Permission PERMISSION_ROOT = ItemsPerms.COMMAND.permission("lore.root");
     private static final Permission PERMISSION_ADD = ItemsPerms.COMMAND.permission("lore.add");

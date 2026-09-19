@@ -9,7 +9,7 @@ import su.nightexpress.nightcore.user.UserInfo;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.homes.HomeDefaults;
 import su.nightexpress.sunlight.moduleImpl.homes.HomePlaceholders;
 import su.nightexpress.sunlight.moduleImpl.homes.HomesModule;
@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
-public class HomeAdminCommandProvider extends AbstractCommandProvider {
+public class HomeAdminCommandProvider extends CommandProvider {
 
     private static final String COMMAND_CREATE = "create";
     private static final String COMMAND_DELETE = "delete";

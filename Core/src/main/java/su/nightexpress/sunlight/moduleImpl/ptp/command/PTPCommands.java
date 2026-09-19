@@ -12,8 +12,8 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.ptp.PTPModule;
 import su.nightexpress.sunlight.moduleImpl.ptp.PTPProperties;
 import su.nightexpress.sunlight.moduleImpl.ptp.config.PTPLang;
@@ -25,7 +25,7 @@ import su.nightexpress.sunlight.user.UserManager;
 import java.util.Collections;
 import java.util.Objects;
 
-public class PTPCommands extends AbstractCommandProvider {
+public class PTPCommands extends CommandProvider {
 
     private static final String COMMAND_OFF = "off";
     private static final String COMMAND_ON = "on";

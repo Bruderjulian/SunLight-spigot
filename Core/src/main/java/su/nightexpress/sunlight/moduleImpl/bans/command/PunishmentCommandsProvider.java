@@ -16,7 +16,7 @@ import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.bans.BansModule;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class PunishmentCommandsProvider extends AbstractCommandProvider {
+public class PunishmentCommandsProvider extends CommandProvider {
 
         private static final String ARG_REASON = "reason";
 

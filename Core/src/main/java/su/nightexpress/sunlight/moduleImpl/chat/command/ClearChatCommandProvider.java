@@ -8,14 +8,14 @@ import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SLUtils;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatPerms;
 
 import java.util.Collection;
 
-public class ClearChatCommandProvider extends AbstractCommandProvider {
+public class ClearChatCommandProvider extends CommandProvider {
 
     private final ChatModule module;
 

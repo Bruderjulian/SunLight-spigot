@@ -18,7 +18,7 @@ import su.nightexpress.nightcore.util.LocationUtil;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 
 import java.util.stream.IntStream;
@@ -29,7 +29,7 @@ import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_AMOUNT;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_TYPE;
 
 @Deprecated
-public class SpawnMobCommandProvider extends AbstractCommandProvider {
+public class SpawnMobCommandProvider extends CommandProvider {
 
         public static final Permission PERMISSION = EssentialPerms.COMMAND.permission("spawnmob");
 

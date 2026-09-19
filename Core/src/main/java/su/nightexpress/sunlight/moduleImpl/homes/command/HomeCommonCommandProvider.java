@@ -12,7 +12,7 @@ import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.user.UserInfo;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.homes.HomeDefaults;
 import su.nightexpress.sunlight.moduleImpl.homes.HomesModule;
 import su.nightexpress.sunlight.moduleImpl.homes.config.HomesLang;
@@ -24,7 +24,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
-public class HomeCommonCommandProvider extends AbstractCommandProvider {
+public class HomeCommonCommandProvider extends CommandProvider {
 
     private static final String ARG_HOME = "home";
 

@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.command.provider.type;
+package su.nightexpress.sunlight.command;
 
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -9,14 +9,13 @@ import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
+import su.nightexpress.nightcore.locale.LangContainer;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.StringUtil;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.CommandProvider;
-import su.nightexpress.sunlight.command.provider.definition.HubDefinition;
-import su.nightexpress.sunlight.command.provider.definition.LiteralDefinition;
+import su.nightexpress.sunlight.command.definitions.HubDefinition;
+import su.nightexpress.sunlight.command.definitions.LiteralDefinition;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.UserManager;
@@ -31,7 +30,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class AbstractCommandProvider implements CommandProvider {
+public abstract class CommandProvider implements LangContainer {
 
     protected final SunLightPlugin plugin;
 
@@ -44,7 +43,7 @@ public abstract class AbstractCommandProvider implements CommandProvider {
     protected final Map<String, LiteralDefinition> literals;
     protected final Map<String, HubDefinition> root;
 
-    public AbstractCommandProvider(SunLightPlugin plugin) {
+    public CommandProvider(SunLightPlugin plugin) {
         this.plugin = plugin;
         this.literalBuilders = new HashMap<>();
         this.rootBuilder = new HashMap<>();
@@ -54,18 +53,12 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         this.root = new HashMap<>();
     }
 
-    @Override
     public void load(FileConfig config) {
-        // this.loadSettings(config, "Settings");
         this.loadLiterals(config, "LiteralNodes");
         this.loadRoot(config, "RootNodes");
     }
 
-    /*
-     * protected void loadSettings( FileConfig config, String path) {
-     * 
-     * }
-     */
+    public abstract void registerDefaults();
 
     private void loadLiterals(FileConfig config, String path) {
         if (this.defaultLiterals.isEmpty())
@@ -146,19 +139,27 @@ public abstract class AbstractCommandProvider implements CommandProvider {
     /**
      * Reads command aliases from the config.
      * <p>
-     * NightCore stores aliases as a single comma-separated string, but users (or editors)
-     * may write them as a YAML list instead. Bukkit's {@code getString()} coerces such a list
-     * via {@code toString()}, turning e.g. an empty list into the literal string {@code "[]"}.
-     * Splitting that produces a phantom command literally named {@code []} (visible and
-     * executable as {@code sunlight:[]}). This method reads the raw value to support both
-     * formats, repairs {@code "[...]"} coercion artifacts, drops blank entries, and falls back
+     * NightCore stores aliases as a single comma-separated string, but users (or
+     * editors)
+     * may write them as a YAML list instead. Bukkit's {@code getString()} coerces
+     * such a list
+     * via {@code toString()}, turning e.g. an empty list into the literal string
+     * {@code "[]"}.
+     * Splitting that produces a phantom command literally named {@code []} (visible
+     * and
+     * executable as {@code sunlight:[]}). This method reads the raw value to
+     * support both
+     * formats, repairs {@code "[...]"} coercion artifacts, drops blank entries, and
+     * falls back
      * to (and rewrites) the defaults when nothing valid remains.
      *
      * @param config   The config to read from (and repair).
      * @param path     The aliases config path.
-     * @param defaults The default aliases to restore when the configured value is unusable.
+     * @param defaults The default aliases to restore when the configured value is
+     *                 unusable.
      * @param defPath  The node path, used for warnings.
-     * @return A non-null array of usable aliases (may be empty only when no defaults exist).
+     * @return A non-null array of usable aliases (may be empty only when no
+     *         defaults exist).
      */
     private String[] readAliases(FileConfig config, String path, String[] defaults, String defPath) {
         Object raw = config.get(path);
@@ -223,22 +224,18 @@ public abstract class AbstractCommandProvider implements CommandProvider {
         this.rootBuilder.put(LowerCase.INTERNAL.apply(name), consumer);
     }
 
-    @Override
     public Map<String, HubDefinition> getRootDefinitions() {
         return this.root;
     }
 
-    @Override
     public Map<String, Consumer<HubNodeBuilder>> getRootBuilders() {
         return this.rootBuilder;
     }
 
-    @Override
     public Map<String, LiteralDefinition> getLiteralDefinitions() {
         return this.literals;
     }
 
-    @Override
     public Map<String, Consumer<LiteralNodeBuilder>> getLiteralBuilders() {
         return this.literalBuilders;
     }

@@ -12,8 +12,8 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatProperties;
@@ -23,7 +23,7 @@ import su.nightexpress.sunlight.moduleImpl.chat.spy.SpyType;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.user.property.UserProperty;
 
-public class SpyCommandProvider extends AbstractCommandProvider {
+public class SpyCommandProvider extends CommandProvider {
 
         private final ChatModule module;
         private final UserManager userManager;

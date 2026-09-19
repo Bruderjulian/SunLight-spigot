@@ -5,7 +5,7 @@ import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.bans.BansModule;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
@@ -14,7 +14,7 @@ import su.nightexpress.sunlight.utils.FutureUtils;
 
 import java.util.concurrent.CompletableFuture;
 
-public class AltsCommandProvider extends AbstractCommandProvider {
+public class AltsCommandProvider extends CommandProvider {
 
     private final BansModule module;
     private final UserManager userManager;

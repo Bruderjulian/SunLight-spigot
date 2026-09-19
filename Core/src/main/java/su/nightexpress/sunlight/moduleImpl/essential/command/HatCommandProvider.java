@@ -14,13 +14,13 @@ import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.EntityUtil;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.GRAY;
 
-public class HatCommandProvider extends AbstractCommandProvider {
+public class HatCommandProvider extends CommandProvider {
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Hat.Desc").text("Put item in head.");
 

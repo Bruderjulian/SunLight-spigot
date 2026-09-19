@@ -16,7 +16,7 @@ import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.PortableContainer;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesModule;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesPerms;
 import su.nightexpress.sunlight.nms.SunNMS;
@@ -29,7 +29,7 @@ import static su.nightexpress.nightcore.util.Placeholders.PLAYER_DISPLAY_NAME;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_TYPE;
 
-public class ContainerCommandProvider extends AbstractCommandProvider {
+public class ContainerCommandProvider extends CommandProvider {
 
         private static final Permission PERMISSION_ROOT = InventoriesPerms.COMMAND.permission("container.root");
         private static final Permission PERMISSION_OTHERS = InventoriesPerms.COMMAND.permission("container.others");

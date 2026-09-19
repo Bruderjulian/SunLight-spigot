@@ -15,8 +15,8 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.user.UserManager;
@@ -28,7 +28,7 @@ import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.WHIT
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_STATE;
 import static su.nightexpress.sunlight.SLPlaceholders.PLAYER_DISPLAY_NAME;
 
-public class FlyCommandProvider extends AbstractCommandProvider {
+public class FlyCommandProvider extends CommandProvider {
 
         private static final String COMMAND_TOGGLE = "toggle";
         private static final String COMMAND_OFF = "off";

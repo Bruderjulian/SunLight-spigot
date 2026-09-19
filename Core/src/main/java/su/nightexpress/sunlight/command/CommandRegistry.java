@@ -1,5 +1,14 @@
 package su.nightexpress.sunlight.command;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.PluginIdentifiableCommand;
 import org.bukkit.command.defaults.BukkitCommand;
@@ -20,15 +29,12 @@ import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.provider.CommandProvider;
-import su.nightexpress.sunlight.command.provider.definition.HubDefinition;
-import su.nightexpress.sunlight.command.provider.definition.LiteralDefinition;
+import su.nightexpress.sunlight.command.definitions.HubDefinition;
+import su.nightexpress.sunlight.command.definitions.LiteralDefinition;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.utils.EconomyUtils;
-
-import java.util.*;
 
 public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
@@ -161,8 +167,10 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     }
 
     private void register(NightCommand command) {
-        // Always replace server built-in (vanilla/bukkit) commands, otherwise Bukkit registers
-        // ours with the fallback prefix (sunlight:label) and command.register() returns false.
+        // Always replace server built-in (vanilla/bukkit) commands, otherwise Bukkit
+        // registers
+        // ours with the fallback prefix (sunlight:label) and command.register() returns
+        // false.
         this.unregisterConflicts(command, true);
 
         if (this.settings.isConflictUnregisterEnabled()) {
@@ -297,7 +305,8 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
                 return "Vanilla";
             }
 
-            // Paper wraps vanilla (brigadier) commands, they are not PluginIdentifiableCommand.
+            // Paper wraps vanilla (brigadier) commands, they are not
+            // PluginIdentifiableCommand.
             String className = command.getClass().getName().toLowerCase();
             if (className.contains("vanilla") || className.contains("minecraft") || className.contains("mojang")
                     || className.contains("brigadier")) {

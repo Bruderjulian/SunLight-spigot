@@ -7,15 +7,15 @@ import su.nightexpress.nightcore.core.CoreLang;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.vanish.VanishModule;
 import su.nightexpress.sunlight.moduleImpl.vanish.config.VanishLang;
 import su.nightexpress.sunlight.moduleImpl.vanish.config.VanishPerms;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.user.property.UserProperty;
 
-public class VanishCommand extends AbstractCommandProvider {
+public class VanishCommand extends CommandProvider {
 
     private static final String COMMAND_OFF = "off";
     private static final String COMMAND_ON = "on";

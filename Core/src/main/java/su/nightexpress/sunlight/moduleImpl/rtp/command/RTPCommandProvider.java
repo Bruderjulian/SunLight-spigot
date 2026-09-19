@@ -7,12 +7,12 @@ import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.rtp.RTPModule;
 import su.nightexpress.sunlight.moduleImpl.rtp.config.RTPLang;
 import su.nightexpress.sunlight.moduleImpl.rtp.config.RTPPerms;
 
-public class RTPCommandProvider extends AbstractCommandProvider {
+public class RTPCommandProvider extends CommandProvider {
 
     private final RTPModule module;
 

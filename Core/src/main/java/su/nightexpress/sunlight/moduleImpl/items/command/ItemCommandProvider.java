@@ -21,7 +21,7 @@ import su.nightexpress.nightcore.util.*;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.items.ItemsLang;
 import su.nightexpress.sunlight.moduleImpl.items.ItemsModule;
@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
 
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
-public class ItemCommandProvider extends AbstractCommandProvider {
+public class ItemCommandProvider extends CommandProvider {
 
         private static final String COMMAND_AMOUNT = "amount";
         private static final String COMMAND_DAMAGE = "damage";

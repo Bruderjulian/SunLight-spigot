@@ -21,7 +21,7 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
@@ -31,7 +31,7 @@ import static su.nightexpress.nightcore.util.Placeholders.PLAYER_DISPLAY_NAME;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
-public class EnchantCommandsProvider extends AbstractCommandProvider {
+public class EnchantCommandsProvider extends CommandProvider {
 
         private static final String ARG_SLOT = "slot";
         private static final String ARG_ENCHANT = "enchant";

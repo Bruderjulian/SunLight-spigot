@@ -8,15 +8,15 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.PhantomsModule;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.PhantomsProperties;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.config.PhantomsLang;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.config.PhantomsPerms;
 import su.nightexpress.sunlight.user.UserManager;
 
-public class PhantomsCommandProvider extends AbstractCommandProvider {
+public class PhantomsCommandProvider extends CommandProvider {
 
         // private static final String COMMAND_OFF = "off";
         // private static final String COMMAND_ON = "on";

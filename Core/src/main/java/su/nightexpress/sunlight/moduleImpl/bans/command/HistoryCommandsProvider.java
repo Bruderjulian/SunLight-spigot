@@ -10,7 +10,7 @@ import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.bans.BansModule;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
@@ -19,7 +19,7 @@ import su.nightexpress.sunlight.moduleImpl.bans.punishment.PunishmentType;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.FutureUtils;
 
-public class HistoryCommandsProvider extends AbstractCommandProvider {
+public class HistoryCommandsProvider extends CommandProvider {
 
     private final BansModule module;
     private final UserManager userManager;

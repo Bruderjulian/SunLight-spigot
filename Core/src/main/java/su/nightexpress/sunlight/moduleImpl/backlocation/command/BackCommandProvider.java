@@ -6,14 +6,14 @@ import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.backlocation.BackLocationModule;
 import su.nightexpress.sunlight.moduleImpl.backlocation.config.BackLocationLang;
 import su.nightexpress.sunlight.moduleImpl.backlocation.config.BackLocationPerms;
 import su.nightexpress.sunlight.moduleImpl.backlocation.data.LocationType;
 import su.nightexpress.sunlight.user.UserManager;
 
-public class BackCommandProvider extends AbstractCommandProvider {
+public class BackCommandProvider extends CommandProvider {
 
     private final BackLocationModule module;
     private final UserManager userManager;

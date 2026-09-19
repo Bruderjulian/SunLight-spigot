@@ -10,8 +10,8 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatProperties;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
@@ -20,7 +20,7 @@ import su.nightexpress.sunlight.user.UserManager;
 
 import java.util.Map;
 
-public class MentionsCommandProvider extends AbstractCommandProvider {
+public class MentionsCommandProvider extends CommandProvider {
 
     private static final String COMMAND_OFF = "off";
     private static final String COMMAND_ON = "on";

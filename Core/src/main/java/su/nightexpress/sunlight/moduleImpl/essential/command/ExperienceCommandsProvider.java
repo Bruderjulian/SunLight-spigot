@@ -15,8 +15,8 @@ import su.nightexpress.nightcore.util.NumberUtil;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ModifyMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.user.UserManager;
@@ -26,7 +26,7 @@ import java.util.Map;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
-public class ExperienceCommandsProvider extends AbstractCommandProvider {
+public class ExperienceCommandsProvider extends CommandProvider {
 
         private static final String COMMAND_LEVEL_ADD = "level_add";
         private static final String COMMAND_LEVEL_SET = "level_set";

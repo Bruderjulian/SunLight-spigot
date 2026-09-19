@@ -7,7 +7,7 @@ import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
@@ -18,7 +18,7 @@ import su.nightexpress.sunlight.utils.FutureUtils;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public class MailCommandProvider extends AbstractCommandProvider {
+public class MailCommandProvider extends CommandProvider {
 
     private static final String COMMAND_SEND = "send";
     private static final String COMMAND_READ = "read";

@@ -18,7 +18,7 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.Replacer;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
-public class NearCommandProvider extends AbstractCommandProvider {
+public class NearCommandProvider extends CommandProvider {
 
     private static final Permission PERMISSION_COMMAND = EssentialPerms.COMMAND.permission("near");
     private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("near.others");

@@ -17,7 +17,7 @@ import su.nightexpress.nightcore.util.LangUtil;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesModule;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesPerms;
@@ -35,7 +35,7 @@ import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_ITEM;
 import static su.nightexpress.sunlight.SLPlaceholders.PLAYER_DISPLAY_NAME;
 
-public class InventoryCommandProvider extends AbstractCommandProvider {
+public class InventoryCommandProvider extends CommandProvider {
 
         private static final String COMMAND_CLEAR = "clear";
         private static final String COMMAND_COPY = "copy";

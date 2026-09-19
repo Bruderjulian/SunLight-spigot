@@ -8,13 +8,13 @@ import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.afk.AfkModule;
 import su.nightexpress.sunlight.moduleImpl.afk.core.AfkLang;
 import su.nightexpress.sunlight.moduleImpl.afk.core.AfkPerms;
 
-public class AfkCommandProvider extends AbstractCommandProvider {
+public class AfkCommandProvider extends CommandProvider {
 
     private static final String COMMAND_TOGGLE = "toggle";
     private static final String COMMAND_ON = "on";

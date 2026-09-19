@@ -14,7 +14,7 @@ import su.nightexpress.nightcore.util.placeholder.Replacer;
 import su.nightexpress.sunlight.SLUtils;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
@@ -32,7 +32,7 @@ import java.util.stream.IntStream;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
-public class TimeCommandProvider extends AbstractCommandProvider {
+public class TimeCommandProvider extends CommandProvider {
 
         private static final Permission PERMISSION_ROOT = EssentialPerms.COMMAND.permission("time.root");
         private static final Permission PERMISSION_SHOW = EssentialPerms.COMMAND.permission("time.show");

@@ -13,14 +13,14 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.text.NightMessage;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialSettings;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 
-public class DisposalCommandProvider extends AbstractCommandProvider {
+public class DisposalCommandProvider extends CommandProvider {
 
     private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("disposal");
     private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("disposal.others");

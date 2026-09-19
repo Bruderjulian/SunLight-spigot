@@ -19,7 +19,7 @@ import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
@@ -34,7 +34,7 @@ import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.RED;
 import static su.nightexpress.sunlight.SLPlaceholders.forLocation;
 import static su.nightexpress.sunlight.SLPlaceholders.forPlayerWithPAPI;
 
-public class PlayerInfoCommandProvider extends AbstractCommandProvider {
+public class PlayerInfoCommandProvider extends CommandProvider {
 
         private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("playerinfo");
 

@@ -13,7 +13,7 @@ import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 
@@ -21,7 +21,7 @@ import java.util.List;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.BR;
 
-public class BroadcastCommandProvider extends AbstractCommandProvider {
+public class BroadcastCommandProvider extends CommandProvider {
 
     private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("broadcast");
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Broadcast.Desc")

@@ -6,13 +6,13 @@ import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
 import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.bans.BansModule;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PunishmentType;
 
-public class ListCommandsProvider extends AbstractCommandProvider {
+public class ListCommandsProvider extends CommandProvider {
 
     public static final String NODE_BAN = "banlist";
     public static final String NODE_MUTE = "mutelist";

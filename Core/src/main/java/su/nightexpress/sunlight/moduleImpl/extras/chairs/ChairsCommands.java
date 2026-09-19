@@ -11,15 +11,15 @@ import su.nightexpress.nightcore.core.CoreLang;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasLang;
 import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasPerms;
 import su.nightexpress.sunlight.user.UserManager;
 
 import java.util.Map;
 
-public class ChairsCommands extends AbstractCommandProvider {
+public class ChairsCommands extends CommandProvider {
 
     public static final String NODE_TOGGLE = "chairs_toggle";
     public static final String NODE_SIT = "chairs_sit";

@@ -18,7 +18,7 @@ import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.kits.KitsModule;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsLang;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsPerms;
@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-public class KitsCommandProvider extends AbstractCommandProvider {
+public class KitsCommandProvider extends CommandProvider {
 
     private static final String ARG_KIT = "kit";
 

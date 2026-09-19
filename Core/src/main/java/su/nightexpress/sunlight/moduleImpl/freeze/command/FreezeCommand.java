@@ -9,15 +9,15 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.freeze.FreezeModule;
 import su.nightexpress.sunlight.moduleImpl.freeze.config.FreezeLang;
 import su.nightexpress.sunlight.moduleImpl.freeze.config.FreezePerms;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.user.property.UserProperty;
 
-public class FreezeCommand extends AbstractCommandProvider {
+public class FreezeCommand extends CommandProvider {
 
     private static final String COMMAND_TOGGLE = "toggle";
     private static final String COMMAND_ON = "on";
@@ -34,45 +34,51 @@ public class FreezeCommand extends AbstractCommandProvider {
 
     @Override
     public void registerDefaults() {
-        this.registerLiteral(COMMAND_TOGGLE, true, new String[]{"freeze"}, builder -> this.buildCommand(builder, ToggleMode.TOGGLE));
-        this.registerLiteral(COMMAND_ON, false, new String[]{"freeze-on"}, builder -> this.buildCommand(builder, ToggleMode.ON));
-        this.registerLiteral(COMMAND_OFF, false, new String[]{"freeze-off"}, builder -> this.buildCommand(builder, ToggleMode.OFF));
+        this.registerLiteral(COMMAND_TOGGLE, true, new String[] { "freeze" },
+                builder -> this.buildCommand(builder, ToggleMode.TOGGLE));
+        this.registerLiteral(COMMAND_ON, false, new String[] { "freeze-on" },
+                builder -> this.buildCommand(builder, ToggleMode.ON));
+        this.registerLiteral(COMMAND_OFF, false, new String[] { "freeze-off" },
+                builder -> this.buildCommand(builder, ToggleMode.OFF));
     }
 
     private void buildCommand(LiteralNodeBuilder builder, ToggleMode mode) {
         builder.description(FreezeLang.COMMAND_FREEZE_DESC)
-            .permission(FreezePerms.COMMAND_FREEZE)
-            .withArguments(Arguments.playerName(CommandArguments.PLAYER)
-                .permission(FreezePerms.COMMAND_FREEZE_OTHERS).optional())
-            .withFlags(CommandArguments.FLAG_SILENT)
-            .executes((context, arguments) -> this.toggleFreeze(context, arguments, mode));
+                .permission(FreezePerms.COMMAND_FREEZE)
+                .withArguments(Arguments.playerName(CommandArguments.PLAYER)
+                        .permission(FreezePerms.COMMAND_FREEZE_OTHERS).optional())
+                .withFlags(CommandArguments.FLAG_SILENT)
+                .executes((context, arguments) -> this.toggleFreeze(context, arguments, mode));
     }
 
     private boolean toggleFreeze(CommandContext context, ParsedArguments arguments, ToggleMode mode) {
         this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager,
-            (user, target) -> {
-                if (target.hasPermission(FreezePerms.BYPASS_IMMUNE) && !context.getSender().hasPermission(FreezePerms.BYPASS_IMMUNE)) {
-                    this.module.sendPrefixed(FreezeLang.ERROR_IMMUNE, context.getSender(),
-                        builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
-                    return;
-                }
+                (user, target) -> {
+                    if (target.hasPermission(FreezePerms.BYPASS_IMMUNE)
+                            && !context.getSender().hasPermission(FreezePerms.BYPASS_IMMUNE)) {
+                        this.module.sendPrefixed(FreezeLang.ERROR_IMMUNE, context.getSender(),
+                                builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
+                        return;
+                    }
 
-                UserProperty<Boolean> setting = FreezeModule.FROZEN;
+                    UserProperty<Boolean> setting = FreezeModule.FROZEN;
 
-                boolean state = mode.apply(user.getPropertyOrDefault(setting));
-                this.module.setFrozen(target, state);
+                    boolean state = mode.apply(user.getPropertyOrDefault(setting));
+                    this.module.setFrozen(target, state);
 
-                if (context.getSender() != target) {
-                    this.module.sendPrefixed(FreezeLang.COMMAND_FREEZE_TARGET, context.getSender(), builder -> builder
-                        .with(CommonPlaceholders.PLAYER.resolver(target))
-                        .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state)));
-                }
+                    if (context.getSender() != target) {
+                        this.module.sendPrefixed(FreezeLang.COMMAND_FREEZE_TARGET, context.getSender(),
+                                builder -> builder
+                                        .with(CommonPlaceholders.PLAYER.resolver(target))
+                                        .with(SLPlaceholders.GENERIC_STATE,
+                                                () -> CoreLang.STATE_ENABLED_DISALBED.get(state)));
+                    }
 
-                if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                    this.module.sendPrefixed(FreezeLang.COMMAND_FREEZE_NOTIFY, target, builder -> builder
-                        .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state)));
-                }
-            });
+                    if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
+                        this.module.sendPrefixed(FreezeLang.COMMAND_FREEZE_NOTIFY, target, builder -> builder
+                                .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state)));
+                    }
+                });
 
         return true;
     }

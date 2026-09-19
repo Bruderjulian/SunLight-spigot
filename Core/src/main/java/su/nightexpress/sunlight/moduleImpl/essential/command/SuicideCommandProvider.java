@@ -12,13 +12,13 @@ import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.GRAY;
 
-public class SuicideCommandProvider extends AbstractCommandProvider {
+public class SuicideCommandProvider extends CommandProvider {
 
     private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("suicide");
 

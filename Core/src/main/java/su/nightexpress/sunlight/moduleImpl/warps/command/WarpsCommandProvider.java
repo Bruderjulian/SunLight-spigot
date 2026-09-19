@@ -12,7 +12,7 @@ import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.warps.Warp;
 import su.nightexpress.sunlight.moduleImpl.warps.WarpsModule;
 import su.nightexpress.sunlight.moduleImpl.warps.core.WarpsLang;
@@ -22,7 +22,7 @@ import su.nightexpress.sunlight.user.UserManager;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class WarpsCommandProvider extends AbstractCommandProvider {
+public class WarpsCommandProvider extends CommandProvider {
 
     private static final String ARGUMENT_WARP = "warp";
 

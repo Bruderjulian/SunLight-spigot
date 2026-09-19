@@ -12,8 +12,8 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.chat.*;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
@@ -23,7 +23,7 @@ import su.nightexpress.sunlight.user.UserManager;
 import java.util.Map;
 import java.util.UUID;
 
-public class ConversationCommandProvider extends AbstractCommandProvider {
+public class ConversationCommandProvider extends CommandProvider {
 
     private static final String COMMAND_MESSAGE = "message";
     private static final String COMMAND_REPLY = "reply";

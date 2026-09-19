@@ -8,7 +8,7 @@ import su.nightexpress.nightcore.commands.exceptions.CommandSyntaxException;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsLang;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsModule;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsPerms;
@@ -16,7 +16,7 @@ import su.nightexpress.sunlight.moduleImpl.texts.text.Text;
 
 import java.util.Optional;
 
-public class TextCommandProvider extends AbstractCommandProvider {
+public class TextCommandProvider extends CommandProvider {
 
     private final TextsModule module;
 
