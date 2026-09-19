@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.extras.command;
+package su.nightexpress.sunlight.moduleImpl.essential.command;
 
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
@@ -13,18 +13,17 @@ import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
 import su.nightexpress.sunlight.command.provider.type.AbstractCommandProvider;
-import su.nightexpress.sunlight.moduleImpl.extras.ExtrasModule;
-import su.nightexpress.sunlight.moduleImpl.extras.ExtrasProperties;
-import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasLang;
-import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasPerms;
+import su.nightexpress.sunlight.moduleImpl.essential.EssentialLang;
+import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
+import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.user.UserManager;
 
 public class GodCommandProvider extends AbstractCommandProvider {
 
-    private final ExtrasModule module;
+    private final EssentialModule module;
     private final UserManager userManager;
 
-    public GodCommandProvider(SunLightPlugin plugin, ExtrasModule module, UserManager userManager) {
+    public GodCommandProvider(SunLightPlugin plugin, EssentialModule module, UserManager userManager) {
         super(plugin);
         this.module = module;
         this.userManager = userManager;
@@ -33,9 +32,9 @@ public class GodCommandProvider extends AbstractCommandProvider {
     @Override
     public void registerDefaults() {
         this.registerLiteral("toggle", true, new String[] { "god" }, builder -> builder
-                .description(ExtrasLang.COMMAND_GOD_DESC)
-                .permission(ExtrasPerms.COMMAND_GOD)
-                .withArguments(Arguments.playerName(CommandArguments.PLAYER).permission(ExtrasPerms.COMMAND_GOD_OTHERS)
+                .description(EssentialLang.COMMAND_GOD_DESC)
+                .permission(EssentialPerms.COMMAND_GOD)
+                .withArguments(Arguments.playerName(CommandArguments.PLAYER).permission(EssentialPerms.COMMAND_GOD_OTHERS)
                         .optional())
                 .withFlags(CommandArguments.FLAG_SILENT)
                 .executes((context, arguments) -> this.toggleGod(context, arguments, ToggleMode.TOGGLE)));
@@ -44,21 +43,21 @@ public class GodCommandProvider extends AbstractCommandProvider {
     private boolean toggleGod(CommandContext context, ParsedArguments arguments, ToggleMode mode) {
         return this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager,
                 (user, target) -> {
-                    boolean state = mode.apply(user.getPropertyOrDefault(ExtrasProperties.GOD));
-                    user.setProperty(ExtrasProperties.GOD, state);
+                    boolean state = mode.apply(user.getPropertyOrDefault(EssentialModule.GOD));
+                    user.setProperty(EssentialModule.GOD, state);
                     user.markDirty();
 
                     if (state)
                         this.clearAggro(target);
 
                     if (context.getSender() != target) {
-                        this.module.sendPrefixed(ExtrasLang.COMMAND_GOD_TARGET, context.getSender(), builder -> builder
+                        this.module.sendPrefixed(EssentialLang.GOD_TOGGLE_FEEDBACK, context.getSender(), builder -> builder
                                 .with(CommonPlaceholders.PLAYER.resolver(target))
                                 .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.getEnabledOrDisabled(state)));
                     }
 
                     if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                        this.module.sendPrefixed(ExtrasLang.COMMAND_GOD_NOTIFY, target, builder -> builder
+                        this.module.sendPrefixed(EssentialLang.GOD_TOGGLE_NOTIFY, target, builder -> builder
                                 .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.getEnabledOrDisabled(state)));
                     }
                 });

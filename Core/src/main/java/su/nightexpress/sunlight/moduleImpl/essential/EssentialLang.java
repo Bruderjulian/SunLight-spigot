@@ -11,6 +11,7 @@ import static su.nightexpress.sunlight.SLPlaceholders.*;
 public class EssentialLang implements LangContainer {
 
     public static final TextLocale COMMAND_INVULNERABILITY_DESC = LangEntry.builder("Essential.Command.Invulnerability.Desc").text("Toggle Invulnerability.");
+    public static final TextLocale COMMAND_GOD_DESC = LangEntry.builder("Essential.Command.God.Desc").text("Toggle God Mode.");
 
     public static final MessageLocale INVULNERABILITY_TOGGLE_NOTIFY = LangEntry.builder("Essential.Invulnerability.Toggle.Notify").chatMessage(
         GRAY.wrap("Your " + ORANGE.wrap("Invulnerability") + " has been set to " + WHITE.wrap(GENERIC_STATE) + ".")
@@ -18,6 +19,14 @@ public class EssentialLang implements LangContainer {
 
     public static final MessageLocale INVULNERABILITY_TOGGLE_FEEDBACK = LangEntry.builder("Essential.Invulnerability.Toggle.Feedback").chatMessage(
         GRAY.wrap("You have set " + WHITE.wrap(PLAYER_DISPLAY_NAME) + "'s " + ORANGE.wrap("Invulnerability") + " to " + WHITE.wrap(GENERIC_STATE) + ".")
+    );
+
+    public static final MessageLocale GOD_TOGGLE_NOTIFY = LangEntry.builder("Essential.God.Toggle.Notify").chatMessage(
+        GRAY.wrap("Your " + ORANGE.wrap("God Mode") + " has been set to " + WHITE.wrap(GENERIC_STATE) + ".")
+    );
+
+    public static final MessageLocale GOD_TOGGLE_FEEDBACK = LangEntry.builder("Essential.God.Toggle.Feedback").chatMessage(
+        GRAY.wrap("You have set " + WHITE.wrap(PLAYER_DISPLAY_NAME) + "'s " + ORANGE.wrap("God Mode") + " to " + WHITE.wrap(GENERIC_STATE) + ".")
     );
 
 

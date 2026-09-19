@@ -7,13 +7,11 @@ import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleContext;
 import su.nightexpress.sunlight.moduleImpl.extras.chairs.ChairsManager;
 import su.nightexpress.sunlight.moduleImpl.extras.chestsort.SortManager;
-import su.nightexpress.sunlight.moduleImpl.extras.command.GodCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasConfig;
 import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasLang;
 import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasPerms;
 import su.nightexpress.sunlight.moduleImpl.extras.listener.ExtrasGenericListener;
 import su.nightexpress.sunlight.moduleImpl.extras.listener.PhysicsExplosionListener;
-import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 
 public class ExtrasModule extends Module {
 
@@ -40,9 +38,6 @@ public class ExtrasModule extends Module {
         if (ExtrasConfig.PHYSIC_EXPLOSIONS_ENABLED.get()) {
             this.addListener(new PhysicsExplosionListener(this.plugin));
         }
-        if (ExtrasConfig.GOD_ENABLED.get()) {
-            UserPropertyRegistry.register(ExtrasProperties.GOD);
-        }
         this.addListener(new ExtrasGenericListener(this.plugin, this));
     }
 
@@ -61,10 +56,6 @@ public class ExtrasModule extends Module {
 
     @Override
     protected void registerCommands() {
-        if (ExtrasConfig.GOD_ENABLED.get()) {
-            this.commandRegistry.addProvider("extras-god", new GodCommandProvider(this.plugin, this, this.userManager),
-                    this);
-        }
     }
 
     @Override

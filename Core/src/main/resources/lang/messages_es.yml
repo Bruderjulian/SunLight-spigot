@@ -18,27 +18,6 @@ Command:
       Reason: Razón
       IPorName: Nombre | Dirección
       #Por Jose :3
-  Air:
-    Add:
-      Desc: Añadir ticks de aire.
-    Set:
-      Desc: Establecer ticks de aire.
-      Target: '<lgray>Se establecieron <lyellow>%amount%</lyellow> ticks de aire para <lyellow>%player_display_name%</lyellow>. Nuevos ticks de aire: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
-      Notify:
-        - <output:"action_bar">
-        - '<lgray>Tus ticks de aire se establecieron en <lyellow>%amount%</lyellow>: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
-    Remove:
-      Desc: Quitar ticks de aire.
-    Give:
-      Target: '<lgray>Se agregaron <lyellow>%amount%</lyellow> ticks de aire a <lyellow>%player_display_name%</lyellow>. Nuevos ticks de aire: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
-      Notify:
-        - <output:"action_bar">
-        - '<lgray>Obtuviste <lyellow>%amount%</lyellow> ticks de aire: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
-    Take:
-      Target: '<lgray>Se quitaron <lyellow>%amount%</lyellow> ticks de aire de <lyellow>%player_display_name%</lyellow>. Nuevos ticks de aire: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
-      Notify:
-        - <output:"action_bar">
-        - '<lgray>Perdiste <lyellow>%amount%</lyellow> ticks de aire: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
   Anvil:
     Desc: Abrir yunque portátil.
     Target: <lgray>Se abrió el yunque portátil para <lyellow>%player_display_name%</lyellow>.</lgray>
@@ -204,19 +183,6 @@ Command:
     Done:
       Notify: <lgray>Tu velocidad de vuelo se ha establecido en <lyellow>%amount%</lyellow>.</lgray>
       Target: <lgray>Se estableció la velocidad de vuelo en <lyellow>%amount%</lyellow> para <lyellow>%player_display_name%</lyellow>.</lgray>
-  Fire:
-    Set:
-      Desc: Establecer ticks de fuego.
-      Info: '<lgray>Se establecieron los ticks de fuego de <lyellow>%player_display_name%</lyellow> en <lyellow>%amount%</lyellow>, es decir, se incendió durante: <lyellow>%time%</lyellow>s.</lgray>'
-      Target: <lgray>Has sido incendiado durante <lyellow>%time%</lyellow>s.</lgray>
-    Reset:
-      Desc: Restablecer ticks de fuego.
-      Info:
-        - <sound:"block_fire_extinguish">
-        - <lgray>Se restableció el valor de los ticks de fuego de <lyellow>%player_display_name%</lyellow>, es decir, se extinguió.</lgray>
-      Target:
-        - <sound:"block_fire_extinguish">
-        - <lgray>Has sido extinguido.</lgray>
   Food:
     Add:
       Desc: Añadir puntos de comida.
@@ -472,12 +438,6 @@ Command:
   Staff:
     Desc: Mostrar personal en línea.
     Empty: <lgray>No hay personal en línea.</lgray>
-  Spawner:
-    Desc: Cambiar el tipo de generador.
-    Done: <lgray>El tipo de generador se cambió a <lyellow>%type%</lyellow>.</lgray>
-    Error:
-      Type: <lred>Este tipo no se puede establecer para el generador.</lred>
-      Block: <lred>¡Debes mirar al bloque del generador!</lred>
   Speed:
     Desc: Cambiar la velocidad de movimiento.
     Done:
@@ -548,23 +508,10 @@ Command:
     Set:
       Desc: Establecer la hora del mundo.
       Done: <lgray>La hora se estableció en <lyellow>%time%</lyellow> (<white>%total% ticks</white>) en el mundo <lyellow>%world%</lyellow>.</lgray>
-    Personal:
-      Set:
-        Desc: Establecer hora personal.
-        Target: <lgray>Se estableció la hora de <lyellow>%player_display_name%</lyellow> en <lyellow>%time%</lyellow> (<white>%total% ticks</white>).</lgray>
-        Notify: <lgray>Tu hora personal se ha establecido en <lyellow>%time%</lyellow> (<white>%total% ticks</white>).</lgray>
-      Reset:
-        Desc: Restablecer hora personal.
-        Target: <lgray>Se restableció la hora de <lyellow>%player_display_name%</lyellow>.</lgray>
-        Notify: <lgray>Tu hora personal se ha restablecido.</lgray>
   Smite:
     Desc: Golpear a un jugador con un rayo.
     Target: <lgray>¡Se golpeó a <lyellow>%player_name%</lyellow> con un rayo!</lgray>
     Notify: <lgray>¡Has sido golpeado por un rayo!</lgray>
-  Weather:
-    Type:
-      Desc: Establecer el clima en %type%.
-    Set: <lgray>Se estableció el clima en <lyellow>%type%</lyellow> en <lyellow>%world%</lyellow>.</lgray>
   Workbench:
     Desc: Abrir banco de trabajo portátil.
     Target: <lgray>Se abrió el banco de trabajo portátil para <lyellow>%player_display_name%</lyellow>.</lgray>
@@ -804,10 +751,6 @@ GameMode:
 ExperienceType:
   POINTS: Puntos
   LEVELS: Niveles
-WeatherType:
-  CLEAR: Despejado
-  STORM: Tormenta
-  THUNDER: Truenos
 Bans:
   Command:
     History:
@@ -1157,135 +1100,6 @@ Bans:
     DATE: Fecha
     PUNISHER: Sancionador
     REASON: Razón
-Worlds:
-  Command:
-    Worlds:
-      Create:
-        Desc: Crear un nuevo mundo.
-        Error: <lred>¡Ya existe un mundo con ese nombre!</lred>
-        Done: '<lgray>Datos del mundo creados: <lyellow>%world_id%</lyellow>!</lgray>'
-      Delete:
-        Desc: Eliminar un mundo personalizado.
-        Error: '<lgray>No se pudo eliminar el mundo: <lred>%world_id%</lred>!</lgray>'
-        Done: '<lgray>Mundo eliminado: <lyellow>%world_id%</lyellow>!</lgray>'
-      Editor:
-        Desc: Abrir editor de mundos.
-      Load:
-        Desc: Cargar un mundo personalizado.
-        Error: '<lgray>No se pudo cargar el mundo: <lred>%world_id%</lred>!</lgray>'
-        Done: '<lgray>Mundo cargado: <lyellow>%world_id%</lyellow>!</lgray>'
-      Unload:
-        Desc: Descargar un mundo personalizado.
-        Error: '<lgray>No se pudo descargar el mundo: <lred>%world_id%</lred>!</lgray>'
-        Done: '<lgray>Mundo descargado: <lyellow>%world_id%</lyellow>!</lgray>'
-  AutoWipe:
-    MoveOut: <lgray>Has sido teletransportado debido a la descarga del mundo.</lgray>
-    Notify:
-      - <noprefix>
-      - ''
-      - <lred><b>Advertencia de reinicio automático:</b></lred>
-      - <lgray>El mundo se reiniciará automáticamente en <lred>%time%</lred></lgray>
-  Error:
-    CommandBlocked: <lred>¡No puedes usar ese comando en este mundo!</lred>
-    FlyDisabled: <lred>¡Volar no está permitido en este mundo!</lred>
-    Command:
-      Argument:
-        InvalidWorldData: <lgray><lred>%value%</lred> no es un mundo válido.</lgray>
-  Editor:
-    Title:
-      List: <black>Lista de mundos</black>
-      Settings: <black>Ajustes del mundo</black>
-      Generation: <black>Carga/generación del mundo</black>
-      GameRules: <black>Reglas del juego del mundo</black>
-    World:
-      Rule:
-        Object:
-          Name: '<lyellow><b>Regla: <reset><white>%name%</white></b></lyellow>'
-          Lore:
-            - '<lyellow>● <lgray>Valor: </lgray>%value%</lyellow>'
-            - ''
-            - <lyellow>[▶]</lyellow> <lgray>Haz clic para <lyellow>cambiar</lyellow>.</lgray>
-      Difficulty:
-        Name: <lyellow><b>Dificultad</b></lyellow>
-        Lore:
-          - '<lyellow>● <lgray>Actual: </lgray>%world_difficulty%</lyellow>'
-          - ''
-          - <lgray>Establece la dificultad del mundo.</lgray>
-          - ''
-          - <lyellow>[▶]</lyellow> <lgray>Haz clic para <lyellow>alternar</lyellow>.</lgray>
-      AutoWipe:
-        Name: <lyellow><b>Reinicio automático</b></lyellow>
-        Lore:
-          - <lgray>Establece si este mundo</lgray>
-          - <lgray>debe reiniciarse automáticamente con</lgray>
-          - <lgray>cierto intervalo.</lgray>
-          - ''
-          - '<lyellow>● <lgray>Habilitado: </lgray>%world_auto_wipe_enabled%</lyellow>'
-          - '<lyellow>● <lgray>Intervalo: </lgray>%world_auto_wipe_interval%</lyellow>'
-          - '<lyellow>● <lgray>Último reinicio: </lgray>%world_auto_wipe_last_wipe%</lyellow>'
-          - '<lyellow>● <lgray>Siguiente reinicio: </lgray>%world_auto_wipe_next_wipe%</lyellow>'
-          - ''
-          - <lyellow>[▶]</lyellow> <lgray>Clic izquierdo para <lyellow>alternar</lyellow>.</lgray>
-          - <lyellow>[▶]</lyellow> <lgray>Clic derecho para <lyellow>cambiar intervalo</lyellow>.</lgray>
-          - <lyellow>[▶]</lyellow> <lgray>Tecla [Q / Soltar] para <lyellow>establecer la última vez</lyellow>.</lgray>
-      GameRules:
-        Name: <lyellow><b>Reglas del juego</b></lyellow>
-        Lore:
-          - ''
-          - <lyellow>[▶]</lyellow> <lgray>Haz clic para <lyellow>navegar</lyellow>.</lgray>
-      Structures:
-        Name: <lyellow><b>Generación de estructuras</b></lyellow>
-        Lore:
-          - '<lyellow>● <lgray>Habilitado: </lgray>%world_structures%</lyellow>'
-          - ''
-          - <lyellow>[▶]</lyellow> <lgray>Haz clic para <lyellow>alternar</lyellow>.</lgray>
-      Environment:
-        Name: <lyellow><b>Entorno</b></lyellow>
-        Lore:
-          - '<lyellow>● <lgray>Actual: </lgray>%world_environment%</lyellow>'
-          - ''
-          - <lyellow>[▶]</lyellow> <lgray>Haz clic para <lyellow>alternar</lyellow>.</lgray>
-      Generator:
-        Name: <lyellow><b>Generador de chunks</b></lyellow>
-        Lore:
-          - '<lyellow>● <lgray>Actual: </lgray>%world_generator%</lyellow>'
-          - ''
-          - <lyellow>[▶]</lyellow> <lgray>Haz clic para <lyellow>cambiar</lyellow>.</lgray>
-      Delete:
-        Name: <lyellow><b>Eliminar datos</b></lyellow>
-        Lore:
-          - <lgray><lred>(Sin deshacer)</lred></lgray>
-          - ''
-          - <lyellow>[▶]</lyellow> <lgray>Tecla [Q / Soltar] para <lyellow>eliminar archivos del mundo</lyellow>.</lgray>
-          - <lyellow>[▶]</lyellow> <lgray>Clic derecho para <lyellow>eliminar configuración</lyellow>.</lgray>
-          - <lyellow>[▶]</lyellow> <lgray>Mayús-Clic derecho para <lyellow>eliminar ambos</lyellow>.</lgray>
-      Unload:
-        Name: <lyellow><b>Descargar mundo</b></lyellow>
-        Lore: []
-      Load:
-        Name: <lyellow><b>Cargar mundo</b></lyellow>
-        Lore: []
-      AutoLoad:
-        Name: <lyellow><b>Carga automática</b></lyellow>
-        Lore:
-          - '<lyellow>● <lgray>Habilitado: </lgray>%world_auto_load%</lyellow>'
-          - ''
-          - <lgray>Carga el mundo al iniciar el servidor.</lgray>
-          - ''
-          - <lyellow>[▶]</lyellow> <lgray>Haz clic para <lyellow>alternar</lyellow>.</lgray>
-      Object:
-        Name: '<lyellow><b>Mundo: <reset><white>%world_id%</white></b></lyellow>'
-        Lore:
-          - '<lyellow>● <lgray>Creado: </lgray>%world_is_created%</lyellow>'
-          - '<lyellow>● <lgray>Cargado: </lgray>%world_is_loaded%</lyellow>'
-          - '<lyellow>● <lgray>Carga automática: </lgray>%world_auto_load%</lyellow>'
-          - ''
-          - <lyellow>[▶]</lyellow> <lgray>Haz clic para <lyellow>editar</lyellow>.</lgray>
-  Difficulty:
-    PEACEFUL: Pacífico
-    EASY: Fácil
-    NORMAL: Normal
-    HARD: Difícil
 Spawns:
   Command:
     Spawns:

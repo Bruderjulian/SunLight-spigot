@@ -23,10 +23,6 @@ GameMode:
 ExperienceType:
   POINTS: очков
   LEVELS: уровней
-WeatherType:
-  CLEAR: Ясно
-  STORM: Осадки
-  THUNDER: Гроза
 MenuType:
   ANVIL: Наковальня
   CRAFTING: Верстак
@@ -55,27 +51,6 @@ Command:
       Z: z
       Reason: причина
       IPorName: имя | адрес
-  Air:
-    Add:
-      Desc: Добавить тики воздуха.
-    Set:
-      Desc: Установить тики воздуха.
-      Target: '<lgray>Установлено <lyellow>%amount%</lyellow> тиков воздуха для игрока <lyellow>%player_display_name%</lyellow>. Новое значение: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
-      Notify:
-      - <output:"action_bar">
-      - '<lgray>Ваши тики воздуха установлены на <lyellow>%amount%</lyellow>: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
-    Remove:
-      Desc: Удалить тики воздуха.
-    Give:
-      Target: '<lgray>Добавлено <lyellow>%amount%</lyellow> тиков воздуха игроку <lyellow>%player_display_name%</lyellow>. Новое значение: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
-      Notify:
-      - <output:"action_bar">
-      - '<lgray>Вы получили <lyellow>%amount%</lyellow> тиков воздуха: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
-    Take:
-      Target: '<lgray>Удалено <lyellow>%amount%</lyellow> тиков воздуха у игрока <lyellow>%player_display_name%</lyellow>. Новое значение: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
-      Notify:
-      - <output:"action_bar">
-      - '<lgray>Вы потеряли <lyellow>%amount%</lyellow> тиков воздуха: <lyellow>%current%</lyellow>/<lyellow>%max%</lyellow>.</lgray>'
   Broadcast:
     Desc: Транслировать сообщение в общий чат.
   Condense:
@@ -236,19 +211,6 @@ Command:
     Done:
       Notify: <lgray>Ваша скорость полёта установлена на <lyellow>%amount%</lyellow>.</lgray>
       Target: <lgray>Скорость полёта игрока <lyellow>%player_display_name%</lyellow> установлена на <lyellow>%amount%</lyellow>.</lgray>
-  Fire:
-    Set:
-      Desc: Установить тики огня.
-      Info: '<lgray>Установлено значение тиков огня для игрока <lyellow>%player_display_name%</lyellow> на <lyellow>%amount%</lyellow>, что соответствует возгоранию на <lyellow>%time%</lyellow> сек.</lgray>'
-      Target: <lgray>Вы подожжены на <lyellow>%time%</lyellow> сек.</lgray>
-    Reset:
-      Desc: Сбросить тики огня.
-      Info:
-      - <sound:"minecraft:block.fire.extinguish;0.8;1.0">
-      - <lgray>Значение тиков огня игрока <lyellow>%player_display_name%</lyellow> сброшено, огонь потушен.</lgray>
-      Target:
-      - <sound:"minecraft:block.fire.extinguish;0.8;1.0">
-      - <lgray>Вы потушены.</lgray>
   Food:
     Add:
       Desc: Добавить очки сытости.
@@ -499,12 +461,6 @@ Command:
   Staff:
     Desc: Показать онлайн персонал.
     Empty: <lgray>Персонал не в сети.</lgray>
-  Spawner:
-    Desc: Изменить тип спавнера.
-    Done: <lgray>Тип спавнера изменён на <lyellow>%type%</lyellow>.</lgray>
-    Error:
-      Type: <lred>Этот тип нельзя установить для спавнера.</lred>
-      Block: <lred>Вы должны смотреть на блок спавнера!</lred>
   Speed:
     Desc: Изменить скорость ходьбы.
     Done:
@@ -575,23 +531,10 @@ Command:
     Set:
       Desc: Установить время в мире.
       Done: <lgray>Время установлено на <lyellow>%time%</lyellow> (<white>%total% тиков</white>) в мире <lyellow>%world%</lyellow>.</lgray>
-    Personal:
-      Set:
-        Desc: Установить личное время.
-        Target: <lgray>Личное время игрока <lyellow>%player_display_name%</lyellow> установлено на <lyellow>%time%</lyellow> (<white>%total% тиков</white>).</lgray>
-        Notify: <lgray>Ваше личное время установлено на <lyellow>%time%</lyellow> (<white>%total% тиков</white>).</lgray>
-      Reset:
-        Desc: Сбросить личное время.
-        Target: <lgray>Личное время игрока <lyellow>%player_display_name%</lyellow> сброшено.</lgray>
-        Notify: <lgray>Ваше личное время сброшено.</lgray>
   Smite:
     Desc: Поразить игрока молнией.
     Target: <lgray>Игрок <lyellow>%player_name%</lyellow> поражён молнией!</lgray>
     Notify: <lgray>Вы были поражены молнией!</lgray>
-  Weather:
-    Type:
-      Desc: Установить погоду %type%.
-    Set: <lgray>Погода <lyellow>%type%</lyellow> установлена в мире <lyellow>%world%</lyellow>.</lgray>
   FoodGod:
     Desc: Переключить режим «Бог еды».
   Vanish:
@@ -1172,135 +1115,6 @@ Bans:
     - ' '
   Other:
     NoReason: <no reason>
-Worlds:
-  Difficulty:
-    PEACEFUL: Мирная
-    EASY: Лёгкая
-    NORMAL: Нормальная
-    HARD: Сложная
-  Command:
-    Worlds:
-      Create:
-        Desc: Создать новый мир.
-        Error: <lred>Мир с таким названием уже существует!</lred>
-        Done: '<lgray>Создан мир: <lyellow>%world_id%</lyellow>!</lgray>'
-      Delete:
-        Desc: Удалить пользовательский мир.
-        Error: '<lgray>Не удалось удалить мир: <lred>%world_id%</lred>!</lgray>'
-        Done: '<lgray>Мир удалён: <lyellow>%world_id%</lyellow>!</lgray>'
-      Editor:
-        Desc: Открыть редактор миров.
-      Load:
-        Desc: Загрузить пользовательский мир.
-        Error: '<lgray>Не удалось загрузить мир: <lred>%world_id%</lred>!</lgray>'
-        Done: '<lgray>Мир загружен: <lyellow>%world_id%</lyellow>!</lgray>'
-      Unload:
-        Desc: Выгрузить пользовательский мир.
-        Error: '<lgray>Не удалось выгрузить мир: <lred>%world_id%</lred>!</lgray>'
-        Done: '<lgray>Мир выгружен: <lyellow>%world_id%</lyellow>!</lgray>'
-  AutoWipe:
-    MoveOut: <lgray>Вы были телепортированы из-за выгрузки мира.</lgray>
-    Notify:
-    - <noprefix>
-    - ''
-    - <lred><b>Предупреждение об авто-сбросе:</b></lred>
-    - <lgray>Мир будет автоматически сброшен через <lred>%time%</lred></lgray>
-  Error:
-    CommandBlocked: <lred>Вы не можете использовать эту команду в данном мире!</lred>
-    FlyDisabled: <lred>Полёт запрещён в данном мире!</lred>
-    Command:
-      Argument:
-        InvalidWorldData: <lgray><lred>%value%</lred> не является корректным миром!</lgray>
-  Editor:
-    Title:
-      List: <black>Список миров</black>
-      Settings: <black>Настройки мира</black>
-      Generation: <black>Загрузка/Генерация мира</black>
-      GameRules: <black>Правила игры</black>
-    World:
-      Rule:
-        Object:
-          Name: '<lyellow><b>Правило: <reset><white>%name%</white></b></lyellow>'
-          Lore:
-          - '<lyellow>● <lgray>Значение: </lgray>%value%</lyellow>'
-          - ''
-          - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>изменить</lyellow>.</lgray>
-      Difficulty:
-        Name: <lyellow><b>Сложность</b></lyellow>
-        Lore:
-        - '<lyellow>● <lgray>Текущая: </lgray>%world_difficulty%</lyellow>'
-        - ''
-        - <lgray>Устанавливает сложность мира.</lgray>
-        - ''
-        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>переключить</lyellow>.</lgray>
-      AutoWipe:
-        Name: <lyellow><b>Авто-сброс</b></lyellow>
-        Lore:
-        - <lgray>Определяет, будет ли этот мир</lgray>
-        - <lgray>автоматически сбрасываться</lgray>
-        - <lgray>через определённый интервал.</lgray>
-        - ''
-        - '<lyellow>● <lgray>Включено: </lgray>%world_auto_wipe_enabled%</lyellow>'
-        - '<lyellow>● <lgray>Интервал: </lgray>%world_auto_wipe_interval%</lyellow>'
-        - '<lyellow>● <lgray>Последний сброс: </lgray>%world_auto_wipe_last_wipe%</lyellow>'
-        - '<lyellow>● <lgray>Следующий сброс: </lgray>%world_auto_wipe_next_wipe%</lyellow>'
-        - ''
-        - <lyellow>[▶]</lyellow> <lgray>ЛКМ — <lyellow>вкл/выкл</lyellow>.</lgray>
-        - <lyellow>[▶]</lyellow> <lgray>ПКМ — <lyellow>изменить интервал</lyellow>.</lgray>
-        - <lyellow>[▶]</lyellow> <lgray>Клавиша [Q / выброс] — <lyellow>установить время последнего сброса</lyellow>.</lgray>
-      GameRules:
-        Name: <lyellow><b>Правила игры</b></lyellow>
-        Lore:
-        - ''
-        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>перейти</lyellow>.</lgray>
-      Structures:
-        Name: <lyellow><b>Генерация структур</b></lyellow>
-        Lore:
-        - '<lyellow>● <lgray>Включено: </lgray>%world_structures%</lyellow>'
-        - ''
-        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>вкл/выкл</lyellow>.</lgray>
-      Environment:
-        Name: <lyellow><b>Окружение</b></lyellow>
-        Lore:
-        - '<lyellow>● <lgray>Текущее: </lgray>%world_environment%</lyellow>'
-        - ''
-        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>переключить</lyellow>.</lgray>
-      Generator:
-        Name: <lyellow><b>Генератор чанков</b></lyellow>
-        Lore:
-        - '<lyellow>● <lgray>Текущий: </lgray>%world_generator%</lyellow>'
-        - ''
-        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>изменить</lyellow>.</lgray>
-      Delete:
-        Name: <lyellow><b>Удалить данные</b></lyellow>
-        Lore:
-        - <lgray><lred>(Без возможности отмены)</lred></lgray>
-        - ''
-        - <lyellow>[▶]</lyellow> <lgray>Клавиша [Q / выброс] — <lyellow>удалить файлы мира</lyellow>.</lgray>
-        - <lyellow>[▶]</lyellow> <lgray>ПКМ — <lyellow>удалить конфигурацию</lyellow>.</lgray>
-        - <lyellow>[▶]</lyellow> <lgray>Shift+ПКМ — <lyellow>удалить всё</lyellow>.</lgray>
-      Unload:
-        Name: <lyellow><b>Выгрузить мир</b></lyellow>
-        Lore: []
-      Load:
-        Name: <lyellow><b>Загрузить мир</b></lyellow>
-        Lore: []
-      AutoLoad:
-        Name: <lyellow><b>Автозагрузка</b></lyellow>
-        Lore:
-        - '<lyellow>● <lgray>Включено: </lgray>%world_auto_load%</lyellow>'
-        - ''
-        - <lgray>Загружает мир при старте сервера.</lgray>
-        - ''
-        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>вкл/выкл</lyellow>.</lgray>
-      Object:
-        Name: '<lyellow><b>Мир: <reset><white>%world_id%</white></b></lyellow>'
-        Lore:
-        - '<lyellow>● <lgray>Создан: </lgray>%world_is_created%</lyellow>'
-        - '<lyellow>● <lgray>Загружен: </lgray>%world_is_loaded%</lyellow>'
-        - '<lyellow>● <lgray>Автозагрузка: </lgray>%world_auto_load%</lyellow>'
-        - ''
-        - <lyellow>[▶]</lyellow> <lgray>Нажмите, чтобы <lyellow>редактировать</lyellow>.</lgray>
 Spawns:
   Command:
     Spawns:

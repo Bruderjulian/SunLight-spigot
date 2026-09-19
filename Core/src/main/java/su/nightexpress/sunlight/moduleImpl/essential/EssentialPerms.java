@@ -12,6 +12,8 @@ public class EssentialPerms {
 
     public static final Permission COMMAND_INVULNERABILITY        = COMMAND.permission("invulnerability");
     public static final Permission COMMAND_INVULNERABILITY_OTHERS = COMMAND.permission("invulnerability.others");
+    public static final Permission COMMAND_GOD                     = COMMAND.permission("god");
+    public static final Permission COMMAND_GOD_OTHERS              = COMMAND.permission("god.others");
 
     public static final Permission BYPASS_INVULNERABILITY_WORLD  = BYPASS.permission("invulnerability.world");
     public static final Permission BYPASS_INVULNERABILITY_DAMAGE = BYPASS.permission("invulnerability.damage");

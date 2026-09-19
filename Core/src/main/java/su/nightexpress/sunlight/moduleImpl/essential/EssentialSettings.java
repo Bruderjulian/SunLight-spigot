@@ -37,6 +37,12 @@ public class EssentialSettings extends AbstractConfig {
             "Controls whether the Invulnerability feature is available to use.",
             "[*] Note: The Invulnerability feature uses vanilla 'invulnerable' NBT tag. Ensure that no other plugins depends on that tag to avoid possible conflicts/issues.");
 
+    private final ConfigProperty<Boolean> godEnabled = this.addProperty(ConfigTypes.BOOLEAN,
+            "God.Enabled",
+            true,
+            "Controls whether the God Mode feature is available to use.",
+            "Players with God Mode enabled can not be targeted by mobs and take no damage.");
+
     private final ConfigProperty<Set<String>> invulnerabilityDisabledWorlds = this.addProperty(
             ConfigTypes.STRING_SET_LOWER_CASE, "Invulnerability.Disabled-In-Worlds",
             Set.of("world_name", "other_world"),
@@ -244,6 +250,10 @@ public class EssentialSettings extends AbstractConfig {
 
     public boolean isInvulnerabilityEnabled() {
         return this.invulnerabilityEnabled.get();
+    }
+
+    public boolean isGodEnabled() {
+        return this.godEnabled.get();
     }
 
     public boolean isInvulnerabilityAllowedInThisWorld(World world) {

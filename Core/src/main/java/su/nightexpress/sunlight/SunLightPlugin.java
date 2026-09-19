@@ -54,7 +54,6 @@ import su.nightexpress.sunlight.moduleImpl.texts.TextsModule;
 import su.nightexpress.sunlight.moduleImpl.vanish.VanishModule;
 import su.nightexpress.sunlight.moduleImpl.warmups.WarmupsModule;
 import su.nightexpress.sunlight.moduleImpl.warps.WarpsModule;
-import su.nightexpress.sunlight.moduleImpl.worlds.WorldsModule;
 import su.nightexpress.sunlight.nms.SunNMS;
 import su.nightexpress.sunlight.nms.mc_1_21_11.MC_1_21_11;
 import su.nightexpress.sunlight.nms.v26p1.NMSv26p1;
@@ -165,9 +164,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
     private void loadModules() {
         ModuleLoader loader = new ModuleLoader(this, this.moduleRegistry);
 
-        loader.register(ModuleId.WORLDS, ModuleDefinition.named("Worlds"),
-                context -> new WorldsModule(context, this.teleportManager));
-
         loader.register(ModuleId.AFK, ModuleDefinition.named("AFK"), AfkModule::new);
         loader.register(ModuleId.BANS, ModuleDefinition.named("Bans"), BansModule::new);
         loader.register(ModuleId.BACK_LOCATION, ModuleDefinition.named("Back"),
@@ -205,8 +201,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
         loader.register(ModuleId.WARPS, ModuleDefinition.named("Warps"),
                 context -> new WarpsModule(context, this.teleportManager));
 
-        // loader.register(ModuleId.SPAWNERS, ModuleDefinition.named("Spawners"),
-        // SpawnersModule::new);
         // loader.register(ModuleId.SOCIALS, ModuleDefinition.named("Socials"),
         // SocialsModule::new);
 

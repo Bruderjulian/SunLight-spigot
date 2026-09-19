@@ -127,23 +127,6 @@ Command:
   Staff:
     Desc: 显示在线工作人员
     Empty: <gray>没有工作人员在线</gray>
-  Air:
-    Root:
-      Desc: 氧气值设置
-    Add:
-      Desc: 增加氧气值
-    Set:
-      Desc: 设置氧气值
-      Target: <gray>你已将 <soft_yellow>%player_display_name%</soft_yellow> 的氧气值设置为 <yellow>%amount%</yellow>。当前氧气值：<soft_yellow>%current%</soft_yellow>/<soft_yellow>%max%</soft_yellow></gray>
-      Notify: '<gray>你的氧气值已设置为 <soft_yellow>%amount%</soft_yellow>: <soft_yellow>%current%</soft_yellow>/<soft_yellow>%max%</soft_yellow></gray>'
-    Remove:
-      Desc: 减少氧气值
-    Give:
-      Target: <gray>你已为 <soft_yellow>%player_display_name%</soft_yellow> 增加了 <green>%amount%</green> 个氧气值。当前氧气值：<soft_yellow>%current%</soft_yellow>/<soft_yellow>%max%</soft_yellow></gray>
-      Notify: <gray>你获得了 <soft_yellow>%amount%</soft_yellow> 个氧气值：<soft_yellow>%current%</soft_yellow>/<soft_yellow>%max%</soft_yellow></gray>
-    Take:
-      Target: <gray>你已从 <soft_yellow>%player_display_name%</soft_yellow> 处移除了 <red>%amount%</red> 个氧气值。当前氧气值：<soft_yellow>%current%</soft_yellow>/<soft_yellow>%max%</soft_yellow></gray>
-      Notify: <gray>你失去了 <soft_yellow>%amount%</soft_yellow> 个氧气值：<soft_yellow>%current%</soft_yellow>/<soft_yellow>%max%</soft_yellow></gray>
   Broadcast:
     Desc: 发布一则公告
   Condense:
@@ -202,14 +185,6 @@ Command:
       Desc: 移除经验值。
       Feedback: '[sound="minecraft:entity.experience_orb.pickup;0.8;1.0"]<gray>你已从 <white>%player_display_name%</white> 处移除了 <soft_red>%value%</soft_red> 经验值 (<yellow>%oldvalue%</yellow><dark_gray> → </dark_gray><green>%newvalue%</green>)</gray>'
       Notify: '[sound="minecraft:entity.experience_orb.pickup;0.8;1.0"]<gray>你被移除了 <soft_red>%value%</soft_red> 经验值</gray>'
-  Ignite:
-    Desc: 点燃玩家。
-    Feedback: '[sound="minecraft:entity.player.hurt_on_fire;0.8;1.0"]<gray>你已点燃 <white>%player_display_name%</white>，持续 <soft_yellow>%time%</soft_yellow></gray>'
-    Notify: '[sound="minecraft:entity.player.hurt_on_fire;0.8;1.0"]<gray>你被点燃，持续 <soft_red>%time%</soft_red></gray>'
-  Extinguish:
-    Desc: 熄灭玩家。
-    Feedback: '[sound="minecraft:block.fire.extinguish;0.8;1.0"]<gray>你已熄灭 <white>%player_display_name%</white></gray>'
-    Notify: '[sound="minecraft:block.fire.extinguish;0.8;1.0"]<gray>你被熄灭</gray>'
   Fly:
     Root:
       Desc: 飞行命令。
@@ -247,16 +222,6 @@ Command:
     Take:
       Target: <gray>你已从 <white>%player_display_name%</white> 处 <red>移除了 %amount%</red> 食物值 (<white>%oldvalue%</white><dark_gray> → </dark_gray><red>%newvalue%</red>)</gray>
       Notify: <gray>你的食物等级减少了 <soft_yellow>%amount%</soft_yellow></gray>
-  ForceRun:
-    Description: 强制玩家执行命令。
-    Forced:
-      Feedback: <gray>你已强制 <white>%player_display_name%</white> 执行：<soft_yellow>%command%</soft_yellow></gray>
-    Immunity: <gray>玩家 <white>%player_display_name%</white> 对此命令免疫</gray>
-  ForceSay:
-    Description: 强制玩家说话。
-    Forced:
-      Feedback: <gray>你已强制 <white>%player_display_name%</white> 说：<soft_yellow>%text%</soft_yellow></gray>
-    Immunity: <gray>玩家 <white>%player_display_name%</white> 对此命令免疫</gray>
   GameMode:
     Root:
       Desc: 游戏模式命令。
@@ -375,28 +340,6 @@ Command:
       Desc: 更改世界时间。
     Set:
       Done: <gray>你已将 <white>%world%</white> 的时间设置为 <soft_yellow>%time%</soft_yellow> (<white>%total% 刻</white>)</gray>
-    Personal:
-      Set:
-        Target: <gray>你已将 <white>%player_display_name%</white> 的时间设置为 <soft_yellow>%time%</soft_yellow> (<white>%total% 刻</white>)</gray>
-        Notify: <gray>你的个人时间已设置为 <soft_yellow>%time%</soft_yellow> (<white>%total% 刻</white>)</gray>
-      Reset:
-        Target: <gray>你已重置 <soft_yellow>%player_display_name%</soft_yellow> 的时间</gray>
-        Notify: <gray>你的个人时间已重置</gray>
-  PlayerTime:
-    Root:
-      Desc: 玩家时间命令。
-    Set:
-      Desc: 设置独立玩家时间。
-    SetTime:
-      Desc: 设置独立玩家时间为 %s 刻。
-    Reset:
-      Desc: 重置独立玩家时间。
-  Weather:
-    Root:
-      Desc: 天气命令。
-    Type:
-      Desc: 设置世界天气为 %type%。
-    Set: <gray>你已将 <white>%world%</white> 的天气设置为 <soft_yellow>%type%</soft_yellow></gray>
   Container:
     Root:
       Desc: 便携式容器命令。
@@ -1850,10 +1793,6 @@ Warps:
         - '%empty-if-above%'
         - <gold>→ <u>左键点击传送</u></gold>
         - <gold>→ <u>右键点击编辑</u></gold>
-WeatherType:
-  CLEAR: 晴朗
-  THUNDERSTORM: 雷暴
-  STORM: 风暴
 MenuType:
   GRINDSTONE: 磨石
   SMITHING_TABLE: 锻造台

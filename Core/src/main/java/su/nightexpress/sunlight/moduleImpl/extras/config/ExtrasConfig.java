@@ -18,11 +18,6 @@ public class ExtrasConfig {
         true,
         "Sets whether or not Keep Inventory feature is enabled.");
 
-    public static final ConfigValue<Boolean> GOD_ENABLED = ConfigValue.create("God.Enabled",
-        true,
-        "Sets whether or not God Mode feature is enabled.",
-        "Players with God Mode enabled can not be targeted by mobs and take no damage.");
-
     public static final ConfigValue<List<String>> KEEP_INVENTORY_ITEMS_RANKS = ConfigValue.create("KeepInventory.Items_Ranks",
         Lists.newList("vip", "admin"),
         "Players from the following permission groups will keep their items on death.");
