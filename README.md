@@ -4,7 +4,7 @@
 
 **SunLight** is a modern, lightweight, all-in-one core solution featuring the essential tools every server needs. 
 
-It includes **26** fully optional and customizable modules, allowing you to select only what your server actually requires!
+It includes **27** fully optional and customizable modules, allowing you to select only what your server actually requires!
 
 ---
 
@@ -33,6 +33,7 @@ It includes **26** fully optional and customizable modules, allowing you to sele
 - **Death Messages**: Customizable death notifications based on damage or killer type with randomization support.
 - **Essential**: Provides ~35 core utility commands including flight, healing, feeding, teleportation, XP management, world/weather control, and more.
 - **Extras**: Adds immersive mechanics like sitting on furniture (chairs/slabs), automatic chest sorting, and block physics for explosions.
+- **Freeze**: Freeze players in place with configurable restrictions on movement, combat, blocks, items, commands, and chat.
 - **Greetings**: Customize rank-based join and quit messages with priority system.
 - **Homes**: Allows players to set home points via commands or beds, featuring GUIs, guest/invite systems, and rank-based home limits.
 - **Inventories**: View and edit online/offline player inventories and Ender Chests, and access workstations like Anvils or Looms from anywhere!

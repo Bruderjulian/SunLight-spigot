@@ -10,6 +10,7 @@ public class ModuleId {
     public static final String DEATH_MESSAGES = "death_messages";
     public static final String ESSENTIAL = "essential";
     public static final String EXTRAS = "extras";
+    public static final String FREEZE = "freeze";
     public static final String GREETINGS = "greetings";
     public static final String MENU = "menu";
     public static final String NAME_TAGS = "nametags";

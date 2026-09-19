@@ -12,6 +12,7 @@ import su.nightexpress.nightcore.util.Plugins;
 import su.nightexpress.nightcore.util.Version;
 import su.nightexpress.sunlight.api.SunlightAPI;
 import su.nightexpress.sunlight.api.provider.AfkProvider;
+import su.nightexpress.sunlight.api.provider.FreezeProvider;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.command.CommandRegistry;
 import su.nightexpress.sunlight.config.Config;
@@ -34,6 +35,7 @@ import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.deathmessages.DeathMessagesModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.extras.ExtrasModule;
+import su.nightexpress.sunlight.moduleImpl.freeze.FreezeModule;
 import su.nightexpress.sunlight.moduleImpl.greetings.GreetingsModule;
 import su.nightexpress.sunlight.moduleImpl.homes.HomesModule;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesModule;
@@ -174,6 +176,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
         loader.register(ModuleId.ESSENTIAL, ModuleDefinition.named("Essential"),
                 context -> new EssentialModule(context, this.teleportManager));
         loader.register(ModuleId.EXTRAS, ModuleDefinition.named("Extras"), ExtrasModule::new);
+        loader.register(ModuleId.FREEZE, ModuleDefinition.named("Freeze"), FreezeModule::new);
         loader.register(ModuleId.GREETINGS, ModuleDefinition.named("Greetings"), GreetingsModule::new);
         loader.register(ModuleId.HOMES, ModuleDefinition.named("Homes"),
                 context -> new HomesModule(context, this.teleportManager));
@@ -306,5 +309,11 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
 
     public Optional<? extends VanishProvider> vanishProvider() {
         return this.moduleRegistry.byType(VanishModule.class);
+    }
+
+    @Override
+
+    public Optional<? extends FreezeProvider> freezeProvider() {
+        return this.moduleRegistry.byType(FreezeModule.class);
     }
 }
