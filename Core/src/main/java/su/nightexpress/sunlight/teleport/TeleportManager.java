@@ -8,7 +8,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import su.nightexpress.nightcore.manager.SimpleManager;
-import su.nightexpress.nightcore.util.LocationUtil;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.event.SunlightPlayerTeleportEvent;
@@ -19,7 +18,7 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
 
     private final SunNMS internals;
 
-    public TeleportManager(SunLightPlugin plugin, SunNMS internals) {
+    public TeleportManager(final SunLightPlugin plugin, final SunNMS internals) {
         super(plugin);
         this.internals = internals;
     }
@@ -34,8 +33,8 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
 
     }
 
-    public boolean teleport(TeleportContext context, TeleportType type) {
-        SunlightPlayerTeleportEvent event = new SunlightPlayerTeleportEvent(context, type);
+    public boolean teleport(final TeleportContext context, final TeleportType type) {
+        final SunlightPlayerTeleportEvent event = new SunlightPlayerTeleportEvent(context, type);
         this.plugin.getPluginManager().callEvent(event);
         if (event.isIntercepted())
             return true;
@@ -45,8 +44,8 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
         return this.move(context);
     }
 
-    public boolean move(TeleportContext context) {
-        Location destination = this.getDestination(context);
+    public boolean move(final TeleportContext context) {
+        final Location destination = this.getDestination(context);
         if (destination == null) {
             context.getModule().sendPrefixed(
                     context.hasSender() ? Lang.TELEPORT_UNSAFE_FEEDBACK : Lang.TELEPORT_UNSAFE_NOTIFY,
@@ -55,17 +54,10 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
             return false;
         }
 
-        context.setDestination(destination);
-
-        return this.moveExact(context);
-    }
-
-    public boolean moveExact(TeleportContext context) {
-        Player player = context.getTarget();
-        Location location = context.getDestination();
+        final Player player = context.getTarget();
 
         if (player.isOnline()) {
-            if (!player.teleport(location)) {
+            if (!player.teleport(destination)) {
                 return false;
             }
         } else {
@@ -73,44 +65,42 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
                 context.getModule().sendPrefixed(Lang.TELEPORT_NO_OFFLINE_HANDLER_FEEDBACK, context.getExecutor());
                 return false;
             }
-
-            this.internals.teleport(player, location);
+            this.internals.teleport(player, destination);
         }
 
         context.runCallback();
-
         return true;
     }
 
-    private Location getDestination(TeleportContext context) {
-        Location destination = context.getDestination();
+    private Location getDestination(final TeleportContext context) {
+        final Location destination = context.getDestination();
         if (!context.hasFlags())
             return destination;
 
-        World world = destination.getWorld();
+        final World world = destination.getWorld();
         if (world == null)
             return null;
 
-        Location location = destination.clone();
+        final Location location = destination.clone();
 
         if (context.hasFlag(TeleportFlag.LOOK_FOR_SURFACE)) {
             Block block = location.getBlock();
-            BlockFace face = isSolidBlock(block) ? BlockFace.UP : BlockFace.DOWN;
-            boolean needSolid = face == BlockFace.DOWN;
+            final boolean isSolid = isSolidBlock(block);
+            final BlockFace face = isSolid ? BlockFace.UP : BlockFace.DOWN;
 
             while (true) {
-                Block relative = block.getRelative(face);
-                if (isSolidBlock(relative) == needSolid)
+                final Block relative = block.getRelative(face);
+                if (isSolidBlock(relative) == !isSolid)
                     break;
 
-                int y = relative.getY();
+                final int y = relative.getY();
                 if (y < world.getMinHeight() || y > world.getMaxHeight())
                     return null;
 
                 block = relative;
             }
 
-            double delta = location.getY() - block.getY();
+            final double delta = location.getY() - block.getY();
             if (delta > 0) {
                 location.setY(location.getY() - delta);
             }
@@ -121,13 +111,12 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
                 return null;
             }
         }
-
         if (context.hasFlag(TeleportFlag.CENTERED)) {
-            location = LocationUtil.setCenter2D(location);
+            location.setX(location.getBlockX() + 0.5);
+            location.setZ(location.getBlockZ() + 0.5);
         }
-
         if (context.hasFlag(TeleportFlag.KEEP_DIRECTION)) {
-            Location source = context.getTarget().getLocation();
+            final Location source = context.getTarget().getLocation();
             location.setYaw(source.getYaw());
             location.setPitch(source.getPitch());
         }
@@ -135,7 +124,7 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
         return location;
     }
 
-    private static boolean isSolidBlock(Block block) {
+    private static boolean isSolidBlock(final Block block) {
         return !block.isEmpty() && block.getType().isSolid();
     }
 }
