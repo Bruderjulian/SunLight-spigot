@@ -19,7 +19,7 @@ import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.moduleImpl.homes.HomesModule;
 import su.nightexpress.sunlight.moduleImpl.homes.impl.Home;
 import su.nightexpress.sunlight.user.UserManager;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class HomeInvitePlayerDialog extends Dialog<Home> {
 
@@ -71,7 +71,7 @@ public class HomeInvitePlayerDialog extends Dialog<Home> {
                         if (this.module.inviteToHome(player, home, profile)) {
                             viewer.callback();
                         }
-                    }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+                    }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
                 })
                 .build();
     }

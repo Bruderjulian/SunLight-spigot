@@ -6,6 +6,7 @@ import su.nightexpress.sunlight.command.CommandKey;
 import su.nightexpress.sunlight.user.cache.UserCacheContainer;
 import su.nightexpress.sunlight.user.property.UserProperty;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -112,7 +113,7 @@ public class SunUser extends UserTemplate {
     }
 
     public <T> T getProperty(String name, Class<T> type, T defaultValue) {
-        String key = LowerCase.INTERNAL.apply(name);
+        String key = Utils.lowercase(name);
 
         Object value = this.properties.get(key);
         if (value == null)
@@ -131,7 +132,7 @@ public class SunUser extends UserTemplate {
     }
 
     public void removeProperty(String property) {
-        this.properties.remove(LowerCase.INTERNAL.apply(property));
+        this.properties.remove(Utils.lowercase(property));
     }
 
     public Long getCommandCooldown(CommandKey key) {

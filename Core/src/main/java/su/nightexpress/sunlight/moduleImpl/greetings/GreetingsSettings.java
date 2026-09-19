@@ -13,6 +13,10 @@ import su.nightexpress.sunlight.moduleImpl.greetings.message.MessageType;
 
 import java.util.*;
 
+import static su.nightexpress.nightcore.util.Placeholders.DEFAULT;
+import static su.nightexpress.nightcore.util.Placeholders.PLAYER_DISPLAY_NAME;
+import static su.nightexpress.nightcore.util.Placeholders.PLAYER_PREFIX;
+import static su.nightexpress.nightcore.util.Placeholders.WILDCARD;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
@@ -46,7 +50,7 @@ public class GreetingsSettings extends AbstractConfig {
             "- " + CommonPlaceholders.PLAYER_DISPLAY_NAME + " -> Player display (custom) name.",
             "- " + CommonPlaceholders.PLAYER_PREFIX + " -> Player prefix (from permissions plugin).",
             "- " + CommonPlaceholders.PLAYER_SUFFIX + " -> Player name (from permissions plugin).",
-            "- " + Plugins.PLACEHOLDER_API);
+            "- PlaceholderAPI");
 
     private final ConfigProperty<Map<String, GreetingMessage>> firstJoinMessages = this.addProperty(
             ConfigTypes.forMapWithLowerKeys(MESSAGE_CONFIG_TYPE),
@@ -60,7 +64,7 @@ public class GreetingsSettings extends AbstractConfig {
             "- " + CommonPlaceholders.PLAYER_DISPLAY_NAME + " -> Player display (custom) name.",
             "- " + CommonPlaceholders.PLAYER_PREFIX + " -> Player prefix (from permissions plugin).",
             "- " + CommonPlaceholders.PLAYER_SUFFIX + " -> Player name (from permissions plugin).",
-            "- " + Plugins.PLACEHOLDER_API);
+            "- PlaceholderAPI");
 
     private static Map<String, GreetingMessage> getDefaultJoins() {
         Map<String, GreetingMessage> map = new HashMap<>();

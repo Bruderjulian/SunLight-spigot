@@ -11,7 +11,8 @@ import su.nightexpress.nightcore.commands.exceptions.CommandSyntaxException;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.Lists;
 import su.nightexpress.nightcore.util.Players;
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.TimeUtil;
+import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
@@ -24,7 +25,6 @@ import su.nightexpress.sunlight.moduleImpl.kits.config.KitsLang;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsPerms;
 import su.nightexpress.sunlight.moduleImpl.kits.model.Kit;
 import su.nightexpress.sunlight.user.UserManager;
-import su.nightexpress.sunlight.utils.FutureUtils;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -214,12 +214,12 @@ public class KitsCommandProvider extends CommandProvider {
                         .with(kit.placeholders())
                         .with(CommonPlaceholders.PLAYER_NAME, profile::name));
 
-                Player target = Players.getPlayer(profile.id());
+                Player target = Utils.getPlayer(profile.id());
                 if (target != null && !context.hasFlag(CommandArguments.FLAG_SILENT)) {
                     this.module.sendPrefixed(KitsLang.KIT_RESET_COOLDOWN_NOTIFY, target, replacer -> replacer
                             .with(kit.placeholders()));
                 }
-            }).whenComplete(FutureUtils::printStacktrace);
+            }).whenComplete(Utils::printStacktrace);
         });
 
         return true;
@@ -249,7 +249,7 @@ public class KitsCommandProvider extends CommandProvider {
                         .with(SLPlaceholders.GENERIC_AMOUNT, () -> TimeFormats
                                 .formatAmount(TimeUnit.SECONDS.toMillis(amount), TimeFormatType.LITERAL)));
 
-                Player target = Players.getPlayer(profile.id());
+                Player target = Utils.getPlayer(profile.id());
                 if (target != null && !context.hasFlag(CommandArguments.FLAG_SILENT)) {
                     this.module.sendPrefixed(KitsLang.KIT_SET_COOLDOWN_NOTIFY, target, replacer -> replacer
                             .with(kit.placeholders())
@@ -257,7 +257,7 @@ public class KitsCommandProvider extends CommandProvider {
                                     .formatAmount(TimeUnit.SECONDS.toMillis(amount), TimeFormatType.LITERAL)));
                 }
             });
-        }).whenComplete(FutureUtils::printStacktrace);
+        }).whenComplete(Utils::printStacktrace);
 
         return true;
     }

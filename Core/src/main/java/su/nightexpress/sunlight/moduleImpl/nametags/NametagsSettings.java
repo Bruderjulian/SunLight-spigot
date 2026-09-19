@@ -6,7 +6,6 @@ import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigType;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
 import su.nightexpress.nightcore.integration.permission.PermissionPlugins;
-import su.nightexpress.nightcore.util.Plugins;
 import su.nightexpress.sunlight.SLPlaceholders;
 
 import java.util.Map;
@@ -52,7 +51,7 @@ public class NametagsSettings extends AbstractConfig {
                         "│         - %s - Player prefix.".formatted(PLAYER_PREFIX),
                         "│         - %s - Player suffix.".formatted(PLAYER_SUFFIX),
                         "│         - %s - Player world.".formatted(PLAYER_WORLD),
-                        "│         - %s - https://wiki.placeholderapi.com/".formatted(Plugins.PLACEHOLDER_API),
+                        "│         - %s - https://wiki.placeholderapi.com/PlaceholderAPI",
                         "└── Color:",
                         "      -> Color of the player name. List of available colors: https://minecraft.wiki/w/Formatting_codes#Color_codes");
 

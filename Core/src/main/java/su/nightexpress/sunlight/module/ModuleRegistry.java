@@ -2,6 +2,7 @@ package su.nightexpress.sunlight.module;
 
 import su.nightexpress.nightcore.manager.SimpleManager;
 import su.nightexpress.nightcore.util.LowerCase;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -61,7 +62,7 @@ public class ModuleRegistry {
     }
 
     public Module getById(String id) {
-        return this.byId.get(LowerCase.INTERNAL.apply(id));
+        return this.byId.get(Utils.lowercase(id));
     }
 
     public Set<Module> getModules() {

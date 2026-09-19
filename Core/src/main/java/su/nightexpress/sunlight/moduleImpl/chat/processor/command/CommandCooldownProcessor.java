@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.moduleImpl.chat.processor.command;
 
 import org.bukkit.entity.Player;
 
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.cache.UserChatCache;
 import su.nightexpress.sunlight.moduleImpl.chat.context.CommandContext;

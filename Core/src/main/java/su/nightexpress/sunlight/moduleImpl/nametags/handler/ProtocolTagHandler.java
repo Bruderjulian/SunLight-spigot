@@ -13,10 +13,10 @@ import com.comphenix.protocol.wrappers.EnumWrappers.ChatFormatting;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedTeamParameters;
 
-import su.nightexpress.nightcore.util.Enums;
 import su.nightexpress.nightcore.util.Lists;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class ProtocolTagHandler extends NametagHandler {
 
@@ -44,7 +44,8 @@ public class ProtocolTagHandler extends NametagHandler {
             Collection<? extends Player> receivers) {
         PacketContainer packetTeam = new PacketContainer(PacketType.Play.Server.SCOREBOARD_TEAM);
         Collection<String> entities = Lists.newList(playerOfTeam.getName());
-        ChatFormatting teamColor = Enums.parse(teamColorRaw, ChatFormatting.class).orElse(ChatFormatting.GRAY);
+        ChatFormatting teamColor = Utils.enumOptionalValueOf(teamColorRaw, ChatFormatting.class)
+                .orElse(ChatFormatting.GRAY);
 
         packetTeam.getStrings().write(0, teamId); // Name
         packetTeam.getIntegers().write(0, mode.index); // Mode. 1 - Remove, 0 - Create

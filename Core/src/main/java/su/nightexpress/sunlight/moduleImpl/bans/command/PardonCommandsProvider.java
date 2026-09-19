@@ -17,7 +17,7 @@ import su.nightexpress.sunlight.moduleImpl.bans.punishment.InetPunishment;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PlayerPunishment;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PunishmentType;
 import su.nightexpress.sunlight.user.UserManager;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.net.InetAddress;
 
@@ -100,7 +100,7 @@ public class PardonCommandsProvider extends CommandProvider {
             }
 
             this.module.pardonPlayer(profile, context.getSender(), type, silent);
-        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+        }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
 
         return true;
     }

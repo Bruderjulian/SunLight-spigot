@@ -25,6 +25,7 @@ import su.nightexpress.sunlight.moduleImpl.afk.core.AfkPerms;
 import su.nightexpress.sunlight.moduleImpl.afk.core.AfkSettings;
 import su.nightexpress.sunlight.moduleImpl.afk.event.PlayerAfkEvent;
 import su.nightexpress.sunlight.moduleImpl.afk.listener.AfkListener;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,7 +60,7 @@ public class AfkModule extends Module implements AfkProvider {
 
         this.addTask(this::tickTrackers, 1);
 
-        Players.getOnline().forEach(this::track);
+        Utils.onlinePlayers().forEach(this::track);
     }
 
     @Override
@@ -69,7 +70,7 @@ public class AfkModule extends Module implements AfkProvider {
             this.chatEventHandler = null;
         }
 
-        Players.getOnline().forEach(player -> this.exitAfk(player, true));
+        Utils.onlinePlayers().forEach(player -> this.exitAfk(player, true));
         this.activityTrackerMap.clear();
     }
 
@@ -158,7 +159,7 @@ public class AfkModule extends Module implements AfkProvider {
 
     private void tickTrackers() {
         Map.copyOf(this.activityTrackerMap).forEach((playerId, tracker) -> {
-            Player player = Players.getPlayer(playerId);
+            Player player = Utils.getPlayer(playerId);
             if (player == null)
                 return;
 

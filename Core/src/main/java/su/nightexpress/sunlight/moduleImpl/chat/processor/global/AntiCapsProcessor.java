@@ -8,10 +8,10 @@ import java.util.stream.Stream;
 import org.bukkit.entity.Player;
 
 import su.nightexpress.nightcore.util.LowerCase;
-import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.context.ChatContext;
 import su.nightexpress.sunlight.moduleImpl.chat.processor.ChatProcessor;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class AntiCapsProcessor implements ChatProcessor<ChatContext> {
 
@@ -38,7 +38,7 @@ public class AntiCapsProcessor implements ChatProcessor<ChatContext> {
 
             int upperCaseCount = countUpperCaseLetters(word);
 
-            Player player = Players.getPlayer(word);
+            Player player = Utils.getPlayer(word);
             if (player != null) {
                 String playerName = player.getName();
                 int playerUpperCount = countUpperCaseLetters(playerName);

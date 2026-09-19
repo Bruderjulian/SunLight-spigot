@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.moduleImpl.bans.time;
 
-import su.nightexpress.nightcore.util.Enums;
 import su.nightexpress.nightcore.util.Numbers;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +32,7 @@ public class BanTime {
         String unitRaw = index > 0 ? string.substring(index) : null;
 
         int amount = Numbers.getAnyInteger(amountRaw, -1);
-        BanTimeUnit unit = Optional.ofNullable(unitRaw).map(raw -> Enums.get(raw, BanTimeUnit.class))
+        BanTimeUnit unit = Optional.ofNullable(unitRaw).map(raw -> Utils.enumValueOf(raw, BanTimeUnit.class))
                 .orElse(BanTimeUnit.SECONDS);
 
         return temporary(unit, amount);

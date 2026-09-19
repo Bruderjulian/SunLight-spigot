@@ -2,14 +2,14 @@ package su.nightexpress.sunlight.hook.protection;
 
 import org.bukkit.Location;
 
-import su.nightexpress.nightcore.util.Plugins;
+import su.nightexpress.sunlight.utils.Utils;
 
 public interface ProtectionHook {
 
     String getPluginName();
 
     default boolean isEnabled() {
-        return Plugins.isInstalled(this.getPluginName());
+        return Utils.isInstalled(this.getPluginName());
     }
 
     boolean isProtected(Location location);

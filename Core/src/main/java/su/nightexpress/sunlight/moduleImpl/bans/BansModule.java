@@ -37,7 +37,7 @@ import su.nightexpress.sunlight.moduleImpl.bans.punishment.*;
 import su.nightexpress.sunlight.moduleImpl.bans.time.BanTime;
 import su.nightexpress.sunlight.moduleImpl.bans.time.BanTimeUnit;
 import su.nightexpress.sunlight.SLUtils;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.net.InetAddress;
 import java.util.*;
@@ -180,7 +180,7 @@ public class BansModule extends Module {
     }
 
     private void kickBanned() {
-        Players.getOnline().forEach(player -> {
+        Utils.onlinePlayers().forEach(player -> {
             AbstractPunishment punishment = this.bansRepository.getActivePlayerOrInetPunishment(player.getUniqueId(),
                     SLUtils.getInetAddress(player).orElse(null));
             if (punishment == null)
@@ -324,7 +324,7 @@ public class BansModule extends Module {
     }
 
     public boolean hasImmunity(String name) {
-        return this.settings.immunityList.get().contains(LowerCase.INTERNAL.apply(name));
+        return this.settings.immunityList.get().contains(Utils.lowercase(name));
     }
 
     private Set<Player> getPlayersToPunish(AbstractPunishment punishData) {
@@ -459,10 +459,10 @@ public class BansModule extends Module {
             UserInfo profile = UserInfo.of(player);
             Set<CommandSender> receivers = new HashSet<>();
             receivers.add(this.plugin.getServer().getConsoleSender());
-            receivers.addAll(Players.getOnline().stream().filter(staff -> staff.hasPermission(BansPerms.ALTS_NOTIFY))
+            receivers.addAll(Utils.onlinePlayers().stream().filter(staff -> staff.hasPermission(BansPerms.ALTS_NOTIFY))
                     .collect(Collectors.toSet()));
             receivers.forEach(sender -> this.notifyAltProfiles(sender, profile, address, alts));
-        }).whenComplete(FutureUtils::printStacktrace));
+        }).whenComplete(Utils::printStacktrace));
     }
 
     public boolean kick(CommandSender sender, Player victim, PunishmentReason reason,
@@ -519,7 +519,7 @@ public class BansModule extends Module {
 
             return this.punishPlayer(sender, victim, victimPriority, context);
 
-        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace); // Back to main thread
+        }, this.plugin::runTask).whenComplete(Utils::printStacktrace); // Back to main thread
     }
 
     public boolean punishPlayer(CommandSender sender, Player victim,
@@ -893,7 +893,7 @@ public class BansModule extends Module {
     }
 
     public BanTimeUnit getTimeUnitByAlias(String alias) {
-        return this.timeUnitAliasMap.get(LowerCase.INTERNAL.apply(alias));
+        return this.timeUnitAliasMap.get(Utils.lowercase(alias));
     }
 
     public List<String> getTimeUnitAliases() {

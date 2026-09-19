@@ -8,11 +8,11 @@ import su.nightexpress.nightcore.config.Writeable;
 import su.nightexpress.nightcore.integration.currency.CurrencyId;
 import su.nightexpress.nightcore.integration.currency.EconomyBridge;
 import su.nightexpress.nightcore.util.Lists;
-import su.nightexpress.nightcore.util.LowerCase;
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsPlaceholders;
+import su.nightexpress.sunlight.utils.TimeUtil;
 
 import java.util.Optional;
 
@@ -20,7 +20,7 @@ public record FeaturedSlot(String id, String currencyId, double price, long dura
         implements Writeable, PlaceholderResolvable {
 
     public static FeaturedSlot read(FileConfig config, String path) {
-        String id = LowerCase.INTERNAL.apply(config.getString(path + ".Id", "null"));
+        String id = Utils.lowercase(config.getString(path + ".Id", "null"));
         String currencyId = config.getString(path + ".Price.Currency", CurrencyId.VAULT);
         double price = config.getDouble(path + ".Price.Amount");
         long duration = config.getLong(path + ".Duration");

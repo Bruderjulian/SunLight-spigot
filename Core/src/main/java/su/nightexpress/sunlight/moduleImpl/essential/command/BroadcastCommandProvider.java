@@ -16,6 +16,7 @@ import su.nightexpress.sunlight.command.CommandArguments;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class BroadcastCommandProvider extends CommandProvider {
         String message = this.format.replace(SLPlaceholders.GENERIC_MESSAGE, text);
         NightComponent component = NightMessage.parse(message);
 
-        Players.getOnline().forEach(player -> Players.sendMessage(player, component));
+        Utils.onlinePlayers().forEach(player -> Players.sendMessage(player, component));
         Players.sendMessage(plugin.getServer().getConsoleSender(), component);
         return true;
     }

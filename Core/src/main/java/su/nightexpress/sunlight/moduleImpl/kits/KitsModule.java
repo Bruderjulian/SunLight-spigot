@@ -33,7 +33,7 @@ import su.nightexpress.sunlight.moduleImpl.kits.menu.KitsMenu;
 import su.nightexpress.sunlight.moduleImpl.kits.model.Kit;
 import su.nightexpress.sunlight.moduleImpl.kits.model.KitDefinition;
 import su.nightexpress.sunlight.utils.EconomyUtils;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -212,7 +212,7 @@ public class KitsModule extends Module {
             this.dataRepository.add(newData);
             this.dataManager.addData(newData);
             return newData;
-        }).whenComplete(FutureUtils::printStacktrace);
+        }).whenComplete(Utils::printStacktrace);
     }
 
     private void addKit(Kit kit) {
@@ -306,7 +306,7 @@ public class KitsModule extends Module {
                 this.sendPrefixed(KitsLang.KIT_GET_NOTIFY, player, builder -> builder.with(kit
                         .placeholders()));
 
-        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+        }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
 
         return true;
     }
@@ -342,7 +342,7 @@ public class KitsModule extends Module {
     }
 
     public boolean isKitExists(String id) {
-        return this.getKitById(LowerCase.INTERNAL.apply(id)) != null;
+        return this.getKitById(Utils.lowercase(id)) != null;
     }
 
     public Kit getKitById(String id) {

@@ -9,6 +9,7 @@ import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsPerms;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -29,7 +30,7 @@ public class Text {
 
     public static Text fromFile(Path filePath) {
         FileConfig config = FileConfig.load(filePath);
-        String id = LowerCase.INTERNAL.apply(FileUtil.getNameWithoutExtension(filePath));
+        String id = Utils.lowercase(FileUtil.getNameWithoutExtension(filePath));
 
         String description = config.getString("Description", "");
         List<String> text = config.getStringList("Text");

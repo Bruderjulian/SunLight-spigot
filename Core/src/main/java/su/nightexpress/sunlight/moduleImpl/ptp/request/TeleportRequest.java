@@ -3,7 +3,7 @@ package su.nightexpress.sunlight.moduleImpl.ptp.request;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import su.nightexpress.nightcore.util.Players;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -36,12 +36,12 @@ public class TeleportRequest {
     }
 
     public boolean isSender(String name) {
-        return Players.getPlayer(name) == this.getSender();
+        return Utils.getPlayer(name) == this.getSender();
         // return this.senderInfo.getName().equalsIgnoreCase(name);
     }
 
     public boolean isTarget(String name) {
-        return Players.getPlayer(name) == this.getTarget();
+        return Utils.getPlayer(name) == this.getTarget();
         // return this.targetInfo.getName().equalsIgnoreCase(name);
     }
 

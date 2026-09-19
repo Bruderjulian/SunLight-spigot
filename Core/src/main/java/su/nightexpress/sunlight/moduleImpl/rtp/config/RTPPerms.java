@@ -1,9 +1,9 @@
 package su.nightexpress.sunlight.moduleImpl.rtp.config;
 
 import org.bukkit.permissions.Permission;
-import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.config.Perms;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class RTPPerms {
 
@@ -18,6 +18,6 @@ public class RTPPerms {
     public static final Permission BYPASS_COOLDOWN = BYPASS.permission("cooldown");
 
     public static Permission world(String worldName) {
-        return new Permission(COMMAND_RTP.getName() + "." + LowerCase.INTERNAL.apply(worldName));
+        return new Permission(COMMAND_RTP.getName() + "." + Utils.lowercase(worldName));
     }
 }

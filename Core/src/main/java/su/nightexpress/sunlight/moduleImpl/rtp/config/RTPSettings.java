@@ -5,8 +5,8 @@ import su.nightexpress.nightcore.configuration.AbstractConfig;
 import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigType;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
-import su.nightexpress.nightcore.util.Enums;
 import su.nightexpress.sunlight.moduleImpl.rtp.engine.LookupRange;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -187,7 +187,8 @@ public class RTPSettings extends AbstractConfig {
     }
 
     public Optional<Particle> getTeleportParticle() {
-        return Optional.ofNullable(Enums.get(this.teleportParticleType.get(), Particle.class));
+
+        return Utils.enumOptionalValueOf(this.teleportParticleType.get(), Particle.class);
     }
 
     public int getTeleportParticleCount() {

@@ -9,7 +9,11 @@ import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
-import su.nightexpress.nightcore.util.*;
+import su.nightexpress.nightcore.util.BukkitThing;
+import su.nightexpress.nightcore.util.NumberUtil;
+import su.nightexpress.nightcore.util.Players;
+import su.nightexpress.sunlight.utils.TimeUtil;
+import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.placeholder.Replacer;
 import su.nightexpress.sunlight.SLUtils;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -20,7 +24,6 @@ import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialSettings;
 import su.nightexpress.sunlight.moduleImpl.essential.object.TimeAlias;
-import su.nightexpress.sunlight.utils.WorldTime;
 
 import java.time.LocalTime;
 import java.util.LinkedHashMap;
@@ -33,6 +36,9 @@ import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
 public class TimeCommandProvider extends CommandProvider {
+        public static final long MODIFIER = 1000L;
+        public static final long MAX_TICKS = 24L * MODIFIER;
+        public static final long MIN_TICKS = 0L;
 
         private static final Permission PERMISSION_ROOT = EssentialPerms.COMMAND.permission("time.root");
         private static final Permission PERMISSION_SHOW = EssentialPerms.COMMAND.permission("time.show");
@@ -67,7 +73,7 @@ public class TimeCommandProvider extends CommandProvider {
                 this.timeAliases = new LinkedHashSet<>();
 
                 this.settings.timeAliases.get().forEach((name, gameTime) -> {
-                        this.timeAliases.add(new TimeAlias(LowerCase.INTERNAL.apply(name), gameTime));
+                        this.timeAliases.add(new TimeAlias(Utils.lowercase(name), gameTime));
                 });
         }
 
@@ -99,12 +105,12 @@ public class TimeCommandProvider extends CommandProvider {
                                 .description(DESCRIPTION_SET_TICKS)
                                 .permission(PERMISSION_SET)
                                 .withArguments(
-                                                Arguments.integer(CommandArguments.TIME, (int) WorldTime.MIN_TICKS,
-                                                                (int) WorldTime.MAX_TICKS)
+                                                Arguments.integer(CommandArguments.TIME, (int) MIN_TICKS,
+                                                                (int) MAX_TICKS)
                                                                 .localized(Lang.COMMAND_ARGUMENT_NAME_TIME)
                                                                 .suggestions((reader, context) -> IntStream.range(0, 25)
                                                                                 .boxed()
-                                                                                .map(hour -> hour * WorldTime.MODIFIER)
+                                                                                .map(hour -> hour * MODIFIER)
                                                                                 .map(String::valueOf).toList()),
                                                 Arguments.world(CommandArguments.WORLD).optional())
                                 .executes((context, arguments) -> this.setWorldTime(context, arguments,
@@ -120,9 +126,9 @@ public class TimeCommandProvider extends CommandProvider {
                 if (world == null)
                         return false;
 
-                long worldTime = WorldTime.clamp(ticks);
+                long worldTime = clampTicks(ticks);
                 world.setTime(worldTime);
-                LocalTime localTime = WorldTime.getTimeOfTicks(world.getTime());
+                LocalTime localTime = getTimeOfTicks(world.getTime());
 
                 this.module.sendPrefixed(MESSAGE_SET_FEEDBACK, context.getSender(), replacer -> replacer
                                 .with(GENERIC_WORLD, () -> BukkitThing.getValue(world))
@@ -137,17 +143,27 @@ public class TimeCommandProvider extends CommandProvider {
                         return false;
 
                 long worldTicks = world.getTime();
-                LocalTime worldTime = WorldTime.getTimeOfTicks(worldTicks);
-                LocalTime serverTime = TimeUtil.getCurrentTime();
-
                 Replacer replacer = Replacer.create()
                                 .replace(GENERIC_WORLD, BukkitThing.getValue(world))
-                                .replace(GENERIC_TIME, SLUtils.formatTime(worldTime))
+                                .replace(GENERIC_TIME, SLUtils.formatTime(getTimeOfTicks(worldTicks)))
                                 .replace(GENERIC_TICKS, NumberUtil.format(worldTicks))
-                                .replace(GENERIC_GLOBAL, SLUtils.formatTime(serverTime));
+                                .replace(GENERIC_GLOBAL, SLUtils.formatTime(TimeUtil.getCurrentTime()));
 
                 String text = String.join("\n", replacer.apply(this.settings.timeDisplayFormat.get()));
                 Players.sendMessage(context.getSender(), text);
                 return true;
+        }
+
+        public static long clampTicks(long ticks) {
+                return Math.clamp(ticks, MIN_TICKS, MAX_TICKS);
+        }
+
+        public static LocalTime getTimeOfTicks(long ticks) {
+                double point = ticks * 3.6;
+
+                int hours = (int) (point / 60D / 60D);
+                int minutes = (int) ((point / 60D) % 60);
+                int seconds = (int) (point % 60);
+                return LocalTime.of(hours, minutes, seconds).plusHours(6);
         }
 }

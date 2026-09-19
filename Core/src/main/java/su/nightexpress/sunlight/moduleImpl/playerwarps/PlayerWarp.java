@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.user.UserInfo;
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.nightcore.util.bukkit.NightItem;
 import su.nightexpress.nightcore.util.geodata.pos.ExactPos;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;

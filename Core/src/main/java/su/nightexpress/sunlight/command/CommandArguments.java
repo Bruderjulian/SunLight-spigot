@@ -13,10 +13,10 @@ import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.exceptions.CommandSyntaxException;
 import su.nightexpress.nightcore.util.BukkitThing;
 import su.nightexpress.nightcore.util.EntityUtil;
-import su.nightexpress.nightcore.util.Enums;
 import su.nightexpress.nightcore.util.bridge.RegistryType;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
 import su.nightexpress.sunlight.config.Lang;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -65,9 +65,11 @@ public class CommandArguments {
         }
 
         public static ArgumentNodeBuilder<EquipmentSlot> slot(String name) {
-                return Commands.argument(name, (context, string) -> Enums.parse(string, EquipmentSlot.class)
-                                .filter(slot -> slot != EquipmentSlot.BODY)
-                                .orElseThrow(() -> CommandSyntaxException.custom(Lang.COMMAND_SYNTAX_INVALID_SLOT)))
+                return Commands.argument(name,
+                                (context, string) -> Utils.enumOptionalValueOf(string, EquipmentSlot.class)
+                                                .filter(slot -> slot != EquipmentSlot.BODY)
+                                                .orElseThrow(() -> CommandSyntaxException
+                                                                .custom(Lang.COMMAND_SYNTAX_INVALID_SLOT)))
                                 .localized(Lang.COMMAND_ARGUMENT_NAME_SLOT.text())
                                 .suggestions((reader, context) -> Arrays.stream(EntityUtil.EQUIPMENT_SLOTS)
                                                 .map(Enum::name)
@@ -77,9 +79,10 @@ public class CommandArguments {
         public static <E extends Enum<E>> ArgumentNodeBuilder<E> enumed(String name, Class<E> clazz) {
                 return Commands
                                 .argument(name,
-                                                (context, str) -> Enums.parse(str, clazz).orElseThrow(
-                                                                () -> CommandSyntaxException.custom(
-                                                                                Lang.ERROR_COMMAND_INVALID_TYPE_ARGUMENT)))
+                                                (context, str) -> Utils
+                                                                .enumOptionalValueOf(str, clazz).orElseThrow(
+                                                                                () -> CommandSyntaxException.custom(
+                                                                                                Lang.ERROR_COMMAND_INVALID_TYPE_ARGUMENT)))
                                 .localized(Lang.COMMAND_ARGUMENT_NAME_TYPE.text())
                                 .suggestions((reader, tabContext) -> Stream.of(clazz.getEnumConstants()).sorted()
                                                 .map(c -> String.valueOf(c).toLowerCase()).toList());

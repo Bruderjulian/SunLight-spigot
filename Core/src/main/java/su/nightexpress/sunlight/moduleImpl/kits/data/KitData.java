@@ -1,6 +1,6 @@
 package su.nightexpress.sunlight.moduleImpl.kits.data;
 
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.TimeUtil;
 
 import java.util.UUID;
 

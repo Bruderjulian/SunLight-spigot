@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.moduleImpl.homes.repository;
 
-import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.sunlight.moduleImpl.homes.impl.Home;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +30,7 @@ public class UserHomeRepository {
     }
 
     synchronized void remove(String id) {
-        this.homByIdMap.remove(LowerCase.INTERNAL.apply(id));
+        this.homByIdMap.remove(Utils.lowercase(id));
     }
 
     public Set<Home> getAll() {
@@ -42,6 +42,6 @@ public class UserHomeRepository {
     }
 
     public Home getById(String id) {
-        return this.homByIdMap.get(LowerCase.INTERNAL.apply(id));
+        return this.homByIdMap.get(Utils.lowercase(id));
     }
 }

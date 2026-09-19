@@ -17,7 +17,7 @@ import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PlayerPunishment;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PunishmentType;
 import su.nightexpress.sunlight.user.UserManager;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class HistoryCommandsProvider extends CommandProvider {
 
@@ -75,7 +75,7 @@ public class HistoryCommandsProvider extends CommandProvider {
             }
 
             this.module.openHistory(viewer, profile, type);
-        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+        }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
 
         return true;
     }

@@ -15,6 +15,7 @@ import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialSettings;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -59,7 +60,7 @@ public class StaffCommandProvider extends CommandProvider {
         Player executor = context.getPlayer();
         Set<Player> staffs = new HashSet<>();
 
-        Players.getOnline().forEach(other -> {
+        Utils.onlinePlayers().forEach(other -> {
             if (executor != null && !executor.canSee(other))
                 return;
 

@@ -25,6 +25,7 @@ import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialSettings;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Direction;
+import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.sunlight.SLUtils;
 
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ public class NearCommandProvider extends CommandProvider {
 
     private String getDirectionText(Direction direction) {
         if (this.settings.nearUseArrows.get()) {
-            String arrow = this.settings.nearDirectionArrows.get().get(LowerCase.INTERNAL.apply(direction.name()));
+            String arrow = this.settings.nearDirectionArrows.get().get(Utils.lowercase(direction.name()));
             if (arrow != null)
                 return arrow;
         }
@@ -106,7 +107,7 @@ public class NearCommandProvider extends CommandProvider {
             int distanceLookup = radius * radius;
             boolean isOthers = context.getSender() != source;
 
-            Players.getOnline().forEach(other -> {
+            Utils.onlinePlayers().forEach(other -> {
                 if (other == source)
                     return;
                 if (other.getWorld() != sourceWorld)

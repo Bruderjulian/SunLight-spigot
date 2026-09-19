@@ -10,7 +10,7 @@ import su.nightexpress.sunlight.moduleImpl.bans.BansModule;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
 import su.nightexpress.sunlight.user.UserManager;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -53,7 +53,7 @@ public class AltsCommandProvider extends CommandProvider {
                     this.module.notifyAltProfiles(context.getSender(), profile, address, alts);
                 }, this.plugin::runTask);
             });
-        }).whenComplete(FutureUtils::printStacktrace);
+        }).whenComplete(Utils::printStacktrace);
 
         return true;
     }

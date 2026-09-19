@@ -1,6 +1,6 @@
 package su.nightexpress.sunlight.moduleImpl.afk;
 
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.nightcore.util.geodata.pos.BlockPos;
 import su.nightexpress.sunlight.moduleImpl.afk.core.AfkSettings;
 

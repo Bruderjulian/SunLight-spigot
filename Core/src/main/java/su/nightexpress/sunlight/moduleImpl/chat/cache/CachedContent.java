@@ -1,6 +1,6 @@
 package su.nightexpress.sunlight.moduleImpl.chat.cache;
 
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.TimeUtil;
 
 public class CachedContent {
 

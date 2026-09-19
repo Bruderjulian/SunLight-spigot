@@ -4,7 +4,7 @@ import su.nightexpress.nightcore.db.column.Column;
 import su.nightexpress.nightcore.db.statement.condition.Operator;
 import su.nightexpress.nightcore.db.statement.condition.Wheres;
 import su.nightexpress.nightcore.db.table.Table;
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.data.DataHandler;
 import su.nightexpress.sunlight.moduleImpl.bans.BansModule;

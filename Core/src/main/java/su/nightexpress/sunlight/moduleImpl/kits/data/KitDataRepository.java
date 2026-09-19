@@ -1,6 +1,6 @@
 package su.nightexpress.sunlight.moduleImpl.kits.data;
 
-import su.nightexpress.nightcore.util.LowerCase;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Map;
 import java.util.Optional;
@@ -26,7 +26,7 @@ public class KitDataRepository {
     }
 
     public synchronized void remove(UUID playerId, String kitId) {
-        this.getUserDataMap(playerId).remove(LowerCase.INTERNAL.apply(kitId));
+        this.getUserDataMap(playerId).remove(Utils.lowercase(kitId));
     }
 
     public Map<String, KitData> getUserDataMap(UUID playerId) {
@@ -34,7 +34,7 @@ public class KitDataRepository {
     }
 
     public KitData getKitData(UUID playerId, String kitId) {
-        return this.getUserDataMap(playerId).get(LowerCase.INTERNAL.apply(kitId));
+        return this.getUserDataMap(playerId).get(Utils.lowercase(kitId));
     }
 
     public Optional<KitData> kitData(UUID playerId, String kitId) {

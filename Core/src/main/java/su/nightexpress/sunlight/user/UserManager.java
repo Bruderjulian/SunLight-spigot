@@ -5,11 +5,11 @@ import org.bukkit.entity.Player;
 import su.nightexpress.nightcore.user.AbstractUserManager;
 import su.nightexpress.nightcore.user.UserInfo;
 import su.nightexpress.nightcore.user.data.DefaultUserDataAccessor;
-import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.sunlight.SLUtils;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandKey;
 import su.nightexpress.sunlight.data.DataHandler;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.net.InetAddress;
 import java.util.HashMap;
@@ -42,7 +42,7 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
          * if (params.startsWith("command_cooldown_")) {
          * String name = params.substring("command_cooldown_".length());
          * return user.getCooldown(CooldownType.COMMAND, name).map(c ->
-         * TimeUtil.formatDuration(c.getExpireDate())).orElse("-");
+         * Utils.formatDuration(c.getExpireDate())).orElse("-");
          * }
          */
     }
@@ -78,7 +78,7 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
     }
 
     public CompletableFuture<Player> loadTargetPlayer(UUID id, String name) {
-        Player target = Players.getPlayer(id);
+        Player target = Utils.getPlayer(id);
         if (target != null)
             return CompletableFuture.completedFuture(target);
 
@@ -87,7 +87,7 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
     }
 
     public CompletableFuture<UserInfo> loadTargetProfile(String playerName) {
-        Player target = Players.getPlayer(playerName);
+        Player target = Utils.getPlayer(playerName);
         if (target != null)
             return CompletableFuture.completedFuture(UserInfo.of(target));
 
@@ -95,7 +95,7 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
     }
 
     public CompletableFuture<InetAddress> loadInetAddress(UUID playerId) {
-        Player target = Players.getPlayer(playerId);
+        Player target = Utils.getPlayer(playerId);
         if (target != null)
             return CompletableFuture.completedFuture(SLUtils.getInetAddress(target).orElse(null));
 

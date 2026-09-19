@@ -20,6 +20,7 @@ import su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers;
 import su.nightexpress.sunlight.SLConfigTypes;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.category.NormalCategory;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.featuring.FeaturedSlot;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -190,7 +191,7 @@ public class PlayerWarpsSettings extends AbstractConfig {
         }
 
         public boolean isBlacklistedWorld(World world) {
-                return this.warpsWorldBlacklist.get().contains(LowerCase.INTERNAL.apply(world.getName()));
+                return this.warpsWorldBlacklist.get().contains(Utils.lowercase(world.getName()));
         }
 
         public int getMaxWarpsAmount(Player player) {
@@ -206,7 +207,7 @@ public class PlayerWarpsSettings extends AbstractConfig {
         }
 
         public NormalCategory getCategory(String id) {
-                return this.getCategoryMap().get(LowerCase.INTERNAL.apply(id));
+                return this.getCategoryMap().get(Utils.lowercase(id));
         }
 
         public NormalCategory getPrimaryCategory() {
@@ -226,7 +227,7 @@ public class PlayerWarpsSettings extends AbstractConfig {
         }
 
         public FeaturedSlot getFeaturingSlot(String id) {
-                return this.getFeaturingSlotMap().get(LowerCase.INTERNAL.apply(id));
+                return this.getFeaturingSlotMap().get(Utils.lowercase(id));
         }
 
         public boolean isPopularEnabled() {

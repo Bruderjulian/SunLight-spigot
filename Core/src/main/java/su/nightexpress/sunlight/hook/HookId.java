@@ -1,6 +1,6 @@
 package su.nightexpress.sunlight.hook;
 
-import su.nightexpress.nightcore.util.Plugins;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class HookId {
 
@@ -11,14 +11,14 @@ public class HookId {
     public static final String GRIEF_PREVENTION = "GriefPrevention";
 
     public static boolean hasDiscordSRV() {
-        return Plugins.isInstalled(DISCORD_SRV);
+        return Utils.isInstalled(DISCORD_SRV);
     }
 
     public static boolean hasWorldGuard() {
-        return Plugins.isInstalled(WORLD_GUARD);
+        return Utils.isInstalled(WORLD_GUARD);
     }
 
     public static boolean hasGriefPrevention() {
-        return Plugins.isInstalled(GRIEF_PREVENTION);
+        return Utils.isInstalled(GRIEF_PREVENTION);
     }
 }

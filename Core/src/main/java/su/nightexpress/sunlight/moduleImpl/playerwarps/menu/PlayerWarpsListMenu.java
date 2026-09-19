@@ -34,6 +34,7 @@ import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsModule;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsPlaceholders;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.category.WarpCategory;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.core.PlayerWarpsSettings;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -265,7 +266,7 @@ public class PlayerWarpsListMenu extends AbstractObjectMenu<WarpsListData> imple
                         return false;
 
                 if (data.searchText() != null) {
-                        String lowName = LowerCase.INTERNAL.apply(NightMessage.stripTags(warp.getName()));
+                        String lowName = Utils.lowercase(NightMessage.stripTags(warp.getName()));
                         return lowName.contains(data.searchText());
                 }
 

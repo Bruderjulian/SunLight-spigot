@@ -36,8 +36,6 @@ import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigType;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
 import su.nightexpress.nightcore.util.CommandUtil;
-import su.nightexpress.nightcore.util.Enums;
-import su.nightexpress.nightcore.util.Plugins;
 import su.nightexpress.nightcore.util.sound.VanillaSound;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.hook.HookId;
@@ -47,6 +45,7 @@ import su.nightexpress.sunlight.moduleImpl.chat.format.FormatComponent;
 import su.nightexpress.sunlight.moduleImpl.chat.format.FormatDefinition;
 import su.nightexpress.sunlight.moduleImpl.chat.mention.GroupMention;
 import su.nightexpress.sunlight.moduleImpl.chat.spy.SpyType;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class ChatSettings extends AbstractConfig {
 
@@ -66,7 +65,7 @@ public class ChatSettings extends AbstractConfig {
                         EventPriority.class), "Global.Chat-Event-Priority",
                         EventPriority.HIGH,
                         "Sets priority for the AsyncChatEvent (Paper) / AsyncPlayerChatEvent (Spigot) handler.",
-                        "[>] Available values: [" + Enums.inline(EventPriority.class) + "]",
+                        "[>] Available values: [" + Utils.enumToString(EventPriority.class) + "]",
                         "[*] Do not touch unless you're experiencing compatibility issues or you know what you're doing.");
 
         private final ConfigProperty<Boolean> discordHookEnabled = this.addProperty(ConfigTypes.BOOLEAN,
@@ -98,7 +97,7 @@ public class ChatSettings extends AbstractConfig {
                         "Here you can create custom 'components' to use in the user formats below.",
                         "To insert a component into user format, wrap it into '%' brackets: %my_component%",
                         "[>] Text Formations: " + SLPlaceholders.URL_WIKI_TEXT,
-                        "[>] %s Support: Yes".formatted(Plugins.PLACEHOLDER_API),
+                        "[>] PlaceholderAPI Support: Yes",
                         "[>] Built-in Placeholders:",
                         "- " + SLPlaceholders.GENERIC_MESSAGE + " - Original message sent by a player.",
                         "- " + PLAYER_NAME + " - Player name.",
@@ -169,7 +168,7 @@ public class ChatSettings extends AbstractConfig {
                         SLPlaceholders.GENERIC_MESSAGE,
                         "Conversation message format used in 'Incoming' and 'Outgoing' formats below.",
                         "[>] Text Formations: " + SLPlaceholders.URL_WIKI_TEXT,
-                        "[>] %s Support: Yes".formatted(Plugins.PLACEHOLDER_API),
+                        "[>] PlaceholderAPI Support: Yes",
                         "[>] Built-in Placeholders:",
                         "- " + SLPlaceholders.GENERIC_MESSAGE + " - Original message sent by a player.",
                         "- " + PLAYER_NAME + " - Player name.",
@@ -374,8 +373,8 @@ public class ChatSettings extends AbstractConfig {
                         "This feature allows you to monitor player's chat messages, used commands and conversations.");
 
         private final ConfigProperty<Map<SpyType, String>> spyFormat = this.addProperty(
-                        ConfigTypes.forMap(string -> Enums
-                                        .get(string, SpyType.class), Enum::name, ConfigTypes.STRING),
+                        ConfigTypes.forMap(string -> Utils.enumValueOf(string, SpyType.class), Enum::name,
+                                        ConfigTypes.STRING),
                         "Spy.Info-Format",
                         ChatDefaults.getDefaultSpyFormat(),
                         "Format for Spy Modes.",

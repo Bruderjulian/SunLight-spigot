@@ -5,7 +5,7 @@ import org.bukkit.block.BlockFace;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.config.Writeable;
-import su.nightexpress.nightcore.util.Enums;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -51,7 +51,7 @@ public class LookupRange implements Writeable {
         int distanceMin = config.getInt(path + ".Distance_Min");
         int distanceMax = config.getInt(path + ".Distance_Max");
         Set<BlockFace> directions = config.getStringSet(path + ".Directions").stream()
-                .map(string -> Enums.get(string, BlockFace.class))
+                .map(string -> Utils.enumValueOf(string, BlockFace.class))
                 .filter(Objects::nonNull).filter(BlockFace::isCartesian).collect(Collectors.toSet());
 
         int yMin = config.getInt(path + ".Y.Min", 0);
@@ -70,7 +70,7 @@ public class LookupRange implements Writeable {
             return DEFAULT_BLOCKED_BLOCKS;
 
         return config.getStringSet(path).stream()
-                .map(string -> Enums.get(string, Material.class))
+                .map(string -> Utils.enumValueOf(string, Material.class))
                 .filter(Objects::nonNull).collect(Collectors.toCollection(HashSet::new));
     }
 

@@ -12,6 +12,7 @@ import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleContext;
 import su.nightexpress.sunlight.moduleImpl.scheduler.announcer.Announcer;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -106,7 +107,7 @@ public class SchedulerModule extends Module {
         if (message == null)
             return;
 
-        Players.getOnline().forEach(player -> {
+        Utils.onlinePlayers().forEach(player -> {
             PlaceholderContext context = PlaceholderContext.builder()
                     .with(CommonPlaceholders.PLAYER.resolver(player))
                     .andThen(CommonPlaceholders.forPlaceholderAPI(player))

@@ -13,7 +13,7 @@ import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatPerms;
 import su.nightexpress.sunlight.user.UserManager;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -83,7 +83,7 @@ public class MailCommandProvider extends CommandProvider {
             }
             this.module.sendMail(player, profile, message);
             return CompletableFuture.completedFuture(null);
-        }).whenComplete(FutureUtils::printStacktrace);
+        }).whenComplete(Utils::printStacktrace);
 
         return true;
     }

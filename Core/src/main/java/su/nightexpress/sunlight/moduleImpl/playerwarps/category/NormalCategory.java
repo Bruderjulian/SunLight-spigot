@@ -8,6 +8,7 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarp;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsPlaceholders;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class NormalCategory implements WarpCategory, PlaceholderResolvable, Writ
     }
 
     public static NormalCategory read(FileConfig config, String path) {
-        String id = LowerCase.INTERNAL.apply(config.getString(path + ".Id", "null"));
+        String id = Utils.lowercase(config.getString(path + ".Id", "null"));
         String name = config.getString(path + ".Name", id);
         boolean primary = config.getBoolean(path + ".Primary");
         List<String> description = config.getStringList(path + ".Description");

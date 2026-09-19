@@ -16,7 +16,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import su.nightexpress.nightcore.util.Lists;
-import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.NumberUtil;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.random.Rnd;
@@ -32,6 +31,7 @@ import su.nightexpress.sunlight.teleport.TeleportFlag;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.teleport.TeleportType;
 import su.nightexpress.sunlight.utils.EconomyUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class RTPEngine {
 
@@ -97,7 +97,7 @@ public class RTPEngine {
     }
 
     public LookupRange getWorldRange(final String name) {
-        return module.getSettings().getLookupRangesMap().get(LowerCase.INTERNAL.apply(name));
+        return module.getSettings().getLookupRangesMap().get(Utils.lowercase(name));
     }
 
     public Optional<LastRTP> getLastRTP(final Player player) {
@@ -106,7 +106,7 @@ public class RTPEngine {
 
     public boolean teleportToRandomPlace(final Player player, World world) {
         world = world == null ? player.getWorld() : world;
-        String worldName = LowerCase.INTERNAL.apply(world.getName());
+        String worldName = Utils.lowercase(world.getName());
         LookupRange lookupRange = this.getWorldRange(worldName);
 
         if (lookupRange == null && module.getSettings().isFallbackEnabled()) {
@@ -114,7 +114,7 @@ public class RTPEngine {
                     module.getSettings().getFallbackWorld());
             if (fallbackWorld != null) {
                 world = fallbackWorld;
-                worldName = LowerCase.INTERNAL.apply(fallbackWorld.getName());
+                worldName = Utils.lowercase(fallbackWorld.getName());
                 lookupRange = this.getWorldRange(fallbackWorld.getName());
             }
         }

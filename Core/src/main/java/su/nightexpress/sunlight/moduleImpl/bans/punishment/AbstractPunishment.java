@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.moduleImpl.bans.punishment;
 
 import org.bukkit.entity.Player;
 
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 
 import java.util.UUID;

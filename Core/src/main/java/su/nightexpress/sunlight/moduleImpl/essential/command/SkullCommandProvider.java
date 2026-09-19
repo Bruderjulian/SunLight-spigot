@@ -27,7 +27,7 @@ import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Base64;
 import java.util.Optional;
@@ -149,7 +149,7 @@ public class SkullCommandProvider extends CommandProvider {
             this.module.sendPrefixed(locale, player,
                     builder -> builder.with(PLAYER_NAME, () -> String.valueOf(updated.getName())));
 
-        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+        }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
 
         return true;
     }

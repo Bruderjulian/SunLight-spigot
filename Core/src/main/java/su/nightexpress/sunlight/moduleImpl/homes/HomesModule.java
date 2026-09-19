@@ -66,6 +66,7 @@ import su.nightexpress.sunlight.teleport.TeleportFlag;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.teleport.TeleportType;
 import su.nightexpress.sunlight.utils.EconomyUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class HomesModule extends Module {
 
@@ -290,7 +291,7 @@ public class HomesModule extends Module {
         boolean overrideRespawn = this.settings.isBedModeOverrideRespawn();
 
         if (this.settings.isBedModeWithColors()) {
-            homeId = LowerCase.INTERNAL.apply(color.name());
+            homeId = Utils.lowercase(color.name());
         } else {
             homeId = HomeDefaults.DEFAULT_HOME_ID;
         }
@@ -524,7 +525,7 @@ public class HomesModule extends Module {
         home.addInvitedPlayer(profile);
         home.markDirty();
 
-        Player target = Players.getPlayer(profile.id());
+        Player target = Utils.getPlayer(profile.id());
         if (target != null) {
             this.sendPrefixed(HomesLang.HOME_INVITE_SUCCESS_NOTIFY, player, builder -> builder
                     .with(CommonPlaceholders.PLAYER.resolver(player))

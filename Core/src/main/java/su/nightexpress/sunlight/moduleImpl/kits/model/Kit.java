@@ -13,6 +13,7 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
 import su.nightexpress.sunlight.moduleImpl.kits.KitsPlaceholders;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsPerms;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class Kit implements PlaceholderResolvable {
 
     public static Kit fromFile(Path file) {
         FileConfig config = FileConfig.load(file);
-        String id = LowerCase.INTERNAL.apply(FileUtil.getNameWithoutExtension(file));
+        String id = Utils.lowercase(FileUtil.getNameWithoutExtension(file));
 
         if (config.contains("Items")) {
             ItemStack[] items = config.getItemsEncoded("Items"); // 0-35

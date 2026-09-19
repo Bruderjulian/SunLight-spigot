@@ -4,8 +4,8 @@ import su.nightexpress.nightcore.db.statement.RowMapper;
 import su.nightexpress.nightcore.db.statement.template.InsertStatement;
 import su.nightexpress.nightcore.db.statement.template.SelectStatement;
 import su.nightexpress.nightcore.db.statement.template.UpdateStatement;
-import su.nightexpress.nightcore.util.Enums;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.*;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -17,7 +17,7 @@ public class BansQueries {
     private static final RowMapper<PunishmentData> PUNISHMENT_DATA_LOADER = resultSet -> {
         try {
             UUID id = UUID.fromString(resultSet.getString(BansDataManager.COLUMN_BAN_ID.getName()));
-            PunishmentType type = Enums.get(resultSet.getString(BansDataManager.COLUMN_TYPE.getName()),
+            PunishmentType type = Utils.enumValueOf(resultSet.getString(BansDataManager.COLUMN_TYPE.getName()),
                     PunishmentType.class);
             if (type == null)
                 return null;

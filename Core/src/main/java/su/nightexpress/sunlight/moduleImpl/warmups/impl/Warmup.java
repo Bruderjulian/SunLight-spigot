@@ -7,7 +7,7 @@ import su.nightexpress.nightcore.bridge.bossbar.NightBarColor;
 import su.nightexpress.nightcore.bridge.bossbar.NightBarOverlay;
 import su.nightexpress.nightcore.bridge.bossbar.NightBossBar;
 import su.nightexpress.nightcore.util.BossBarUtils;
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;

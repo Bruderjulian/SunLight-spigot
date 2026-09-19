@@ -11,6 +11,7 @@ import su.nightexpress.sunlight.moduleImpl.bans.punishment.PunishmentReason;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PunishmentType;
 import su.nightexpress.sunlight.moduleImpl.bans.time.BanTime;
 import su.nightexpress.sunlight.moduleImpl.bans.time.BanTimeUnit;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.*;
 
@@ -57,7 +58,7 @@ public class BansSettings extends AbstractConfig {
 
         public final ConfigProperty<Map<BanTimeUnit, String[]>> timeUnitAliases = this.addProperty(
                         ConfigTypes.forMap(string -> Enums.get(string, BanTimeUnit.class),
-                                        unit -> LowerCase.INTERNAL.apply(unit.name()), ConfigTypes.STRING_ARRAY),
+                                        unit -> Utils.lowercase(unit.name()), ConfigTypes.STRING_ARRAY),
                         "Time.Unit-Aliases",
                         getDefaultAliases(),
                         "Here you can specify custom aliases (right side only) for time units used in punishment commands. Split with comma.");

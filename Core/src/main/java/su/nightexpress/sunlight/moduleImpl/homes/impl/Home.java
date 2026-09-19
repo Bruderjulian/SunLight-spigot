@@ -18,6 +18,7 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
 import su.nightexpress.sunlight.moduleImpl.homes.HomePlaceholders;
 import su.nightexpress.sunlight.moduleImpl.homes.config.HomesPerms;
+import su.nightexpress.sunlight.utils.Utils;
 
 @NullMarked
 public class Home implements PlaceholderResolvable {
@@ -189,7 +190,7 @@ public class Home implements PlaceholderResolvable {
     }
 
     public void setIconId(String iconId) {
-        this.iconId = LowerCase.INTERNAL.apply(iconId);
+        this.iconId = Utils.lowercase(iconId);
     }
 
     public String getWorldName() {

@@ -8,7 +8,6 @@ import su.nightexpress.nightcore.commands.Commands;
 import su.nightexpress.nightcore.commands.command.NightCommand;
 import su.nightexpress.nightcore.config.PluginDetails;
 import su.nightexpress.nightcore.core.config.CoreLang;
-import su.nightexpress.nightcore.util.Plugins;
 import su.nightexpress.nightcore.util.Version;
 import su.nightexpress.sunlight.api.SunlightAPI;
 import su.nightexpress.sunlight.api.provider.AfkProvider;
@@ -59,6 +58,7 @@ import su.nightexpress.sunlight.nms.mc_1_21_11.MC_1_21_11;
 import su.nightexpress.sunlight.nms.v26p1.NMSv26p1;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.user.UserManager;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleContextProvider {
 
@@ -133,14 +133,14 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
         this.registerCommands();
         this.registerPermissions(Perms.ROOT);
 
-        if (Plugins.hasPlaceholderAPI()) {
+        if (Utils.hasPlaceholderAPI()) {
             PlaceholderHook.setup(this);
         }
     }
 
     @Override
     public void disable() {
-        if (Plugins.hasPlaceholderAPI()) {
+        if (Utils.hasPlaceholderAPI()) {
             PlaceholderHook.shutdown();
         }
 

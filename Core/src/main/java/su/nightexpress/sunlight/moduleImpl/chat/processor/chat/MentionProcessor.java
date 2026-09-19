@@ -26,6 +26,7 @@ import su.nightexpress.sunlight.moduleImpl.chat.mention.PlayerMention;
 import su.nightexpress.sunlight.moduleImpl.chat.processor.MessageProcessor;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.UserManager;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class MentionProcessor implements MessageProcessor {
 
@@ -70,7 +71,7 @@ public class MentionProcessor implements MessageProcessor {
                 continue;
             }
 
-            if (!ChatPerms.MENTION.hasChildAccess(player, LowerCase.INTERNAL.apply(mentionName))) {
+            if (!ChatPerms.MENTION.hasChildAccess(player, Utils.lowercase(mentionName))) {
                 appendRaw.run();
                 continue;
             }
@@ -89,7 +90,7 @@ public class MentionProcessor implements MessageProcessor {
                 continue;
             }
 
-            this.mentions.put(LowerCase.INTERNAL.apply(mentionName), mention);
+            this.mentions.put(Utils.lowercase(mentionName), mention);
             matcher.appendReplacement(builder, mention.getFormat());
             mentionsCount++;
         }
@@ -127,7 +128,7 @@ public class MentionProcessor implements MessageProcessor {
     }
 
     private ChatMention getMention(ChatModule module, MessageContext context, String name) {
-        ChatMention mention = module.getSettings().getCustomMentions().get(LowerCase.INTERNAL.apply(name));
+        ChatMention mention = module.getSettings().getCustomMentions().get(Utils.lowercase(name));
         if (mention != null)
             return mention;
 

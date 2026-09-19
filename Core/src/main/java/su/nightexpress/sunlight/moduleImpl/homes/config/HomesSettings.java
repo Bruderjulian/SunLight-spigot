@@ -16,6 +16,7 @@ import su.nightexpress.nightcore.util.BukkitThing;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.RankTable;
 import su.nightexpress.sunlight.moduleImpl.homes.HomeDefaults;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Map;
 import java.util.Optional;
@@ -132,7 +133,7 @@ public class HomesSettings extends AbstractConfig {
         }
 
         public AdaptedItem getIconPreset(String iconId) {
-                return this.iconPresets.get().get(LowerCase.INTERNAL.apply(iconId));
+                return this.iconPresets.get().get(Utils.lowercase(iconId));
         }
 
         public boolean isCheckBuildAccess() {
@@ -140,7 +141,7 @@ public class HomesSettings extends AbstractConfig {
         }
 
         public boolean isBlacklistedWorld(String world) {
-                return this.worldBlacklist.get().contains(LowerCase.INTERNAL.apply(world));
+                return this.worldBlacklist.get().contains(Utils.lowercase(world));
         }
 
         public RankTable getHomesByRankAmount() {

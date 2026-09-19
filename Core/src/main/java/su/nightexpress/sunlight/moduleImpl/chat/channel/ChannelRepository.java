@@ -1,6 +1,7 @@
 package su.nightexpress.sunlight.moduleImpl.chat.channel;
 
 import su.nightexpress.nightcore.util.LowerCase;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +45,7 @@ public class ChannelRepository {
     }
 
     public ChatChannel getById(String id) {
-        return this.channelByIdMap.get(LowerCase.INTERNAL.apply(id));
+        return this.channelByIdMap.get(Utils.lowercase(id));
     }
 
     public ChatChannel getByPrefix(char prefix) {

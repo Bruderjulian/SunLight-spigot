@@ -18,7 +18,7 @@ import su.nightexpress.sunlight.moduleImpl.homes.config.HomesPerms;
 import su.nightexpress.sunlight.moduleImpl.homes.impl.Home;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.UserManager;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Collections;
 import java.util.Map;
@@ -140,7 +140,7 @@ public class HomeAdminCommandProvider extends CommandProvider {
             this.module.sendPrefixed(HomesLang.ADMIN_HOME_DELETE_FEEDBACK, context.getSender(), replacer -> replacer
                     .with(home.placeholders())
                     .with(CommonPlaceholders.PLAYER_NAME, user::getName));
-        }).whenComplete(FutureUtils::printStacktrace);
+        }).whenComplete(Utils::printStacktrace);
 
         return true;
     }

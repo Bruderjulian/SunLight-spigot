@@ -23,8 +23,7 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.integration.currency.EconomyBridge;
 import su.nightexpress.nightcore.manager.SimpleManager;
 import su.nightexpress.nightcore.util.CommandUtil;
-import su.nightexpress.nightcore.util.LowerCase;
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
@@ -35,6 +34,7 @@ import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.utils.EconomyUtils;
+import su.nightexpress.sunlight.utils.TimeUtil;
 
 public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
@@ -71,7 +71,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     }
 
     public void addProvider(String id, CommandProvider provider, Module module) {
-        String key = LowerCase.INTERNAL.apply(id);
+        String key = Utils.lowercase(id);
         this.providers.put(key, provider);
 
         if (module != null) {
@@ -277,7 +277,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
                     return;
                 }
 
-                if (this.settings.getConflictUnregisterBlacklist().contains(LowerCase.INTERNAL.apply(owner))) {
+                if (this.settings.getConflictUnregisterBlacklist().contains(Utils.lowercase(owner))) {
                     return;
                 }
 

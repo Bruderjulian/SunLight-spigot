@@ -10,7 +10,6 @@ import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangContainer;
-import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.StringUtil;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -19,7 +18,7 @@ import su.nightexpress.sunlight.command.definitions.LiteralDefinition;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.UserManager;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -82,13 +81,13 @@ public abstract class CommandProvider implements LangContainer {
             String defPath = path + "." + sId;
 
             boolean enabled = config.getBoolean(defPath + ".Enabled");
-            LiteralDefinition defaultDefinition = this.defaultLiterals.get(LowerCase.INTERNAL.apply(sId));
+            LiteralDefinition defaultDefinition = this.defaultLiterals.get(Utils.lowercase(sId));
             String[] aliases = readAliases(config, defPath + ".Aliases",
                     defaultDefinition == null ? new String[0] : defaultDefinition.aliases(), defPath);
             int cooldown = config.getInt(defPath + ".Cooldown");
             double cost = config.getDouble(defPath + ".Cost");
 
-            this.literals.put(LowerCase.INTERNAL.apply(sId), new LiteralDefinition(enabled, aliases, cooldown, cost));
+            this.literals.put(Utils.lowercase(sId), new LiteralDefinition(enabled, aliases, cooldown, cost));
         });
     }
 
@@ -115,7 +114,7 @@ public abstract class CommandProvider implements LangContainer {
             String defPath = path + "." + sId;
 
             boolean enabled = config.getBoolean(defPath + ".Enabled");
-            HubDefinition defaultDefinition = this.defaultRoot.get(LowerCase.INTERNAL.apply(sId));
+            HubDefinition defaultDefinition = this.defaultRoot.get(Utils.lowercase(sId));
             String[] aliases = readAliases(config, defPath + ".Aliases",
                     defaultDefinition == null ? new String[0] : defaultDefinition.aliases(), defPath);
             String name = config.getString(defPath + ".Name", "null");
@@ -129,10 +128,10 @@ public abstract class CommandProvider implements LangContainer {
                 if (!this.literalBuilders.containsKey(sId2))
                     return;
 
-                childrenAliases.put(LowerCase.INTERNAL.apply(sId2), alias.trim());
+                childrenAliases.put(Utils.lowercase(sId2), alias.trim());
             });
 
-            this.root.put(LowerCase.INTERNAL.apply(sId), new HubDefinition(enabled, aliases, name, childrenAliases));
+            this.root.put(Utils.lowercase(sId), new HubDefinition(enabled, aliases, name, childrenAliases));
         });
     }
 
@@ -205,8 +204,8 @@ public abstract class CommandProvider implements LangContainer {
 
     protected void registerLiteral(String id, boolean enabled, String[] aliases,
             Consumer<LiteralNodeBuilder> consumer) {
-        this.defaultLiterals.put(LowerCase.INTERNAL.apply(id), new LiteralDefinition(enabled, aliases, 0, 0D));
-        this.literalBuilders.put(LowerCase.INTERNAL.apply(id), consumer);
+        this.defaultLiterals.put(Utils.lowercase(id), new LiteralDefinition(enabled, aliases, 0, 0D));
+        this.literalBuilders.put(Utils.lowercase(id), consumer);
     }
 
     protected void registerRoot(String name, boolean enabled, String[] aliases,
@@ -219,9 +218,9 @@ public abstract class CommandProvider implements LangContainer {
 
     protected void registerRoot(String name, boolean enabled, String[] aliases, Map<String, String> childrenAliases,
             Consumer<HubNodeBuilder> consumer) {
-        this.defaultRoot.put(LowerCase.INTERNAL.apply(name), new HubDefinition(enabled, aliases, StringUtil
+        this.defaultRoot.put(Utils.lowercase(name), new HubDefinition(enabled, aliases, StringUtil
                 .capitalizeUnderscored(name), childrenAliases));
-        this.rootBuilder.put(LowerCase.INTERNAL.apply(name), consumer);
+        this.rootBuilder.put(Utils.lowercase(name), consumer);
     }
 
     public Map<String, HubDefinition> getRootDefinitions() {
@@ -266,7 +265,7 @@ public abstract class CommandProvider implements LangContainer {
     protected boolean runForOnlinePlayer(CommandContext context, ParsedArguments arguments, Module module,
             Function<Player, Boolean> consumer) {
         String playerName = arguments.getString(CommandArguments.PLAYER, context.getSender().getName());
-        Player target = Players.getPlayer(playerName);
+        Player target = Utils.getPlayer(playerName);
 
         if (target == null || !this.canSee(context, target)) {
             module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, context.getSender());
@@ -312,7 +311,7 @@ public abstract class CommandProvider implements LangContainer {
                                 target::saveData);
 
             }, this.plugin::runTask);
-        }).whenComplete(FutureUtils::printStacktrace);
+        }).whenComplete(Utils::printStacktrace);
 
         return true;
     }
@@ -348,7 +347,7 @@ public abstract class CommandProvider implements LangContainer {
                     : CompletableFuture.runAsync(
                             target::saveData);
 
-        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+        }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
 
         return true;
     }

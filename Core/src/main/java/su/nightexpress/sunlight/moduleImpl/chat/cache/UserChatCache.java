@@ -1,7 +1,7 @@
 package su.nightexpress.sunlight.moduleImpl.chat.cache;
 
-import su.nightexpress.nightcore.util.LowerCase;
-import su.nightexpress.nightcore.util.TimeUtil;
+import su.nightexpress.sunlight.utils.TimeUtil;
+import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.sunlight.user.cache.UserCacheContainer;
 
 import java.util.HashMap;
@@ -78,11 +78,11 @@ public class UserChatCache implements UserCacheContainer {
     }
 
     public long getChannelCooldownTimestamp(String channelId) {
-        return this.channelCooldownTimestamps.getOrDefault(LowerCase.INTERNAL.apply(channelId), 0L);
+        return this.channelCooldownTimestamps.getOrDefault(Utils.lowercase(channelId), 0L);
     }
 
     public void setChannelCooldown(String channelId, long duration) {
-        this.channelCooldownTimestamps.put(LowerCase.INTERNAL.apply(channelId),
+        this.channelCooldownTimestamps.put(Utils.lowercase(channelId),
                 TimeUtil.createFutureTimestamp(duration));
     }
 
@@ -91,11 +91,11 @@ public class UserChatCache implements UserCacheContainer {
     }
 
     public long getMentionCooldownTimestamp(String mentionId) {
-        return this.mentionCooldownTimestamps.getOrDefault(LowerCase.INTERNAL.apply(mentionId), 0L);
+        return this.mentionCooldownTimestamps.getOrDefault(Utils.lowercase(mentionId), 0L);
     }
 
     public void setMentionCooldown(String mentionId, long duration) {
-        this.mentionCooldownTimestamps.put(LowerCase.INTERNAL.apply(mentionId),
+        this.mentionCooldownTimestamps.put(Utils.lowercase(mentionId),
                 TimeUtil.createFutureTimestamp(duration));
     }
 

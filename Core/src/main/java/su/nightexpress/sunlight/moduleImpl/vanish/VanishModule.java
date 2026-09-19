@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
-import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.text.NightMessage;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.config.PermissionTree;
@@ -21,6 +20,7 @@ import su.nightexpress.sunlight.moduleImpl.vanish.config.VanishPerms;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserProperty;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
+import su.nightexpress.sunlight.utils.Utils;
 
 public class VanishModule extends Module implements VanishProvider {
 
@@ -53,7 +53,7 @@ public class VanishModule extends Module implements VanishProvider {
 
     @Override
     protected void unloadModule() {
-        Players.getOnline().forEach(player -> this.vanish(player, false));
+        Utils.onlinePlayers().forEach(player -> this.vanish(player, false));
 
         this.vanishIndicator.removeAll();
         this.vanishIndicator = null;
@@ -77,7 +77,7 @@ public class VanishModule extends Module implements VanishProvider {
     }
 
     private void updateOnlinePlayers() {
-        Players.getOnline().forEach(player -> {
+        Utils.onlinePlayers().forEach(player -> {
             if (!this.isVanished(player))
                 return;
 

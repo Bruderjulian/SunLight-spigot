@@ -5,7 +5,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.Players;
-import su.nightexpress.nightcore.util.Plugins;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.sunlight.config.PermissionTree;
@@ -18,6 +17,7 @@ import su.nightexpress.sunlight.moduleImpl.nametags.handler.NametagHandler;
 import su.nightexpress.sunlight.moduleImpl.nametags.handler.PacketsTagHandler;
 import su.nightexpress.sunlight.moduleImpl.nametags.handler.ProtocolTagHandler;
 import su.nightexpress.sunlight.moduleImpl.nametags.listener.NametagsListener;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Comparator;
 
@@ -42,9 +42,9 @@ public class NametagsModule extends Module {
     }
 
     private void loadTagHandler() {
-        if (Plugins.isInstalled(HookId.PACKET_EVENTS)) {
+        if (Utils.isInstalled(HookId.PACKET_EVENTS)) {
             this.tagHandler = new PacketsTagHandler(this.plugin);
-        } else if (Plugins.isInstalled(HookId.PROTOCOL_LIB)) {
+        } else if (Utils.isInstalled(HookId.PROTOCOL_LIB)) {
             this.tagHandler = new ProtocolTagHandler(this.plugin);
         }
 
@@ -102,6 +102,6 @@ public class NametagsModule extends Module {
     }
 
     public void updatePlayerNameTags() {
-        Players.getOnline().forEach(this::updatePlayerNameTag);
+        Utils.onlinePlayers().forEach(this::updatePlayerNameTag);
     }
 }

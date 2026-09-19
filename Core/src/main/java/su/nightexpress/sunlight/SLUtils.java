@@ -6,11 +6,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import su.nightexpress.nightcore.util.Players;
-import su.nightexpress.nightcore.util.Plugins;
-import su.nightexpress.nightcore.util.TimeUtil;
 import su.nightexpress.sunlight.config.Config;
 import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.utils.Direction;
+import su.nightexpress.sunlight.utils.TimeUtil;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -34,7 +34,7 @@ public class SLUtils {
     }
 
     public static boolean hasPacketLibrary() {
-        return Plugins.isInstalled(HookId.PACKET_EVENTS) || Plugins.isInstalled(HookId.PROTOCOL_LIB);
+        return Utils.isInstalled(HookId.PACKET_EVENTS) || Utils.isInstalled(HookId.PROTOCOL_LIB);
     }
 
     @Deprecated
@@ -101,7 +101,7 @@ public class SLUtils {
         if (name.equalsIgnoreCase(CONSOLE_NAME)) {
             return Config.CONSOLE_NAME.get();
         }
-        Player player = Players.getPlayer(name);
+        Player player = Utils.getPlayer(name);
         if (player != null) {
             return player.getDisplayName();
         }

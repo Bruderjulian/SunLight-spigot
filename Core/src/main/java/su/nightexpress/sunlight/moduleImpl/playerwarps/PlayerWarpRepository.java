@@ -3,6 +3,7 @@ package su.nightexpress.sunlight.moduleImpl.playerwarps;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.category.WarpCategory;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.featuring.FeaturedSlot;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -47,7 +48,7 @@ public class PlayerWarpRepository {
     }
 
     public boolean hasWarp(String id) {
-        return this.byIdMap.containsKey(LowerCase.INTERNAL.apply(id));
+        return this.byIdMap.containsKey(Utils.lowercase(id));
     }
 
     public boolean isFeatured(FeaturedSlot slot, int slotIndex) {
@@ -88,7 +89,7 @@ public class PlayerWarpRepository {
     }
 
     public PlayerWarp getById(String id) {
-        return this.byIdMap.get(LowerCase.INTERNAL.apply(id));
+        return this.byIdMap.get(Utils.lowercase(id));
     }
 
     public Set<PlayerWarp> getByOwner(UUID playerId) {

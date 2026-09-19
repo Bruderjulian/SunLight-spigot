@@ -5,7 +5,6 @@ import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigType;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
 import su.nightexpress.nightcore.util.Enums;
-import su.nightexpress.nightcore.util.Plugins;
 import su.nightexpress.nightcore.util.rankmap.IntRankMap;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatDefaults;
@@ -26,7 +25,7 @@ public class ChannelSchema {
                         ChatDefaults.DEFAULT_CHANNEL_FORMAT,
                         "Channel message format.",
                         "[>] Text Formations: %s".formatted(SLPlaceholders.URL_WIKI_TEXT),
-                        "[>] %s Support: Yes".formatted(Plugins.PLACEHOLDER_API),
+                        "[>] PlaceholderAPI Support: Yes",
                         "[>] Built-in Placeholders:",
                         "- " + SLPlaceholders.GENERIC_FORMAT + " - User message format from the module's settings.",
                         "- " + PLAYER_NAME + " - Player name.",

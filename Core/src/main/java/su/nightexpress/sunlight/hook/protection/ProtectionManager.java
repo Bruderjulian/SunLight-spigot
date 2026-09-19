@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.hook.protection;
 
 import org.bukkit.Location;
 
-import su.nightexpress.nightcore.util.LowerCase;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,7 @@ public class ProtectionManager {
         for (ProtectionHook hook : this.hooks) {
             if (!hook.isEnabled())
                 continue;
-            if (ignoredHooks.contains(LowerCase.INTERNAL.apply(hook.getPluginName())))
+            if (ignoredHooks.contains(Utils.lowercase(hook.getPluginName())))
                 continue;
 
             try {

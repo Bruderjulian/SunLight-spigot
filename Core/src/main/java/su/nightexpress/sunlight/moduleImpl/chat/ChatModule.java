@@ -11,7 +11,6 @@ import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.user.UserInfo;
 import su.nightexpress.nightcore.util.FileUtil;
 import su.nightexpress.nightcore.util.Players;
-import su.nightexpress.nightcore.util.Plugins;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
@@ -57,7 +56,7 @@ import su.nightexpress.sunlight.moduleImpl.chat.spy.SpyType;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserProperty;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
-import su.nightexpress.sunlight.utils.FutureUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -349,9 +348,9 @@ public class ChatModule extends Module {
 
     private void loadReportHandler() {
         if (this.settings.getReportsDisable()) {
-            if (Plugins.isInstalled(HookId.PACKET_EVENTS)) {
+            if (Utils.isInstalled(HookId.PACKET_EVENTS)) {
                 this.reportHandler = new ReportPacketsHandler();
-            } else if (Plugins.isInstalled(HookId.PROTOCOL_LIB)) {
+            } else if (Utils.isInstalled(HookId.PROTOCOL_LIB)) {
                 this.reportHandler = new ReportProtocolHandler(this.plugin);
             }
 
@@ -603,7 +602,7 @@ public class ChatModule extends Module {
         if (this.mailDataManager == null)
             return;
 
-        Player online = Players.getPlayer(recipient.id());
+        Player online = Utils.getPlayer(recipient.id());
         if (online != null) {
             this.sendPrivateMessage(sender, online, message);
             return;
@@ -626,7 +625,7 @@ public class ChatModule extends Module {
                 this.sendPrefixed(ChatLang.MAIL_SEND_ERROR_FULL, sender,
                         builder -> builder.with(SLPlaceholders.GENERIC_NAME, recipient::name));
             }
-        }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+        }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
     }
 
     public void readMails(Player player) {
@@ -641,7 +640,7 @@ public class ChatModule extends Module {
                     }
                     this.printMails(player, mails);
                     this.mailDataManager.deleteMails(player.getUniqueId());
-                }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+                }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
     }
 
     public void clearMails(Player player) {
@@ -650,7 +649,7 @@ public class ChatModule extends Module {
 
         CompletableFuture.runAsync(() -> this.mailDataManager.deleteMails(player.getUniqueId()))
                 .thenRunAsync(() -> this.sendPrefixed(ChatLang.MAIL_CLEAR_DONE, player), this.plugin::runTask)
-                .whenComplete(FutureUtils::printStacktrace);
+                .whenComplete(Utils::printStacktrace);
     }
 
     public void deliverMails(Player player) {
@@ -666,7 +665,7 @@ public class ChatModule extends Module {
                     this.sendPrefixed(ChatLang.MAIL_NOTIFY, player,
                             builder -> builder.with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(mails.size())));
                     this.mailDataManager.deleteMails(player.getUniqueId());
-                }, this.plugin::runTask).whenComplete(FutureUtils::printStacktrace);
+                }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
     }
 
     private void printMails(Player player, List<MailData> mails) {

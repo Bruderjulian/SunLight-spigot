@@ -12,8 +12,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 
 import su.nightexpress.nightcore.bridge.scheduler.AdaptedTask;
-import su.nightexpress.nightcore.util.LowerCase;
-import su.nightexpress.nightcore.util.TimeUtil;
 import su.nightexpress.sunlight.moduleImpl.rtp.RTPModule;
 
 public class RtpCache {
@@ -35,9 +33,8 @@ public class RtpCache {
     if (!module.getSettings().isCacheEnabled() || interval <= 0)
       return;
 
-    final long ticks = TimeUtil.secondsToTicks(interval);
     this.cacheRefillTask = this.module.plugin().scheduler()
-        .runTaskTimer(this::refillCachedWorlds, ticks, ticks);
+        .runTaskTimer(this::refillCachedWorlds, interval * 20, interval * 20);
   }
 
   public void shutdown() {
@@ -61,7 +58,7 @@ public class RtpCache {
         }
         if (queue.size() <= module.getSettings().getCacheRefillThreshold()) {
           Bukkit.getScheduler().runTaskAsynchronously(module.plugin(), () -> {
-            refillCache(world, lookupRange);
+            refillCache(world, lookupRange, worldName);
           });
         }
         return location;
@@ -69,17 +66,17 @@ public class RtpCache {
     }
 
     Bukkit.getScheduler().runTaskAsynchronously(module.plugin(), () -> {
-      refillCache(world, lookupRange);
+      refillCache(world, lookupRange, worldName);
     });
     return null;
   }
 
-  public void refillCache(final World world, final LookupRange range) {
-    final String key = LowerCase.INTERNAL.apply(world.getName());
-    if (!this.refilling.add(key))
+  public void refillCache(final World world, final LookupRange range, final String worldName) {
+    if (!this.refilling.add(worldName))
       return;
 
-    final Queue<Location> queue = this.locationCache.computeIfAbsent(key, unused -> new ConcurrentLinkedQueue<>());
+    final Queue<Location> queue = this.locationCache.computeIfAbsent(
+        worldName, unused -> new ConcurrentLinkedQueue<>());
     final int needed = module.getSettings().getCacheSize() - queue.size();
 
     CompletableFuture<Void> chain = CompletableFuture.completedFuture(null);
@@ -95,7 +92,7 @@ public class RtpCache {
         this.module.error("RTP location cache refill failed for world '" + world.getName() + "': "
             + error.getMessage());
 
-      this.refilling.remove(key);
+      this.refilling.remove(worldName);
     });
   }
 
@@ -105,9 +102,9 @@ public class RtpCache {
       if (world == null)
         return;
 
-      final LookupRange range = module.getEngine().getWorldRange(world.getName());
+      final LookupRange range = module.getEngine().getWorldRange(worldName);
       if (range != null) {
-        this.refillCache(world, range);
+        this.refillCache(world, range, worldName);
       }
     }
   }

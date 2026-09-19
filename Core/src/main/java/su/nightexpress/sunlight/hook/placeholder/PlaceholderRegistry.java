@@ -2,7 +2,7 @@ package su.nightexpress.sunlight.hook.placeholder;
 
 import org.bukkit.entity.Player;
 
-import su.nightexpress.nightcore.util.LowerCase;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +15,7 @@ public class PlaceholderRegistry {
     }
 
     public void register(String key, PlaceholderHandler handler) {
-        this.handlerMap.put(LowerCase.INTERNAL.apply(key), handler);
+        this.handlerMap.put(Utils.lowercase(key), handler);
     }
 
     public String onPlaceholderRequest(Player player, String params) {

@@ -7,13 +7,13 @@ import su.nightexpress.nightcore.db.statement.RowMapper;
 import su.nightexpress.nightcore.db.statement.template.InsertStatement;
 import su.nightexpress.nightcore.db.statement.template.UpdateStatement;
 import su.nightexpress.nightcore.user.UserInfo;
-import su.nightexpress.nightcore.util.Enums;
 import su.nightexpress.nightcore.util.LocationUtil;
 import su.nightexpress.nightcore.util.geodata.pos.BlockPos;
 import su.nightexpress.nightcore.util.geodata.pos.ExactPos;
 import su.nightexpress.sunlight.data.DataHandler;
 import su.nightexpress.sunlight.moduleImpl.homes.impl.Home;
 import su.nightexpress.sunlight.moduleImpl.homes.impl.HomeType;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.sql.SQLException;
 import java.util.NoSuchElementException;
@@ -31,23 +31,24 @@ public class HomesQueries {
             String iconId = HomeColumns.ICON_ID.readOrThrow(resultSet);
 
             Location location = LocationUtil.deserialize(HomeColumns.LOCATION.readOrThrow(resultSet));
-            if (location == null) return null;
+            if (location == null)
+                return null;
 
             World world = location.getWorld();
-            if (world == null) return null;
+            if (world == null)
+                return null;
 
-            HomeType type = Enums.parse(HomeColumns.TYPE.readOrThrow(resultSet), HomeType.class).orElse(
-                HomeType.PRIVATE);
+            HomeType type = Utils.enumOptionalValueOf(HomeColumns.TYPE.readOrThrow(resultSet), HomeType.class).orElse(
+                    HomeType.PRIVATE);
             Set<UserInfo> invitedPlayers = DataHandler.GSON.fromJson(HomeColumns.INVITED_PLAYERS.readOrThrow(resultSet),
-                new TypeToken<Set<UserInfo>>() {
-                }.getType());
+                    new TypeToken<Set<UserInfo>>() {
+                    }.getType());
             boolean favorite = HomeColumns.FAVORITE.readOrThrow(resultSet);
 
             UserInfo owner = new UserInfo(ownerId, ownerName);
             return new Home(id, owner, name, iconId, ExactPos.from(location), location.getWorld()
-                .getName(), type, invitedPlayers, favorite);
-        }
-        catch (SQLException | NoSuchElementException exception) {
+                    .getName(), type, invitedPlayers, favorite);
+        } catch (SQLException | NoSuchElementException exception) {
             exception.printStackTrace();
             return null;
         }
@@ -67,53 +68,50 @@ public class HomesQueries {
             if (posRaw.split(",").length < 5) {
                 BlockPos blockPos = BlockPos.deserialize(posRaw);
                 pos = ExactPos.from(blockPos);
-            }
-            else {
+            } else {
                 pos = ExactPos.deserialize(posRaw);
             }
 
             String worldName = HomeColumns.WORLD.readOrThrow(resultSet);
 
-            HomeType type = Enums.parse(HomeColumns.TYPE.readOrThrow(resultSet), HomeType.class).orElse(
-                HomeType.PRIVATE);
+            HomeType type = Utils.enumOptionalValueOf(HomeColumns.TYPE.readOrThrow(resultSet), HomeType.class).orElse(
+                    HomeType.PRIVATE);
             Set<UserInfo> invitedPlayers = DataHandler.GSON.fromJson(HomeColumns.INVITED_PLAYERS.readOrThrow(resultSet),
-                new TypeToken<Set<UserInfo>>() {
-                }.getType());
+                    new TypeToken<Set<UserInfo>>() {
+                    }.getType());
             boolean favorite = HomeColumns.FAVORITE.readOrThrow(resultSet);
 
             UserInfo owner = new UserInfo(ownerId, ownerName);
             return new Home(id, owner, name, iconId, pos, worldName, type, invitedPlayers, favorite);
-        }
-        catch (SQLException | NoSuchElementException exception) {
+        } catch (SQLException | NoSuchElementException exception) {
             exception.printStackTrace();
             return null;
         }
     };
 
     public static final InsertStatement<Home> HOME_INSERT = InsertStatement.<Home>builder()
-        .setString(HomeColumns.ID, Home::getId)
-        .setUUID(HomeColumns.OWNER_ID, home -> home.getOwner().id())
-        .setString(HomeColumns.OWNER_NAME, home -> home.getOwner().name())
-        .setString(HomeColumns.NAME, Home::getName)
-        .setString(HomeColumns.ICON_ID, Home::getIconId)
-        .setString(HomeColumns.POSITION, home -> home.getBlockPos().serialize())
-        .setString(HomeColumns.WORLD, Home::getWorldName)
-        .setString(HomeColumns.TYPE, home -> home.getType().name())
-        .setString(HomeColumns.INVITED_PLAYERS, home -> DataHandler.GSON.toJson(home.getInvitedPlayers()))
-        .setBoolean(HomeColumns.FAVORITE, Home::isFavorite)
-        .build();
-
+            .setString(HomeColumns.ID, Home::getId)
+            .setUUID(HomeColumns.OWNER_ID, home -> home.getOwner().id())
+            .setString(HomeColumns.OWNER_NAME, home -> home.getOwner().name())
+            .setString(HomeColumns.NAME, Home::getName)
+            .setString(HomeColumns.ICON_ID, Home::getIconId)
+            .setString(HomeColumns.POSITION, home -> home.getBlockPos().serialize())
+            .setString(HomeColumns.WORLD, Home::getWorldName)
+            .setString(HomeColumns.TYPE, home -> home.getType().name())
+            .setString(HomeColumns.INVITED_PLAYERS, home -> DataHandler.GSON.toJson(home.getInvitedPlayers()))
+            .setBoolean(HomeColumns.FAVORITE, Home::isFavorite)
+            .build();
 
     public static final UpdateStatement<Home> HOME_UPDATE = UpdateStatement.<Home>builder()
-        .setString(HomeColumns.ID, Home::getId)
-        .setUUID(HomeColumns.OWNER_ID, home -> home.getOwner().id())
-        .setString(HomeColumns.OWNER_NAME, home -> home.getOwner().name())
-        .setString(HomeColumns.NAME, Home::getName)
-        .setString(HomeColumns.ICON_ID, Home::getIconId)
-        .setString(HomeColumns.POSITION, home -> home.getBlockPos().serialize())
-        .setString(HomeColumns.WORLD, Home::getWorldName)
-        .setString(HomeColumns.TYPE, home -> home.getType().name())
-        .setString(HomeColumns.INVITED_PLAYERS, home -> DataHandler.GSON.toJson(home.getInvitedPlayers()))
-        .setBoolean(HomeColumns.FAVORITE, Home::isFavorite)
-        .build();
+            .setString(HomeColumns.ID, Home::getId)
+            .setUUID(HomeColumns.OWNER_ID, home -> home.getOwner().id())
+            .setString(HomeColumns.OWNER_NAME, home -> home.getOwner().name())
+            .setString(HomeColumns.NAME, Home::getName)
+            .setString(HomeColumns.ICON_ID, Home::getIconId)
+            .setString(HomeColumns.POSITION, home -> home.getBlockPos().serialize())
+            .setString(HomeColumns.WORLD, Home::getWorldName)
+            .setString(HomeColumns.TYPE, home -> home.getType().name())
+            .setString(HomeColumns.INVITED_PLAYERS, home -> DataHandler.GSON.toJson(home.getInvitedPlayers()))
+            .setBoolean(HomeColumns.FAVORITE, Home::isFavorite)
+            .build();
 }

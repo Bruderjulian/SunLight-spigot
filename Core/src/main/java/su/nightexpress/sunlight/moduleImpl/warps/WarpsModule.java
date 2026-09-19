@@ -37,6 +37,7 @@ import su.nightexpress.sunlight.teleport.TeleportFlag;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.teleport.TeleportType;
 import su.nightexpress.sunlight.utils.EconomyUtils;
+import su.nightexpress.sunlight.utils.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -118,7 +119,7 @@ public class WarpsModule extends Module {
     }
 
     public Warp getWarpById(String id) {
-        return this.repository.get(LowerCase.INTERNAL.apply(id));
+        return this.repository.get(Utils.lowercase(id));
     }
 
     public Set<Warp> getWarps() {
