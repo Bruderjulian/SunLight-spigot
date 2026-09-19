@@ -1,6 +1,6 @@
 package su.nightexpress.sunlight.moduleImpl.rtp.command;
 
-import org.bukkit.World;
+import org.bukkit.Bukkit;
 
 import su.nightexpress.nightcore.commands.Arguments;
 import su.nightexpress.nightcore.commands.context.CommandContext;
@@ -16,7 +16,7 @@ public class RTPCommandProvider extends AbstractCommandProvider {
 
     private final RTPModule module;
 
-    public RTPCommandProvider(SunLightPlugin plugin, RTPModule module) {
+    public RTPCommandProvider(final SunLightPlugin plugin, final RTPModule module) {
         super(plugin);
         this.module = module;
     }
@@ -33,15 +33,17 @@ public class RTPCommandProvider extends AbstractCommandProvider {
                 .executes(this::execute));
     }
 
-    private boolean execute(CommandContext context, ParsedArguments arguments) {
+    private boolean execute(final CommandContext context, final ParsedArguments arguments) {
         return this.runForOnlinePlayer(context, arguments, this.module, target -> {
-            boolean result = this.module.teleportToRandomPlace(target, arguments.getWorld("world"));
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                final boolean result = this.module.getEngine().teleportToRandomPlace(target,
+                        arguments.getWorld("world"));
 
-            if (result && context.getSender() != target) {
-                this.module.sendPrefixed(RTPLang.COMMAND_RTP_OTHERS_SUCCESS, context.getSender(),
-                        builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
-            }
-
+                if (result && context.getSender() != target) {
+                    this.module.sendPrefixed(RTPLang.COMMAND_RTP_OTHERS_SUCCESS, context.getSender(),
+                            builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
+                }
+            });
             return true;
         });
     }

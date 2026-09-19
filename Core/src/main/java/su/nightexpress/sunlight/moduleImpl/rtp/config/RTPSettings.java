@@ -6,7 +6,7 @@ import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigType;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
 import su.nightexpress.nightcore.util.Enums;
-import su.nightexpress.sunlight.moduleImpl.rtp.model.LookupRange;
+import su.nightexpress.sunlight.moduleImpl.rtp.engine.LookupRange;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
