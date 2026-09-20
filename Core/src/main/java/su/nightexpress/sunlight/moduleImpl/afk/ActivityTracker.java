@@ -9,6 +9,8 @@ public class ActivityTracker {
     private final AfkSettings settings;
 
     private BlockPos lastPos;
+    private float lastYaw;
+    private float lastPitch;
 
     private int idleTime;
     private int idleThreshold;
@@ -17,6 +19,8 @@ public class ActivityTracker {
 
     private int wakeUpThreshold;
     private long wakeUpEndTimestamp;
+
+    private long lastKickWarningSent;
 
     public ActivityTracker(AfkSettings settings) {
         this.settings = settings;
@@ -28,6 +32,7 @@ public class ActivityTracker {
         this.resetIdleThreshold();
         this.resetWakeUpCounter();
         this.resetAfkTimestamp();
+        this.lastKickWarningSent = 0L;
     }
 
     public void tick() {
@@ -45,15 +50,24 @@ public class ActivityTracker {
         this.countIdleTime();
     }
 
-    public void updatePosition(BlockPos newPos) {
+    public void updatePosition(BlockPos newPos, float yaw, float pitch) {
         if (this.lastPos == null) {
             this.lastPos = newPos;
+            this.lastYaw = yaw;
+            this.lastPitch = pitch;
             return;
         }
 
-        if (!newPos.equals(this.lastPos)) {
-            this.lastPos = newPos;
+        boolean blockChanged = !newPos.equals(this.lastPos);
+        boolean rotationChanged = this.lastYaw != yaw || this.lastPitch != pitch;
+        this.lastPos = newPos;
+        this.lastYaw = yaw;
+        this.lastPitch = pitch;
+
+        if (blockChanged) {
             this.countActivity(ActivityType.MOVEMENT);
+        } else if (rotationChanged && this.settings.movementTrackRotation.get()) {
+            this.countActivity(ActivityType.ROTATION);
         }
     }
 
@@ -118,6 +132,30 @@ public class ActivityTracker {
 
     public boolean isEnoughActivity() {
         return this.wakeUpThreshold <= 0;
+    }
+
+    public int getWakeUpProgress() {
+        return this.wakeUpThreshold;
+    }
+
+    public long getWakeUpEndTimestamp() {
+        return this.wakeUpEndTimestamp;
+    }
+
+    public int getWakeUpTimeLeft() {
+        if (this.wakeUpEndTimestamp <= 0L)
+            return 0;
+
+        long left = this.wakeUpEndTimestamp - System.currentTimeMillis();
+        return (int) Math.max(0D, Math.ceil(left / 1000D));
+    }
+
+    public long getLastKickWarningSent() {
+        return this.lastKickWarningSent;
+    }
+
+    public void setLastKickWarningSent(long timestamp) {
+        this.lastKickWarningSent = timestamp;
     }
 
     public long getAfkEnterTimestamp() {

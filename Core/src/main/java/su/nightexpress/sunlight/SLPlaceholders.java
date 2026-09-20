@@ -32,6 +32,9 @@ public class SLPlaceholders extends su.nightexpress.nightcore.util.Placeholders 
     public static final String GENERIC_MODE = "%mode%";
     public static final String GENERIC_ITEM = "%item%";
     public static final String GENERIC_TIME = "%time%";
+    public static final String GENERIC_TIME_LEFT = "%time_left%";
+    public static final String GENERIC_REMAIN = "%remain%";
+    public static final String GENERIC_LIST = "%list%";
     public static final String GENERIC_NAME = "%name%";
     public static final String GENERIC_VALUE = "%value%";
     public static final String GENERIC_PAGE = "%page%";

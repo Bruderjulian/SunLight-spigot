@@ -11,4 +11,5 @@ public class AfkPerms {
 
     public static final Permission COMMAND_AFK        = COMMAND.permission("afk");
     public static final Permission COMMAND_AFK_OTHERS = COMMAND.permission("afk.others");
+    public static final Permission COMMAND_AFK_LIST   = COMMAND.permission("afk.list");
 }
