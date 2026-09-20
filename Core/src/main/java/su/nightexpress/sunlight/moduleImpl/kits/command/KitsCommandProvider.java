@@ -9,8 +9,6 @@ import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.nightcore.commands.exceptions.CommandSyntaxException;
 import su.nightexpress.nightcore.core.config.CoreLang;
-import su.nightexpress.nightcore.util.Lists;
-import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
@@ -26,6 +24,7 @@ import su.nightexpress.sunlight.moduleImpl.kits.config.KitsPerms;
 import su.nightexpress.sunlight.moduleImpl.kits.model.Kit;
 import su.nightexpress.sunlight.user.UserManager;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -108,7 +107,7 @@ public class KitsCommandProvider extends CommandProvider {
                         this.kitArgument(),
                         Arguments.integer(CommandArguments.TIME, 1)
                                 .localized(KitsLang.COMMAND_ARGUMENT_NAME_TIME)
-                                .suggestions((reader, context) -> Lists.newList("300", "3600", "86400")),
+                                .suggestions((reader, context) -> List.of("300", "3600", "86400")),
                         Arguments.playerName(CommandArguments.PLAYER))
                 .withFlags(CommandArguments.FLAG_SILENT)
                 .executes(this::setCooldown));
