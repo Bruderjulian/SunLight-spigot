@@ -2,6 +2,7 @@ package su.nightexpress.sunlight.api;
 
 import su.nightexpress.sunlight.api.provider.AfkProvider;
 import su.nightexpress.sunlight.api.provider.FreezeProvider;
+import su.nightexpress.sunlight.api.provider.GlowProvider;
 import su.nightexpress.sunlight.api.provider.NickProvider;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
 
@@ -12,6 +13,8 @@ public interface SunlightAPI {
      Optional<? extends AfkProvider> afkProvider();
 
      Optional<? extends FreezeProvider> freezeProvider();
+
+     Optional<? extends GlowProvider> glowProvider();
 
      Optional<? extends NickProvider> nickProvider();
 
