@@ -12,10 +12,11 @@ import su.nightexpress.sunlight.data.DataHandler;
 import su.nightexpress.sunlight.utils.Utils;
 
 import java.net.InetAddress;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
 
@@ -56,8 +57,8 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
 
     protected SunUser create(UUID uuid, String name, InetAddress address) {
         long timestamp = System.currentTimeMillis();
-        Map<CommandKey, Long> commandCooldowns = new HashMap<>();
-        Map<String, Object> properties = new HashMap<>();
+        Map<CommandKey, Long> commandCooldowns = new ConcurrentHashMap<>();
+        Map<String, Object> properties = new ConcurrentHashMap<>();
 
         SunUser user = new SunUser(uuid, name, timestamp, timestamp, address, commandCooldowns, properties);
         user.setFirstTimeJoined(true);
@@ -91,6 +92,12 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
         if (target != null)
             return CompletableFuture.completedFuture(UserInfo.of(target));
 
+        Optional<SunUser> cached = this.getRepository().getByName(playerName);
+        if (cached.isPresent()) {
+            SunUser user = cached.get();
+            return CompletableFuture.completedFuture(new UserInfo(user.getId(), user.getName()));
+        }
+
         return CompletableFuture.supplyAsync(() -> this.dataHandler.loadProfile(playerName).orElse(null));
     }
 
@@ -98,6 +105,10 @@ public class UserManager extends AbstractUserManager<SunLightPlugin, SunUser> {
         Player target = Utils.getPlayer(playerId);
         if (target != null)
             return CompletableFuture.completedFuture(SLUtils.getInetAddress(target).orElse(null));
+
+        Optional<SunUser> cached = this.getRepository().getById(playerId);
+        if (cached.isPresent())
+            return CompletableFuture.completedFuture(cached.get().getLatestAddress().orElse(null));
 
         return CompletableFuture.supplyAsync(() -> this.dataHandler.loadInetAddress(playerId).orElse(null));
     }

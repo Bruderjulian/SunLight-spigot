@@ -248,7 +248,6 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
                 long expireDate = TimeUtil.createFutureTimestamp(cooldown);
 
                 user.setCommandCooldown(key, expireDate);
-                user.markDirty();
             }
 
             return result;

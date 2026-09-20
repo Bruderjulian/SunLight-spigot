@@ -5,9 +5,11 @@ import su.nightexpress.sunlight.command.CommandKey;
 import su.nightexpress.sunlight.user.cache.UserCacheContainer;
 import su.nightexpress.sunlight.user.property.UserProperty;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
+import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.sunlight.utils.Utils;
 
 import java.net.InetAddress;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,9 +25,9 @@ public class SunUser extends UserTemplate {
 
     private final long dateCreated;
 
-    private InetAddress latestAddress;
-    private boolean firstTimeJoined;
-    private long lastOnline;
+    private volatile InetAddress latestAddress;
+    private volatile boolean firstTimeJoined;
+    private volatile long lastOnline;
 
     public SunUser(UUID uuid,
             String name,
@@ -36,8 +38,8 @@ public class SunUser extends UserTemplate {
             Map<String, Object> properties) {
         super(uuid, name);
 
-        this.commandCooldowns = commandCooldowns;
-        this.properties = properties;
+        this.commandCooldowns = new ConcurrentHashMap<>(commandCooldowns);
+        this.properties = new ConcurrentHashMap<>(properties);
         this.latestAddress = latestAddress;
 
         this.dateCreated = dateCreated;
@@ -46,7 +48,11 @@ public class SunUser extends UserTemplate {
         this.caches = new ConcurrentHashMap<>();
     }
 
-    public void updateFrom(SunUser other) {
+    public synchronized void updateFrom(SunUser other) {
+        this.setName(other.getName());
+        this.setLastOnline(other.getLastOnline());
+        this.setLatestAddress(other.getLatestAddress().orElse(null));
+
         this.commandCooldowns.clear();
         this.properties.clear();
 
@@ -66,26 +72,29 @@ public class SunUser extends UserTemplate {
     }
 
     public <T extends UserCacheContainer> T getCacheOrCreate(Class<T> type, Supplier<T> supplier) {
-        if (this.caches.containsKey(type)) {
-            return this.getCache(type).orElseThrow();
-        }
-
-        T cache = supplier.get();
-        this.caches.put(type, cache);
+        UserCacheContainer container = this.caches.computeIfAbsent(type, key -> supplier.get());
+        T cache = type.cast(container);
+        cache.clearExpired();
 
         return cache;
     }
 
+    public void clearCaches() {
+        this.caches.values().forEach(UserCacheContainer::clear);
+        this.caches.clear();
+    }
+
+    public void pruneExpiredCooldowns() {
+        this.commandCooldowns.values().removeIf(TimeUtil::isPassed);
+    }
+
     public Map<String, Object> getProperties() {
-        return this.properties;
+        return Collections.unmodifiableMap(this.properties);
     }
 
     public Map<String, Object> getPropertiesToSave() {
         Map<String, Object> map = new HashMap<>();
-        for (UserProperty<?> property : UserPropertyRegistry.values()) {
-            if (!property.isPersistent())
-                continue;
-
+        for (UserProperty<?> property : UserPropertyRegistry.persistentValues()) {
             Object value = this.properties.get(property.getName());
             if (value == null)
                 continue;
@@ -101,6 +110,7 @@ public class SunUser extends UserTemplate {
 
     public <T> void setProperty(UserProperty<T> property, T value) {
         this.properties.put(property.getName(), value);
+        this.markDirty();
     }
 
     public <T> T getPropertyOrDefault(UserProperty<T> property) {
@@ -118,7 +128,7 @@ public class SunUser extends UserTemplate {
         if (value == null)
             return defaultValue;
 
-        if (!type.isAssignableFrom(value.getClass())) {
+        if (!type.isInstance(value)) {
             throw new IllegalArgumentException("User property '%s' is defined as %s, not %s".formatted(name,
                     value.getClass().getSimpleName(), type.getSimpleName()));
         }
@@ -127,23 +137,48 @@ public class SunUser extends UserTemplate {
     }
 
     public <T> void removeProperty(UserProperty<T> property) {
-        this.removeProperty(property.getName());
+        if (this.properties.remove(property.getName()) != null) {
+            this.markDirty();
+        }
     }
 
     public void removeProperty(String property) {
-        this.properties.remove(Utils.lowercase(property));
+        if (this.properties.remove(Utils.lowercase(property)) != null) {
+            this.markDirty();
+        }
     }
 
     public Long getCommandCooldown(CommandKey key) {
-        return this.commandCooldowns.get(key);
+        Long expireDate = this.commandCooldowns.get(key);
+        if (expireDate == null)
+            return null;
+
+        if (TimeUtil.isPassed(expireDate)) {
+            this.commandCooldowns.remove(key, expireDate);
+            return null;
+        }
+
+        return expireDate;
     }
 
     public void setCommandCooldown(CommandKey key, long expireDate) {
         this.commandCooldowns.put(key, expireDate);
+        this.markDirty();
+    }
+
+    public void removeCommandCooldown(CommandKey key) {
+        if (this.commandCooldowns.remove(key) != null) {
+            this.markDirty();
+        }
     }
 
     public Map<CommandKey, Long> getCommandCooldowns() {
-        return this.commandCooldowns;
+        return Collections.unmodifiableMap(this.commandCooldowns);
+    }
+
+    public Map<CommandKey, Long> getCommandCooldownsToSave() {
+        this.pruneExpiredCooldowns();
+        return new HashMap<>(this.commandCooldowns);
     }
 
     public void setFirstTimeJoined(boolean firstTimeJoined) {

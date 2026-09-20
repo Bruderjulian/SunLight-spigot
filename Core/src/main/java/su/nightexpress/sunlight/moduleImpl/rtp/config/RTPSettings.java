@@ -64,7 +64,7 @@ public class RTPSettings extends AbstractConfig {
 
     private final ConfigProperty<Integer> cacheSize = this.addProperty(ConfigTypes.INT,
             "Lookup.Cache.Size",
-            5,
+            12,
             "Amount of RTP locations to keep cached for each world.");
 
     private final ConfigProperty<Integer> cacheRefillThreshold = this.addProperty(ConfigTypes.INT,
@@ -74,7 +74,7 @@ public class RTPSettings extends AbstractConfig {
 
     private final ConfigProperty<Integer> cacheRefillInterval = this.addProperty(ConfigTypes.INT,
             "Lookup.Cache.Refill_Interval",
-            30,
+            0,
             "Interval (in seconds) to periodically refill caches for worlds that were used before.",
             "Set to '0' to refill only on demand.");
 

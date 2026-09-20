@@ -1,5 +1,6 @@
 package su.nightexpress.sunlight.data;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import su.nightexpress.nightcore.db.column.Column;
@@ -15,7 +16,7 @@ import java.util.UUID;
 public class UserColumns {
 
     public static final Column<Integer> ID = Column.intType("id").autoIncrement().primaryKey().build();
-    public static final Column<UUID> UUID = Column.uuidType("uuid").build();
+    public static final Column<UUID> UUID = Column.uuidType("uuid").unique().build();
     public static final Column<String> NAME = Column.stringType("name", 24).build();
     public static final Column<Long> DATE_CREATED = Column.longType("dateCreated").build();
     public static final Column<Long> LAST_ONLINE = Column.longType("last_online").build();
@@ -29,16 +30,40 @@ public class UserColumns {
     public static final Column<Map<String, Object>> PROPERTIES = Column.json("properties", (resultSet, column) -> {
         Map<String, Object> properties = new HashMap<>();
 
-        String jsonString = resultSet.getString(column);
-        JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
+        String jsonString;
+        try {
+            jsonString = resultSet.getString(column);
+        } catch (Exception exception) {
+            return properties;
+        }
+        if (jsonString == null || jsonString.isBlank()) return properties;
 
+        JsonElement root;
+        try {
+            root = JsonParser.parseString(jsonString);
+        } catch (Exception exception) {
+            return properties;
+        }
+        if (!root.isJsonObject()) return properties;
+
+        JsonObject json = root.getAsJsonObject();
         json.asMap().forEach((key, element) -> {
-            UserProperty<?> property = UserPropertyRegistry.getByName(key);
-            if (property == null)
+            UserProperty<?> property;
+            try {
+                property = UserPropertyRegistry.getByName(key);
+            } catch (Exception exception) {
                 return;
+            }
+            if (property == null) return;
+            if (element == null || element.isJsonNull()) return;
 
-            Object value = DataHandler.GSON.fromJson(element, property.getType());
-            properties.put(property.getName(), value);
+            try {
+                Object value = DataHandler.GSON.fromJson(element, property.getGenericType());
+                if (value != null) {
+                    properties.put(property.getName(), value);
+                }
+            } catch (Exception ignored) {
+            }
         });
 
         return properties;

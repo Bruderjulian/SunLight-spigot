@@ -8,10 +8,10 @@ import su.nightexpress.nightcore.user.UserInfo;
 import su.nightexpress.nightcore.user.UserTemplate;
 import su.nightexpress.sunlight.command.CommandKey;
 import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.utils.TimeUtil;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -20,44 +20,47 @@ public class DataQueries {
     public static final RowMapper<InetAddress> INET_MAPPER = resultSet -> {
         try {
             return UserColumns.INET_ADDRESS.read(resultSet).map(string -> {
+                if (string == null || string.isBlank()) return null;
                 try {
                     return InetAddress.getByName(string);
                 } catch (UnknownHostException exception) {
-                    exception.printStackTrace();
                     return null;
                 }
             }).orElse(null);
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+        } catch (Exception exception) {
             return null;
         }
     };
 
     public static final RowMapper<UserInfo> PROFILE_MAPPER = resultSet -> {
         try {
-            UUID uuid = UserColumns.UUID.read(resultSet).orElseThrow();
-            String name = UserColumns.NAME.read(resultSet).orElseThrow();
+            UUID uuid = UserColumns.UUID.read(resultSet).orElse(null);
+            String name = UserColumns.NAME.read(resultSet).orElse(null);
+            if (uuid == null || name == null) return null;
 
             return new UserInfo(uuid, name);
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+        } catch (Exception exception) {
             return null;
         }
     };
 
     public static final RowMapper<SunUser> USER_MAPPER = (resultSet) -> {
         try {
-            UUID uuid = UserColumns.UUID.readOrThrow(resultSet);
-            String name = UserColumns.NAME.readOrThrow(resultSet);
-            long dateCreated = UserColumns.DATE_CREATED.readOrThrow(resultSet);
-            long lastOnline = UserColumns.LAST_ONLINE.readOrThrow(resultSet);
+            UUID uuid = UserColumns.UUID.read(resultSet).orElse(null);
+            String name = UserColumns.NAME.read(resultSet).orElse(null);
+            if (uuid == null || name == null) return null;
+
+            long dateCreated = UserColumns.DATE_CREATED.read(resultSet).orElse(0L);
+            long lastOnline = UserColumns.LAST_ONLINE.read(resultSet).orElse(0L);
             InetAddress latestAddress = INET_MAPPER.map(resultSet);
-            Map<CommandKey, Long> commandCooldowns = UserColumns.COMMAND_COOLDOWNS.readOrThrow(resultSet);
-            Map<String, Object> properties = UserColumns.PROPERTIES.readOrThrow(resultSet);
+            Map<CommandKey, Long> commandCooldowns = UserColumns.COMMAND_COOLDOWNS.read(resultSet)
+                    .orElseGet(java.util.HashMap::new);
+            commandCooldowns.values().removeIf(TimeUtil::isPassed);
+            Map<String, Object> properties = UserColumns.PROPERTIES.read(resultSet)
+                    .orElseGet(java.util.HashMap::new);
 
             return new SunUser(uuid, name, dateCreated, lastOnline, latestAddress, commandCooldowns, properties);
-        } catch (SQLException exception) {
-            exception.printStackTrace();
+        } catch (Exception exception) {
             return null;
         }
     };
@@ -68,7 +71,7 @@ public class DataQueries {
             .setLong(UserColumns.LAST_ONLINE, SunUser::getLastOnline)
             .setString(UserColumns.INET_ADDRESS,
                     user -> user.getLatestAddress().map(InetAddress::getHostAddress).orElse("0.0.0.0"))
-            .setString(UserColumns.COMMAND_COOLDOWNS, user -> DataHandler.GSON.toJson(user.getCommandCooldowns()))
+            .setString(UserColumns.COMMAND_COOLDOWNS, user -> DataHandler.GSON.toJson(user.getCommandCooldownsToSave()))
             .setString(UserColumns.PROPERTIES, user -> DataHandler.GSON.toJson(user.getPropertiesToSave()))
             .build();
 
@@ -86,7 +89,7 @@ public class DataQueries {
             .setLong(UserColumns.LAST_ONLINE, SunUser::getLastOnline)
             .setString(UserColumns.INET_ADDRESS,
                     user -> user.getLatestAddress().map(InetAddress::getHostAddress).orElse("0.0.0.0"))
-            .setString(UserColumns.COMMAND_COOLDOWNS, user -> DataHandler.GSON.toJson(user.getCommandCooldowns()))
+            .setString(UserColumns.COMMAND_COOLDOWNS, user -> DataHandler.GSON.toJson(user.getCommandCooldownsToSave()))
             .setString(UserColumns.PROPERTIES, user -> DataHandler.GSON.toJson(user.getPropertiesToSave()))
             .build();
 

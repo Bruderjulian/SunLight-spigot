@@ -26,7 +26,7 @@ import java.util.UUID;
 
 public class DataHandler extends AbstractDatabaseManager<SunLightPlugin> implements UserDataSchema<SunUser> {
 
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting()
+    public static final Gson GSON = new GsonBuilder()
             .enableComplexMapKeySerialization() // To trigger adapters for custom Map keys (used by commandCooldowns).
             .registerTypeAdapter(UserInfo.class, new UserInfoSerializer())
             .registerTypeAdapter(CommandKey.class, new CommandKeySerializer())

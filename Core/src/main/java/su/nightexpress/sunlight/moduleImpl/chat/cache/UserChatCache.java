@@ -4,24 +4,24 @@ import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.sunlight.user.cache.UserCacheContainer;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class UserChatCache implements UserCacheContainer {
 
     private final Map<String, Long> channelCooldownTimestamps;
     private final Map<String, Long> mentionCooldownTimestamps;
 
-    private CachedContent lastMessage;
-    private CachedContent lastCommand;
+    private volatile CachedContent lastMessage;
+    private volatile CachedContent lastCommand;
 
-    private UUID lastConversationWith;
-    private long nextCommandTimestamp;
+    private volatile UUID lastConversationWith;
+    private volatile long nextCommandTimestamp;
 
     public UserChatCache() {
-        this.channelCooldownTimestamps = new HashMap<>();
-        this.mentionCooldownTimestamps = new HashMap<>();
+        this.channelCooldownTimestamps = new ConcurrentHashMap<>();
+        this.mentionCooldownTimestamps = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -39,10 +39,14 @@ public class UserChatCache implements UserCacheContainer {
         this.channelCooldownTimestamps.values().removeIf(TimeUtil::isPassed);
         this.mentionCooldownTimestamps.values().removeIf(TimeUtil::isPassed);
 
-        if (this.lastMessage != null && this.lastMessage.isExpired())
+        CachedContent message = this.lastMessage;
+        if (message != null && message.isExpired()) {
             this.lastMessage = null;
-        if (this.lastCommand != null && this.lastCommand.isExpired())
+        }
+        CachedContent command = this.lastCommand;
+        if (command != null && command.isExpired()) {
             this.lastCommand = null;
+        }
     }
 
     public UUID getLastConversationWith() {
