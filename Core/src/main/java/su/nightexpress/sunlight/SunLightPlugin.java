@@ -36,7 +36,6 @@ import su.nightexpress.sunlight.moduleImpl.glow.GlowModule;
 import su.nightexpress.sunlight.moduleImpl.greetings.GreetingsModule;
 import su.nightexpress.sunlight.moduleImpl.homes.HomesModule;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesModule;
-import su.nightexpress.sunlight.moduleImpl.items.ItemsModule;
 import su.nightexpress.sunlight.moduleImpl.kits.KitsModule;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.PhantomsModule;
 import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
@@ -198,7 +197,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("greetings", "Greetings", GreetingsModule::new);
         manager.register("homes", "Homes", HomesModule::new);
         manager.register("inventories", "Inventories", InventoriesModule::new);
-        manager.register("items", "Items", ItemsModule::new);
         manager.register("kits", "Kits", KitsModule::new);
         manager.register("nerf_phantoms", "Nerf Phantoms", PhantomsModule::new);
         manager.register("nick", "Nick", NickModule::new);
