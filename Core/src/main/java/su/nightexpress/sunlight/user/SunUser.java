@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.user;
 
 import su.nightexpress.nightcore.user.UserTemplate;
-import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.sunlight.command.CommandKey;
 import su.nightexpress.sunlight.user.cache.UserCacheContainer;
 import su.nightexpress.sunlight.user.property.UserProperty;
