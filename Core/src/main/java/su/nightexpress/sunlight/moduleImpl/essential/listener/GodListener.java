@@ -37,6 +37,6 @@ public class GodListener extends AbstractListener<SunLightPlugin> {
     }
 
     private boolean isGod(Player player) {
-        return this.plugin.getUserManager().getOrFetch(player).getPropertyOrDefault(EssentialModule.GOD);
+        return this.plugin.userManager().getOrFetch(player).getPropertyOrDefault(EssentialModule.GOD);
     }
 }

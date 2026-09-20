@@ -4,7 +4,8 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.items.command.ItemCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.items.command.LoreCommandsProvider;
 
@@ -12,8 +13,8 @@ public class ItemsModule extends Module {
 
     private final ItemsSettings settings;
 
-    public ItemsModule(ModuleContext context) {
-        super(context);
+    public ItemsModule(ModuleDefinition<ItemsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.settings = new ItemsSettings();
     }
 

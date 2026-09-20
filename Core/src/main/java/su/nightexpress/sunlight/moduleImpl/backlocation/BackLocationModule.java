@@ -11,11 +11,12 @@ import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.backlocation.command.BackCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.backlocation.command.DeathBackCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.backlocation.config.BackLocationLang;
@@ -39,9 +40,9 @@ public class BackLocationModule extends Module {
 
     private final Map<UUID, Map<LocationType, StoredLocation>> locationMap;
 
-    public BackLocationModule(ModuleContext context, TeleportManager teleportManager) {
-        super(context);
-        this.teleportManager = teleportManager;
+    public BackLocationModule(ModuleDefinition<BackLocationModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
+        this.teleportManager = plugin.teleportManager();
         this.settings = new BackLocationSettings();
         this.locationMap = new HashMap<>();
     }

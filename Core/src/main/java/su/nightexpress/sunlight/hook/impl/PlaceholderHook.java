@@ -33,7 +33,7 @@ public class PlaceholderHook {
             this.plugin = plugin;
             this.registry = new PlaceholderRegistry();
 
-            this.plugin.getModuleRegistry().getModules().forEach(module -> {
+            this.plugin.moduleManager().getModules().forEach(module -> {
                 module.registerPlaceholders(this.registry);
             });
         }

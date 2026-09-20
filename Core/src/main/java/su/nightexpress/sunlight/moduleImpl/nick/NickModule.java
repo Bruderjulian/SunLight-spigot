@@ -10,7 +10,8 @@ import su.nightexpress.sunlight.api.provider.NickProvider;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.nick.command.NickCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.nick.config.NickConfig;
 import su.nightexpress.sunlight.moduleImpl.nick.config.NickLang;
@@ -21,8 +22,8 @@ import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 
 public class NickModule extends Module implements NickProvider {
 
-    public NickModule(ModuleContext context) {
-        super(context);
+    public NickModule(ModuleDefinition<NickModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
     }
 
     @Override

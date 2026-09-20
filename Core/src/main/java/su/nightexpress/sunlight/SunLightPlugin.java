@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight;
 
-import java.nio.file.Path;
 import java.util.Optional;
 
 import su.nightexpress.nightcore.NightPlugin;
@@ -12,6 +11,7 @@ import su.nightexpress.nightcore.util.Version;
 import su.nightexpress.sunlight.api.SunlightAPI;
 import su.nightexpress.sunlight.api.provider.AfkProvider;
 import su.nightexpress.sunlight.api.provider.FreezeProvider;
+import su.nightexpress.sunlight.api.provider.GlowProvider;
 import su.nightexpress.sunlight.api.provider.NickProvider;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.command.CommandRegistry;
@@ -22,12 +22,8 @@ import su.nightexpress.sunlight.config.Perms;
 import su.nightexpress.sunlight.data.DataHandler;
 import su.nightexpress.sunlight.hook.impl.PlaceholderHook;
 import su.nightexpress.sunlight.module.LoadCondition;
-import su.nightexpress.sunlight.module.ModuleContext;
-import su.nightexpress.sunlight.module.ModuleContextProvider;
-import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.module.ModuleId;
-import su.nightexpress.sunlight.module.ModuleLoader;
-import su.nightexpress.sunlight.module.ModuleRegistry;
+import su.nightexpress.sunlight.module.ModuleManager;
 import su.nightexpress.sunlight.moduleImpl.afk.AfkModule;
 import su.nightexpress.sunlight.moduleImpl.backlocation.BackLocationModule;
 import su.nightexpress.sunlight.moduleImpl.bans.BansModule;
@@ -36,6 +32,7 @@ import su.nightexpress.sunlight.moduleImpl.deathmessages.DeathMessagesModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.extras.ExtrasModule;
 import su.nightexpress.sunlight.moduleImpl.freeze.FreezeModule;
+import su.nightexpress.sunlight.moduleImpl.glow.GlowModule;
 import su.nightexpress.sunlight.moduleImpl.greetings.GreetingsModule;
 import su.nightexpress.sunlight.moduleImpl.homes.HomesModule;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesModule;
@@ -60,12 +57,12 @@ import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
 
-public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleContextProvider {
+public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
     private static SunlightAPI api;
 
     private CommandRegistry commandRegistry;
-    private ModuleRegistry moduleRegistry;
+    private ModuleManager moduleManager;
 
     private DataHandler dataHandler;
     private UserManager userManager;
@@ -102,7 +99,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
     @Override
     protected void onStartup() {
         this.commandRegistry = new CommandRegistry(this);
-        this.moduleRegistry = new ModuleRegistry();
+        this.moduleManager = new ModuleManager(this);
     }
 
     @Override
@@ -144,8 +141,8 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
             PlaceholderHook.shutdown();
         }
 
-        if (this.moduleRegistry != null)
-            this.moduleRegistry.clear();
+        if (this.moduleManager != null)
+            this.moduleManager.clear();
         if (this.dialogRegistry != null)
             this.dialogRegistry.clear();
         if (this.userManager != null)
@@ -162,57 +159,37 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
     }
 
     private void loadModules() {
-        ModuleLoader loader = new ModuleLoader(this, this.moduleRegistry);
+        ModuleManager loader = new ModuleManager(this);
 
-        loader.register(ModuleId.AFK, ModuleDefinition.named("AFK"), AfkModule::new);
-        loader.register(ModuleId.BANS, ModuleDefinition.named("Bans"), BansModule::new);
-        loader.register(ModuleId.BACK_LOCATION, ModuleDefinition.named("Back"),
-                context -> new BackLocationModule(context, this.teleportManager));
-        loader.register(ModuleId.CUSTOM_TEXT, ModuleDefinition.named("Custom Text"), TextsModule::new);
-        loader.register(ModuleId.CHAT, ModuleDefinition.named("Chat"), ChatModule::new);
-        loader.register(ModuleId.DEATH_MESSAGES, ModuleDefinition.named("Death Messages"), DeathMessagesModule::new);
-        loader.register(ModuleId.ESSENTIAL, ModuleDefinition.named("Essential"),
-                context -> new EssentialModule(context, this.teleportManager));
-        loader.register(ModuleId.EXTRAS, ModuleDefinition.named("Extras"), ExtrasModule::new);
-        loader.register(ModuleId.FREEZE, ModuleDefinition.named("Freeze"), FreezeModule::new);
-        loader.register(ModuleId.GREETINGS, ModuleDefinition.named("Greetings"), GreetingsModule::new);
-        loader.register(ModuleId.HOMES, ModuleDefinition.named("Homes"),
-                context -> new HomesModule(context, this.teleportManager));
-        loader.register(ModuleId.INVENTORIES, ModuleDefinition.named("Inventories"),
-                context -> new InventoriesModule(context, this.sunNMS));
-        loader.register(ModuleId.ITEMS, ModuleDefinition.named("Items"), ItemsModule::new);
-        loader.register(ModuleId.KITS, ModuleDefinition.named("Kits"), KitsModule::new);
-        loader.register(ModuleId.NAME_TAGS, ModuleDefinition.named("Nametags"), NametagsModule::new,
+        loader.register(ModuleId.AFK, "AFK", AfkModule::new);
+        loader.register(ModuleId.BANS, "Bans", BansModule::new);
+        loader.register(ModuleId.BACK_LOCATION, "Back", BackLocationModule::new);
+        loader.register(ModuleId.CUSTOM_TEXT, "Custom Text", TextsModule::new);
+        loader.register(ModuleId.CHAT, "Chat", ChatModule::new);
+        loader.register(ModuleId.DEATH_MESSAGES, "Death Messages", DeathMessagesModule::new);
+        loader.register(ModuleId.ESSENTIAL, "Essential", EssentialModule::new);
+        loader.register(ModuleId.EXTRAS, "Extras", ExtrasModule::new);
+        loader.register(ModuleId.FREEZE, "Freeze", FreezeModule::new);
+        loader.register(ModuleId.GLOW, "Glow", GlowModule::new);
+        loader.register(ModuleId.GREETINGS, "Greetings", GreetingsModule::new);
+        loader.register(ModuleId.HOMES, "Homes", HomesModule::new);
+        loader.register(ModuleId.INVENTORIES, "Inventories", InventoriesModule::new);
+        loader.register(ModuleId.ITEMS, "Items", ItemsModule::new);
+        loader.register(ModuleId.KITS, "Kits", KitsModule::new);
+        loader.register(ModuleId.NAME_TAGS, "Nametags", NametagsModule::new,
                 LoadCondition::packetLibrary);
-        loader.register(ModuleId.NERF_PHANTOMS, ModuleDefinition.named("Nerf Phantoms"), PhantomsModule::new);
-        loader.register(ModuleId.NICK, ModuleDefinition.named("Nick"), NickModule::new);
-        loader.register(ModuleId.PLAYER_WARPS, ModuleDefinition.named("Player Warps"),
-                context -> new PlayerWarpsModule(context, this.teleportManager));
-        loader.register(ModuleId.PTP, ModuleDefinition.named("PTP"),
-                context -> new PTPModule(context, this.teleportManager));
-        loader.register(ModuleId.RTP, ModuleDefinition.named("RTP"),
-                context -> new RTPModule(context, this.teleportManager));
-        loader.register(ModuleId.SCHEDULER, ModuleDefinition.named("Scheduler"), SchedulerModule::new);
-        loader.register(ModuleId.SPAWNS, ModuleDefinition.named("Spawn"),
-                context -> new SpawnsModule(context, this.teleportManager));
-        loader.register(ModuleId.VANISH, ModuleDefinition.named("Vanish"), VanishModule::new);
-        loader.register(ModuleId.WARMUPS, ModuleDefinition.named("Warmups"),
-                context -> new WarmupsModule(context, this.teleportManager));
-        loader.register(ModuleId.WARPS, ModuleDefinition.named("Warps"),
-                context -> new WarpsModule(context, this.teleportManager));
-
-        // loader.register(ModuleId.SOCIALS, ModuleDefinition.named("Socials"),
-        // SocialsModule::new);
+        loader.register(ModuleId.NERF_PHANTOMS, "Nerf Phantoms", PhantomsModule::new);
+        loader.register(ModuleId.NICK, "Nick", NickModule::new);
+        loader.register(ModuleId.PLAYER_WARPS, "Player Warps", PlayerWarpsModule::new);
+        loader.register(ModuleId.PTP, "PTP", PTPModule::new);
+        loader.register(ModuleId.RTP, "RTP", RTPModule::new);
+        loader.register(ModuleId.SCHEDULER, "Scheduler", SchedulerModule::new);
+        loader.register(ModuleId.SPAWNS, "Spawn", SpawnsModule::new);
+        loader.register(ModuleId.VANISH, "Vanish", VanishModule::new);
+        loader.register(ModuleId.WARMUPS, "Warmups", WarmupsModule::new);
+        loader.register(ModuleId.WARPS, "Warps", WarpsModule::new);
 
         loader.loadAll();
-    }
-
-    @Override
-
-    public ModuleContext createModuleContext(String id, Path path,
-            ModuleDefinition definition) {
-        return new ModuleContext(this, this.dataHandler, this.userManager, this.commandRegistry, this.dialogRegistry,
-                id, path, definition);
     }
 
     private void setupInternalNMS() {
@@ -268,16 +245,16 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
         });
     }
 
-    public DataHandler getData() {
+    public DataHandler dataHandler() {
         return this.dataHandler;
     }
 
-    public UserManager getUserManager() {
+    public UserManager userManager() {
         return userManager;
     }
 
-    public ModuleRegistry getModuleRegistry() {
-        return this.moduleRegistry;
+    public ModuleManager moduleManager() {
+        return this.moduleManager;
     }
 
     public SunNMS getInternals() {
@@ -288,35 +265,41 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI, ModuleCo
         return Optional.ofNullable(this.sunNMS);
     }
 
-    public CommandRegistry getCommandRegistry() {
+    public CommandRegistry commandRegistry() {
         return this.commandRegistry;
     }
 
-    public TeleportManager getTeleportManager() {
+    public TeleportManager teleportManager() {
         return this.teleportManager;
     }
 
     @Override
 
     public Optional<? extends AfkProvider> afkProvider() {
-        return this.moduleRegistry.byType(AfkModule.class);
+        return this.moduleManager.getByType(AfkModule.class);
     }
 
     @Override
 
     public Optional<? extends VanishProvider> vanishProvider() {
-        return this.moduleRegistry.byType(VanishModule.class);
+        return this.moduleManager.getByType(VanishModule.class);
     }
 
     @Override
 
     public Optional<? extends FreezeProvider> freezeProvider() {
-        return this.moduleRegistry.byType(FreezeModule.class);
+        return this.moduleManager.getByType(FreezeModule.class);
     }
 
     @Override
 
     public Optional<? extends NickProvider> nickProvider() {
-        return this.moduleRegistry.byType(NickModule.class);
+        return this.moduleManager.getByType(NickModule.class);
+    }
+
+    @Override
+
+    public Optional<? extends GlowProvider> glowProvider() {
+        return this.moduleManager.getByType(GlowModule.class);
     }
 }

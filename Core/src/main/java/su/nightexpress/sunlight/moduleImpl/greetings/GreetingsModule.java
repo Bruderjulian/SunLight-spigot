@@ -14,7 +14,8 @@ import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.greetings.listener.GreetingsListener;
 import su.nightexpress.sunlight.moduleImpl.greetings.message.GreetingMessage;
 import su.nightexpress.sunlight.moduleImpl.greetings.message.MessageType;
@@ -27,8 +28,8 @@ public class GreetingsModule extends Module {
 
     private final GreetingsSettings settings;
 
-    public GreetingsModule(ModuleContext context) {
-        super(context);
+    public GreetingsModule(ModuleDefinition<GreetingsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.settings = new GreetingsSettings();
     }
 

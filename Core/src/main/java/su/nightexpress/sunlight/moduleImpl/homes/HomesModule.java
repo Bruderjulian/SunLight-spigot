@@ -39,7 +39,8 @@ import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.homes.command.HomeAdminCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.homes.command.HomeCommonCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.homes.config.HomesLang;
@@ -82,9 +83,9 @@ public class HomesModule extends Module {
 
     private boolean loaded;
 
-    public HomesModule(ModuleContext context, TeleportManager teleportManager) {
-        super(context);
-        this.teleportManager = teleportManager;
+    public HomesModule(ModuleDefinition<HomesModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
+        this.teleportManager = plugin.teleportManager();
         this.dataManager = new HomeDataManager(this, this.dataHandler);
         this.repository = new GlobalHomeRepository();
         this.settings = new HomesSettings();

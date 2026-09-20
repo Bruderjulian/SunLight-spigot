@@ -12,7 +12,8 @@ import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.vanish.command.VanishCommand;
 import su.nightexpress.sunlight.moduleImpl.vanish.config.VanishConfig;
 import su.nightexpress.sunlight.moduleImpl.vanish.config.VanishLang;
@@ -28,8 +29,8 @@ public class VanishModule extends Module implements VanishProvider {
 
     private BossBar vanishIndicator;
 
-    public VanishModule(ModuleContext context) {
-        super(context);
+    public VanishModule(ModuleDefinition<VanishModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
     }
 
     @Override
@@ -87,7 +88,7 @@ public class VanishModule extends Module implements VanishProvider {
 
     @Override
     public boolean isVanished(Player player) {
-        SunUser user = this.plugin.getUserManager().getOrFetch(player);
+        SunUser user = this.plugin.userManager().getOrFetch(player);
         return user.getPropertyOrDefault(VANISH);
     }
 

@@ -51,7 +51,7 @@ public class ChairsListener extends AbstractListener<SunLightPlugin> {
         if (block == null || !ChairsManager.isChair(block))
             return;
 
-        SunUser user = plugin.getUserManager().getOrFetch(player);
+        SunUser user = plugin.userManager().getOrFetch(player);
         if (!ChairsManager.isChairsEnabled(user))
             return;
 

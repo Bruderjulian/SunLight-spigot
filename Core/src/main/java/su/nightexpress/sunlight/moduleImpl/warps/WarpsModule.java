@@ -18,7 +18,8 @@ import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.warps.command.WarpsCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.warps.core.WarpsLang;
 import su.nightexpress.sunlight.moduleImpl.warps.core.WarpsPerms;
@@ -57,9 +58,9 @@ public class WarpsModule extends Module {
     private WarpOptionsMenu settingsMenu;
     private WarpListMenu listMenu;
 
-    public WarpsModule(ModuleContext context, TeleportManager teleportManager) {
-        super(context);
-        this.teleportManager = teleportManager;
+    public WarpsModule(ModuleDefinition<WarpsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
+        this.teleportManager = plugin.teleportManager();
         this.repository = new HashMap<>();
         this.settings = new WarpsSettings();
     }

@@ -14,11 +14,12 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.provider.AfkProvider;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.afk.command.AfkCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.afk.core.AfkLang;
 import su.nightexpress.sunlight.moduleImpl.afk.core.AfkPerms;
@@ -39,8 +40,8 @@ public class AfkModule extends Module implements AfkProvider {
 
     private UniversalChatEventHandler chatEventHandler;
 
-    public AfkModule(ModuleContext context) {
-        super(context);
+    public AfkModule(ModuleDefinition<AfkModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.activityTrackerMap = new ConcurrentHashMap<>();
         this.settings = new AfkSettings();
     }

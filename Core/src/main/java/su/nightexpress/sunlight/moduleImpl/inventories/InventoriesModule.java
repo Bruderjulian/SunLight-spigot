@@ -5,7 +5,8 @@ import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.inventories.command.ContainerCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.inventories.command.EnderchestCommandsProvider;
 import su.nightexpress.sunlight.moduleImpl.inventories.command.InventoryCommandProvider;
@@ -17,9 +18,9 @@ public class InventoriesModule extends Module {
 
     private final SunNMS internals;
 
-    public InventoriesModule(ModuleContext context, SunNMS internals) {
-        super(context);
-        this.internals = internals;
+    public InventoriesModule(ModuleDefinition<InventoriesModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
+        this.internals = plugin.getInternals();
     }
 
     @Override

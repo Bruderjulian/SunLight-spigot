@@ -8,7 +8,8 @@ import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.command.PhantomsCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.config.PhantomsConfig;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.config.PhantomsLang;
@@ -19,8 +20,8 @@ import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 
 public class PhantomsModule extends Module {
 
-    public PhantomsModule(ModuleContext context) {
-        super(context);
+    public PhantomsModule(ModuleDefinition<PhantomsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
     }
 
     @Override
@@ -58,7 +59,7 @@ public class PhantomsModule extends Module {
 
     private void resetRestTime() {
         for (Player player : plugin.getServer().getOnlinePlayers()) {
-            SunUser user = plugin.getUserManager().getOrFetch(player);
+            SunUser user = plugin.userManager().getOrFetch(player);
             if (!user.getPropertyOrDefault(PhantomsProperties.ANTI_PHANTOM))
                 continue;
 

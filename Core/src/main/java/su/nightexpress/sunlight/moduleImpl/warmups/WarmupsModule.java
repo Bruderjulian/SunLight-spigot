@@ -7,7 +7,8 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.warmups.config.WarmupsConfig;
 import su.nightexpress.sunlight.moduleImpl.warmups.config.WarmupsLang;
 import su.nightexpress.sunlight.moduleImpl.warmups.config.WarmupsPerms;
@@ -30,9 +31,9 @@ public class WarmupsModule extends Module {
 
     private final Map<UUID, Warmup> warmupByIdMap;
 
-    public WarmupsModule(ModuleContext context, TeleportManager teleportManager) {
-        super(context);
-        this.teleportManager = teleportManager;
+    public WarmupsModule(ModuleDefinition<WarmupsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
+        this.teleportManager = plugin.teleportManager();
         this.warmupByIdMap = new ConcurrentHashMap<>();
     }
 

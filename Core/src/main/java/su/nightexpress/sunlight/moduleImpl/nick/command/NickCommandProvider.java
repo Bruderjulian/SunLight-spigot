@@ -127,7 +127,7 @@ public class NickCommandProvider extends CommandProvider {
             nick = raw;
         }
 
-        this.module.setNickname(this.plugin.getUserManager().getOrFetch(player), nick);
+        this.module.setNickname(this.plugin.userManager().getOrFetch(player), nick);
         String finalNick = nick;
         this.module.sendPrefixed(NickLang.COMMAND_NICK_CHANGE_DONE, context.getSender(),
                 replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, () -> finalNick));

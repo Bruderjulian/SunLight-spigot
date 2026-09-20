@@ -228,7 +228,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
         builder.executes((context, arguments) -> {
             Player player = context.getPlayer();
-            SunUser user = player == null ? null : this.plugin.getUserManager().getOrFetch(player);
+            SunUser user = player == null ? null : this.plugin.userManager().getOrFetch(player);
             CommandKey key = new CommandKey(providerId, nodeId);
 
             if (cooldown != 0 && user != null && !EconomyUtils.hasCooldownBypass(player, module)) {

@@ -3,10 +3,11 @@ package su.nightexpress.sunlight.moduleImpl.essential;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.integration.permission.PermissionBridge;
+import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.essential.command.*;
 import su.nightexpress.sunlight.moduleImpl.essential.listener.GodListener;
 import su.nightexpress.sunlight.moduleImpl.essential.listener.InvulnerabilityListener;
@@ -21,9 +22,9 @@ public class EssentialModule extends Module {
     private final TeleportManager teleportManager;
     private final EssentialSettings settings;
 
-    public EssentialModule(ModuleContext context, TeleportManager teleportManager) {
-        super(context);
-        this.teleportManager = teleportManager;
+    public EssentialModule(ModuleDefinition<EssentialModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
+        this.teleportManager = plugin.teleportManager();
         this.settings = new EssentialSettings();
     }
 

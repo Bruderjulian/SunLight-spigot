@@ -14,7 +14,8 @@ import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.kits.command.KitsCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsLang;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsPerms;
@@ -58,8 +59,8 @@ public class KitsModule extends Module {
 
     private boolean dataLoaded;
 
-    public KitsModule(ModuleContext context) {
-        super(context);
+    public KitsModule(ModuleDefinition<KitsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.settings = new KitsSettings();
         this.dataManager = new KitDataManager(this.dataHandler);
         this.dataRepository = new KitDataRepository();

@@ -7,22 +7,22 @@ import su.nightexpress.nightcore.util.NumberUtil;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.rtp.command.RTPCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.rtp.config.RTPLang;
 import su.nightexpress.sunlight.moduleImpl.rtp.config.RTPPerms;
 import su.nightexpress.sunlight.moduleImpl.rtp.config.RTPSettings;
 import su.nightexpress.sunlight.moduleImpl.rtp.engine.RTPEngine;
-import su.nightexpress.sunlight.teleport.TeleportManager;
 
 public class RTPModule extends Module {
 
     private final RTPEngine engine;
     private final RTPSettings settings;
 
-    public RTPModule(final ModuleContext context, final TeleportManager teleportManager) {
-        super(context);
-        this.engine = new RTPEngine(this, teleportManager);
+    public RTPModule(final ModuleDefinition<RTPModule> definition, final SunLightPlugin plugin) {
+        super(definition, plugin);
+        this.engine = new RTPEngine(this, plugin.teleportManager());
         this.settings = new RTPSettings();
     }
 

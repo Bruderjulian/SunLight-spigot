@@ -7,7 +7,8 @@ import su.nightexpress.sunlight.api.provider.FreezeProvider;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.freeze.command.FreezeCommand;
 import su.nightexpress.sunlight.moduleImpl.freeze.config.FreezeConfig;
 import su.nightexpress.sunlight.moduleImpl.freeze.config.FreezeLang;
@@ -21,8 +22,8 @@ public class FreezeModule extends Module implements FreezeProvider {
 
     public static final UserProperty<Boolean> FROZEN = UserProperty.create("freeze", Boolean.class, false, true);
 
-    public FreezeModule(ModuleContext context) {
-        super(context);
+    public FreezeModule(ModuleDefinition<FreezeModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
     }
 
     @Override
@@ -58,7 +59,7 @@ public class FreezeModule extends Module implements FreezeProvider {
 
     @Override
     public boolean isFrozen(Player player) {
-        SunUser user = this.plugin.getUserManager().getOrFetch(player);
+        SunUser user = this.plugin.userManager().getOrFetch(player);
         return user.getPropertyOrDefault(FROZEN);
     }
 
@@ -66,9 +67,10 @@ public class FreezeModule extends Module implements FreezeProvider {
     public void setFrozen(Player player, boolean frozen) {
         PlayerFreezeEvent event = new PlayerFreezeEvent(player, frozen);
         this.plugin.getPluginManager().callEvent(event);
-        if (event.isCancelled()) return;
+        if (event.isCancelled())
+            return;
 
-        SunUser user = this.plugin.getUserManager().getOrFetch(player);
+        SunUser user = this.plugin.userManager().getOrFetch(player);
         user.setProperty(FROZEN, frozen);
         user.markDirty();
     }

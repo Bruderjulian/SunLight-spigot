@@ -14,17 +14,17 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.user.UserInfo;
 import su.nightexpress.nightcore.util.CommandUtil;
-import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.bans.command.*;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
@@ -61,8 +61,8 @@ public class BansModule extends Module {
 
     private boolean dataLoaded;
 
-    public BansModule(ModuleContext context) {
-        super(context);
+    public BansModule(ModuleDefinition<BansModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.settings = new BansSettings();
         this.dataManager = new BansDataManager(this.plugin, this.dataHandler, this);
         this.chatHandler = this::handleChatEvent;

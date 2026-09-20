@@ -61,7 +61,7 @@ public class DiscordHandler extends SimpleManager<SunLightPlugin> {
      * ChatChannel channel = this.module.getChannelRepository().getById(channelId);
      * if (channel == null) return;
      * 
-     * SunUser user = plugin.getUserManager().getOrFetch(playerId).orElse(null);
+     * SunUser user = plugin.userManager().getOrFetch(playerId).orElse(null);
      * if (user == null) return;
      * 
      * String message = event.getMessage().getContentRaw();

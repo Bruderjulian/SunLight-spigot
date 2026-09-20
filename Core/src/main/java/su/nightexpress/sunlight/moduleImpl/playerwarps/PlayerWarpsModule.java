@@ -29,7 +29,8 @@ import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.category.AllCategory;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.category.NormalCategory;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.category.OwnCategory;
@@ -71,9 +72,9 @@ public class PlayerWarpsModule extends Module {
     private PlayerWarpOptionsMenu settingsMenu;
     private PlayerWarpsListMenu warpsListMenu;
 
-    public PlayerWarpsModule(ModuleContext context, TeleportManager teleportManager) {
-        super(context);
-        this.teleportManager = teleportManager;
+    public PlayerWarpsModule(ModuleDefinition<PlayerWarpsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
+        this.teleportManager = plugin.teleportManager();
         this.repository = new PlayerWarpRepository();
         this.settings = new PlayerWarpsSettings();
     }

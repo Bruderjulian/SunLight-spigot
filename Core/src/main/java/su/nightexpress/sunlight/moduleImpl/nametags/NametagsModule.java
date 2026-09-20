@@ -12,7 +12,8 @@ import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.nametags.handler.NametagHandler;
 import su.nightexpress.sunlight.moduleImpl.nametags.handler.PacketsTagHandler;
 import su.nightexpress.sunlight.moduleImpl.nametags.handler.ProtocolTagHandler;
@@ -27,8 +28,8 @@ public class NametagsModule extends Module {
 
     private NametagHandler tagHandler;
 
-    public NametagsModule(ModuleContext context) {
-        super(context);
+    public NametagsModule(ModuleDefinition<NametagsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.settings = new NametagsSettings();
     }
 

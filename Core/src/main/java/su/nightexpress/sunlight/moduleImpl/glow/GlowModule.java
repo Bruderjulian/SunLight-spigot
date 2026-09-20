@@ -13,7 +13,8 @@ import su.nightexpress.sunlight.api.provider.GlowProvider;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.glow.command.GlowCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.glow.config.GlowLang;
 import su.nightexpress.sunlight.moduleImpl.glow.config.GlowPerms;
@@ -35,8 +36,8 @@ public class GlowModule extends Module implements GlowProvider {
     private final Map<UUID, GlowAnimation> animations;
     private final Map<UUID, String> previousTeams;
 
-    public GlowModule(ModuleContext context) {
-        super(context);
+    public GlowModule(ModuleDefinition<GlowModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.settings = new GlowSettings();
         this.animations = new ConcurrentHashMap<>();
         this.previousTeams = new ConcurrentHashMap<>();

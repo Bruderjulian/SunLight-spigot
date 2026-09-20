@@ -56,11 +56,11 @@ public class SortCommand extends CommandProvider {
          * CommandArguments.PLAYER, true);
          * if (target == null) return false;
          * 
-         * SunUser user = plugin.getUserManager().getOrFetch(target);
+         * SunUser user = plugin.userManager().getOrFetch(target);
          * boolean state = mode.apply(SortManager.isChestSortEnabled(user));
          * 
          * user.setProperty(SortManager.SETTING_CHEST_SORT, state);
-         * //this.plugin.getUserManager().save(user);
+         * //this.plugin.userManager().save(user);
          * user.markDirty();
          * 
          * if (context.getSender() != target) {

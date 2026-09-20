@@ -38,7 +38,7 @@ public class SortListener extends AbstractListener<SunLightPlugin> {
             return;
         }
 
-        SunUser user = plugin.getUserManager().getOrFetch(player);
+        SunUser user = plugin.userManager().getOrFetch(player);
         if (!SortManager.isChestSortEnabled(user))
             return;
 

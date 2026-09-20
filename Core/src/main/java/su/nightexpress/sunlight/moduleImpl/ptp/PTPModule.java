@@ -14,7 +14,8 @@ import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.ptp.command.PTPCommands;
 import su.nightexpress.sunlight.moduleImpl.ptp.config.PTPLang;
 import su.nightexpress.sunlight.moduleImpl.ptp.config.PTPPerms;
@@ -34,9 +35,9 @@ public class PTPModule extends Module {
     private final PTPSettings settings;
     private final Map<UUID, List<TeleportRequest>> requestsMap;
 
-    public PTPModule(ModuleContext context, TeleportManager teleportManager) {
-        super(context);
-        this.teleportManager = teleportManager;
+    public PTPModule(ModuleDefinition<PTPModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
+        this.teleportManager = plugin.teleportManager();
         this.settings = new PTPSettings();
         this.requestsMap = new HashMap<>();
     }

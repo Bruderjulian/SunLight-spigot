@@ -5,12 +5,13 @@ import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 
 public class SocialsModule extends Module {
 
-    public SocialsModule(ModuleContext context) {
-        super(context);
+    public SocialsModule(ModuleDefinition<SocialsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
     }
 
     @Override

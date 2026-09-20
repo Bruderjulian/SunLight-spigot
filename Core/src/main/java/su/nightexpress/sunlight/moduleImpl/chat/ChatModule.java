@@ -15,11 +15,12 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.chat.cache.UserChatCache;
 import su.nightexpress.sunlight.moduleImpl.chat.channel.ChannelRepository;
 import su.nightexpress.sunlight.moduleImpl.chat.channel.ChannelSchema;
@@ -84,8 +85,8 @@ public class ChatModule extends Module {
     private DiscordHandler discordHandler;
     private MailDataManager mailDataManager;
 
-    public ChatModule(ModuleContext context) {
-        super(context);
+    public ChatModule(ModuleDefinition<ChatModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.settings = new ChatSettings();
         this.channelRepository = new ChannelRepository();
         this.chatEventHandler = this::handleChatMessage;

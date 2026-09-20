@@ -10,7 +10,8 @@ import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.texts.command.TextCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.texts.text.Text;
 
@@ -23,8 +24,8 @@ public class TextsModule extends Module {
     private final Map<String, Text> textByIdMap;
     private final Set<NightCommand> textCommands;
 
-    public TextsModule(ModuleContext context) {
-        super(context);
+    public TextsModule(ModuleDefinition<TextsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.textByIdMap = new HashMap<>();
         this.textCommands = new HashSet<>();
     }

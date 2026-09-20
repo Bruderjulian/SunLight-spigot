@@ -40,7 +40,7 @@ public class ExtrasGenericListener extends AbstractListener<SunLightPlugin> {
             return;
 
         Player player = event.getPlayer();
-        SunUser user = plugin.getUserManager().getOrFetch(player);
+        SunUser user = plugin.userManager().getOrFetch(player);
         List<String> commands;
         if (user.isFirstTimeJoined()) {
             commands = ExtrasConfig.JOIN_COMMANDS_FIRST.get();

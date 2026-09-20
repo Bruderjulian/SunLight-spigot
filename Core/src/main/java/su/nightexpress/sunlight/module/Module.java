@@ -27,7 +27,7 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
 
     private final String id;
     protected final Path path;
-    protected final ModuleDefinition definition;
+    protected final ModuleDefinition<?> definition;
 
     protected final DataHandler dataHandler;
     protected final UserManager userManager;
@@ -36,16 +36,16 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
 
     private final String logPrefix;
 
-    protected Module(ModuleContext context) {
-        super(context.plugin());
-        this.id = context.id();
-        this.path = context.path();
-        this.definition = context.definition();
+    protected Module(ModuleDefinition<?> definition, SunLightPlugin plugin) {
+        super(plugin);
+        this.id = definition.id();
+        this.path = definition.path(plugin);
+        this.definition = definition;
 
-        this.dataHandler = context.dataHandler();
-        this.userManager = context.userManager();
-        this.commandRegistry = context.commandRegistry();
-        this.dialogRegistry = context.dialogRegistry();
+        this.dataHandler = plugin.dataHandler();
+        this.userManager = plugin.userManager();
+        this.commandRegistry = plugin.commandRegistry();
+        this.dialogRegistry = plugin.dialogRegistry();
 
         this.logPrefix = "[" + this.definition.name() + "] ";
     }
@@ -57,8 +57,6 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
 
     @Override
     protected final void onLoad() throws ModuleLoadException {
-        long loadTook = System.currentTimeMillis();
-
         FileConfig config = this.getConfig();
 
         this.loadModule(config);
@@ -66,9 +64,6 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
         this.registerPermissions(Perms.ROOT);
 
         config.saveChanges();
-
-        loadTook = System.currentTimeMillis() - loadTook;
-        this.info("Loaded in %s ms.".formatted(loadTook));
     }
 
     @Override
@@ -125,20 +120,20 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
         // return this.plugin.getDataFolder() + this.getLocalPath();
     }
 
-    private String buildLog(String msg) {
-        return this.logPrefix + msg;
+    public final void debug(String msg) {
+        this.plugin.debug(this.logPrefix + msg);
     }
 
     public final void info(String msg) {
-        this.plugin.info(this.buildLog(msg));
+        this.plugin.info(this.logPrefix + msg);
     }
 
     public final void warn(String msg) {
-        this.plugin.warn(this.buildLog(msg));
+        this.plugin.warn(this.logPrefix + msg);
     }
 
     public final void error(String msg) {
-        this.plugin.error(this.buildLog(msg));
+        this.plugin.error(this.logPrefix + msg);
     }
 
     public LangMessage getPrefixed(MessageLocale locale) {

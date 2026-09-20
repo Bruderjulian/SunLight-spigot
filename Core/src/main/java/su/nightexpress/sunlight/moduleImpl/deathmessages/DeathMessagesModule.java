@@ -19,11 +19,12 @@ import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 
 import java.util.Map;
 import java.util.UUID;
@@ -39,8 +40,8 @@ public class DeathMessagesModule extends Module {
     private final DeathMessagesSettings settings;
     private final Map<UUID, TrackedAnvil> anvilPlacements;
 
-    public DeathMessagesModule(ModuleContext context) {
-        super(context);
+    public DeathMessagesModule(ModuleDefinition<DeathMessagesModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.settings = new DeathMessagesSettings();
         this.anvilPlacements = new ConcurrentHashMap<>();
     }

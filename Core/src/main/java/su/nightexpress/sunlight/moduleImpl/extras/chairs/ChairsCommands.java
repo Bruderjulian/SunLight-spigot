@@ -71,7 +71,7 @@ public class ChairsCommands extends CommandProvider {
          * boolean state = mode.apply(ChairsManager.isChairsEnabled(user));
          * 
          * user.setProperty(ChairsManager.SETTING_CHAIRS, state);
-         * //this.plugin.getUserManager().save(user);
+         * //this.plugin.userManager().save(user);
          * user.markDirty();
          * 
          * if (context.getSender() != target) {

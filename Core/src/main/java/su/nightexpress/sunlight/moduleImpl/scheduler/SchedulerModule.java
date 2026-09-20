@@ -10,7 +10,8 @@ import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.scheduler.announcer.Announcer;
 import su.nightexpress.sunlight.utils.Utils;
 
@@ -27,8 +28,8 @@ public class SchedulerModule extends Module {
 
     private final Map<String, Announcer> announcerByIdMap;
 
-    public SchedulerModule(ModuleContext context) {
-        super(context);
+    public SchedulerModule(ModuleDefinition<SchedulerModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
         this.settings = new SchedulerSettings();
         this.announcerByIdMap = new HashMap<>();
     }

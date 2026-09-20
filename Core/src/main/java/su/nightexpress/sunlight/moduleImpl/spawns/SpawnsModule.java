@@ -15,7 +15,8 @@ import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
-import su.nightexpress.sunlight.module.ModuleContext;
+import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.spawns.command.SpawnCommands;
 import su.nightexpress.sunlight.moduleImpl.spawns.config.SpawnsLang;
 import su.nightexpress.sunlight.moduleImpl.spawns.config.SpawnsPerms;
@@ -46,9 +47,9 @@ public class SpawnsModule extends Module {
     private SpawnListEditor listEditor;
     private SpawnSettingsEditor settingsEditor;
 
-    public SpawnsModule(ModuleContext context, TeleportManager teleportManager) {
-        super(context);
-        this.teleportManager = teleportManager;
+    public SpawnsModule(ModuleDefinition<SpawnsModule> definition, SunLightPlugin plugin) {
+        super(definition, plugin);
+        this.teleportManager = plugin.teleportManager();
         this.settings = new SpawnsSettings();
         this.spawnMap = new HashMap<>();
     }
@@ -213,7 +214,7 @@ public class SpawnsModule extends Module {
 
     public void handleJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        SunUser user = this.plugin.getUserManager().getOrFetch(player);
+        SunUser user = this.plugin.userManager().getOrFetch(player);
         Spawn spawn;
         if (!user.hasPlayedBefore()) {
             if (!this.settings.isNewPlayersSpawnEnabled())
