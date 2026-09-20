@@ -24,6 +24,7 @@ public class ModuleId {
     public static final String PLAYER_WARPS = "playerwarps";
     public static final String PTP = "ptp";
     public static final String RTP = "rtp";
+    public static final String RECIPES = "recipes";
     public static final String SCHEDULER = "scheduler";
     public static final String SOCIALS = "socials";
     public static final String SPAWNS = "spawns";

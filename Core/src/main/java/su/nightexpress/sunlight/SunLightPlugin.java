@@ -44,6 +44,7 @@ import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsModule;
 import su.nightexpress.sunlight.moduleImpl.ptp.PTPModule;
 import su.nightexpress.sunlight.moduleImpl.rtp.RTPModule;
+import su.nightexpress.sunlight.moduleImpl.recipes.RecipesModule;
 import su.nightexpress.sunlight.moduleImpl.scheduler.SchedulerModule;
 import su.nightexpress.sunlight.moduleImpl.spawns.SpawnsModule;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsModule;
@@ -183,6 +184,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         loader.register(ModuleId.PLAYER_WARPS, "Player Warps", PlayerWarpsModule::new);
         loader.register(ModuleId.PTP, "PTP", PTPModule::new);
         loader.register(ModuleId.RTP, "RTP", RTPModule::new);
+        loader.register(ModuleId.RECIPES, "Recipes", RecipesModule::new);
         loader.register(ModuleId.SCHEDULER, "Scheduler", SchedulerModule::new);
         loader.register(ModuleId.SPAWNS, "Spawn", SpawnsModule::new);
         loader.register(ModuleId.VANISH, "Vanish", VanishModule::new);
