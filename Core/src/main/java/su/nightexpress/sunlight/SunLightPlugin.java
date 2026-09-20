@@ -2,6 +2,7 @@ package su.nightexpress.sunlight;
 
 import java.util.Optional;
 
+import su.nightexpress.nightcore.NightCorePlugin;
 import su.nightexpress.nightcore.NightPlugin;
 import su.nightexpress.nightcore.commands.Commands;
 import su.nightexpress.nightcore.commands.command.NightCommand;
@@ -22,7 +23,6 @@ import su.nightexpress.sunlight.config.Perms;
 import su.nightexpress.sunlight.data.DataHandler;
 import su.nightexpress.sunlight.hook.impl.PlaceholderHook;
 import su.nightexpress.sunlight.module.LoadCondition;
-import su.nightexpress.sunlight.module.ModuleId;
 import su.nightexpress.sunlight.module.ModuleManager;
 import su.nightexpress.sunlight.moduleImpl.afk.AfkModule;
 import su.nightexpress.sunlight.moduleImpl.backlocation.BackLocationModule;
@@ -44,7 +44,6 @@ import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsModule;
 import su.nightexpress.sunlight.moduleImpl.ptp.PTPModule;
 import su.nightexpress.sunlight.moduleImpl.rtp.RTPModule;
-import su.nightexpress.sunlight.moduleImpl.recipes.RecipesModule;
 import su.nightexpress.sunlight.moduleImpl.scheduler.SchedulerModule;
 import su.nightexpress.sunlight.moduleImpl.spawns.SpawnsModule;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsModule;
@@ -116,16 +115,8 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         this.teleportManager = new TeleportManager(this, this.sunNMS);
         this.teleportManager.setup();
 
-        /*
-         * if (this.moduleRegistry.isCompleted()) {
-         * this.info("Reloading all modules...");
-         * this.moduleRegistry.reload();
-         * }
-         * else {
-         */
-        // this.info("Initializing modules...");
-        this.loadModules();
-        // }
+        this.registerModules(moduleManager);
+        moduleManager.loadAll();
 
         this.commandRegistry.setup();
         this.registerCommands();
@@ -157,41 +148,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
     @Override
     protected void onShutdown() {
         super.onShutdown();
-    }
-
-    private void loadModules() {
-        ModuleManager loader = new ModuleManager(this);
-
-        loader.register(ModuleId.AFK, "AFK", AfkModule::new);
-        loader.register(ModuleId.BANS, "Bans", BansModule::new);
-        loader.register(ModuleId.BACK_LOCATION, "Back", BackLocationModule::new);
-        loader.register(ModuleId.CUSTOM_TEXT, "Custom Text", TextsModule::new);
-        loader.register(ModuleId.CHAT, "Chat", ChatModule::new);
-        loader.register(ModuleId.DEATH_MESSAGES, "Death Messages", DeathMessagesModule::new);
-        loader.register(ModuleId.ESSENTIAL, "Essential", EssentialModule::new);
-        loader.register(ModuleId.EXTRAS, "Extras", ExtrasModule::new);
-        loader.register(ModuleId.FREEZE, "Freeze", FreezeModule::new);
-        loader.register(ModuleId.GLOW, "Glow", GlowModule::new);
-        loader.register(ModuleId.GREETINGS, "Greetings", GreetingsModule::new);
-        loader.register(ModuleId.HOMES, "Homes", HomesModule::new);
-        loader.register(ModuleId.INVENTORIES, "Inventories", InventoriesModule::new);
-        loader.register(ModuleId.ITEMS, "Items", ItemsModule::new);
-        loader.register(ModuleId.KITS, "Kits", KitsModule::new);
-        loader.register(ModuleId.NAME_TAGS, "Nametags", NametagsModule::new,
-                LoadCondition::packetLibrary);
-        loader.register(ModuleId.NERF_PHANTOMS, "Nerf Phantoms", PhantomsModule::new);
-        loader.register(ModuleId.NICK, "Nick", NickModule::new);
-        loader.register(ModuleId.PLAYER_WARPS, "Player Warps", PlayerWarpsModule::new);
-        loader.register(ModuleId.PTP, "PTP", PTPModule::new);
-        loader.register(ModuleId.RTP, "RTP", RTPModule::new);
-        loader.register(ModuleId.RECIPES, "Recipes", RecipesModule::new);
-        loader.register(ModuleId.SCHEDULER, "Scheduler", SchedulerModule::new);
-        loader.register(ModuleId.SPAWNS, "Spawn", SpawnsModule::new);
-        loader.register(ModuleId.VANISH, "Vanish", VanishModule::new);
-        loader.register(ModuleId.WARMUPS, "Warmups", WarmupsModule::new);
-        loader.register(ModuleId.WARPS, "Warps", WarpsModule::new);
-
-        loader.loadAll();
     }
 
     private void setupInternalNMS() {
@@ -228,8 +184,38 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         }
     }
 
+    private void registerModules(ModuleManager manager) {
+        manager.register("afk", "AFK", AfkModule::new);
+        manager.register("bans", "Bans", BansModule::new);
+        manager.register("back_location", "Back", BackLocationModule::new);
+        manager.register("custom_text", "Custom Text", TextsModule::new);
+        manager.register("chat", "Chat", ChatModule::new);
+        manager.register("death_messages", "Death Messages", DeathMessagesModule::new);
+        manager.register("essential", "Essential", EssentialModule::new);
+        manager.register("extras", "Extras", ExtrasModule::new);
+        manager.register("freeze", "Freeze", FreezeModule::new);
+        manager.register("glow", "Glow", GlowModule::new);
+        manager.register("greetings", "Greetings", GreetingsModule::new);
+        manager.register("homes", "Homes", HomesModule::new);
+        manager.register("inventories", "Inventories", InventoriesModule::new);
+        manager.register("items", "Items", ItemsModule::new);
+        manager.register("kits", "Kits", KitsModule::new);
+        manager.register("nametags", "Nametags", NametagsModule::new,
+                LoadCondition::packetLibrary);
+        manager.register("nerf_phantoms", "Nerf Phantoms", PhantomsModule::new);
+        manager.register("nick", "Nick", NickModule::new);
+        manager.register("playerwarps", "Player Warps", PlayerWarpsModule::new);
+        manager.register("ptp", "PTP", PTPModule::new);
+        manager.register("rtp", "RTP", RTPModule::new);
+        manager.register("scheduler", "Scheduler", SchedulerModule::new);
+        manager.register("spawns", "Spawn", SpawnsModule::new);
+        manager.register("vanish", "Vanish", VanishModule::new);
+        manager.register("warmups", "Warmups", WarmupsModule::new);
+        manager.register("warps", "Warps", WarpsModule::new);
+    }
+
     private void registerCommands() {
-        this.rootCommand = NightCommand.forPlugin(this, builder -> builder
+        this.rootCommand = NightCommand.forPlugin((NightCorePlugin) this, builder -> builder
                 .branch(Commands.literal("reload")
                         .description(CoreLang.COMMAND_RELOAD_DESC)
                         .permission(Perms.COMMAND_RELOAD)
