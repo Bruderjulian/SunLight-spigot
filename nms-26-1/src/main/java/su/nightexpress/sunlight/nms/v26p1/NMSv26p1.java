@@ -16,14 +16,11 @@ import org.bukkit.inventory.Inventory;
 
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.core.Holder;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
-import net.minecraft.server.dedicated.DedicatedPlayerList;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
@@ -60,49 +57,40 @@ public class NMSv26p1 implements SunNMS {
             Inventory.class, ServerPlayer.class, net.minecraft.world.inventory.MenuType.class);
 
     @Override
-    public void dropFallingContent(FallingBlock fallingBlock) {
-        CraftFallingBlock craftBlock = (CraftFallingBlock) fallingBlock;
-        FallingBlockEntity nmsBlock = craftBlock.getHandle();
+    public void dropFallingContent(final FallingBlock fallingBlock) {
+        final CraftFallingBlock craftBlock = (CraftFallingBlock) fallingBlock;
+        final FallingBlockEntity nmsBlock = craftBlock.getHandle();
 
         nmsBlock.spawnAtLocation((ServerLevel) nmsBlock.level(), nmsBlock.getBlockState().getBlock());
     }
 
-    public Object fineChatPacket(Object packet) {
-        ClientboundPlayerChatPacket chatPacket = (ClientboundPlayerChatPacket) packet;
-        Component component = chatPacket.unsignedContent() == null ? Component.literal(chatPacket.body()
+    public Object fineChatPacket(final Object packet) {
+        final ClientboundPlayerChatPacket chatPacket = (ClientboundPlayerChatPacket) packet;
+        final Component component = chatPacket.unsignedContent() == null ? Component.literal(chatPacket.body()
                 .content()) : chatPacket.unsignedContent();
 
-        Holder<ChatType> typeHolder = chatPacket.chatType().chatType();
+        final ChatType.Bound decorator = new ChatType.Bound(chatPacket.chatType().chatType(),
+                chatPacket.chatType().name(),
+                chatPacket.chatType()
+                        .targetName());
 
-        ChatType.Bound decorator = new ChatType.Bound(typeHolder, chatPacket.chatType().name(), chatPacket.chatType()
-                .targetName());
-        component = decorator.decorate(component);
-
-        return new ClientboundSystemChatPacket(component, false);
+        return new ClientboundSystemChatPacket(decorator.decorate(component), false);
     }
 
     @Override
 
-    public Player loadPlayerData(UUID id, String name) {
-        CraftServer craftServer = (CraftServer) Bukkit.getServer();
-        DedicatedServer server = craftServer.getServer();
-        DedicatedPlayerList playerList = craftServer.getHandle();
-        ServerLevel level = server.getLevel(Level.OVERWORLD);
+    public Player loadPlayerData(final UUID id, final String name) {
+        final CraftServer craftServer = (CraftServer) Bukkit.getServer();
+        final DedicatedServer server = craftServer.getServer();
+        final ServerLevel level = server.getLevel(Level.OVERWORLD);
         if (level == null)
             throw new IllegalStateException("Server level is null");
 
-        GameProfile profile = new GameProfile(id, name);
-        ServerPlayer serverPlayer = new ServerPlayer(server, level, profile, ClientInformation.createDefault()); // GameMode
-                                                                                                                 // reset
+        final ServerPlayer serverPlayer = new ServerPlayer(server, level, new GameProfile(id, name),
+                ClientInformation.createDefault());
 
-        ProblemReporter reporter = new ProblemReporter.Collector();
-        RegistryAccess access = serverPlayer.registryAccess();
-
-        NameAndId nameAndId = new NameAndId(id, name);
-
-        var input = playerList.playerIo.load(nameAndId).orElse(new CompoundTag());
-        var value = TagValueInput.create(reporter, access, input);
-
+        final var input = craftServer.getHandle().playerIo.load(new NameAndId(id, name)).orElse(new CompoundTag());
+        final var value = TagValueInput.create(new ProblemReporter.Collector(), serverPlayer.registryAccess(), input);
         serverPlayer.load(value);
         // serverPlayer.loadGameTypes(input); // Save GameMode on load data
 
@@ -110,24 +98,24 @@ public class NMSv26p1 implements SunNMS {
     }
 
     @Override
-    public void setGameMode(Player player, org.bukkit.GameMode mode) {
-        CraftPlayer craftPlayer = (CraftPlayer) player;
-        ServerPlayer serverPlayer = craftPlayer.getHandle();
+    public void setGameMode(final Player player, final org.bukkit.GameMode mode) {
+        final CraftPlayer craftPlayer = (CraftPlayer) player;
+        final ServerPlayer serverPlayer = craftPlayer.getHandle();
 
-        GameType gameType = GameType.byName(mode.name().toLowerCase());
-        GameType previous = serverPlayer.gameMode.getPreviousGameModeForPlayer();
+        final GameType gameType = GameType.byName(mode.name().toLowerCase());
+        final GameType previous = serverPlayer.gameMode.getPreviousGameModeForPlayer();
 
         Reflex.invokeMethod(SET_GAME_MODE, serverPlayer.gameMode, gameType, previous);
         craftPlayer.saveData();
     }
 
     @Override
-    public void teleport(Player player, Location location) {
-        CraftPlayer craftPlayer = (CraftPlayer) player;
-        ServerPlayer serverPlayer = craftPlayer.getHandle();
+    public void teleport(final Player player, final Location location) {
+        final CraftPlayer craftPlayer = (CraftPlayer) player;
+        final ServerPlayer serverPlayer = craftPlayer.getHandle();
         serverPlayer.setPosRaw(location.getX(), location.getY(), location.getZ());
         if (player.getWorld() != location.getWorld() && location.getWorld() != null) {
-            CraftWorld craftWorld = (CraftWorld) location.getWorld();
+            final CraftWorld craftWorld = (CraftWorld) location.getWorld();
             serverPlayer.setServerLevel(craftWorld.getHandle());
         }
         craftPlayer.saveData();
@@ -135,23 +123,18 @@ public class NMSv26p1 implements SunNMS {
 
     @Override
 
-    public Inventory getPlayerEnderChest(Player player) {
+    public Inventory getPlayerEnderChest(final Player player) {
         return new PlayerEnderChest((CraftPlayer) player).getInventory();
     }
 
     @Override
 
-    public Inventory getPlayerInventory(Player player) {
+    public Inventory getPlayerInventory(final Player player) {
         return new PlayerInventory((CraftPlayer) player).getInventory();
     }
 
     @Override
-    public void openPlayerInventory(Player player, Player owner) {
-        Inventory inventory = this.getPlayerInventory(owner); // Patched CraftInventory used here to prevent inventory
-                                                              // type & size mismatch.
-        CraftPlayer craftPlayer = (CraftPlayer) player;
-        ServerPlayer serverPlayer = craftPlayer.getHandle();
-
+    public void openPlayerInventory(final Player player, final Player owner) {
         // There is a "wrong" menu type obtained in the CraftHumanEntity#openInventory
         // -> CraftContainer#getNotchInventoryType(inventory)
         // This is caused by CraftInventory wrapper with the PlayerInventory container
@@ -159,25 +142,24 @@ public class NMSv26p1 implements SunNMS {
         // wrong MenuType.
         // We have to hardcode the 'windowType' variable here as 9X5 menu type to
         // prevent Network Protocol Error due to slots size mismatch.
-        Reflex.invokeMethod(OPEN_CUSTOM_INVENTORY, null, inventory, serverPlayer,
+        Reflex.invokeMethod(OPEN_CUSTOM_INVENTORY, null, this.getPlayerInventory(owner),
+                ((CraftPlayer) player).getHandle(),
                 net.minecraft.world.inventory.MenuType.GENERIC_9x5);
     }
 
     @Override
-    public void openContainer(Player player, PortableContainer menuType) {
-        AbstractContainerMenu menu = this.createContainer(menuType, player);
+    public void openContainer(final Player player, final PortableContainer menuType) {
 
-        player.openInventory(menu.getBukkitView());
+        player.openInventory(this.createContainer(menuType, player).getBukkitView());
     }
 
-    private AbstractContainerMenu createContainer(PortableContainer type, Player player) {
-        CraftPlayer craftPlayer = (CraftPlayer) player;
-        ServerPlayer nmsPlayer = craftPlayer.getHandle();
-        int contId = nmsPlayer.nextContainerCounter();
-        ContainerLevelAccess access = ContainerLevelAccess.create(nmsPlayer.level(), nmsPlayer.blockPosition());
-        net.minecraft.world.entity.player.Inventory inventory = nmsPlayer.getInventory();
+    private AbstractContainerMenu createContainer(final PortableContainer type, final Player player) {
+        final ServerPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
+        final int contId = nmsPlayer.nextContainerCounter();
+        final ContainerLevelAccess access = ContainerLevelAccess.create(nmsPlayer.level(), nmsPlayer.blockPosition());
+        final net.minecraft.world.entity.player.Inventory inventory = nmsPlayer.getInventory();
 
-        AbstractContainerMenu menu = switch (type) {
+        final AbstractContainerMenu menu = switch (type) {
             case ANVIL -> new AnvilMenu(contId, inventory, access);
             case WORKBENCH -> new CraftingMenu(contId, inventory, access);
             case ENCHANTING_TABLE -> new EnchantmentMenu(contId, inventory, access);
