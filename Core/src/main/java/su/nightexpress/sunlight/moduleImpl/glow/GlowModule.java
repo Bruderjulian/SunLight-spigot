@@ -1,6 +1,7 @@
 package su.nightexpress.sunlight.moduleImpl.glow;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
@@ -237,7 +238,7 @@ public class GlowModule extends Module implements GlowProvider {
         });
     }
 
-    private void applyColor(@NotNull Player player, @NotNull ChatColor color) {
+    private void applyColor(@NotNull Player player, @NotNull NamedTextColor color) {
         Scoreboard scoreboard = this.plugin.getServer().getScoreboardManager().getMainScoreboard();
         Team team = this.getOrCreateTeam(scoreboard, color);
 
@@ -290,15 +291,16 @@ public class GlowModule extends Module implements GlowProvider {
         return team.getName().startsWith(TEAM_PREFIX);
     }
 
-    private @NotNull Team getOrCreateTeam(@NotNull Scoreboard scoreboard, @NotNull ChatColor color) {
-        String name = TEAM_PREFIX + Utils.lowercase(color.name());
+    private @NotNull Team getOrCreateTeam(@NotNull Scoreboard scoreboard, @NotNull NamedTextColor color) {
+        String name = TEAM_PREFIX + Utils.lowercase(color.examinableName());
         Team team = scoreboard.getTeam(name);
         if (team == null) {
             team = scoreboard.registerNewTeam(name);
         }
-        if (team.getColor() != color) {
+        TextColor current = team.color();
+        if (current == null || !current.equals(color)) {
             try {
-                team.setColor(color);
+                team.color(color);
             } catch (IllegalStateException ignored) {
             }
         }

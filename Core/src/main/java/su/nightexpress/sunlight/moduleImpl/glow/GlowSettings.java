@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class GlowSettings extends AbstractConfig {
 
-    private static final ConfigType<GlowEffect> GLOW_EFFECT_TYPE = ConfigType.of(GlowEffect::read, GlowEffect::write);
+    private static final ConfigType<GlowEffect> GLOW_EFFECT_TYPE = ConfigType.of(GlowEffect::read, (config, path, value) -> value.write(config, path));
 
     private final ConfigProperty<Long> updateInterval = this.addProperty(ConfigTypes.LONG,
             "Animation.Update_Interval",
