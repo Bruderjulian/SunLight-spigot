@@ -1,10 +1,9 @@
 package su.nightexpress.sunlight.moduleImpl.glow;
 
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
@@ -12,6 +11,8 @@ import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.api.provider.GlowProvider;
 import su.nightexpress.sunlight.config.PermissionTree;
+import su.nightexpress.sunlight.exception.ModuleLoadException;
+import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -20,35 +21,46 @@ import su.nightexpress.sunlight.moduleImpl.glow.command.GlowCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.glow.config.GlowLang;
 import su.nightexpress.sunlight.moduleImpl.glow.config.GlowPerms;
 import su.nightexpress.sunlight.moduleImpl.glow.event.PlayerGlowChangeEvent;
+import su.nightexpress.sunlight.moduleImpl.glow.handler.GlowPacketHandler;
+import su.nightexpress.sunlight.moduleImpl.glow.handler.GlowPacketsHandler;
+import su.nightexpress.sunlight.moduleImpl.glow.handler.GlowProtocolHandler;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 import su.nightexpress.sunlight.utils.Utils;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GlowModule extends Module implements GlowProvider {
 
-    private static final String TEAM_PREFIX = "slglow_";
-
     private final GlowSettings settings;
-    private final Map<UUID, GlowAnimation> animations;
-    private final Map<UUID, String> previousTeams;
+    private final Map<UUID, GlowState> states;
+
+    private GlowPacketHandler packetHandler;
 
     public GlowModule(ModuleDefinition<GlowModule> definition, SunLightPlugin plugin) {
         super(definition, plugin);
         this.settings = new GlowSettings();
-        this.animations = new ConcurrentHashMap<>();
-        this.previousTeams = new ConcurrentHashMap<>();
+        this.states = new ConcurrentHashMap<>();
     }
 
     @Override
-    protected void loadModule(FileConfig config) {
+    protected void loadModule(FileConfig config) throws ModuleLoadException {
         this.settings.load(config);
         this.plugin.injectLang(GlowLang.class);
         UserPropertyRegistry.register(GlowProperties.GLOW);
+
+        if (Utils.isInstalled(HookId.PACKET_EVENTS)) {
+            this.packetHandler = new GlowPacketsHandler(this.plugin);
+        } else if (Utils.isInstalled(HookId.PROTOCOL_LIB)) {
+            this.packetHandler = new GlowProtocolHandler(this.plugin);
+        } else {
+            throw new ModuleLoadException("No packet library installed. Install packetevents or ProtocolLib.");
+        }
 
         this.addListener(new GlowListener(this.plugin, this));
         this.addTask(this::tickAnimations, this.settings.getUpdateInterval());
@@ -62,16 +74,25 @@ public class GlowModule extends Module implements GlowProvider {
 
     @Override
     protected void unloadModule() {
-        Utils.onlinePlayers().forEach(player -> this.removeGlowVisuals(player, false));
-        this.animations.clear();
-        this.previousTeams.clear();
+        if (this.packetHandler != null) {
+            Collection<Player> viewers = snapshotViewers();
+            this.states.keySet().forEach(uuid -> {
+                Player player = Utils.getPlayer(uuid);
+                if (player != null && player.isOnline()) {
+                    this.packetHandler.removeGlow(player, viewers);
+                    player.setGlowing(false);
+                }
+            });
+        }
+        this.states.clear();
     }
 
-    private void removeGlowVisuals(Player player, boolean unused) {
-        this.animations.remove(player.getUniqueId());
-        this.removeFromGlowTeams(player);
+    private void removeGlowVisuals(@NotNull Player player) {
+        this.states.remove(player.getUniqueId());
+        if (this.packetHandler != null) {
+            this.packetHandler.removeGlow(player, snapshotViewersOf(player));
+        }
         player.setGlowing(false);
-        this.restorePreviousTeam(player);
     }
 
     @Override
@@ -180,7 +201,7 @@ public class GlowModule extends Module implements GlowProvider {
         user.markDirty();
 
         if (effective == null) {
-            this.removeGlowVisuals(player, false);
+            this.removeGlowVisuals(player);
         } else {
             this.applyGlow(player);
         }
@@ -191,133 +212,113 @@ public class GlowModule extends Module implements GlowProvider {
         String id = this.getStoredGlow(user);
         GlowEffect effect = this.getEffect(id);
         if (effect == null) {
-            this.removeGlowVisuals(player, false);
+            this.removeGlowVisuals(player);
             return;
         }
 
-        this.rememberPreviousTeam(player);
-
-        if (effect.isAnimated()) {
-            this.animations.put(player.getUniqueId(), new GlowAnimation(effect.getId()));
-            this.applyColor(player, effect.getFrame(0));
-        } else {
-            this.animations.remove(player.getUniqueId());
-            this.applyColor(player, effect.getFrame(0));
-        }
+        NamedTextColor color = effect.getFrame(0);
+        this.states.put(player.getUniqueId(), new GlowState(effect.getId(), color));
+        player.setGlowing(true);
+        this.packetHandler.sendGlow(player, color, snapshotViewersOf(player));
     }
 
     public void handleQuit(@NotNull Player player) {
-        this.animations.remove(player.getUniqueId());
-        this.removeFromGlowTeams(player);
-        player.setGlowing(false);
+        this.states.remove(player.getUniqueId());
+        if (this.packetHandler != null) {
+            this.packetHandler.removeGlow(player, snapshotViewers());
+        }
     }
 
-    private void tickAnimations() {
-        if (this.animations.isEmpty()) return;
+    /**
+     * (Re)sends all active glow teams to a viewer. Needed on join / world change,
+     * as team packets are client-side and a fresh client knows none of them.
+     */
+    public void sendAllGlowsTo(@NotNull Player viewer) {
+        if (this.packetHandler == null || this.states.isEmpty()) return;
 
-        Map.copyOf(this.animations).forEach((uuid, animation) -> {
-            Player player = Utils.getPlayer(uuid);
-            if (player == null || !player.isOnline()) {
-                this.animations.remove(uuid);
-                return;
-            }
-
-            GlowEffect effect = this.getEffect(animation.effectId());
-            if (effect == null || !effect.isAnimated()) {
-                this.animations.remove(uuid);
-                return;
-            }
-
-            animation.ticksPassed += this.settings.getUpdateInterval();
-            if (animation.ticksPassed < effect.getInterval()) return;
-
-            animation.ticksPassed = 0L;
-            animation.frame++;
-
-            this.applyColor(player, effect.getFrame(animation.frame));
+        World world = viewer.getWorld();
+        List<Player> single = List.of(viewer);
+        this.states.forEach((uuid, state) -> {
+            if (uuid.equals(viewer.getUniqueId())) return;
+            Player target = Utils.getPlayer(uuid);
+            if (target == null || !target.isOnline()) return;
+            if (!target.getWorld().equals(world)) return;
+            this.packetHandler.sendGlow(target, state.lastColor, single);
         });
     }
 
-    private void applyColor(@NotNull Player player, @NotNull NamedTextColor color) {
-        Scoreboard scoreboard = this.plugin.getServer().getScoreboardManager().getMainScoreboard();
-        Team team = this.getOrCreateTeam(scoreboard, color);
+    private void tickAnimations() {
+        if (this.states.isEmpty() || this.packetHandler == null) return;
 
-        String entry = player.getName();
-        Team current = scoreboard.getEntryTeam(entry);
-        if (current != null && !current.getName().equals(team.getName()) && !this.isGlowTeam(current)) {
-            this.rememberPreviousTeam(player);
-        }
+        long step = this.settings.getUpdateInterval();
+        List<Player> viewers = snapshotViewers();
+        if (viewers.isEmpty()) return;
 
-        this.removeFromGlowTeams(player);
-        team.addEntry(entry);
-        player.setGlowing(true);
+        this.states.entrySet().removeIf(entry -> {
+            UUID uuid = entry.getKey();
+            GlowState state = entry.getValue();
+
+            Player player = Utils.getPlayer(uuid);
+            if (player == null || !player.isOnline()) return true;
+
+            GlowEffect effect = this.getEffect(state.effectId);
+            if (effect == null) {
+                this.packetHandler.removeGlow(player, viewers);
+                player.setGlowing(false);
+                return true;
+            }
+            if (!effect.isAnimated()) return false; // Static: sent once on apply, nothing to tick.
+
+            state.ticksPassed += step;
+            if (state.ticksPassed < effect.getInterval()) return false;
+
+            state.ticksPassed = 0L;
+            state.frame++;
+
+            NamedTextColor color = effect.getFrame(state.frame);
+            if (color.equals(state.lastColor)) return false; // Dirty check: skip redundant packets.
+            state.lastColor = color;
+
+            this.packetHandler.sendGlow(player, color, viewersIn(viewers, player));
+            return false;
+        });
     }
 
-    private void removeFromGlowTeams(@NotNull Player player) {
-        Scoreboard scoreboard = this.plugin.getServer().getScoreboardManager().getMainScoreboard();
-        String entry = player.getName();
-        Team current = scoreboard.getEntryTeam(entry);
-        if (current != null && this.isGlowTeam(current)) {
-            current.removeEntry(entry);
-        }
+    private static @NotNull List<Player> snapshotViewers() {
+        return List.copyOf(Bukkit.getServer().getOnlinePlayers());
     }
 
-    private void rememberPreviousTeam(@NotNull Player player) {
-        UUID uuid = player.getUniqueId();
-        if (this.previousTeams.containsKey(uuid)) return;
-
-        Scoreboard scoreboard = this.plugin.getServer().getScoreboardManager().getMainScoreboard();
-        Team current = scoreboard.getEntryTeam(player.getName());
-        if (current != null && !this.isGlowTeam(current)) {
-            this.previousTeams.put(uuid, current.getName());
-        }
-    }
-
-    private void restorePreviousTeam(@NotNull Player player) {
-        String teamName = this.previousTeams.remove(player.getUniqueId());
-        if (teamName == null) return;
-
-        Scoreboard scoreboard = this.plugin.getServer().getScoreboardManager().getMainScoreboard();
-        Team team = scoreboard.getTeam(teamName);
-        if (team != null && !team.hasEntry(player.getName())) {
-            try {
-                team.addEntry(player.getName());
-            } catch (IllegalStateException ignored) {
+    private static @NotNull List<Player> snapshotViewersOf(@NotNull Player target) {
+        World world = target.getWorld();
+        List<Player> viewers = new ArrayList<>();
+        for (Player viewer : Bukkit.getServer().getOnlinePlayers()) {
+            if (viewer.getWorld().equals(world)) {
+                viewers.add(viewer);
             }
         }
+        return viewers;
     }
 
-    private boolean isGlowTeam(@NotNull Team team) {
-        return team.getName().startsWith(TEAM_PREFIX);
-    }
-
-    private @NotNull Team getOrCreateTeam(@NotNull Scoreboard scoreboard, @NotNull NamedTextColor color) {
-        String name = TEAM_PREFIX + Utils.lowercase(color.examinableName());
-        Team team = scoreboard.getTeam(name);
-        if (team == null) {
-            team = scoreboard.registerNewTeam(name);
+    private static @NotNull List<Player> viewersIn(@NotNull List<Player> viewers, @NotNull Player target) {
+        World world = target.getWorld();
+        List<Player> result = null;
+        for (Player viewer : viewers) {
+            if (!viewer.getWorld().equals(world)) continue;
+            if (result == null) result = new ArrayList<>();
+            result.add(viewer);
         }
-        TextColor current = team.color();
-        if (current == null || !current.equals(color)) {
-            try {
-                team.color(color);
-            } catch (IllegalStateException ignored) {
-            }
-        }
-        return team;
+        return result == null ? List.of() : result;
     }
 
-    private static final class GlowAnimation {
+    private static final class GlowState {
         private final String effectId;
         private int frame;
         private long ticksPassed;
+        private NamedTextColor lastColor;
 
-        private GlowAnimation(String effectId) {
+        private GlowState(String effectId, NamedTextColor lastColor) {
             this.effectId = effectId;
-        }
-
-        private String effectId() {
-            return this.effectId;
+            this.lastColor = lastColor;
         }
     }
 }

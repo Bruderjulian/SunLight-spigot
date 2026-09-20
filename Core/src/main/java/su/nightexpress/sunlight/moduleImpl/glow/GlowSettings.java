@@ -15,9 +15,9 @@ public class GlowSettings extends AbstractConfig {
     private final ConfigProperty<Long> updateInterval = this.addProperty(ConfigTypes.LONG,
             "Animation.Update_Interval",
             5L,
-            "Sets how often (in ticks) animated glows advance one frame.",
+            "How often (in ticks) the animation task runs. One packet batch per animated glow at most.",
             "[1 second = 20 ticks]",
-            "[Per-effect 'Interval' multiplies this value.]");
+            "[Lower = smoother animation, but more packets.]");
 
     private final ConfigProperty<Boolean> restoreOnJoin = this.addProperty(ConfigTypes.BOOLEAN,
             "Restore_On_Join",
@@ -39,7 +39,9 @@ public class GlowSettings extends AbstractConfig {
             "│     -> RAINBOW: cycles through the rainbow palette.",
             "│     -> FLASH: alternates between the entries of 'Colors'.",
             "├── Colors: Bukkit color names, e.g. RED, GOLD, YELLOW, GREEN, AQUA, BLUE, etc.",
-            "└── Interval: How many 'Update_Interval' ticks to wait before the next frame.");
+            "└── Interval: Frame duration in ticks (20 = 1 second). Should be >= 'Update_Interval'.",
+            "",
+            "Glow colors are sent as client-side (packet) teams and never touch the server scoreboard.");
 
     public void load(FileConfig config) {
         super.load(config);

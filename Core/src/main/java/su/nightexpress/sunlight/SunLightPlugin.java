@@ -194,7 +194,8 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("essential", "Essential", EssentialModule::new);
         manager.register("extras", "Extras", ExtrasModule::new);
         manager.register("freeze", "Freeze", FreezeModule::new);
-        manager.register("glow", "Glow", GlowModule::new);
+        manager.register("glow", "Glow", GlowModule::new,
+                LoadCondition::packetLibrary);
         manager.register("greetings", "Greetings", GreetingsModule::new);
         manager.register("homes", "Homes", HomesModule::new);
         manager.register("inventories", "Inventories", InventoriesModule::new);

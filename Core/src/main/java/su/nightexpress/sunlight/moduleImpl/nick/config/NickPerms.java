@@ -20,4 +20,7 @@ public class NickPerms {
     public static final Permission BYPASS_NICK_WORDS = BYPASS.permission("nick.words");
     public static final Permission BYPASS_NICK_REGEX = BYPASS.permission("nick.regex");
     public static final Permission BYPASS_NICK_LENGTH = BYPASS.permission("nick.length");
+
+    public static final Permission BYPASS_CHANGE_COST = BYPASS.permission("change.cost");
+    public static final Permission BYPASS_CHANGE_COOLDOWN = BYPASS.permission("change.cooldown");
 }

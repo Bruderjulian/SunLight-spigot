@@ -28,7 +28,7 @@ public class NickLang implements LangContainer {
 
     public static final MessageLocale COMMAND_NICK_CLEAR_NOTIFY = LangEntry.builder("Command.Nick.Clear.Notify")
         .chatMessage(
-            GRAY.wrap("You custom name has been removed."));
+            GRAY.wrap("Your custom name has been removed."));
 
     public static final MessageLocale COMMAND_NICK_SET_TARGET = LangEntry.builder("Command.Nick.Set.Target")
         .chatMessage(
@@ -46,15 +46,32 @@ public class NickLang implements LangContainer {
         .chatMessage(
             SOFT_RED.wrap("This name is not allowed."));
 
+    public static final MessageLocale COMMAND_NICK_CHANGE_ERROR_TAKEN = LangEntry.builder("Command.Nick.Error.Taken")
+        .chatMessage(
+            SOFT_RED.wrap("This nickname is already taken by another player."));
+
     public static final MessageLocale COMMAND_NICK_CHANGE_ERROR_REGEX = LangEntry.builder("Command.Nick.Error.Regex")
         .chatMessage(
             SOFT_RED.wrap("Name contains forbidden characters."));
 
+    public static final MessageLocale COMMAND_NICK_CHANGE_ERROR_COOLDOWN = LangEntry.builder("Command.Nick.Error.Cooldown")
+        .chatMessage(
+            GRAY.wrap("You can change your nickname again in " + SOFT_YELLOW.wrap(GENERIC_TIME) + "."));
+
+    public static final MessageLocale COMMAND_NICK_CHANGE_ERROR_COOLDOWN_ONE_TIME = LangEntry
+        .builder("Command.Nick.Error.CooldownOneTime")
+        .chatMessage(
+            SOFT_RED.wrap("This nickname change is one-time only and you already used it."));
+
+    public static final MessageLocale COMMAND_NICK_CHANGE_ERROR_COST = LangEntry.builder("Command.Nick.Error.Cost")
+        .chatMessage(
+            SOFT_RED.wrap("You need " + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + " to change your nickname."));
+
     public static final MessageLocale COMMAND_NICK_CHANGE_ERROR_TOO_LONG = LangEntry.builder("Command.Nick.Error.TooLong")
         .chatMessage(
-            GRAY.wrap("Name can't be no longer than " + SOFT_RED.wrap(GENERIC_AMOUNT) + " characters."));
+            GRAY.wrap("Name can't be longer than " + SOFT_RED.wrap(GENERIC_AMOUNT) + " characters."));
 
     public static final MessageLocale COMMAND_NICK_CHANGE_ERROR_TOO_SHORT = LangEntry.builder("Command.Nick.Error.TooShort")
         .chatMessage(
-            SOFT_RED.wrap("Name can't be shorted than " + SOFT_RED.wrap(GENERIC_AMOUNT) + " characters."));
+            SOFT_RED.wrap("Name can't be shorter than " + SOFT_RED.wrap(GENERIC_AMOUNT) + " characters."));
 }

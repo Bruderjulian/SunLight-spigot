@@ -5,10 +5,10 @@ import su.nightexpress.nightcore.commands.Arguments;
 import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
+import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
-import su.nightexpress.nightcore.util.regex.TimedMatcher;
-import su.nightexpress.nightcore.util.text.NightMessage;
-import su.nightexpress.nightcore.util.text.tag.TagPool;
+import su.nightexpress.nightcore.util.time.TimeFormatType;
+import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
@@ -17,10 +17,12 @@ import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
 import su.nightexpress.sunlight.moduleImpl.nick.config.NickConfig;
 import su.nightexpress.sunlight.moduleImpl.nick.config.NickLang;
 import su.nightexpress.sunlight.moduleImpl.nick.config.NickPerms;
+import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.UserManager;
+import su.nightexpress.sunlight.utils.EconomyUtils;
+import su.nightexpress.sunlight.utils.TimeUtil;
 
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class NickCommandProvider extends CommandProvider {
 
@@ -75,61 +77,56 @@ public class NickCommandProvider extends CommandProvider {
                         .permission(NickPerms.COMMAND_NICK_ROOT));
     }
 
-    private static String filterColors(String name) {
-        return NightMessage.stripTags(name, TagPool.ALL_COLORS_AND_STYLES);
-    }
-
     private boolean changeNick(CommandContext context, ParsedArguments arguments) {
         Player player = context.getPlayerOrThrow();
-
         String nick = arguments.getString(CommandArguments.NAME);
 
-        String raw = NightMessage.stripTags(nick);
-        if (!player.hasPermission(NickPerms.BYPASS_NICK_LENGTH)) {
-            if (raw.length() < NickConfig.MIN_LENGTH.get()) {
-                this.module.sendPrefixed(NickLang.COMMAND_NICK_CHANGE_ERROR_TOO_SHORT, context.getSender(),
-                        replacer -> replacer
-                                .with(SLPlaceholders.GENERIC_AMOUNT, () -> String
-                                        .valueOf(NickConfig.MIN_LENGTH.get())));
-                return false;
-            }
-            if (raw.length() > NickConfig.MAX_LENGTH.get()) {
-                this.module.sendPrefixed(NickLang.COMMAND_NICK_CHANGE_ERROR_TOO_LONG, context.getSender(),
-                        replacer -> replacer
-                                .with(SLPlaceholders.GENERIC_AMOUNT, () -> String
-                                        .valueOf(NickConfig.MAX_LENGTH.get())));
+        String effective = this.module.sanitizeNickname(context.getSender(), player, player, nick);
+        if (effective == null) {
+            return false;
+        }
+
+        SunUser user = this.userManager.getOrFetch(player);
+
+        double cost = NickConfig.CHANGE_COST.get();
+        boolean charge = cost > 0D && !EconomyUtils.hasBypass(player, NickPerms.BYPASS_CHANGE_COST)
+                && EconomyUtils.hasCurrency();
+        if (charge && !EconomyUtils.canAfford(player, cost)) {
+            this.module.sendPrefixed(NickLang.COMMAND_NICK_CHANGE_ERROR_COST, player,
+                    replacer -> replacer.with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
+            return false;
+        }
+
+        int cooldown = NickConfig.CHANGE_COOLDOWN.get();
+        boolean cooldownActive = cooldown != 0
+                && !EconomyUtils.hasCooldownBypass(player, NickPerms.BYPASS_CHANGE_COOLDOWN);
+        if (cooldownActive) {
+            Long expireDate = user.getCommandCooldown(NickModule.CHANGE_COOLDOWN_KEY);
+            if (expireDate != null && !TimeUtil.isPassed(expireDate)) {
+                MessageLocale locale = expireDate < 0 ? NickLang.COMMAND_NICK_CHANGE_ERROR_COOLDOWN_ONE_TIME
+                        : NickLang.COMMAND_NICK_CHANGE_ERROR_COOLDOWN;
+                this.module.sendPrefixed(locale, player,
+                        replacer -> replacer.with(SLPlaceholders.GENERIC_TIME,
+                                () -> TimeFormats.formatDuration(expireDate, TimeFormatType.LITERAL)));
                 return false;
             }
         }
 
-        if (!player.hasPermission(NickPerms.BYPASS_NICK_WORDS)) {
-            if (NickConfig.BANNED_WORDS.get().stream()
-                    .anyMatch(word -> raw.toLowerCase().contains(word.toLowerCase()))) {
-                this.module.sendPrefixed(NickLang.COMMAND_NICK_CHANGE_ERROR_BAD_WORDS, context.getSender());
-                return false;
-            }
-            if (plugin.getServer().getPlayerExact(raw) != null) {
-                this.module.sendPrefixed(NickLang.COMMAND_NICK_CHANGE_ERROR_BAD_WORDS, context.getSender());
-                return false;
-            }
+        boolean applied = this.module.setNickname(user, effective);
+        if (!applied) {
+            return false;
         }
 
-        if (!player.hasPermission(NickPerms.BYPASS_NICK_REGEX)) {
-            if (!TimedMatcher.create(Pattern.compile(NickConfig.REGEX_PATTERN.get()), raw).matches()) {
-                this.module.sendPrefixed(NickLang.COMMAND_NICK_CHANGE_ERROR_REGEX, context.getSender());
-                return false;
-            }
+        if (charge) {
+            EconomyUtils.withdraw(player, cost);
+        }
+        if (cooldownActive) {
+            user.setCommandCooldown(NickModule.CHANGE_COOLDOWN_KEY, TimeUtil.createFutureTimestamp(cooldown));
+            user.markDirty();
         }
 
-        if (player.hasPermission(NickPerms.COMMAND_NICK_COLORS)) {
-            nick = filterColors(nick);
-        } else {
-            nick = raw;
-        }
-
-        this.module.setNickname(this.plugin.userManager().getOrFetch(player), nick);
-        String finalNick = nick;
-        this.module.sendPrefixed(NickLang.COMMAND_NICK_CHANGE_DONE, context.getSender(),
+        String finalNick = effective;
+        this.module.sendPrefixed(NickLang.COMMAND_NICK_CHANGE_DONE, player,
                 replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, () -> finalNick));
 
         return true;
@@ -156,30 +153,30 @@ public class NickCommandProvider extends CommandProvider {
         return this.loadPlayerWithDataAndRunInMainThread(context, arguments, this.module, this.userManager,
                 (user, target) -> {
                     String nick = arguments.getString(CommandArguments.NAME);
-                    String raw = NightMessage.stripAll(nick);
-                    if (context.hasPermission(NickPerms.COMMAND_NICK_COLORS)) {
-                        nick = filterColors(nick);
-                    } else {
-                        nick = raw;
+                    Player authority = context.getPlayer();
+
+                    String effective = this.module.sanitizeNickname(context.getSender(), authority, target, nick);
+                    if (effective == null) {
+                        return;
                     }
 
-                    this.module.setNickname(user, nick);
+                    this.module.setNickname(user, effective);
 
                     if (context.getSender() != user.player().orElse(null)) {
-                        String finalNick1 = nick;
+                        String nickToUse = effective;
                         this.module.sendPrefixed(NickLang.COMMAND_NICK_SET_TARGET, context.getSender(),
                                 replacer -> replacer
                                         .with(SLPlaceholders.GENERIC_NAME,
-                                                () -> finalNick1)
+                                                () -> nickToUse)
                                         .with(SLPlaceholders.PLAYER_NAME,
                                                 user::getName));
                     }
 
                     if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                        String finalNick = nick;
+                        String nickToUse = effective;
                         this.module.sendPrefixed(NickLang.COMMAND_NICK_SET_NOTIFY, target,
                                 replacer -> replacer.with(SLPlaceholders.GENERIC_NAME,
-                                        () -> finalNick));
+                                        () -> nickToUse));
                     }
                 });
     }
