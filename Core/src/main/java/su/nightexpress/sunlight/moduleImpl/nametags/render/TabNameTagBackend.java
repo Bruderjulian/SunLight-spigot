@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -31,21 +32,25 @@ public class TabNameTagBackend {
 
     private static final String PREFIX_PLACEHOLDER = "%sunlight_nametags_prefix%";
     private static final String SUFFIX_PLACEHOLDER = "%sunlight_nametags_suffix%";
+    private static final String NAME_PLACEHOLDER = "%sunlight_nametags_formatted_name%";
 
     private final SunLightPlugin plugin;
     private final Function<UUID, String> prefixSupplier;
     private final Function<UUID, String> suffixSupplier;
+    private final BiFunction<UUID, String, String> nameSupplier;
 
     private final Map<UUID, Applied> applied = new HashMap<>();
     private final List<String> registeredPlaceholders = new ArrayList<>();
 
     public TabNameTagBackend(@NotNull SunLightPlugin plugin,
             @NotNull Function<UUID, String> prefixSupplier,
-            @NotNull Function<UUID, String> suffixSupplier
+            @NotNull Function<UUID, String> suffixSupplier,
+            @NotNull BiFunction<UUID, String, String> nameSupplier
     ) {
         this.plugin = plugin;
         this.prefixSupplier = prefixSupplier;
         this.suffixSupplier = suffixSupplier;
+        this.nameSupplier = nameSupplier;
     }
 
     // -----------------------------------------------------
@@ -67,6 +72,12 @@ public class TabNameTagBackend {
         manager.registerPlayerPlaceholder(SUFFIX_PLACEHOLDER, -1, tabPlayer -> {
             UUID id = this.uuidOf(tabPlayer);
             return id == null ? "" : this.suffixSupplier.apply(id);
+        });
+
+        this.registeredPlaceholders.add(NAME_PLACEHOLDER);
+        manager.registerPlayerPlaceholder(NAME_PLACEHOLDER, -1, tabPlayer -> {
+            UUID id = this.uuidOf(tabPlayer);
+            return id == null ? "" : this.nameSupplier.apply(id, tabPlayer.getName());
         });
 
         this.plugin.debug("Registered " + this.registeredPlaceholders.size() + " TAB nametag placeholders.");

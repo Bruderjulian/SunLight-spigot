@@ -49,7 +49,7 @@ public class TagsMenu extends AbstractMenu {
     private final NametagsModule module;
 
     public TagsMenu(@NotNull SunLightPlugin plugin, @NotNull NametagsModule module) {
-        super(MenuType.GENERIC_9X5, BLACK.wrap("Tags"));
+        super(MenuType.GENERIC_9X5, NametagsLang.MENU_TAGS_TITLE.text());
         this.plugin = plugin;
         this.module = module;
     }
@@ -144,30 +144,30 @@ public class TagsMenu extends AbstractMenu {
         List<String> lore = new ArrayList<>(tag.getDescription());
 
         lore.add("");
-        lore.add(GRAY.wrap("Access: ") + this.accessLabel(tag, hasAccess));
+        lore.add(GRAY.wrap(NametagsLang.MENU_FIELD_ACCESS.text() + " ") + this.accessLabel(tag, hasAccess));
 
         if (tag.hasPrice() && tag.getPriceMode() == PriceMode.INTERNAL) {
-            lore.add(GRAY.wrap("Price: ") + GOLD.wrap(EconomyUtils.format(tag.getPrice())));
+            lore.add(GRAY.wrap(NametagsLang.MENU_FIELD_PRICE.text() + " ") + GOLD.wrap(EconomyUtils.format(tag.getPrice())));
             if (tag.isSubscription()) {
-                lore.add(GRAY.wrap("Period: ") + WHITE.wrap(tag.getSubscriptionPeriod().getId()));
+                lore.add(GRAY.wrap(NametagsLang.MENU_FIELD_PERIOD.text() + " ") + WHITE.wrap(tag.getSubscriptionPeriod().getId()));
             }
         } else if (tag.getPriceMode() == PriceMode.EXTERNAL) {
-            lore.add(GRAY.wrap("Managed by another plugin."));
+            lore.add(GRAY.wrap(NametagsLang.MENU_MANAGED_ELSEWHERE.text()));
         }
 
         GrantRecord grant = this.module.getAccess().getGrant(user, tag.getId());
         if (grant != null && grant.isActive(now) && grant.getMode() == TagAccessMode.SUBSCRIPTION && !grant.isPermanent()) {
-            lore.add(GRAY.wrap("Renews: ") + WHITE.wrap(SLUtils.formatDate(grant.getExpiresAt())));
+            lore.add(GRAY.wrap(NametagsLang.MENU_RENEWS.text() + " ") + WHITE.wrap(SLUtils.formatDate(grant.getExpiresAt())));
         }
 
         lore.add("");
         if (isSelected) {
-            lore.add(GREEN.wrap("✔ Selected"));
+            lore.add(GREEN.wrap(NametagsLang.MENU_SELECTED.text()));
         }
         if (this.isRenewable(player, user, tag, now, hasAccess)) {
-            lore.add(GOLD.wrap("→ " + UNDERLINED.wrap("Click to renew")));
+            lore.add(GOLD.wrap("→ " + UNDERLINED.wrap(NametagsLang.MENU_CLICK_RENEW.text())));
         } else if (hasAccess && !isSelected) {
-            lore.add(GOLD.wrap("→ " + UNDERLINED.wrap("Click to select")));
+            lore.add(GOLD.wrap("→ " + UNDERLINED.wrap(NametagsLang.MENU_CLICK_SELECT.text())));
         } else if (!hasAccess) {
             lore.add(this.lockedHint(tag));
         }
@@ -202,15 +202,15 @@ public class TagsMenu extends AbstractMenu {
 
     private @NotNull String lockedHint(@NotNull TagDefinition tag) {
         if (tag.getPriceMode() == PriceMode.EXTERNAL) {
-            return RED.wrap("Get it from the shop.");
+            return RED.wrap(NametagsLang.MENU_GET_FROM_SHOP.text());
         }
         if (tag.isSubscription()) {
-            return GOLD.wrap("→ " + UNDERLINED.wrap("Click to subscribe"));
+            return GOLD.wrap("→ " + UNDERLINED.wrap(NametagsLang.MENU_CLICK_SUBSCRIBE.text()));
         }
         if (tag.requiresGrant()) {
-            return GOLD.wrap("→ " + UNDERLINED.wrap("Click to purchase"));
+            return GOLD.wrap("→ " + UNDERLINED.wrap(NametagsLang.MENU_CLICK_BUY.text()));
         }
-        return SOFT_RED.wrap("You do not have access.");
+        return SOFT_RED.wrap(NametagsLang.MENU_NO_ACCESS.text());
     }
 
     private void onTagClick(@NotNull Player player, @NotNull SunUser user, @NotNull TagDefinition tag, long now) {
@@ -220,7 +220,6 @@ public class TagsMenu extends AbstractMenu {
 
         if (hasAccess && !renew) {
             this.module.selectTag(player, tag.getId());
-            this.module.recompute(player);
             this.module.sendPrefixed(NametagsLang.COMMAND_TAG_SELECTED, player,
                 replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, tag::getDisplay));
             this.show(this.plugin, player);
@@ -245,7 +244,6 @@ public class TagsMenu extends AbstractMenu {
         }
 
         this.module.selectTag(player, tag.getId());
-        this.module.recompute(player);
 
         MessageLocale message = renew ? NametagsLang.COMMAND_TAG_RENEWED
             : tag.isSubscription() ? NametagsLang.COMMAND_TAG_SUBSCRIBED

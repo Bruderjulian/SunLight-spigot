@@ -66,6 +66,7 @@ public class NametagsSettings extends AbstractConfig {
             "A rank matches when the player inherits one of its groups, or has 'nametags.rank.<group>'.",
             "",
             "[ SETTINGS DESCRIPTION ]",
+            "├── Display/Description/Icon: How the rank is shown in the admin GUI.",
             "├── Priority: Highest matching rank wins.",
             "├── Ranks: Rank groups to match, or '*' for everyone.",
             "├── Default: Used when nothing else matches.",

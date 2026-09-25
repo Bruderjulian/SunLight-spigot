@@ -248,14 +248,6 @@ public class TagDefinition implements Writeable {
         return this.price > 0D;
     }
 
-    public boolean isFree() {
-        return this.accessMode == TagAccessMode.FREE;
-    }
-
-    public boolean isPurchasable() {
-        return this.accessMode == TagAccessMode.PURCHASE || this.accessMode == TagAccessMode.SUBSCRIPTION;
-    }
-
     public boolean isSubscription() {
         return this.accessMode == TagAccessMode.SUBSCRIPTION;
     }

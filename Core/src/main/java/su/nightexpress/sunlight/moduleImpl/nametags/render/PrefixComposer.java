@@ -51,7 +51,7 @@ public final class PrefixComposer {
             prefix = prefix + color;
         }
 
-        return new Nameplate(prefix, suffix, color);
+        return new Nameplate(prefix, suffix, color, glow == null ? "" : glow);
     }
 
     /**

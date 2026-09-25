@@ -19,9 +19,12 @@ public class NametagsDefaults {
     public static Map<String, RankDefinition> getDefaultRanks() {
         Map<String, RankDefinition> map = new LinkedHashMap<>();
 
-        map.put("default", new RankDefinition("default", 1, Set.of("default"), AQUA.wrap("Member "), "", "white", true));
-        map.put("admin", new RankDefinition("admin", 100, Set.of("admin"), RED.wrap("Admin "), "", "white", false));
-        map.put("owner", new RankDefinition("owner", 10_000, Set.of("owner"), PURPLE.wrap("Owner "), "", "white", false));
+        map.put("default", new RankDefinition("default", "Member", List.of(), "NAME_TAG",
+                1, Set.of("default"), AQUA.wrap("Member "), "", "white", true));
+        map.put("admin", new RankDefinition("admin", "Admin", List.of(), "NAME_TAG",
+                100, Set.of("admin"), RED.wrap("Admin "), "", "white", false));
+        map.put("owner", new RankDefinition("owner", "Owner", List.of(), "NAME_TAG",
+                10_000, Set.of("owner"), PURPLE.wrap("Owner "), "", "white", false));
 
         return map;
     }

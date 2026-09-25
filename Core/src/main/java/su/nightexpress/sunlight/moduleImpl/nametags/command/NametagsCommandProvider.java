@@ -12,6 +12,8 @@ import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule;
 import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang;
 import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.NameplateVisibility;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.Profile;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.UserManager;
@@ -25,6 +27,12 @@ public class NametagsCommandProvider extends CommandProvider {
     private static final String COMMAND_TAGS = "tags";
     private static final String COMMAND_TAG = "tag";
     private static final String COMMAND_PROFILE = "profile";
+    private static final String COMMAND_PROFILES = "profiles";
+    private static final String COMMAND_RANK_TOGGLE = "rank";
+    private static final String COMMAND_TAG_TOGGLE = "tagtoggle";
+    private static final String COMMAND_TEAM_TOGGLE = "team";
+    private static final String COMMAND_HIDE = "hide";
+    private static final String COMMAND_SHOW = "show";
     private static final String COMMAND_SET = "set";
     private static final String COMMAND_GRANT = "grant";
     private static final String COMMAND_ADMIN = "admin";
@@ -55,6 +63,13 @@ public class NametagsCommandProvider extends CommandProvider {
                 .withArguments(Arguments.string(CommandArguments.NAME).suggestions((reader, context) -> this.tagSuggestions()))
                 .executes(this::selectTag));
 
+        // Two literals: the bare form opens the browser, the argument form picks directly.
+        this.registerLiteral(COMMAND_PROFILES, true, new String[]{"profiles"},
+            builder -> builder
+                .description(NametagsLang.COMMAND_PROFILES_DESC)
+                .permission(NametagsPerms.COMMAND_PROFILES)
+                .executes(this::openProfilesMenu));
+
         this.registerLiteral(COMMAND_PROFILE, true, new String[]{"profile"},
             builder -> builder
                 .description(NametagsLang.COMMAND_PROFILE_DESC)
@@ -62,6 +77,36 @@ public class NametagsCommandProvider extends CommandProvider {
                 .withArguments(Arguments.string(CommandArguments.NAME)
                     .suggestions((reader, context) -> this.profileSuggestions()))
                 .executes(this::selectProfile));
+
+        this.registerLiteral(COMMAND_RANK_TOGGLE, true, new String[]{"rank"},
+            builder -> builder
+                .description(NametagsLang.COMMAND_RANK_DESC)
+                .permission(NametagsPerms.COMMAND_NAMETAG_TOGGLE)
+                .executes(this::toggleRank));
+
+        this.registerLiteral(COMMAND_TAG_TOGGLE, true, new String[]{"tagtoggle"},
+            builder -> builder
+                .description(NametagsLang.COMMAND_TAG_TOGGLE_DESC)
+                .permission(NametagsPerms.COMMAND_TAG_TOGGLE)
+                .executes(this::toggleTag));
+
+        this.registerLiteral(COMMAND_TEAM_TOGGLE, true, new String[]{"team"},
+            builder -> builder
+                .description(NametagsLang.COMMAND_TEAM_TOGGLE_DESC)
+                .permission(NametagsPerms.COMMAND_TEAM_TOGGLE)
+                .executes(this::toggleTeam));
+
+        this.registerLiteral(COMMAND_HIDE, true, new String[]{"hide"},
+            builder -> builder
+                .description(NametagsLang.COMMAND_HIDE_DESC)
+                .permission(NametagsPerms.COMMAND_HIDE)
+                .executes(this::hideNameplate));
+
+        this.registerLiteral(COMMAND_SHOW, true, new String[]{"show"},
+            builder -> builder
+                .description(NametagsLang.COMMAND_SHOW_DESC)
+                .permission(NametagsPerms.COMMAND_HIDE)
+                .executes(this::showNameplate));
 
         this.registerLiteral(COMMAND_SET, true, new String[]{"namesettag"},
             builder -> builder
@@ -94,8 +139,20 @@ public class NametagsCommandProvider extends CommandProvider {
                 .executes(this::reloadModule));
 
         this.registerRoot("nametag", true, new String[]{"nametag", "nt"},
-            Map.of(COMMAND_TAGS, "tags", COMMAND_TAG, "tag", COMMAND_PROFILE, "profile",
-                COMMAND_SET, "set", COMMAND_GRANT, "grant", COMMAND_ADMIN, "admin", COMMAND_RELOAD, "reload"),
+            Map.ofEntries(
+                Map.entry(COMMAND_TAGS, "tags"),
+                Map.entry(COMMAND_TAG, "tag"),
+                Map.entry(COMMAND_PROFILE, "profile"),
+                Map.entry(COMMAND_PROFILES, "profiles"),
+                Map.entry(COMMAND_RANK_TOGGLE, "rank"),
+                Map.entry(COMMAND_TAG_TOGGLE, "tagtoggle"),
+                Map.entry(COMMAND_TEAM_TOGGLE, "team"),
+                Map.entry(COMMAND_HIDE, "hide"),
+                Map.entry(COMMAND_SHOW, "show"),
+                Map.entry(COMMAND_SET, "set"),
+                Map.entry(COMMAND_GRANT, "grant"),
+                Map.entry(COMMAND_ADMIN, "admin"),
+                Map.entry(COMMAND_RELOAD, "reload")),
             builder -> builder
                 .description(NametagsLang.COMMAND_NAMETAG_DESC)
                 .permission(NametagsPerms.COMMAND_TAGS)
@@ -151,14 +208,17 @@ public class NametagsCommandProvider extends CommandProvider {
             return false;
         }
 
-        this.module.recompute(player);
-
         if (clear) {
             this.module.sendPrefixed(NametagsLang.COMMAND_TAG_CLEARED, context.getSender());
         } else {
             this.module.sendPrefixed(NametagsLang.COMMAND_TAG_SELECTED, context.getSender(),
                 replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, tag::getDisplay));
         }
+        return true;
+    }
+
+    private boolean openProfilesMenu(CommandContext context, ParsedArguments arguments) {
+        this.module.openProfilesMenu(context.getPlayerOrThrow());
         return true;
     }
 
@@ -173,13 +233,56 @@ public class NametagsCommandProvider extends CommandProvider {
             return false;
         }
 
-        this.module.recompute(player);
-
-        if (!clear) {
-            this.module.sendPrefixed(NametagsLang.COMMAND_PROFILE_SELECTED, context.getSender(),
-                replacer -> replacer.with(SLPlaceholders.GENERIC_NAME,
-                    () -> this.module.getCatalog().getProfile(raw).getDisplay()));
+        if (clear) {
+            this.module.sendPrefixed(NametagsLang.COMMAND_PROFILE_CLEARED, context.getSender());
+            return true;
         }
+
+        Profile profile = this.module.getCatalog().getProfile(raw);
+        this.module.sendPrefixed(NametagsLang.COMMAND_PROFILE_SELECTED, context.getSender(),
+            replacer -> replacer.with(SLPlaceholders.GENERIC_NAME,
+                () -> profile == null ? raw : profile.getDisplay()));
+        return true;
+    }
+
+    private boolean toggleRank(CommandContext context, ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        NameplateVisibility visibility = this.module.toggleRank(player);
+
+        this.module.sendPrefixed(NametagsLang.NAMETAG_RANK_CHANGED, player,
+            replacer -> replacer.with(SLPlaceholders.GENERIC_STATE, () -> NametagsLang.COMMAND_TAG_ENABLED.get(visibility.wantsRank())));
+        return true;
+    }
+
+    private boolean toggleTag(CommandContext context, ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        NameplateVisibility visibility = this.module.toggleTag(player);
+
+        this.module.sendPrefixed(NametagsLang.NAMETAG_TAG_CHANGED, player,
+            replacer -> replacer.with(SLPlaceholders.GENERIC_STATE, () -> NametagsLang.COMMAND_TAG_ENABLED.get(visibility.wantsTag())));
+        return true;
+    }
+
+    private boolean toggleTeam(CommandContext context, ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        NameplateVisibility visibility = this.module.toggleTeam(player);
+
+        this.module.sendPrefixed(NametagsLang.NAMETAG_TEAM_CHANGED, player,
+            replacer -> replacer.with(SLPlaceholders.GENERIC_STATE, () -> NametagsLang.COMMAND_TAG_ENABLED.get(visibility.wantsTeam())));
+        return true;
+    }
+
+    private boolean hideNameplate(CommandContext context, ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        this.module.setVisibility(player, this.module.getVisibility(player).withAll(false));
+        this.module.sendPrefixed(NametagsLang.NAMETAG_HIDE_CHANGED, player);
+        return true;
+    }
+
+    private boolean showNameplate(CommandContext context, ParsedArguments arguments) {
+        Player player = context.getPlayerOrThrow();
+        this.module.setVisibility(player, this.module.getVisibility(player).withAll(true));
+        this.module.sendPrefixed(NametagsLang.NAMETAG_SHOW_DONE, player);
         return true;
     }
 
@@ -196,12 +299,14 @@ public class NametagsCommandProvider extends CommandProvider {
 
         return this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager,
             (user, target) -> {
-                this.module.selectTag(user, clear ? null : tag.getId());
-                this.module.recompute(target);
+                if (!this.module.selectTag(user, clear ? null : tag.getId())) return;
 
                 if (clear) {
                     this.module.sendPrefixed(NametagsLang.COMMAND_SET_CLEAR, context.getSender(),
                         replacer -> replacer.with(SLPlaceholders.PLAYER_NAME, user::getName));
+                    if (target.isOnline()) {
+                        this.module.sendPrefixed(NametagsLang.COMMAND_TAG_CLEAR_NOTIFY, target);
+                    }
                     return;
                 }
 
@@ -209,6 +314,11 @@ public class NametagsCommandProvider extends CommandProvider {
                     replacer -> replacer
                         .with(SLPlaceholders.PLAYER_NAME, user::getName)
                         .with(SLPlaceholders.GENERIC_NAME, () -> tag.getDisplay()));
+
+                if (target.isOnline()) {
+                    this.module.sendPrefixed(NametagsLang.COMMAND_TAG_SET_NOTIFY, target,
+                        replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, () -> tag.getDisplay()));
+                }
             });
     }
 

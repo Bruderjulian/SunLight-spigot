@@ -40,7 +40,7 @@ It includes **28** fully optional and customizable modules, allowing you to sele
 - **Inventories**: View and edit online/offline player inventories and Ender Chests, and access workstations like Anvils or Looms from anywhere!
 - **Items**: Modify and obtain in-game items. Edit item data in hand, including durability, model data, stack sizes, name/lore, and more!
 - **Kits**: Create unlimited item sets with a GUI editor, kit previews, cooldowns, and claim costs.
-- **Nametags**: TAB-rendered nametags with rank and team prefixes, per-player tags, purchasable and subscription tags, and named per-world profiles, all editable through GUI.
+- **Nametags**: TAB-rendered nametags with rank and team prefixes, per-player tags, purchasable and subscription tags, and named per-world profiles — all editable through GUI. Players can suppress the rank, tag, or team part of their own nametag, or reduce it to just their name.
 - **Nerf Phantoms**: Control Phantom behavior by disabling spawns, modifying damage/HP, or allowing players to personally reset their insomnia timer.
 - **Nick**: Let players set custom nicknames with length/regex/banned-word validation, color permissions, and tablist support.
 - **Player Warps**: Allow players to create warps with categories, featured slots, top used warps, and more!

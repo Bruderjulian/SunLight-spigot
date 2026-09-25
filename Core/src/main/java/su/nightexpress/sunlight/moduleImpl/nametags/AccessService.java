@@ -3,7 +3,6 @@ package su.nightexpress.sunlight.moduleImpl.nametags;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.GrantRecord;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.PriceMode;
@@ -15,7 +14,9 @@ import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Decides whether a player may use a tag, and owns every mutation of a tag entitlement.
@@ -25,16 +26,9 @@ import java.util.Map;
  */
 public class AccessService {
 
-    private final Module module;
-    private final NametagsCatalog catalog;
     private final UserManager userManager;
 
-    public AccessService(@NotNull Module module,
-            @NotNull NametagsCatalog catalog,
-            @NotNull UserManager userManager
-    ) {
-        this.module = module;
-        this.catalog = catalog;
+    public AccessService(@NotNull UserManager userManager) {
         this.userManager = userManager;
     }
 
@@ -155,14 +149,21 @@ public class AccessService {
         return PurchaseResult.SUCCESS;
     }
 
-    /** Drops every expired grant from a user's stored map. */
-    public int sweepExpired(@NotNull SunUser user, long nowMillis) {
+    /**
+     * Drops every expired grant from a user's stored map.
+     *
+     * @return the tag ids whose entitlement just lapsed, so the caller can tell the player
+     */
+    public @NotNull Set<String> sweepExpired(@NotNull SunUser user, long nowMillis) {
         Map<String, GrantRecord> grants = new HashMap<>(this.getGrants(user));
-        int before = grants.size();
-        grants.values().removeIf(grant -> grant.isExpired(nowMillis));
-        if (grants.size() == before) return 0;
+        Set<String> expired = new LinkedHashSet<>();
+        grants.forEach((tagId, grant) -> {
+            if (grant.isExpired(nowMillis)) expired.add(tagId);
+        });
+        if (expired.isEmpty()) return Set.of();
 
+        expired.forEach(grants::remove);
         user.setProperty(NametagsProperties.GRANTS, grants);
-        return before - grants.size();
+        return expired;
     }
 }

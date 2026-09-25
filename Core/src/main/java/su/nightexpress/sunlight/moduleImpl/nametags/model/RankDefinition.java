@@ -10,6 +10,7 @@ import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
 import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -19,6 +20,9 @@ import java.util.Set;
 public class RankDefinition implements Writeable {
 
     private String id;
+    private String display;
+    private List<String> description;
+    private String iconMaterial;
     private int priority;
     private final Set<String> ranks;
     private String prefix;
@@ -27,10 +31,13 @@ public class RankDefinition implements Writeable {
     private boolean isDefault;
 
     public RankDefinition(@NotNull String id) {
-        this(id, 0, Set.of(), "", "", "", false);
+        this(id, id, List.of(), "NAME_TAG", 0, Set.of(), "", "", "", false);
     }
 
     public RankDefinition(@NotNull String id,
+            @NotNull String display,
+            @NotNull List<String> description,
+            @NotNull String iconMaterial,
             int priority,
             @NotNull Set<String> ranks,
             @NotNull String prefix,
@@ -39,6 +46,9 @@ public class RankDefinition implements Writeable {
             boolean isDefault
     ) {
         this.id = Utils.lowercase(id);
+        this.display = display;
+        this.description = List.copyOf(description);
+        this.iconMaterial = iconMaterial;
         this.priority = priority;
         this.ranks = new LinkedHashSet<>(ranks);
         this.prefix = prefix;
@@ -50,6 +60,9 @@ public class RankDefinition implements Writeable {
     public static RankDefinition read(FileConfig config, String path) {
         String id = path.substring(path.lastIndexOf('.') + 1);
         RankDefinition rank = new RankDefinition(id);
+        rank.setDisplay(config.getString(path + ".Display", id));
+        rank.setDescription(config.getStringList(path + ".Description"));
+        rank.setIconMaterial(config.getString(path + ".Icon", "NAME_TAG"));
         rank.setPriority(config.getInt(path + ".Priority"));
         rank.ranks.clear();
         for (String group : config.getStringSet(path + ".Ranks")) {
@@ -64,6 +77,9 @@ public class RankDefinition implements Writeable {
 
     @Override
     public void write(FileConfig config, String path) {
+        config.set(path + ".Display", this.display);
+        config.set(path + ".Description", this.description);
+        config.set(path + ".Icon", this.iconMaterial);
         config.set(path + ".Priority", this.priority);
         config.set(path + ".Ranks", this.ranks.stream().map(Utils::lowercase).toList());
         config.set(path + ".Prefix", this.prefix);
@@ -94,6 +110,30 @@ public class RankDefinition implements Writeable {
 
     public void setId(@NotNull String id) {
         this.id = Utils.lowercase(id);
+    }
+
+    public @NotNull String getDisplay() {
+        return this.display;
+    }
+
+    public void setDisplay(@NotNull String display) {
+        this.display = display.isBlank() ? this.id : display;
+    }
+
+    public @NotNull List<String> getDescription() {
+        return this.description;
+    }
+
+    public void setDescription(@NotNull List<String> description) {
+        this.description = List.copyOf(description);
+    }
+
+    public @NotNull String getIconMaterial() {
+        return this.iconMaterial;
+    }
+
+    public void setIconMaterial(@NotNull String iconMaterial) {
+        this.iconMaterial = iconMaterial.isBlank() ? "NAME_TAG" : iconMaterial;
     }
 
     public int getPriority() {

@@ -17,8 +17,11 @@ public class NametagsPerms {
     public static final Permission COMMAND_TAGS = COMMAND.permission("tags");
     public static final Permission COMMAND_TAG_SELECT = COMMAND.permission("tag.select");
     public static final Permission COMMAND_PROFILE_SELECT = COMMAND.permission("profile.select");
+    public static final Permission COMMAND_PROFILES = COMMAND.permission("profiles");
     public static final Permission COMMAND_NAMETAG_TOGGLE = COMMAND.permission("rank.toggle");
     public static final Permission COMMAND_TAG_TOGGLE = COMMAND.permission("tag.toggle");
+    public static final Permission COMMAND_TEAM_TOGGLE = COMMAND.permission("team.toggle");
+    public static final Permission COMMAND_HIDE = COMMAND.permission("hide");
     public static final Permission COMMAND_NAMETAG_SET = COMMAND.permission("set");
     public static final Permission COMMAND_GRANT = COMMAND.permission("grant");
     public static final Permission COMMAND_RELOAD = COMMAND.permission("reload");
@@ -26,18 +29,6 @@ public class NametagsPerms {
 
     public static final Permission BYPASS_COST = BYPASS.permission("cost");
     public static final Permission BYPASS_ACCESS = BYPASS.permission("access");
-
-    public static String rankNode(String rankId) {
-        return RANK.childrenNode(rankId);
-    }
-
-    public static String tagNode(String tagId) {
-        return TAG.childrenNode(tagId);
-    }
-
-    public static String profileNode(String profileId) {
-        return PROFILE.childrenNode(profileId);
-    }
 
     public static boolean hasRankAccess(CommandSender sender, String rankId) {
         return RANK.hasChildAccess(sender, rankId);

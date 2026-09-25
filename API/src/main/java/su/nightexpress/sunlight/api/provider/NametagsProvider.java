@@ -42,6 +42,25 @@ public interface NametagsProvider {
     boolean revokeTag(@NotNull Player player, @NotNull String tagId);
 
     // -----------------------------------------------------
+    // Visibility
+    // -----------------------------------------------------
+
+    /**
+     * Whether the player currently renders their full nametag. When false the plate is
+     * reduced to the bare player name, whatever the individual parts say.
+     */
+    boolean isNameplateVisible(@NotNull Player player);
+
+    boolean isRankVisible(@NotNull Player player);
+
+    boolean isTagVisible(@NotNull Player player);
+
+    boolean isTeamVisible(@NotNull Player player);
+
+    /** Replaces the player's visibility, recomputing their nameplate. */
+    void setNameplateVisible(@NotNull Player player, boolean visible);
+
+    // -----------------------------------------------------
     // Refresh
     // -----------------------------------------------------
 

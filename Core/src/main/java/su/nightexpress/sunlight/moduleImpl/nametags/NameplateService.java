@@ -12,6 +12,7 @@ import su.nightexpress.sunlight.moduleImpl.nametags.hook.GroupSource;
 import su.nightexpress.sunlight.moduleImpl.nametags.hook.PermissionGroupSource;
 import su.nightexpress.sunlight.moduleImpl.nametags.hook.TeamInfo;
 import su.nightexpress.sunlight.moduleImpl.nametags.hook.TeamSource;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.NameplateVisibility;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.Profile;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.RankDefinition;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
@@ -54,6 +55,9 @@ public class NameplateService {
 
     /** Last composed nameplate per player, kept so placeholder requests stay cheap. */
     private final Map<UUID, Nameplate> lastComposed = new ConcurrentHashMap<>();
+
+    /** Last resolved team per player, for the team placeholder. */
+    private final Map<UUID, TeamInfo> lastTeam = new ConcurrentHashMap<>();
 
     public NameplateService(@NotNull Module module,
             @NotNull NametagsSettings settings,
@@ -141,21 +145,33 @@ public class NameplateService {
 
         Profile profile = this.catalog.resolveProfile(player, user.getPropertyOrDefault(NametagsProperties.PROFILE));
 
+        // Resolved first, then filtered: a suppressed part still counts as "selected" for the
+        // nametags_tag / nametags_rank placeholders, it just does not render.
+        NameplateVisibility visibility = this.resolveVisibility(user);
+
         RankDefinition rank = this.resolveRank(player, user, profile, groups);
         TagDefinition tag = this.resolveTag(player, user, profile, now);
 
-        Part teamPart = Part.of(team.prefix(), team.suffix(), team.color());
-        Part rankPart = rank == null ? Part.EMPTY : Part.of(rank.getPrefix(), rank.getSuffix(), rank.getColor());
-        Part tagPart = tag == null ? Part.EMPTY : Part.of(tag.getPrefix(), tag.getSuffix(), tag.getColor());
+        Part teamPart = visibility.wantsTeam() ? Part.of(team.prefix(), team.suffix(), team.color()) : Part.EMPTY;
+        Part rankPart = rank == null || !visibility.wantsRank()
+                ? Part.EMPTY : Part.of(rank.getPrefix(), rank.getSuffix(), rank.getColor());
+        Part tagPart = tag == null || !visibility.wantsTag()
+                ? Part.EMPTY : Part.of(tag.getPrefix(), tag.getSuffix(), tag.getColor());
 
-        String glow = this.resolveGlow(player, user, tag, now);
+        String glow = visibility.showAll() ? this.resolveGlow(player, user, tag, now) : null;
 
         Nameplate composed = PrefixComposer.compose(teamPart, rankPart, tagPart, glow,
                 this.settings.isTagColorOverridesRank());
         composed = this.resolvePlaceholders(player, composed);
 
         this.lastComposed.put(player.getUniqueId(), composed);
+        this.lastTeam.put(player.getUniqueId(), team);
         this.backend.apply(player, composed);
+    }
+
+    private @NotNull NameplateVisibility resolveVisibility(@NotNull SunUser user) {
+        NameplateVisibility visibility = user.getPropertyOrDefault(NametagsProperties.VISIBILITY);
+        return visibility == null ? NameplateVisibility.DEFAULT : visibility.normalize();
     }
 
     private @Nullable RankDefinition resolveRank(@NotNull Player player,
@@ -215,7 +231,7 @@ public class NameplateService {
     private @NotNull Nameplate resolvePlaceholders(@NotNull Player player, @NotNull Nameplate nameplate) {
         String prefix = this.applyPlaceholders(player, nameplate.prefix());
         String suffix = this.applyPlaceholders(player, nameplate.suffix());
-        return new Nameplate(prefix, suffix, nameplate.color());
+        return new Nameplate(prefix, suffix, nameplate.color(), nameplate.glow());
     }
 
     private @NotNull String applyPlaceholders(@NotNull Player player, @NotNull String text) {
@@ -246,6 +262,11 @@ public class NameplateService {
         return this.lastComposed.getOrDefault(playerId, Nameplate.EMPTY);
     }
 
+    /** The team behind the last composed nameplate, or {@link TeamInfo#EMPTY}. */
+    public @NotNull TeamInfo getLastTeam(@NotNull UUID playerId) {
+        return this.lastTeam.getOrDefault(playerId, TeamInfo.EMPTY);
+    }
+
     /** Recomputes every online player, e.g. after a reload or a rank change. */
     public void recomputeAll() {
         for (Player player : Bukkit.getOnlinePlayers()) this.recompute(player);
@@ -253,11 +274,13 @@ public class NameplateService {
 
     public void forget(@NotNull UUID playerId) {
         this.lastComposed.remove(playerId);
+        this.lastTeam.remove(playerId);
         this.backend.remove(playerId);
     }
 
     public void clear() {
         this.lastComposed.clear();
+        this.lastTeam.clear();
         this.backend.clearCache();
     }
 }

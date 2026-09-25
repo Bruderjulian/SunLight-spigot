@@ -29,6 +29,7 @@ public class NametagsCatalog {
     private volatile Map<String, TagDefinition> tags = Map.of();
     private volatile Map<String, Profile> profiles = Map.of();
     private volatile List<RankDefinition> ranks = List.of();
+    private volatile Map<String, RankDefinition> ranksById = Map.of();
 
     /** group name -> ranks declaring it, used to resolve a rank in O(matches). */
     private volatile Map<String, List<RankDefinition>> ranksByGroup = Map.of();
@@ -44,23 +45,9 @@ public class NametagsCatalog {
 
     /** Rebuilds every index from the loaded settings. */
     public void reload() {
-        Map<String, TagDefinition> tags = new java.util.LinkedHashMap<>(this.settings.getTags());
-        Map<String, Profile> profiles = new java.util.LinkedHashMap<>(this.settings.getProfiles());
-
-        List<RankDefinition> ranks = new ArrayList<>(this.settings.getRanks().values());
-        ranks.sort(Comparator.comparingInt(RankDefinition::getPriority).reversed());
-
-        Map<String, List<RankDefinition>> byGroup = new java.util.LinkedHashMap<>();
-        for (RankDefinition rank : ranks) {
-            for (String group : rank.getRanks()) {
-                byGroup.computeIfAbsent(group, key -> new ArrayList<>()).add(rank);
-            }
-        }
-
-        this.tags = freeze(tags);
-        this.profiles = freeze(profiles);
-        this.ranks = List.copyOf(ranks);
-        this.ranksByGroup = java.util.Collections.unmodifiableMap(byGroup);
+        this.tags = freeze(new java.util.LinkedHashMap<>(this.settings.getTags()));
+        this.profiles = freeze(new java.util.LinkedHashMap<>(this.settings.getProfiles()));
+        this.setRanks(new java.util.LinkedHashMap<>(this.settings.getRanks()));
     }
 
     /**
@@ -79,6 +66,59 @@ public class NametagsCatalog {
 
         this.tags = freeze(updated);
         return true;
+    }
+
+    public void putRank(@NotNull RankDefinition rank) {
+        Map<String, RankDefinition> updated = new java.util.LinkedHashMap<>(this.ranksById);
+        updated.remove(rank.getId());
+        updated.put(rank.getId(), rank);
+        this.setRanks(updated);
+    }
+
+    public boolean removeRank(@NotNull String rankId) {
+        Map<String, RankDefinition> updated = new java.util.LinkedHashMap<>(this.ranksById);
+        if (updated.remove(rankId.toLowerCase(java.util.Locale.ROOT)) == null) return false;
+
+        this.setRanks(updated);
+        return true;
+    }
+
+    public void putProfile(@NotNull Profile profile) {
+        Map<String, Profile> updated = new java.util.LinkedHashMap<>(this.profiles);
+        updated.put(profile.getId(), profile);
+        this.profiles = freeze(updated);
+    }
+
+    public boolean removeProfile(@NotNull String profileId) {
+        Map<String, Profile> updated = new java.util.LinkedHashMap<>(this.profiles);
+        if (updated.remove(profileId.toLowerCase(java.util.Locale.ROOT)) == null) return false;
+
+        this.profiles = freeze(updated);
+        return true;
+    }
+
+    /**
+     * Replaces the rank list and rebuilds the priority order and the lookup indices.
+     * Editing a rank in place does not need this, because the indices hold the same
+     * instances; only add and remove change the set.
+     */
+    private void setRanks(@NotNull Map<String, RankDefinition> updated) {
+        List<RankDefinition> sorted = new ArrayList<>(updated.values());
+        sorted.sort(Comparator.comparingInt(RankDefinition::getPriority).reversed());
+
+        Map<String, List<RankDefinition>> byGroup = new java.util.LinkedHashMap<>();
+        for (RankDefinition rank : sorted) {
+            for (String group : rank.getRanks()) {
+                byGroup.computeIfAbsent(group, key -> new ArrayList<>()).add(rank);
+            }
+        }
+
+        Map<String, RankDefinition> byId = new java.util.LinkedHashMap<>();
+        sorted.forEach(rank -> byId.put(rank.getId(), rank));
+
+        this.ranks = List.copyOf(sorted);
+        this.ranksById = java.util.Collections.unmodifiableMap(byId);
+        this.ranksByGroup = java.util.Collections.unmodifiableMap(byGroup);
     }
 
     // -----------------------------------------------------
@@ -134,17 +174,22 @@ public class NametagsCatalog {
      */
     public @Nullable Profile resolveProfile(@NotNull Player player, @Nullable String chosenId) {
         Profile chosen = this.getProfile(chosenId);
-        if (chosen != null && this.canUseProfile(player, chosen)) return chosen;
+        if (chosen != null && this.isProfileAvailable(player, chosen)) return chosen;
 
         Profile best = null;
         for (Profile profile : this.profiles.values()) {
-            if (!this.canUseProfile(player, profile)) continue;
+            if (!this.isProfileAvailable(player, profile)) continue;
             if (best == null || profile.getPriority() > best.getPriority()) best = profile;
         }
         return best;
     }
 
-    private boolean canUseProfile(@NotNull Player player, @NotNull Profile profile) {
+    /**
+     * Whether the player may select this profile at all. Public so the player-facing menu
+     * can show locked profiles greyed out instead of silently hiding them, which would
+     * otherwise look like a misconfigured profile to its admin.
+     */
+    public boolean isProfileAvailable(@NotNull Player player, @NotNull Profile profile) {
         if (!profile.appliesTo(player.getWorld().getName())) return false;
 
         // A profile that declares no worlds is a global default, so everyone may use it.
@@ -161,19 +206,14 @@ public class NametagsCatalog {
         return this.ranks;
     }
 
-    /** Fresh id-keyed snapshot of the sorted ranks, for persisting admin edits. */
+    /** Live, priority-ordered rank view keyed by rank id, for persisting admin edits. */
     public @NotNull Map<String, RankDefinition> getRanksById() {
-        Map<String, RankDefinition> byId = new java.util.LinkedHashMap<>();
-        this.ranks.forEach(rank -> byId.put(rank.getId(), rank));
-        return byId;
+        return this.ranksById;
     }
 
     public @Nullable RankDefinition getRank(@Nullable String id) {
         if (id == null || id.isBlank()) return null;
-        return this.ranks.stream()
-                .filter(rank -> rank.getId().equals(id.toLowerCase(java.util.Locale.ROOT)))
-                .findFirst()
-                .orElse(null);
+        return this.ranksById.get(id.toLowerCase(java.util.Locale.ROOT));
     }
 
     /**
@@ -194,5 +234,26 @@ public class NametagsCatalog {
 
     public @Nullable RankDefinition getDefaultRank() {
         return this.ranks.stream().filter(RankDefinition::isDefault).findFirst().orElse(null);
+    }
+
+    /** Ranks in GUI order: highest priority first, then alphabetically by id. */
+    public @NotNull List<RankDefinition> getRanksSorted() {
+        return this.ranks;
+    }
+
+    /** Profiles in GUI order: highest priority first, then alphabetically by id. */
+    public @NotNull List<Profile> getProfilesSorted() {
+        List<Profile> sorted = new ArrayList<>(this.profiles.values());
+        sorted.sort(Comparator.comparingInt(Profile::getPriority).reversed()
+                .thenComparing(Profile::getId));
+        return sorted;
+    }
+
+    public boolean hasRank(@Nullable String id) {
+        return this.getRank(id) != null;
+    }
+
+    public boolean hasProfile(@Nullable String id) {
+        return this.getProfile(id) != null;
     }
 }

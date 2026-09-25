@@ -3,14 +3,10 @@ package su.nightexpress.sunlight.moduleImpl.nametags.menu;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
 import org.jetbrains.annotations.NotNull;
-import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.ui.inventory.action.ActionContext;
 import su.nightexpress.nightcore.ui.inventory.item.MenuItem;
 import su.nightexpress.nightcore.ui.inventory.menu.AbstractMenu;
@@ -18,7 +14,8 @@ import su.nightexpress.nightcore.ui.inventory.viewer.ViewerContext;
 import su.nightexpress.nightcore.util.bukkit.NightItem;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule;
-import su.nightexpress.sunlight.moduleImpl.nametags.dialog.TagFieldDialog;
+import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang;
+import su.nightexpress.sunlight.moduleImpl.nametags.dialog.DefinitionFieldDialog;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.PriceMode;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.SubscriptionPeriod;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.TagAccessMode;
@@ -26,7 +23,6 @@ import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.util.List;
-import java.util.Locale;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 
@@ -37,12 +33,13 @@ import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 public class AdminTagMenu extends AbstractMenu {
 
     private static final int SLOT_DISPLAY = 10;
-    private static final int SLOT_PREFIX = 11;
-    private static final int SLOT_SUFFIX = 12;
-    private static final int SLOT_COLOR = 13;
-    private static final int SLOT_ICON = 14;
-    private static final int SLOT_ACCESS = 15;
-    private static final int SLOT_PRICE = 16;
+    private static final int SLOT_DESCRIPTION = 11;
+    private static final int SLOT_PREFIX = 12;
+    private static final int SLOT_SUFFIX = 13;
+    private static final int SLOT_COLOR = 14;
+    private static final int SLOT_ICON = 15;
+    private static final int SLOT_ACCESS = 16;
+    private static final int SLOT_PRICE = 17;
     private static final int SLOT_PERIOD = 22;
     private static final int SLOT_PERMISSION = 21;
     private static final int SLOT_GLOW = 23;
@@ -54,7 +51,7 @@ public class AdminTagMenu extends AbstractMenu {
     private final String tagId;
 
     public AdminTagMenu(@NotNull SunLightPlugin plugin, @NotNull NametagsModule module, @NotNull String tagId) {
-        super(MenuType.GENERIC_9X3, DARK_PURPLE.wrap("Edit Tag"));
+        super(MenuType.GENERIC_9X3, NametagsLang.MENU_ADMIN_TAG_TITLE.text());
         this.plugin = plugin;
         this.module = module;
         this.tagId = tagId;
@@ -82,22 +79,22 @@ public class AdminTagMenu extends AbstractMenu {
     }
 
     @Override
-    protected void onLoad(FileConfig config) {
+    protected void onLoad(su.nightexpress.nightcore.config.FileConfig config) {
 
     }
 
     @Override
-    protected void onClick(ViewerContext context, InventoryClickEvent event) {
+    protected void onClick(ViewerContext context, org.bukkit.event.inventory.InventoryClickEvent event) {
 
     }
 
     @Override
-    protected void onDrag(ViewerContext context, InventoryDragEvent event) {
+    protected void onDrag(ViewerContext context, org.bukkit.event.inventory.InventoryDragEvent event) {
 
     }
 
     @Override
-    protected void onClose(ViewerContext context, InventoryCloseEvent event) {
+    protected void onClose(ViewerContext context, org.bukkit.event.inventory.InventoryCloseEvent event) {
 
     }
 
@@ -109,86 +106,100 @@ public class AdminTagMenu extends AbstractMenu {
             return;
         }
 
-        list.add(this.textItem(SLOT_DISPLAY, Material.NAME_TAG, tag.getDisplay(), GRAY.wrap("Display name"),
-            player -> this.openField(player, tag, "display", "Display", tag.getDisplay())));
-        list.add(this.textItem(SLOT_PREFIX, Material.GRAY_DYE, tag.getPrefix(), GRAY.wrap("Prefix"),
-            player -> this.openField(player, tag, "prefix", "Prefix", tag.getPrefix())));
-        list.add(this.textItem(SLOT_SUFFIX, Material.ORANGE_DYE, tag.getSuffix(), GRAY.wrap("Suffix"),
-            player -> this.openField(player, tag, "suffix", "Suffix", tag.getSuffix())));
-        list.add(this.textItem(SLOT_COLOR, Material.WHITE_DYE, tag.getColor(), GRAY.wrap("Name colour"),
-            player -> this.openField(player, tag, "color", "Colour", tag.getColor())));
-        list.add(this.textItem(SLOT_ICON, Material.ITEM_FRAME, tag.getIconMaterial(), GRAY.wrap("GUI icon material"),
-            player -> this.openField(player, tag, "icon", "Icon", tag.getIconMaterial())));
-        list.add(this.textItem(SLOT_PERMISSION, Material.NAME_TAG, tag.getPermission(),
-            GRAY.wrap("Extra permission"),
-            player -> this.openField(player, tag, "permission", "Permission", tag.getPermission())));
+        list.add(this.textItem(SLOT_DISPLAY, Material.NAME_TAG, tag.getDisplay(),
+            NametagsLang.MENU_FIELD_DISPLAY.text(),
+            player -> this.openField(player, tag, "display", NametagsLang.MENU_FIELD_DISPLAY.text(),
+                tag.getDisplay(), TagDefinition::setDisplay)));
+        list.add(this.textItem(SLOT_DESCRIPTION, Material.PAPER, NametagsLang.MENU_FIELD_DESCRIPTION.text(),
+            NametagsLang.MENU_FIELD_DESCRIPTION.text(),
+            player -> this.openListField(player, tag, "description", NametagsLang.MENU_FIELD_DESCRIPTION.text(),
+                tag.getDescription(), tag::setDescription)));
+        list.add(this.textItem(SLOT_PREFIX, Material.GRAY_DYE, tag.getPrefix(), NametagsLang.MENU_FIELD_PREFIX.text(),
+            player -> this.openField(player, tag, "prefix", NametagsLang.MENU_FIELD_PREFIX.text(),
+                tag.getPrefix(), TagDefinition::setPrefix)));
+        list.add(this.textItem(SLOT_SUFFIX, Material.ORANGE_DYE, tag.getSuffix(), NametagsLang.MENU_FIELD_SUFFIX.text(),
+            player -> this.openField(player, tag, "suffix", NametagsLang.MENU_FIELD_SUFFIX.text(),
+                tag.getSuffix(), TagDefinition::setSuffix)));
+        list.add(this.textItem(SLOT_COLOR, Material.WHITE_DYE, tag.getColor(), NametagsLang.MENU_FIELD_COLOR.text(),
+            player -> this.openField(player, tag, "color", NametagsLang.MENU_FIELD_COLOR.text(),
+                tag.getColor(), TagDefinition::setColor)));
+        list.add(this.textItem(SLOT_ICON, Material.ITEM_FRAME, tag.getIconMaterial(), NametagsLang.MENU_FIELD_ICON.text(),
+            player -> this.openField(player, tag, "icon", NametagsLang.MENU_FIELD_ICON.text(),
+                tag.getIconMaterial(), TagDefinition::setIconMaterial)));
+        list.add(this.textItem(SLOT_PERMISSION, Material.PAPER, tag.getPermission(), NametagsLang.MENU_FIELD_PERMISSION.text(),
+            player -> this.openField(player, tag, "permission", NametagsLang.MENU_FIELD_PERMISSION.text(),
+                tag.getPermission(), TagDefinition::setPermission)));
 
         list.add(MenuItem.builder()
             .defaultState(NightItem.fromType(Material.BOOK)
-                    .setDisplayName(YELLOW.wrap("Access mode"))
-                    .setLore(java.util.List.of(GRAY.wrap("Current: ") + WHITE.wrap(pretty(tag.getAccessMode())), "", GRAY.wrap("Click to cycle"))),
+                    .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_ACCESS_MODE.text()))
+                    .setLore(List.of(
+                        GRAY.wrap(NametagsLang.MENU_CURRENT.text() + " ") + WHITE.wrap(pretty(tag.getAccessMode())), "",
+                        GRAY.wrap(NametagsLang.MENU_CLICK_CYCLE.text()))),
                 ctx -> this.cycleAccess(ctx.getPlayer(), tag))
             .slots(SLOT_ACCESS)
             .build());
 
         list.add(MenuItem.builder()
             .defaultState(NightItem.fromType(Material.PLAYER_HEAD)
-                    .setDisplayName(GOLD.wrap("Price"))
-                    .setLore(java.util.List.of(
-                        GRAY.wrap("Current: ") + WHITE.wrap(EconomyUtils.format(tag.getPrice())),
+                    .setDisplayName(GOLD.wrap(NametagsLang.MENU_FIELD_PRICE.text()))
+                    .setLore(List.of(
+                        GRAY.wrap(NametagsLang.MENU_CURRENT.text() + " ") + WHITE.wrap(EconomyUtils.format(tag.getPrice())),
                         "",
-                        GRAY.wrap("Left click: ") + WHITE.wrap("-100"),
-                        GRAY.wrap("Right click: ") + WHITE.wrap("+100"),
-                        GRAY.wrap("Shift + right: ") + WHITE.wrap("double"))),
+                        GRAY.wrap(NametagsLang.MENU_CLICK_LEFT.text() + " ") + WHITE.wrap("-100"),
+                        GRAY.wrap(NametagsLang.MENU_CLICK_RIGHT.text() + " ") + WHITE.wrap("+100"),
+                        GRAY.wrap(NametagsLang.MENU_CLICK_SHIFT_RIGHT.text() + " ") + WHITE.wrap(
+                            NametagsLang.MENU_VALUE_DOUBLE.text()))),
                 ctx -> this.adjustPrice(ctx, tag))
             .slots(SLOT_PRICE)
             .build());
 
         list.add(MenuItem.builder()
             .defaultState(NightItem.fromType(Material.CLOCK)
-                    .setDisplayName(LIGHT_PURPLE.wrap("Billing period"))
-                    .setLore(java.util.List.of(
-                        GRAY.wrap("Current: ") + WHITE.wrap(tag.getSubscriptionPeriod().getId()),
+                    .setDisplayName(LIGHT_PURPLE.wrap(NametagsLang.MENU_FIELD_PERIOD.text()))
+                    .setLore(List.of(
+                        GRAY.wrap(NametagsLang.MENU_CURRENT.text() + " ") + WHITE.wrap(tag.getSubscriptionPeriod().getId()),
                         "",
-                        tag.isSubscription() ? GRAY.wrap("Click to cycle") : GRAY.wrap("Only used by subscriptions"))),
+                        tag.isSubscription() ? GRAY.wrap(NametagsLang.MENU_CLICK_CYCLE.text())
+                            : GRAY.wrap(NametagsLang.MENU_SUBSCRIPTIONS_ONLY.text()))),
                 ctx -> this.cyclePeriod(ctx.getPlayer(), tag))
             .slots(SLOT_PERIOD)
             .build());
 
         list.add(MenuItem.builder()
             .defaultState(NightItem.fromType(Material.EMERALD)
-                    .setDisplayName(WHITE.wrap("Price mode"))
-                    .setLore(java.util.List.of(
-                        GRAY.wrap("Current: ") + WHITE.wrap(pretty(tag.getPriceMode())),
+                    .setDisplayName(WHITE.wrap(NametagsLang.MENU_FIELD_PRICE_MODE.text()))
+                    .setLore(List.of(
+                        GRAY.wrap(NametagsLang.MENU_CURRENT.text() + " ") + WHITE.wrap(pretty(tag.getPriceMode())),
                         "",
-                        GRAY.wrap("INTERNAL: SunLight handles the payment"),
-                        GRAY.wrap("EXTERNAL: another plugin owns the grant"),
+                        GRAY.wrap(NametagsLang.MENU_PRICE_MODE_INTERNAL.text()),
+                        GRAY.wrap(NametagsLang.MENU_PRICE_MODE_EXTERNAL.text()),
                         "",
-                        GRAY.wrap("Click to toggle"))),
+                        GRAY.wrap(NametagsLang.MENU_CLICK_TOGGLE.text()))),
                 ctx -> this.togglePriceMode(ctx.getPlayer(), tag))
             .slots(SLOT_PRICE_MODE)
             .build());
 
         list.add(MenuItem.builder()
             .defaultState(NightItem.fromType(Material.BLAZE_POWDER)
-                    .setDisplayName(YELLOW.wrap("Glow colour"))
-                    .setLore(java.util.List.of(
-                        GRAY.wrap("Allow the glow module to colour this tag: ") + tag.isGlow(),
+                    .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_GLOW.text()))
+                    .setLore(List.of(
+                        GRAY.wrap(NametagsLang.MENU_FIELD_GLOW_HINT.text() + " ") + tag.isGlow(),
                         "",
-                        GRAY.wrap("Click to toggle"))),
+                        GRAY.wrap(NametagsLang.MENU_CLICK_TOGGLE.text()))),
                 ctx -> this.toggleGlow(ctx.getPlayer(), tag))
             .slots(SLOT_GLOW)
             .build());
 
         list.add(MenuItem.builder()
             .defaultState(NightItem.fromType(Material.COMPARATOR)
-                    .setDisplayName(YELLOW.wrap("Sort priority"))
-                    .setLore(java.util.List.of(
-                        GRAY.wrap("Current: ") + WHITE.wrap(String.valueOf(tag.getSortPriority())),
+                    .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_SORT.text()))
+                    .setLore(List.of(
+                        GRAY.wrap(NametagsLang.MENU_CURRENT.text() + " ") + WHITE.wrap(String.valueOf(tag.getSortPriority())),
                         "",
-                        GRAY.wrap("Higher sorts first in the player menu"),
-                        GRAY.wrap("Left click: ") + WHITE.wrap("-1"),
-                        GRAY.wrap("Right click: ") + WHITE.wrap("+1"))),
+                        GRAY.wrap(NametagsLang.MENU_SORT_HINT.text()),
+                        GRAY.wrap(NametagsLang.MENU_CLICK_LEFT.text() + " ") + WHITE.wrap("-1"),
+                        GRAY.wrap(NametagsLang.MENU_CLICK_RIGHT.text() + " ") + WHITE.wrap("+1"))),
                 ctx -> this.adjustSort(ctx, tag))
             .slots(SLOT_SORT)
             .build());
@@ -198,16 +209,30 @@ public class AdminTagMenu extends AbstractMenu {
             @NotNull String description, @NotNull java.util.function.Consumer<Player> action) {
         return MenuItem.builder()
             .defaultState(NightItem.fromType(icon)
-                    .setDisplayName(WHITE.wrap(value.isBlank() ? "none" : value))
-                    .setLore(java.util.List.of(description, "", GRAY.wrap("Click to edit"))),
+                    .setDisplayName(WHITE.wrap(value.isBlank() ? NametagsLang.MENU_VALUE_NONE.text() : value))
+                    .setLore(List.of(description, "", GRAY.wrap(NametagsLang.MENU_CLICK_EDIT.text()))),
                 ctx -> action.accept(ctx.getPlayer()))
             .slots(slot)
             .build();
     }
 
     private void openField(@NotNull Player player, @NotNull TagDefinition tag,
-            @NotNull String field, @NotNull String title, @NotNull String value) {
-        new TagFieldDialog(this.module, field, title, value).show(player, tag, null);
+            @NotNull String field, @NotNull String title, @NotNull String value,
+            @NotNull java.util.function.BiConsumer<TagDefinition, String> applier
+    ) {
+        new DefinitionFieldDialog<>(this.module, field, title, value, null, applier, this::commitTag)
+                .show(player, tag, null);
+    }
+
+    private void openListField(@NotNull Player player, @NotNull TagDefinition tag,
+            @NotNull String field, @NotNull String title, @NotNull List<String> values,
+            @NotNull java.util.function.Consumer<List<String>> applier
+    ) {
+        new DefinitionFieldDialog<TagDefinition>(this.module, field, title,
+                DefinitionFieldDialog.joinList(values), NametagsLang.MENU_HINT_COMMA_SEPARATED.text(),
+                (definition, raw) -> applier.accept(DefinitionFieldDialog.splitList(raw)),
+                this::commitTag)
+                        .show(player, tag, null);
     }
 
     private void cycleAccess(@NotNull Player player, @NotNull TagDefinition tag) {
@@ -261,13 +286,17 @@ public class AdminTagMenu extends AbstractMenu {
     }
 
     private void commit(@NotNull Player player, @NotNull TagDefinition tag) {
-        this.module.getCatalog().putTag(tag);
-        this.module.saveCatalog();
+        this.commitTag(tag);
         this.show(this.plugin, player);
     }
 
+    private void commitTag(@NotNull TagDefinition tag) {
+        this.module.getCatalog().putTag(tag);
+        this.module.saveCatalog();
+    }
+
     private static @NotNull String pretty(@NotNull Enum<?> value) {
-        String name = value.name().toLowerCase(Locale.ROOT);
+        String name = value.name().toLowerCase(java.util.Locale.ROOT);
         return Character.toUpperCase(name.charAt(0)) + name.substring(1).replace('_', ' ');
     }
 
