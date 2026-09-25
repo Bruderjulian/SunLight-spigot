@@ -178,6 +178,22 @@ public class SocialsModule extends Module implements SocialsProvider {
         this.relayAsync(SocialsConfig.FORMAT_DEATH.get().replace("%player%", player.getName()));
     }
 
+    public void relayReport(@NotNull String reportId, @NotNull String reporterName, @NotNull String targetName,
+            @NotNull String category, @NotNull String details, @NotNull String date) {
+        if (!SocialsConfig.ANNOUNCE_REPORTS.get() || !this.isDiscordAvailable()) return;
+
+        String text = SocialsConfig.FORMAT_REPORT.get()
+            .replace("%report_id%", reportId)
+            .replace("%reporter%", reporterName)
+            .replace("%reporter_name%", reporterName)
+            .replace("%target%", targetName)
+            .replace("%target_name%", targetName)
+            .replace("%category%", category)
+            .replace("%details%", details)
+            .replace("%date%", date);
+        this.relayAsync(text);
+    }
+
     public void relayAdvancement(@NotNull Player player, @NotNull String advancement) {
         if (!SocialsConfig.RELAY_ADVANCEMENT.get() || !this.isDiscordAvailable()) return;
         this.relayAsync(SocialsConfig.FORMAT_ADVANCEMENT.get()

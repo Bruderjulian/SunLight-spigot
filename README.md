@@ -46,6 +46,7 @@ It includes **28** fully optional and customizable modules, allowing you to sele
 - **Player Warps**: Allow players to create warps with categories, featured slots, top used warps, and more!
 - **Player Teleports**: A player-to-player teleport request system with customizable timeouts and a toggle to block incoming requests.
 - **Random Teleport**: Randomly teleports players within world-specific coordinates, featuring chunk safety checks and automatic world redirection.
+- **Reports**: Cross-server player reports with a staff triage GUI, claim/release workflow, staff note trails, teleport-to-reporter, and a reward paid when a report is justified — whether a staff member concludes it or the reported player is punished. Submission is guarded by a cooldown, an open-report cap, a duplicate lock, and length limits.
 - **Scheduler**: Create custom server tasks that run in the background at specific times/intervals!
 - **Spawns**: Create unlimited spawn points with rank-based auto-teleportation on join or respawn and a GUI editor.
 - **Texts**: Maps the contents of text files to unique custom commands with MiniMessage and PlaceholderAPI support.

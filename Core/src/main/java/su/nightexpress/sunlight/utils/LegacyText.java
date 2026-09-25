@@ -21,7 +21,9 @@ public final class LegacyText {
 
     private static final char SECTION = '§';
 
-    private static final Pattern SIMPLE_PATTERN = Pattern.compile("(?i)" + SECTION + "[0-9a-fk-or]");
+    // 'r' is deliberately excluded: a trailing reset carries no tint, so matching it would
+    // wipe out the colour the text actually ends with.
+    private static final Pattern SIMPLE_PATTERN = Pattern.compile("(?i)" + SECTION + "[0-9a-fk-o]");
     private static final Pattern HEX_PATTERN = Pattern.compile("(?i)" + SECTION + "x(?:(?:" + SECTION + "[0-9a-f]){6})");
     private static final Pattern HEX_INPUT = Pattern.compile("(?i)^#?([0-9a-f]{6})$");
     private static final Pattern HEX_INPUT_0X = Pattern.compile("(?i)^0x([0-9a-f]{6})$");

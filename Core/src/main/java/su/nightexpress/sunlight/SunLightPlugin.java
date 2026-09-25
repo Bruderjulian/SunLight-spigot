@@ -15,6 +15,7 @@ import su.nightexpress.sunlight.api.provider.FreezeProvider;
 import su.nightexpress.sunlight.api.provider.GlowProvider;
 import su.nightexpress.sunlight.api.provider.NametagsProvider;
 import su.nightexpress.sunlight.api.provider.NickProvider;
+import su.nightexpress.sunlight.api.provider.ReportsProvider;
 import su.nightexpress.sunlight.api.provider.SocialsProvider;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.command.CommandRegistry;
@@ -44,7 +45,9 @@ import su.nightexpress.sunlight.moduleImpl.nerfphantoms.PhantomsModule;
 import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsModule;
 import su.nightexpress.sunlight.moduleImpl.ptp.PTPModule;
+// TEMP
 import su.nightexpress.sunlight.moduleImpl.rtp.RTPModule;
+import su.nightexpress.sunlight.moduleImpl.reports.ReportsModule;
 import su.nightexpress.sunlight.moduleImpl.scheduler.SchedulerModule;
 import su.nightexpress.sunlight.moduleImpl.socials.SocialsModule;
 import su.nightexpress.sunlight.moduleImpl.spawns.SpawnsModule;
@@ -196,8 +199,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("essential", "Essential", EssentialModule::new);
         manager.register("extras", "Extras", ExtrasModule::new);
         manager.register("freeze", "Freeze", FreezeModule::new);
-        manager.register("glow", "Glow", GlowModule::new,
-                LoadCondition::tab);
+        manager.register("glow", "Glow", GlowModule::new);
         manager.register("greetings", "Greetings", GreetingsModule::new);
         manager.register("homes", "Homes", HomesModule::new);
         manager.register("inventories", "Inventories", InventoriesModule::new);
@@ -209,6 +211,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("playerwarps", "Player Warps", PlayerWarpsModule::new);
         manager.register("ptp", "PTP", PTPModule::new);
         manager.register("rtp", "RTP", RTPModule::new);
+        manager.register("reports", "Reports", ReportsModule::new);
         manager.register("scheduler", "Scheduler", SchedulerModule::new);
         manager.register("socials", "Socials", SocialsModule::new);
         manager.register("spawns", "Spawn", SpawnsModule::new);
@@ -304,5 +307,11 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
     public Optional<? extends GlowProvider> glowProvider() {
         return this.moduleManager.getByType(GlowModule.class);
+    }
+
+    @Override
+
+    public Optional<? extends ReportsProvider> reportsProvider() {
+        return java.util.Optional.empty(); // TEMP
     }
 }

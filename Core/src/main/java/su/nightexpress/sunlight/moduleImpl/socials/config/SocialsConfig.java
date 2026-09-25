@@ -74,6 +74,13 @@ public class SocialsConfig {
         "When enabled, other modules may forward punishments to Discord via SocialsProvider."
     );
 
+    public static final ConfigValue<String> FORMAT_REPORT = ConfigValue.create("Socials.Discord.Format.Report",
+        "<yellow>New report<reset>: <white>%reporter_name%<gray> reported <white>%target_name%<gray> for <white>%category%<reset> (%report_id%)",
+        "Relay message format for player reports forwarded by the Reports module.",
+        "Placeholders: %reporter%, %reporter_name%, %target%, %target_name%, %category%,",
+        "%details%, %report_id%, %date%."
+    );
+
     public static Map<String, SocialLink> readLinks(FileConfig config) {
         Map<String, SocialLink> defaults = defaultLinks();
 

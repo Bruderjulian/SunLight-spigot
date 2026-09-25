@@ -7,6 +7,7 @@ import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.GrantRecord;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.PriceMode;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.PurchaseResult;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.TagAccessMode;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
 import su.nightexpress.sunlight.user.SunUser;
@@ -66,7 +67,7 @@ public class AccessService {
 
     public boolean hasTagPermission(@NotNull Player player, @NotNull TagDefinition tag) {
         if (tag.hasExtraPermission() && !player.hasPermission(tag.getPermission())) return false;
-        return player.hasPermission("nametags.tag." + tag.getId());
+        return NametagsPerms.hasTagAccess(player, tag.getId());
     }
 
     public boolean hasValidGrant(@NotNull SunUser user, @NotNull String tagId, long nowMillis) {
@@ -129,30 +130,29 @@ public class AccessService {
     }
 
     /**
-     * Buys or subscribes to a tag, withdrawing the configured price.
+     * Buys or subscribes to a tag, withdrawing the configured price. An active subscription
+     * is extended rather than restarted.
      * <p>
      * A cost bypass skips the withdrawal but still grants the tag, so staff can hand out
-     * paid tags without a balance change.
+     * paid tags without a balance change. A tag without a price is granted for free.
      *
-     * @return the grant that was stored, or {@code null} when the purchase was refused
+     * @return {@link PurchaseResult#SUCCESS} or the reason the purchase was refused
      */
-    public @Nullable GrantRecord purchase(@NotNull Player player, @NotNull TagDefinition tag) {
-        if (tag.getPriceMode() == PriceMode.EXTERNAL) {
-            return null; // Owned by another plugin, we must not touch it.
-        }
-        if (!tag.hasPrice()) return null;
+    public @NotNull PurchaseResult purchase(@NotNull Player player, @NotNull TagDefinition tag) {
+        if (tag.getPriceMode() == PriceMode.EXTERNAL) return PurchaseResult.EXTERNAL;
 
-        boolean bypassCost = EconomyUtils.hasBypass(player, NametagsPerms.BYPASS_COST);
-        if (!bypassCost) {
-            if (!EconomyUtils.hasCurrency()) return null;
-            if (!EconomyUtils.canAfford(player, tag.getPrice())) return null;
-            EconomyUtils.withdraw(player, tag.getPrice());
+        if (tag.hasPrice()) {
+            boolean bypassCost = EconomyUtils.hasBypass(player, NametagsPerms.BYPASS_COST);
+            if (!bypassCost) {
+                if (!EconomyUtils.hasCurrency()) return PurchaseResult.NO_ECONOMY;
+                if (!EconomyUtils.canAfford(player, tag.getPrice())) return PurchaseResult.NO_FUNDS;
+                EconomyUtils.withdraw(player, tag.getPrice());
+            }
         }
 
         SunUser user = this.userManager.getOrFetch(player);
-        if (!this.grant(user, tag, System.currentTimeMillis())) return null;
-
-        return this.getGrant(user, tag.getId());
+        if (!this.grant(user, tag, System.currentTimeMillis())) return PurchaseResult.REFUSED;
+        return PurchaseResult.SUCCESS;
     }
 
     /** Drops every expired grant from a user's stored map. */
@@ -164,14 +164,5 @@ public class AccessService {
 
         user.setProperty(NametagsProperties.GRANTS, grants);
         return before - grants.size();
-    }
-
-    /** Tags the player currently owns, for the admin GUI. */
-    public @NotNull Map<String, GrantRecord> getActiveGrants(@NotNull SunUser user, long nowMillis) {
-        Map<String, GrantRecord> active = new HashMap<>();
-        this.getGrants(user).forEach((id, grant) -> {
-            if (grant.isActive(nowMillis) && this.catalog.hasTag(id)) active.put(id, grant);
-        });
-        return active;
     }
 }

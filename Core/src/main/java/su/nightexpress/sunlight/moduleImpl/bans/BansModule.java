@@ -30,6 +30,7 @@ import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansSettings;
 import su.nightexpress.sunlight.moduleImpl.bans.data.BansDataManager;
+import su.nightexpress.sunlight.moduleImpl.bans.event.PlayerPunishEvent;
 import su.nightexpress.sunlight.moduleImpl.bans.listener.BansListener;
 import su.nightexpress.sunlight.moduleImpl.bans.menu.HistoryMenu;
 import su.nightexpress.sunlight.moduleImpl.bans.menu.PunishmentsMenu;
@@ -666,6 +667,9 @@ public class BansModule extends Module {
                 });
             }
         }
+
+        this.plugin.getPluginManager().callEvent(new PlayerPunishEvent(this.plugin.getServer().getPlayer(playerId),
+                victim, type, reason, sender, silent));
 
         return true;
     }

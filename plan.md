@@ -68,8 +68,22 @@ Playtime:
     streak7d: {Type: DAILY_STREAK, Require: 7, Commands: [...], Repeatable: false}
 Dispatcher runs on rollover/quit, fires PlayerPlaytimeRewardEvent, dispatches console commands with %player%. Claim-guard = rewards_claimed set + week-key suffix for repeatables.
 Placeholders: playtime_alltime/year/month/week/day(_formatted), playtime_top_1_name/time, playtime_streak_daily, playtime_weekly_progress.
-5. Reports
-Modeled 1:1 on Bans.
+5. Reports — DONE
+Superseded by reports-spec.md at the repo root, which is the authoritative design. The sketch
+below is kept only to show what changed. Implemented as specified, with these deltas:
+- Reports are modeled on Bans, not "1:1": notes live in their own `<prefix>_report_notes` table
+  rather than a column, because they are unbounded and append-only.
+- Persistence is write-through, not dirty-flag + save task. Reports are written once and updated
+  a handful of times, so an immediate insert/update per mutation removes the save-interval window
+  of loss entirely. `isDataLoaded()` still guards command execution during the boot load.
+- Added `PlayerPunishEvent` in the Bans module as the second success path. A report against a
+  punished player auto-concludes as RESOLVED and pays the reporter without staff paperwork. This
+  is the only edit to an existing module.
+- The Discord relay listener lives in Socials, not Reports, so reports has no knowledge of
+  Discord. `SocialsConfig.ANNOUNCE_REPORTS` was already present but dead; it now has a reader.
+- No `UserProperty` was added. Report state is relational, so it belongs in tables; the per-player
+  submission cooldown reuses the existing `SunUser` command-cooldown map.
+Original sketch:
 Files: moduleImpl/reports/ → ReportsModule.java, config/ReportsConfig.java, config/ReportsLang.java, config/ReportsPerms.java, model/Report.java, model/ReportStatus.java (OPEN/CLAIMED/RESOLVED/DENIED), data/ReportsDataManager.java, data/ReportsQueries.java, menu/ReportsMenu.java, menu/ReportViewMenu.java, command/ReportsCommandProvider.java, listener/ReportsListener.java, event/PlayerReportEvent.java.
 Table (<prefix>_reports, mirror BansDataManager column style): id UUID PK, reporter UUID+name, reported UUID+name, reason mediumtext, status(16), handler(nullable), createDate, updateDate, notes. init(tablePrefix) + addTableSync for cross-server visibility + purge via TimeUtil deadline like BansDataManager.purgeOldEntries().
 Flow: /report <player> <reason…> (cooldown + max-open-per-player + no self-report + offline via loadProfile) → notify reports.notify holders with clickable message → /reports GUI (filter OPEN/MINE/ALL) → claim/teleport/resolve/deny with note dialog (reuse warps/dialog/ pattern) → fire PlayerReportEvent so Socials/Discord relay can pick it up without a hard dependency.
