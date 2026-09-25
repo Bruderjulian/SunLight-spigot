@@ -52,7 +52,6 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
 
     public void init() {
         this.initModule();
-
     }
 
     @Override
@@ -105,19 +104,8 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
         return this.path.toString();
     }
 
-    @Deprecated
-    public final String getLocalPath() {
-        return this.path.toString();
-    }
-
     public final String getLocalUIPath() {
-        return Paths.get(this.getLocalPath(), Config.DIR_MENU).toString();
-    }
-
-    @Deprecated
-    public final String getAbsolutePath() {
-        return this.getSystemPath();
-        // return this.plugin.getDataFolder() + this.getLocalPath();
+        return Paths.get(this.path.toString(), Config.DIR_MENU).toString();
     }
 
     public final void debug(String msg) {

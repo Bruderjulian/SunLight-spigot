@@ -22,6 +22,7 @@ public class SLPlaceholders extends su.nightexpress.nightcore.util.Placeholders 
     public static final String GENERIC_LEVEL = "%level%";
     public static final String GENERIC_CURRENT = "%current%";
     public static final String GENERIC_MAX = "%max%";
+    public static final String GENERIC_MIN = "%min%";
     public static final String GENERIC_TICKS = "%ticks%";
     public static final String GENERIC_SOURCE = "%source%";
     public static final String GENERIC_TARGET = "%target%";
