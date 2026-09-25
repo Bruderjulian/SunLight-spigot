@@ -51,6 +51,8 @@ subprojects {
         compileOnly('com.sk89q.worldedit:worldedit-core:7.3.15') { transitive = false }
         compileOnly 'com.github.TechFortress:GriefPrevention:16.18'
         compileOnly 'org.apache.commons:commons-text:1.10.0'
+        compileOnly 'net.luckperms:api:5.5'
+        compileOnly('com.github.NEZNAMY:TAB-API:6.1.2') { transitive = false }
     }
 
     publishing {

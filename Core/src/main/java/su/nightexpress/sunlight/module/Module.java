@@ -96,6 +96,14 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
         return this.id;
     }
 
+    public final UserManager userManager() {
+        return this.userManager;
+    }
+
+    public final SunLightPlugin plugin() {
+        return this.plugin;
+    }
+
     public final String getName() {
         return this.definition.name();
     }

@@ -1,0 +1,177 @@
+package su.nightexpress.sunlight.moduleImpl.nametags;
+
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import su.nightexpress.sunlight.module.Module;
+import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.GrantRecord;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.PriceMode;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.TagAccessMode;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
+import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.user.UserManager;
+import su.nightexpress.sunlight.utils.EconomyUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Decides whether a player may use a tag, and owns every mutation of a tag entitlement.
+ * <p>
+ * Entitlements live in the user's {@code properties} column, so they follow the player
+ * across a name change and are saved by the existing user save cycle.
+ */
+public class AccessService {
+
+    private final Module module;
+    private final NametagsCatalog catalog;
+    private final UserManager userManager;
+
+    public AccessService(@NotNull Module module,
+            @NotNull NametagsCatalog catalog,
+            @NotNull UserManager userManager
+    ) {
+        this.module = module;
+        this.catalog = catalog;
+        this.userManager = userManager;
+    }
+
+    // -----------------------------------------------------
+    // Queries
+    // -----------------------------------------------------
+
+    /**
+     * Whether the player may currently use the tag. Paid modes need an active grant, so an
+     * expired subscription correctly reports {@code false}.
+     */
+    public boolean hasAccess(@NotNull Player player, @NotNull TagDefinition tag) {
+        return this.hasAccess(player, this.userManager.getOrFetch(player), tag, System.currentTimeMillis());
+    }
+
+    public boolean hasAccess(@NotNull Player player,
+            @NotNull SunUser user,
+            @NotNull TagDefinition tag,
+            long nowMillis
+    ) {
+        if (EconomyUtils.hasBypass(player, NametagsPerms.BYPASS_ACCESS)) return true;
+        if (player.hasPermission(NametagsPerms.ADMIN)) return true;
+
+        return switch (tag.getAccessMode()) {
+            case FREE -> true;
+            case PERMISSION -> this.hasTagPermission(player, tag);
+            case PURCHASE, SUBSCRIPTION -> this.hasValidGrant(user, tag.getId(), nowMillis);
+        };
+    }
+
+    public boolean hasTagPermission(@NotNull Player player, @NotNull TagDefinition tag) {
+        if (tag.hasExtraPermission() && !player.hasPermission(tag.getPermission())) return false;
+        return player.hasPermission("nametags.tag." + tag.getId());
+    }
+
+    public boolean hasValidGrant(@NotNull SunUser user, @NotNull String tagId, long nowMillis) {
+        GrantRecord grant = this.getGrant(user, tagId);
+        return grant != null && grant.isActive(nowMillis);
+    }
+
+    public @Nullable GrantRecord getGrant(@NotNull SunUser user, @NotNull String tagId) {
+        return this.getGrants(user).get(tagId);
+    }
+
+    public @NotNull Map<String, GrantRecord> getGrants(@NotNull SunUser user) {
+        Map<String, GrantRecord> grants = user.getPropertyOrDefault(NametagsProperties.GRANTS);
+        return grants == null ? Map.of() : grants;
+    }
+
+    /** Whether the tag's own glow colour is allowed to be applied. */
+    public boolean allowsGlow(@NotNull SunUser user, @NotNull TagDefinition tag, long nowMillis) {
+        return tag.isGlow() && (tag.requiresGrant() ? this.hasValidGrant(user, tag.getId(), nowMillis) : true);
+    }
+
+    // -----------------------------------------------------
+    // Mutations
+    // -----------------------------------------------------
+
+    /**
+     * Grants a tag permanently or for one subscription period.
+     * An existing active subscription is extended rather than replaced.
+     *
+     * @return {@code true} when the grant was stored
+     */
+    public boolean grant(@NotNull SunUser user, @NotNull TagDefinition tag, long nowMillis) {
+        Map<String, GrantRecord> grants = new HashMap<>(this.getGrants(user));
+        GrantRecord existing = grants.get(tag.getId());
+
+        GrantRecord updated;
+        if (tag.isSubscription() && existing != null && existing.getMode() == TagAccessMode.SUBSCRIPTION
+                && existing.isActive(nowMillis)) {
+            updated = existing.extend(tag.getSubscriptionPeriod(), nowMillis);
+        } else {
+            updated = tag.isSubscription()
+                    ? new GrantRecord(tag.getId(), TagAccessMode.SUBSCRIPTION, nowMillis,
+                            nowMillis + tag.getSubscriptionPeriod().toMillis(), "")
+                    : GrantRecord.purchase(tag.getId(), nowMillis);
+        }
+        if (updated == null) return false;
+
+        grants.put(tag.getId(), updated);
+        user.setProperty(NametagsProperties.GRANTS, grants);
+        return true;
+    }
+
+    /** @return {@code true} when a grant existed and was removed */
+    public boolean revoke(@NotNull SunUser user, @NotNull String tagId) {
+        Map<String, GrantRecord> grants = new HashMap<>(this.getGrants(user));
+        if (grants.remove(tagId) == null) return false;
+
+        user.setProperty(NametagsProperties.GRANTS, grants);
+        return true;
+    }
+
+    /**
+     * Buys or subscribes to a tag, withdrawing the configured price.
+     * <p>
+     * A cost bypass skips the withdrawal but still grants the tag, so staff can hand out
+     * paid tags without a balance change.
+     *
+     * @return the grant that was stored, or {@code null} when the purchase was refused
+     */
+    public @Nullable GrantRecord purchase(@NotNull Player player, @NotNull TagDefinition tag) {
+        if (tag.getPriceMode() == PriceMode.EXTERNAL) {
+            return null; // Owned by another plugin, we must not touch it.
+        }
+        if (!tag.hasPrice()) return null;
+
+        boolean bypassCost = EconomyUtils.hasBypass(player, NametagsPerms.BYPASS_COST);
+        if (!bypassCost) {
+            if (!EconomyUtils.hasCurrency()) return null;
+            if (!EconomyUtils.canAfford(player, tag.getPrice())) return null;
+            EconomyUtils.withdraw(player, tag.getPrice());
+        }
+
+        SunUser user = this.userManager.getOrFetch(player);
+        if (!this.grant(user, tag, System.currentTimeMillis())) return null;
+
+        return this.getGrant(user, tag.getId());
+    }
+
+    /** Drops every expired grant from a user's stored map. */
+    public int sweepExpired(@NotNull SunUser user, long nowMillis) {
+        Map<String, GrantRecord> grants = new HashMap<>(this.getGrants(user));
+        int before = grants.size();
+        grants.values().removeIf(grant -> grant.isExpired(nowMillis));
+        if (grants.size() == before) return 0;
+
+        user.setProperty(NametagsProperties.GRANTS, grants);
+        return before - grants.size();
+    }
+
+    /** Tags the player currently owns, for the admin GUI. */
+    public @NotNull Map<String, GrantRecord> getActiveGrants(@NotNull SunUser user, long nowMillis) {
+        Map<String, GrantRecord> active = new HashMap<>();
+        this.getGrants(user).forEach((id, grant) -> {
+            if (grant.isActive(nowMillis) && this.catalog.hasTag(id)) active.put(id, grant);
+        });
+        return active;
+    }
+}

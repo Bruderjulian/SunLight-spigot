@@ -10,6 +10,9 @@ depend: [ nightcore ]
 libraries:
   - org.apache.commons:commons-text:1.10.0
 softdepend:
+  - TAB
+  - UltimateTeams
+  - LuckPerms
   - PlaceholderAPI
   - ProtocolLib
   - packetevents

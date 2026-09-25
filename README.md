@@ -34,12 +34,13 @@ It includes **28** fully optional and customizable modules, allowing you to sele
 - **Essential**: Provides ~35 core utility commands including flight, healing, feeding, teleportation, XP management, world/weather control, and more.
 - **Extras**: Adds immersive mechanics like sitting on furniture (chairs/slabs), automatic chest sorting, and block physics for explosions.
 - **Freeze**: Freeze players in place with configurable restrictions on movement, combat, blocks, items, commands, and chat.
+- **Glow**: Give players a glowing outline in any colour, with static and animated effects. The active colour is rendered on the nametag via TAB.
 - **Greetings**: Customize rank-based join and quit messages with priority system.
 - **Homes**: Allows players to set home points via commands or beds, featuring GUIs, guest/invite systems, and rank-based home limits.
 - **Inventories**: View and edit online/offline player inventories and Ender Chests, and access workstations like Anvils or Looms from anywhere!
 - **Items**: Modify and obtain in-game items. Edit item data in hand, including durability, model data, stack sizes, name/lore, and more!
 - **Kits**: Create unlimited item sets with a GUI editor, kit previews, cooldowns, and claim costs.
-- **Nametags**: Configure packet-based, client-side nametags with rank-based prefixes, suffixes, and colors.
+- **Nametags**: TAB-rendered nametags with rank and team prefixes, per-player tags, purchasable and subscription tags, and named per-world profiles, all editable through GUI.
 - **Nerf Phantoms**: Control Phantom behavior by disabling spawns, modifying damage/HP, or allowing players to personally reset their insomnia timer.
 - **Nick**: Let players set custom nicknames with length/regex/banned-word validation, color permissions, and tablist support.
 - **Player Warps**: Allow players to create warps with categories, featured slots, top used warps, and more!
@@ -74,6 +75,9 @@ The following versions and platforms are supported:
 - [NightCore](https://nightexpressdev.com/nightcore/) - Framework **required** for the plugin to run.
 
 **Optional Plugins:**
+- [TAB](https://github.com/NEZNAMY/TAB) - **Required** for the Nametags and Glow modules. TAB is the single owner of all nametag rendering, so the modules disable themselves when it is missing.
+- [LuckPerms](https://luckperms.net/) - Resolves rank formats from permission groups. Without it, the server's own permission groups are used instead.
+- [UltimateTeams](https://spigotmc.org/resources/113209-ultimateteams/) - Adds the player's team prefix and team name colour to their nametag.
 - [PacketEvents](https://spigotmc.org/resources/80279/) - Required for some modules and features. Alternative to **ProtocolLib**.
 - [ProtocolLib](https://spigotmc.org/resources/1997/) - Required for some modules and features. Alternative to **PacketEvents**.
 - [PlaceholderAPI](https://spigotmc.org/resources/6245/) - For [global placeholders](https://nightexpressdev.com/sunlight/integrations/papi/) to use in other plugins.

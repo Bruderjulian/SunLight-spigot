@@ -47,6 +47,13 @@ public class Utils {
     return str == null ? null : str.toLowerCase(Locale.ROOT);
   }
 
+  public static List<String> lowercaseAll(List<String> list) {
+    if (list == null) {
+      return List.of();
+    }
+    return list.stream().map(Utils::lowercase).toList();
+  }
+
   public static <T extends Enum<T>> T enumValueOf(String str, Class<T> type) {
     try {
       return str == null ? null : Enum.valueOf(type, str.toUpperCase());

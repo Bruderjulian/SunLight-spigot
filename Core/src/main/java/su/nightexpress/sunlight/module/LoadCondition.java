@@ -31,6 +31,12 @@ public class LoadCondition {
                         .formatted(HookId.PACKET_EVENTS, HookId.PROTOCOL_LIB));
     }
 
+    public static LoadCondition tab() {
+        return HookId.hasTAB() ? LoadCondition.success()
+                : LoadCondition.failure("The %s plugin is required. Install TAB from https://github.com/NEZNAMY/TAB."
+                        .formatted(HookId.TAB));
+    }
+
     public boolean isSuccess() {
         return this.success;
     }

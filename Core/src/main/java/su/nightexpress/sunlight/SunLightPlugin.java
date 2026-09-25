@@ -39,7 +39,7 @@ import su.nightexpress.sunlight.moduleImpl.greetings.GreetingsModule;
 import su.nightexpress.sunlight.moduleImpl.homes.HomesModule;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesModule;
 import su.nightexpress.sunlight.moduleImpl.kits.KitsModule;
-import su.nightexpress.sunlight.moduleImpl.nametagsOld.NametagsModule;
+import su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.PhantomsModule;
 import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsModule;
@@ -197,14 +197,14 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("extras", "Extras", ExtrasModule::new);
         manager.register("freeze", "Freeze", FreezeModule::new);
         manager.register("glow", "Glow", GlowModule::new,
-                LoadCondition::packetLibrary);
+                LoadCondition::tab);
         manager.register("greetings", "Greetings", GreetingsModule::new);
         manager.register("homes", "Homes", HomesModule::new);
         manager.register("inventories", "Inventories", InventoriesModule::new);
         manager.register("kits", "Kits", KitsModule::new);
         manager.register("nerf_phantoms", "Nerf Phantoms", PhantomsModule::new);
         manager.register("nametags", "Nametags", NametagsModule::new,
-                LoadCondition::packetLibrary);
+                LoadCondition::tab);
         manager.register("nick", "Nick", NickModule::new);
         manager.register("playerwarps", "Player Warps", PlayerWarpsModule::new);
         manager.register("ptp", "PTP", PTPModule::new);
