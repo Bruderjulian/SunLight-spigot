@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld;
 
 import su.nightexpress.sunlight.user.property.UserProperty;
 

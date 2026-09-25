@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.config;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.config;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;

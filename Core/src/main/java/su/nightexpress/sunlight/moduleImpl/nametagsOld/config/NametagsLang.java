@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.config;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.config;
 
 import su.nightexpress.nightcore.locale.LangContainer;
 import su.nightexpress.nightcore.locale.LangEntry;

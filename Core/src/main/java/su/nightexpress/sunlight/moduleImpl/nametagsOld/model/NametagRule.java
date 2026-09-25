@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.model;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.model;
 
 import org.bukkit.entity.Player;
 
@@ -8,7 +8,7 @@ import su.nightexpress.nightcore.util.Lists;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsPerms;
 
 import java.util.Set;
 

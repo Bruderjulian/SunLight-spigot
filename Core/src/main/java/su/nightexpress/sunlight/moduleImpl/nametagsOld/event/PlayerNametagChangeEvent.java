@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.event;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.event;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld;
 
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -19,16 +19,16 @@ import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
-import su.nightexpress.sunlight.moduleImpl.nametags.command.NametagsCommandProvider;
-import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
-import su.nightexpress.sunlight.moduleImpl.nametags.event.PlayerNametagChangeEvent;
-import su.nightexpress.sunlight.moduleImpl.nametags.handler.NametagPacketHandler;
-import su.nightexpress.sunlight.moduleImpl.nametags.handler.NametagPacketsHandler;
-import su.nightexpress.sunlight.moduleImpl.nametags.handler.NametagProtocolHandler;
-import su.nightexpress.sunlight.moduleImpl.nametags.listener.NametagsListener;
-import su.nightexpress.sunlight.moduleImpl.nametags.menu.TagsMenu;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagRule;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagTag;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.command.NametagsCommandProvider;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsPerms;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.event.PlayerNametagChangeEvent;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.handler.NametagPacketHandler;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.handler.NametagPacketsHandler;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.handler.NametagProtocolHandler;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.listener.NametagsListener;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.menu.TagsMenu;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.model.NametagRule;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.model.NametagTag;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 import su.nightexpress.sunlight.utils.EconomyUtils;
@@ -62,7 +62,7 @@ public class NametagsModule extends Module implements NametagsProvider {
     @Override
     protected void loadModule(FileConfig config) throws ModuleLoadException {
         this.settings.load(config);
-        this.plugin.injectLang(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.class);
+        this.plugin.injectLang(su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsLang.class);
         UserPropertyRegistry.register(NametagProperties.TAG_SELECTED);
         UserPropertyRegistry.register(NametagProperties.RANK_ENABLED);
         UserPropertyRegistry.register(NametagProperties.TAG_ENABLED);
@@ -278,7 +278,7 @@ public class NametagsModule extends Module implements NametagsProvider {
         String normalizedId = Utils.lowercase(tagId);
         NametagTag tag = this.settings.getTags().get(normalizedId);
         if (tag == null) {
-            this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.COMMAND_TAG_ERROR_INVALID,
+            this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsLang.COMMAND_TAG_ERROR_INVALID,
                     player, replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, () -> normalizedId));
             return false;
         }
@@ -325,7 +325,7 @@ public class NametagsModule extends Module implements NametagsProvider {
         user.setProperty(NametagProperties.TAG_SELECTED, effective.getId());
         user.markDirty();
 
-        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.COMMAND_TAG_SELECTED, player,
+        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsLang.COMMAND_TAG_SELECTED, player,
                 replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, effective::getDisplay));
         this.applyNametag(player);
         return true;
@@ -333,13 +333,13 @@ public class NametagsModule extends Module implements NametagsProvider {
 
     private boolean validateTagSelection(@NotNull Player player, @NotNull NametagTag tag) {
         if (!this.isTagAccessible(player, tag)) {
-            this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.COMMAND_TAG_ERROR_NO_ACCESS,
+            this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsLang.COMMAND_TAG_ERROR_NO_ACCESS,
                     player, replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, tag::getDisplay));
             return false;
         }
 
         if (tag.hasCost() && !EconomyUtils.hasBypass(player, this) && !EconomyUtils.canAfford(player, tag.getCost())) {
-            this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.COMMAND_TAG_ERROR_NO_EQUITY,
+            this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsLang.COMMAND_TAG_ERROR_NO_EQUITY,
                     player, replacer -> replacer
                         .with(SLPlaceholders.GENERIC_NAME, tag::getDisplay)
                         .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(tag.getCost())));
@@ -381,7 +381,7 @@ public class NametagsModule extends Module implements NametagsProvider {
         user.removeProperty(NametagProperties.TAG_SELECTED);
         user.markDirty();
 
-        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.COMMAND_TAG_CLEARED, player);
+        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsLang.COMMAND_TAG_CLEARED, player);
         this.applyNametag(player);
         return true;
     }
@@ -391,7 +391,7 @@ public class NametagsModule extends Module implements NametagsProvider {
         user.setProperty(NametagProperties.RANK_ENABLED, enabled);
         user.markDirty();
 
-        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.NAMETAG_RANK_CHANGED, player,
+        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsLang.NAMETAG_RANK_CHANGED, player,
                 replacer -> replacer.with(SLPlaceholders.GENERIC_STATE,
                         () -> su.nightexpress.nightcore.core.config.CoreLang.STATE_ON_OFF.get(enabled)));
         this.applyNametag(player);
@@ -402,7 +402,7 @@ public class NametagsModule extends Module implements NametagsProvider {
         user.setProperty(NametagProperties.TAG_ENABLED, enabled);
         user.markDirty();
 
-        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.NAMETAG_TAG_CHANGED, player,
+        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsLang.NAMETAG_TAG_CHANGED, player,
                 replacer -> replacer.with(SLPlaceholders.GENERIC_STATE,
                         () -> su.nightexpress.nightcore.core.config.CoreLang.STATE_ON_OFF.get(enabled)));
         this.applyNametag(player);
@@ -576,7 +576,7 @@ public class NametagsModule extends Module implements NametagsProvider {
             this.menu.open(player);
             return;
         }
-        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.ERROR_MENU_UNAVAILABLE, player);
+        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsLang.ERROR_MENU_UNAVAILABLE, player);
     }
 
     public void reload() {

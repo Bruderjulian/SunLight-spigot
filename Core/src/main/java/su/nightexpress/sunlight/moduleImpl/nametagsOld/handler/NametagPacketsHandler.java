@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.handler;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.handler;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;

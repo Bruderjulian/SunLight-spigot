@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.handler;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.handler;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;

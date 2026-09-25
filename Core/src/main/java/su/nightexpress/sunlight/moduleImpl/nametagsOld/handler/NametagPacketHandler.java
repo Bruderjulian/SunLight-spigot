@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.handler;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.handler;
 
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;

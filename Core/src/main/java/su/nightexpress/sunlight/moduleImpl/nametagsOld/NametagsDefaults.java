@@ -1,11 +1,11 @@
-package su.nightexpress.sunlight.moduleImpl.nametags;
-
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagRule;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagTag;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.model.NametagRule;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.model.NametagTag;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 

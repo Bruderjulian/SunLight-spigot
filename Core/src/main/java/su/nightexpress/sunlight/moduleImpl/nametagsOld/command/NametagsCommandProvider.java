@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.command;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.command;
 
 import org.bukkit.entity.Player;
 import su.nightexpress.nightcore.commands.Arguments;
@@ -9,10 +9,10 @@ import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
-import su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule;
-import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang;
-import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagTag;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.NametagsModule;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsLang;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.config.NametagsPerms;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.model.NametagTag;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
 

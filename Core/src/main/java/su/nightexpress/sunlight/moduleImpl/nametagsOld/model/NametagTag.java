@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.model;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.model;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.config.Writeable;

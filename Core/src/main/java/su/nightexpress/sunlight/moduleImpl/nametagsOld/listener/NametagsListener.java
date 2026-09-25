@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.listener;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.listener;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,9 +11,9 @@ import su.nightexpress.sunlight.SunLightPlugin;
 
 public class NametagsListener extends AbstractListener<SunLightPlugin> {
 
-    private final su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule module;
+    private final su.nightexpress.sunlight.moduleImpl.nametagsOld.NametagsModule module;
 
-    public NametagsListener(SunLightPlugin plugin, su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule module) {
+    public NametagsListener(SunLightPlugin plugin, su.nightexpress.sunlight.moduleImpl.nametagsOld.NametagsModule module) {
         super(plugin);
         this.module = module;
     }

@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.moduleImpl.nametags.menu;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld.menu;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -15,8 +15,8 @@ import su.nightexpress.nightcore.ui.inventory.viewer.MenuViewer;
 import su.nightexpress.nightcore.ui.inventory.viewer.ViewerContext;
 import su.nightexpress.nightcore.util.bukkit.NightItem;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagTag;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.NametagsModule;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.model.NametagTag;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.util.ArrayList;

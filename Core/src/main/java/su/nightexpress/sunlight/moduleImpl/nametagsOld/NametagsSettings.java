@@ -1,12 +1,12 @@
-package su.nightexpress.sunlight.moduleImpl.nametags;
+package su.nightexpress.sunlight.moduleImpl.nametagsOld;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.configuration.AbstractConfig;
 import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigType;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagRule;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagTag;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.model.NametagRule;
+import su.nightexpress.sunlight.moduleImpl.nametagsOld.model.NametagTag;
 
 import java.util.Map;
 
