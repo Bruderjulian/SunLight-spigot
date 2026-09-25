@@ -38,6 +38,10 @@ public class Report implements PlaceholderResolvable {
 
     private int noteCount;
 
+    private boolean reminded;
+    private long claimedDate;
+    private UUID caseId;
+
     /**
      * Guards the reward payout against two success paths racing on this server. The database
      * read-back in {@code ReportsModule#payReward} is the second line of defence for cross-server
@@ -64,6 +68,32 @@ public class Report implements PlaceholderResolvable {
             double lastZ,
             int noteCount
     ) {
+        this(id, reporterId, reporterName, targetId, targetName, categoryId, details, status, staffId, staffName,
+                createDate, updateDate, rewarded, lastWorld, lastX, lastY, lastZ, noteCount, false, 0L, null);
+    }
+
+    public Report(UUID id,
+            UUID reporterId,
+            String reporterName,
+            @Nullable UUID targetId,
+            String targetName,
+            String categoryId,
+            String details,
+            ReportStatus status,
+            @Nullable UUID staffId,
+            @Nullable String staffName,
+            long createDate,
+            long updateDate,
+            boolean rewarded,
+            @Nullable String lastWorld,
+            double lastX,
+            double lastY,
+            double lastZ,
+            int noteCount,
+            boolean reminded,
+            long claimedDate,
+            @Nullable UUID caseId
+    ) {
         this.id = id;
         this.reporterId = reporterId;
         this.reporterName = reporterName;
@@ -82,6 +112,9 @@ public class Report implements PlaceholderResolvable {
         this.lastY = lastY;
         this.lastZ = lastZ;
         this.noteCount = noteCount;
+        this.reminded = reminded;
+        this.claimedDate = claimedDate;
+        this.caseId = caseId;
     }
 
     public static Report create(@NotNull UUID reporterId, @NotNull String reporterName, @Nullable UUID targetId,
@@ -252,11 +285,51 @@ public class Report implements PlaceholderResolvable {
         return this.lastZ;
     }
 
+    /** Localized status, for placeholders that must not depend on the module's lang being loaded. */
+    public String getStatusText() {
+        return this.status.name();
+    }
+
+    public long getAge() {
+        return System.currentTimeMillis() - this.createDate;
+    }
+
+    public String getAgeText() {
+        return su.nightexpress.nightcore.util.time.TimeFormats.formatSince(this.createDate,
+                su.nightexpress.nightcore.util.time.TimeFormatType.LITERAL);
+    }
+
     public int getNoteCount() {
         return this.noteCount;
     }
 
     public void setNoteCount(int noteCount) {
         this.noteCount = noteCount;
+    }
+
+    /** Whether staff have already been nudged about this report sitting unclaimed. */
+    public boolean isReminded() {
+        return this.reminded;
+    }
+
+    public void setReminded(boolean reminded) {
+        this.reminded = reminded;
+    }
+
+    /** Epoch millis of the current claim, or 0 when unclaimed. Drives the time-to-claim stat. */
+    public long getClaimedDate() {
+        return this.claimedDate;
+    }
+
+    public void setClaimedDate(long claimedDate) {
+        this.claimedDate = claimedDate;
+    }
+
+    public @Nullable UUID getCaseId() {
+        return this.caseId;
+    }
+
+    public void setCaseId(@Nullable UUID caseId) {
+        this.caseId = caseId;
     }
 }

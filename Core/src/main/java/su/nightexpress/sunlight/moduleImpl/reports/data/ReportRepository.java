@@ -33,6 +33,7 @@ public class ReportRepository {
     private final Map<UUID, Set<UUID>> byTargetId = new ConcurrentHashMap<>();
     private final Map<String, Set<UUID>> byTargetName = new ConcurrentHashMap<>();
     private final Map<ReportStatus, Set<UUID>> byStatus = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<UUID>> byCase = new ConcurrentHashMap<>();
     private final Map<UUID, List<ReportNote>> notesByReport = new ConcurrentHashMap<>();
 
     public synchronized void clear() {
@@ -41,6 +42,7 @@ public class ReportRepository {
         this.byTargetId.clear();
         this.byTargetName.clear();
         this.byStatus.clear();
+        this.byCase.clear();
         this.notesByReport.clear();
     }
 
@@ -86,6 +88,10 @@ public class ReportRepository {
             this.byTargetId.computeIfAbsent(report.getTargetId(), key -> new HashSet<>()).add(report.getId());
         }
         this.byTargetName.computeIfAbsent(key(report.getTargetName()), k -> new HashSet<>()).add(report.getId());
+
+        if (report.getCaseId() != null) {
+            this.byCase.computeIfAbsent(report.getCaseId(), k -> new HashSet<>()).add(report.getId());
+        }
     }
 
     private void unindex(Report report) {
@@ -95,6 +101,9 @@ public class ReportRepository {
 
         if (report.getTargetId() != null) {
             discard(this.byTargetId, report.getTargetId(), report.getId());
+        }
+        if (report.getCaseId() != null) {
+            discard(this.byCase, report.getCaseId(), report.getId());
         }
     }
 
@@ -186,6 +195,15 @@ public class ReportRepository {
         List<Report> reports = new ArrayList<>();
         this.getReportsByTargetName(targetName).stream().filter(Report::isPending).forEach(reports::add);
         return reports;
+    }
+
+    public List<Report> getReportsByCase(UUID caseId) {
+        return this.resolve(this.byCase.get(caseId));
+    }
+
+    public int getCaseCount(UUID caseId) {
+        Set<UUID> ids = this.byCase.get(caseId);
+        return ids == null ? 0 : ids.size();
     }
 
     public int getCount(ReportStatus status) {

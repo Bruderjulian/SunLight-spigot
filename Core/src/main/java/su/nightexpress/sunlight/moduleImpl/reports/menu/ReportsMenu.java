@@ -98,10 +98,14 @@ public class ReportsMenu extends AbstractObjectMenu<ReportsMenu.Data> {
                                         () -> ReportsLang.FILTER.getLocalized(this.getObject(context).filter()))))
                         .action(context -> {
                             Data data = this.getObject(context);
-                            // TARGET is only reachable by shift-clicking a row, so it is skipped
-                            // when cycling to keep the button from landing on an empty view.
-                            ReportFilter next = data.filter() == ReportFilter.TARGET ? ReportFilter.OPEN
-                                    : nextOf(data.filter());
+                            // TARGET and CASE both need a subject the button has no way to supply:
+                            // TARGET is reached by shift-clicking a row, CASE by opening it from a
+                            // case. Cycling into either would land on a permanently empty view.
+                            ReportFilter next = switch (data.filter()) {
+                                case ALL -> ReportFilter.OPEN;
+                                case TARGET, CASE -> ReportFilter.OPEN;
+                                default -> nextOf(data.filter());
+                            };
                             this.open(context.getPlayer(), next);
                         })
                         .build())

@@ -3,6 +3,7 @@ package su.nightexpress.sunlight.moduleImpl.reports;
 import su.nightexpress.nightcore.config.ConfigValue;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.Lists;
+import su.nightexpress.sunlight.moduleImpl.reports.model.RewardMode;
 import su.nightexpress.sunlight.moduleImpl.reports.model.ReportCategory;
 
 import java.util.LinkedHashMap;
@@ -49,6 +50,64 @@ public class ReportsConfig {
     public static final ConfigValue<Integer> LIMIT_DETAILS_MAX = ConfigValue.create("Reports.Limits.Details-Max-Length",
             300,
             "Maximum length of the written explanation."
+    );
+
+    public static final ConfigValue<Integer> ABUSE_MAX_REPORTS_PER_DAY = ConfigValue.create(
+            "Reports.Anti-Abuse.Max-Reports-Per-Day",
+            10,
+            "Reports one player may file per real day. Use 0 to disable.",
+            "Bounds total volume. The open-report cap only bounds concurrent volume."
+    );
+
+    public static final ConfigValue<Integer> ABUSE_MAX_OPEN_PER_TARGET = ConfigValue.create(
+            "Reports.Anti-Abuse.Max-Open-Per-Target",
+            5,
+            "Open reports that may exist against one target, server-wide. Use 0 to disable.",
+            "Stops a popular or already-unfairly-targeted player being flooded, and stops the",
+            "queue filling with several submissions describing the same incident."
+    );
+
+    public static final ConfigValue<Boolean> ABUSE_SUPPRESS_BEYOND_DAILY_LIMIT = ConfigValue.create(
+            "Reports.Anti-Abuse.Suppress-Beyond-Daily-Limit",
+            false,
+            "When true, a report past the daily cap is silently dropped and staff are NOT notified.",
+            "Off by default: swallowing reports silently is worse than a busy queue."
+    );
+
+    public static final ConfigValue<Boolean> CASE_GROUPING_ENABLED = ConfigValue.create(
+            "Reports.Cases.Enabled",
+            true,
+            "When true, reports about the same player are grouped into a single case for staff.",
+            "A concluded case stops absorbing new reports, so a later incident starts a new case."
+    );
+
+    public static final ConfigValue<Integer> LIFECYCLE_AUTO_CLOSE_DAYS = ConfigValue.create(
+            "Reports.Lifecycle.Auto-Close-Days",
+            14,
+            "Days an unclaimed report may sit before it is auto-closed as EXPIRED. Use 0 to never.",
+            "A claimed report is never auto-closed: somebody is working it.",
+            "An expired report is not a judgement that the report was unjustified, so it pays no",
+            "reward and is excluded from the false-positive rate in /reports stats."
+    );
+
+    public static final ConfigValue<Integer> LIFECYCLE_REMIND_AFTER_MINUTES = ConfigValue.create(
+            "Reports.Lifecycle.Remind-After-Minutes",
+            60,
+            "Minutes a report may sit unclaimed before staff are reminded once. Use 0 to disable.",
+            "One-shot per report, not a repeating ping."
+    );
+
+    public static final ConfigValue<Integer> LIFECYCLE_SWEEP_SECONDS = ConfigValue.create(
+            "Reports.Lifecycle.Sweep-Seconds",
+            300,
+            "How often to check for stale reports. Seconds. Use 0 to disable the sweep entirely."
+    );
+
+    public static final ConfigValue<Boolean> COMMAND_GUI = ConfigValue.create("Reports.Command.Gui",
+            true,
+            "When true, '/report' opens a guided menu instead of expecting a full command line.",
+            "'/report <player> <category> <details>' keeps working either way, so nobody is",
+            "locked out of the command form."
     );
 
     public static final ConfigValue<Boolean> NOTIFY_ENABLED = ConfigValue.create("Reports.Notify.Enabled",
@@ -136,6 +195,27 @@ public class ReportsConfig {
             Set.of("BAN", "MUTE"),
             "Which punishment types close a report as justified.",
             "A WARN closes the report regardless, it just does not pay a reward."
+    );
+
+    public static final ConfigValue<Integer> REWARDS_MAX_PER_DAY = ConfigValue.create("Reports.Rewards.Max-Rewards-Per-Day",
+            3,
+            "Payouts one reporter may receive per real day. Use 0 for no limit.",
+            "When the cap is hit a report still concludes as RESOLVED; only the payout is",
+            "withheld, and the reporter is told so."
+    );
+
+    public static final ConfigValue<Integer> REWARDS_COOLDOWN_SECONDS = ConfigValue.create(
+            "Reports.Rewards.Cooldown-Seconds",
+            300,
+            "Minimum gap between two payouts to the same reporter. Seconds. Use 0 to disable."
+    );
+
+    public static final ConfigValue<RewardMode> REWARDS_MODE = ConfigValue.create("Reports.Rewards.Mode",
+            RewardMode.class, RewardMode.ANY_RESOLVED,
+            "Which conclusions pay a reward.",
+            "ANY_RESOLVED   - a report a staff member resolves also pays.",
+            "PUNISHMENT_ONLY - only a punishment closes a report with a payout, so staff must",
+            "                   actually punish somebody before anyone is rewarded."
     );
 
     public static Map<String, ReportCategory> readCategories(FileConfig config) {

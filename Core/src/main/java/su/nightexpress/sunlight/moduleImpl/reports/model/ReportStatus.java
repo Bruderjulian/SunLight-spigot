@@ -10,10 +10,17 @@ public enum ReportStatus {
     /** Terminal, justified. Eligible for a reporter reward. */
     RESOLVED,
     /** Terminal, unjustified. */
-    DENIED;
+    DENIED,
+    /**
+     * Terminal, never worked. Recorded by the lifecycle sweep when an unclaimed report sits too
+     * long, so a neglected queue cannot silently accumulate. It is deliberately not DENIED:
+     * nobody judged this report wrong, and treating it as such would both pay nothing while
+     * implying a decision and corrupt the false-positive rate in the stats screen.
+     */
+    EXPIRED;
 
     public boolean isTerminal() {
-        return this == RESOLVED || this == DENIED;
+        return this == RESOLVED || this == DENIED || this == EXPIRED;
     }
 
     public boolean isPending() {

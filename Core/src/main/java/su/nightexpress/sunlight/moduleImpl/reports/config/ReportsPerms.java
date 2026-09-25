@@ -24,12 +24,15 @@ public class ReportsPerms {
     public static final Permission COMMAND_REPORT_TELEPORT_BYPASS_WARMUP = COMMAND
             .permission("report.teleport.bypass-warmup");
     public static final Permission COMMAND_REPORT_DELETE = COMMAND.permission("report.delete");
+    public static final Permission COMMAND_REPORTS_STATS = COMMAND.permission("reports.stats");
+    public static final Permission COMMAND_REPORT_TOGGLE = COMMAND.permission("report.toggle");
 
     public static final Permission NOTIFY = ROOT.permission("notify");
     public static final Permission EXEMPT = ROOT.permission("exempt");
 
     public static final Permission BYPASS_COOLDOWN = BYPASS.permission("cooldown");
     public static final Permission BYPASS_COST = BYPASS.permission("cost");
+    public static final Permission BYPASS_DAILY_LIMIT = BYPASS.permission("daily-limit");
 
     public static final Permission ADMIN = ROOT.permission("admin");
 

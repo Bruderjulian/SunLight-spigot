@@ -259,4 +259,104 @@ public class ReportsLang implements LangContainer {
 
     public static final TextLocale OUTCOME_DENIED = LangEntry.builder("Reports.Outcome.Denied")
             .text(RED.wrap("Denied — unjustified, no reward"));
+
+    public static final MessageLocale ERROR_SELF_OPTOUT = LangEntry.builder("Reports.Error.SelfOptOut")
+            .chatMessage(SOFT_RED.wrap("You have opted out of reporting. Use /report toggle to change that."));
+
+    public static final MessageLocale ERROR_DAILY_LIMIT = LangEntry.builder("Reports.Error.DailyLimit")
+            .chatMessage(SOFT_RED.wrap("You have filed ") + WHITE.wrap(GENERIC_CURRENT) + SOFT_RED.wrap(" reports today, the limit is ")
+                    + WHITE.wrap(GENERIC_MAX) + SOFT_RED.wrap(". The limit resets tomorrow."));
+
+    public static final MessageLocale ERROR_TARGET_LIMIT = LangEntry.builder("Reports.Error.TargetLimit")
+            .chatMessage(SOFT_RED.wrap(GENERIC_TARGET) + SOFT_RED.wrap(" already has ")
+                    + WHITE.wrap(GENERIC_MAX) + SOFT_RED.wrap(" open reports. Staff have been notified of those."));
+
+    public static final MessageLocale REWARD_WITHHELD_DAILY = LangEntry.builder("Reports.Reward.WithheldDaily")
+            .chatMessage(GOLD.wrap("Your report was justified, but you have already been rewarded enough today."));
+
+    public static final MessageLocale REWARD_WITHHELD_COOLDOWN = LangEntry.builder("Reports.Reward.WithheldCooldown")
+            .chatMessage(GOLD.wrap("Your report was justified, but rewards are on a short cooldown."));
+
+    public static final MessageLocale OPTOUT_ENABLED = LangEntry.builder("Reports.OptOut.Enabled")
+            .chatMessage(YELLOW.wrap("You can no longer report players."));
+
+    public static final MessageLocale OPTOUT_DISABLED = LangEntry.builder("Reports.OptOut.Disabled")
+            .chatMessage(GREEN.wrap("You can report players again."));
+
+    public static final MessageLocale NOTIFY_REMINDER = LangEntry.builder("Reports.Notify.Reminder")
+            .chatMessage(DARK_GRAY.wrap("[") + YELLOW.wrap("Reports") + DARK_GRAY.wrap("] ") + WHITE.wrap(GENERIC_TARGET)
+                    + DARK_GRAY.wrap(" has been unclaimed for a while (")
+                    + WHITE.wrap(REPORT_ID) + DARK_GRAY.wrap(") → /reports"));
+
+    public static final TextLocale SYSTEM_AUTO_CLOSED = LangEntry.builder("Reports.System.AutoClosed")
+            .text("Auto-closed as EXPIRED after sitting unclaimed; not judged either way");
+
+    public static final TextLocale SYSTEM_CLAIMED_CASE = LangEntry.builder("Reports.System.CaseClaimed")
+            .text("Case claimed by %staff%");
+
+    public static final TextLocale SYSTEM_CONCLUDED_CASE = LangEntry.builder("Reports.System.CaseConcluded")
+            .text("Case concluded as %status% by %staff%");
+
+    public static final MessageLocale CASE_CLAIMED = LangEntry.builder("Reports.Case.Claimed")
+            .chatMessage(GREEN.wrap("You claimed the case against ") + WHITE.wrap(GENERIC_TARGET) + GREEN.wrap("."));
+
+    public static final MessageLocale CASE_CONCLUDED = LangEntry.builder("Reports.Case.Concluded")
+            .chatMessage(GREEN.wrap("The case against ") + WHITE.wrap(GENERIC_TARGET) + GREEN.wrap(" concluded as ")
+                    + WHITE.wrap(GENERIC_STATUS) + GREEN.wrap("."));
+
+    public static final TextLocale COMMAND_STATS_DESC = LangEntry.builder("Command.Reports.Stats.Desc")
+            .text("Report statistics for this server.");
+
+    public static final TextLocale COMMAND_CASE_DESC = LangEntry.builder("Command.Reports.Case.Desc")
+            .text("Open the case against a player.");
+
+    public static final TextLocale COMMAND_TOGGLE_DESC = LangEntry.builder("Command.Report.Toggle.Desc")
+            .text("Turn reporting on or off for yourself.");
+
+    public static final TextLocale COMMAND_ARGUMENT_NAME_CASE = LangEntry.builder("Command.Reports.Arg.Case")
+            .text("case");
+
+    public static final TextLocale STATS_TITLE = LangEntry.builder("Reports.Stats.Title")
+            .text(DARK_GRAY.wrap("[") + GOLD.wrap("Reports") + DARK_GRAY.wrap("] ") + WHITE.wrap(GENERIC_MODE));
+
+    public static final TextLocale STATS_LINE = LangEntry.builder("Reports.Stats.Line")
+            .text(DARK_GRAY.wrap("» ") + GRAY.wrap(GENERIC_NAME) + DARK_GRAY.wrap(": ") + WHITE.wrap(GENERIC_VALUE));
+
+    public static final TextLocale STATS_PERCENT = LangEntry.builder("Reports.Stats.Percent")
+            .text(DARK_GRAY.wrap("» ") + GRAY.wrap(GENERIC_NAME) + DARK_GRAY.wrap(": ") + WHITE.wrap(GENERIC_VALUE)
+                    + WHITE.wrap("%"));
+
+    public static final TextLocale STATS_EMPTY = LangEntry.builder("Reports.Stats.Empty")
+            .text(DARK_GRAY.wrap("Nothing recorded yet."));
+
+    public static final MessageLocale ERROR_NO_CASE = LangEntry.builder("Reports.Error.NoCase")
+            .chatMessage(SOFT_RED.wrap("There is no open case against ") + WHITE.wrap(GENERIC_TARGET) + SOFT_RED.wrap("."));
+
+    public static final MessageLocale ERROR_GUI_UNAVAILABLE = LangEntry.builder("Reports.Error.GuiUnavailable")
+            .chatMessage(SOFT_RED.wrap("Use /report <player> <category> <details> — no report categories are available to you."));
+
+    public static final TextLocale TARGET_MENU_OFFLINE = LangEntry.builder("Reports.Menu.Target.Offline")
+            .text(YELLOW.wrap("To report somebody who is not online:"));
+
+    public static final TextLocale DIALOG_CATEGORY_TITLE = LangEntry.builder("Reports.Dialog.Category.Title")
+            .text("Report » Category");
+
+    public static final TextLocale DIALOG_CATEGORY_INPUT = LangEntry.builder("Reports.Dialog.Category.Input")
+            .text("category");
+
+    public static final TextLocale DIALOG_DETAILS_TITLE = LangEntry.builder("Reports.Dialog.Details.Title")
+            .text("Report » Details");
+
+    public static final TextLocale DIALOG_DETAILS_INPUT = LangEntry.builder("Reports.Dialog.Details.Input")
+            .text("what happened");
+
+    public static final TextLocale BUTTON_DENY_CASE = LangEntry.builder("Reports.Menu.Button.DenyCase")
+            .text(RED.wrap("Deny Case"));
+
+    public static final EnumLocale<su.nightexpress.sunlight.moduleImpl.reports.model.CaseStatus> CASE_STATUS =
+            LangEntry.builder("Reports.Case.Status")
+                    .enumeration(su.nightexpress.sunlight.moduleImpl.reports.model.CaseStatus.class);
+
+    public static final TextLocale DIALOG_CONFIRM_TITLE = LangEntry.builder("Reports.Dialog.Confirm.Title")
+            .text("Report » Confirm");
 }

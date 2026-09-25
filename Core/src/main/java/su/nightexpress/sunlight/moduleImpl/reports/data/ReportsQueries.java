@@ -4,7 +4,9 @@ import su.nightexpress.nightcore.db.statement.RowMapper;
 import su.nightexpress.nightcore.db.statement.template.InsertStatement;
 import su.nightexpress.nightcore.db.statement.template.SelectStatement;
 import su.nightexpress.nightcore.db.statement.template.UpdateStatement;
+import su.nightexpress.sunlight.moduleImpl.reports.model.CaseStatus;
 import su.nightexpress.sunlight.moduleImpl.reports.model.Report;
+import su.nightexpress.sunlight.moduleImpl.reports.model.ReportCase;
 import su.nightexpress.sunlight.moduleImpl.reports.model.ReportNote;
 import su.nightexpress.sunlight.moduleImpl.reports.model.ReportStatus;
 import su.nightexpress.sunlight.utils.Utils;
@@ -53,7 +55,10 @@ public class ReportsQueries {
                     resultSet.getDouble(COLUMN_LAST_X.getName()),
                     resultSet.getDouble(COLUMN_LAST_Y.getName()),
                     resultSet.getDouble(COLUMN_LAST_Z.getName()),
-                    resultSet.getInt(COLUMN_NOTE_COUNT.getName())
+                    resultSet.getInt(COLUMN_NOTE_COUNT.getName()),
+                    resultSet.getBoolean(COLUMN_REMINDED.getName()),
+                    resultSet.getLong(COLUMN_CLAIMED_DATE.getName()),
+                    readUuid(resultSet, COLUMN_CASE_ID.getName())
             );
         } catch (SQLException | IllegalArgumentException exception) {
             exception.printStackTrace();
@@ -84,7 +89,38 @@ public class ReportsQueries {
         }
     };
 
+    public static final RowMapper<ReportCase> CASE_LOADER = resultSet -> {
+        try {
+            UUID id = readUuid(resultSet, COLUMN_CASE_ID_PK.getName());
+            String targetName = resultSet.getString(COLUMN_CASE_TARGET_NAME.getName());
+            if (id == null || targetName == null)
+                return null;
+
+            CaseStatus status = su.nightexpress.sunlight.utils.Utils.enumValueOf(
+                    resultSet.getString(COLUMN_CASE_STATUS.getName()), CaseStatus.class);
+            if (status == null)
+                return null;
+
+            return new ReportCase(
+                    id,
+                    readUuid(resultSet, COLUMN_CASE_TARGET_ID.getName()),
+                    targetName,
+                    status,
+                    readUuid(resultSet, COLUMN_CASE_STAFF_ID.getName()),
+                    resultSet.getString(COLUMN_CASE_STAFF_NAME.getName()),
+                    resultSet.getString(COLUMN_CASE_OUTCOME.getName()),
+                    resultSet.getLong(COLUMN_CASE_CREATE_DATE.getName()),
+                    resultSet.getLong(COLUMN_CASE_UPDATE_DATE.getName()),
+                    resultSet.getInt(COLUMN_CASE_REPORT_COUNT.getName())
+            );
+        } catch (SQLException | IllegalArgumentException exception) {
+            exception.printStackTrace();
+            return null;
+        }
+    };
+
     public static final SelectStatement<Report> SELECT_REPORT = SelectStatement.builder(REPORT_LOADER).build();
+    public static final SelectStatement<ReportCase> SELECT_CASE = SelectStatement.builder(CASE_LOADER).build();
     public static final SelectStatement<ReportNote> SELECT_NOTE = SelectStatement.builder(NOTE_LOADER).build();
 
     public static final InsertStatement<Report> INSERT_REPORT = InsertStatement.builder(Report.class)
@@ -106,6 +142,9 @@ public class ReportsQueries {
             .setDouble(COLUMN_LAST_Y, Report::getLastY)
             .setDouble(COLUMN_LAST_Z, Report::getLastZ)
             .setInt(COLUMN_NOTE_COUNT, Report::getNoteCount)
+            .setBoolean(COLUMN_REMINDED, Report::isReminded)
+            .setLong(COLUMN_CLAIMED_DATE, Report::getClaimedDate)
+            .setUUID(COLUMN_CASE_ID, Report::getCaseId)
             .build();
 
     public static final UpdateStatement<Report> UPDATE_REPORT = UpdateStatement.builder(Report.class)
@@ -121,6 +160,9 @@ public class ReportsQueries {
             .setDouble(COLUMN_LAST_Y, Report::getLastY)
             .setDouble(COLUMN_LAST_Z, Report::getLastZ)
             .setInt(COLUMN_NOTE_COUNT, Report::getNoteCount)
+            .setBoolean(COLUMN_REMINDED, Report::isReminded)
+            .setLong(COLUMN_CLAIMED_DATE, Report::getClaimedDate)
+            .setUUID(COLUMN_CASE_ID, Report::getCaseId)
             .build();
 
     public static final InsertStatement<ReportNote> INSERT_NOTE = InsertStatement.builder(ReportNote.class)
@@ -130,6 +172,28 @@ public class ReportsQueries {
             .setString(COLUMN_NOTE_AUTHOR_NAME, ReportNote::getAuthorName)
             .setString(COLUMN_NOTE_TEXT, ReportNote::getText)
             .setLong(COLUMN_NOTE_DATE, ReportNote::getDate)
+            .build();
+
+    public static final InsertStatement<ReportCase> INSERT_CASE = InsertStatement.builder(ReportCase.class)
+            .setUUID(COLUMN_CASE_ID_PK, ReportCase::getId)
+            .setUUID(COLUMN_CASE_TARGET_ID, ReportCase::getTargetId)
+            .setString(COLUMN_CASE_TARGET_NAME, ReportCase::getTargetName)
+            .setString(COLUMN_CASE_STATUS, reportCase -> reportCase.getStatus().name())
+            .setUUID(COLUMN_CASE_STAFF_ID, ReportCase::getStaffId)
+            .setString(COLUMN_CASE_STAFF_NAME, ReportCase::getStaffName)
+            .setString(COLUMN_CASE_OUTCOME, ReportCase::getOutcomeReason)
+            .setLong(COLUMN_CASE_CREATE_DATE, ReportCase::getCreateDate)
+            .setLong(COLUMN_CASE_UPDATE_DATE, ReportCase::getUpdateDate)
+            .setInt(COLUMN_CASE_REPORT_COUNT, ReportCase::getReportCount)
+            .build();
+
+    public static final UpdateStatement<ReportCase> UPDATE_CASE = UpdateStatement.builder(ReportCase.class)
+            .setString(COLUMN_CASE_STATUS, reportCase -> reportCase.getStatus().name())
+            .setUUID(COLUMN_CASE_STAFF_ID, ReportCase::getStaffId)
+            .setString(COLUMN_CASE_STAFF_NAME, ReportCase::getStaffName)
+            .setString(COLUMN_CASE_OUTCOME, ReportCase::getOutcomeReason)
+            .setLong(COLUMN_CASE_UPDATE_DATE, ReportCase::getUpdateDate)
+            .setInt(COLUMN_CASE_REPORT_COUNT, ReportCase::getReportCount)
             .build();
 
     private static UUID readUuid(java.sql.ResultSet resultSet, String column) throws SQLException {

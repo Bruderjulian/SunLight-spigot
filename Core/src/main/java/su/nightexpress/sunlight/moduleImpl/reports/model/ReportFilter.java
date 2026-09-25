@@ -12,7 +12,9 @@ public enum ReportFilter {
     /** Everything, including concluded reports. */
     ALL,
     /** Everything against one specific player. */
-    TARGET;
+    TARGET,
+    /** Everything that belongs to one case. */
+    CASE;
 
     public boolean isStaffOnly() {
         return this != MINE;

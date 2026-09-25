@@ -37,6 +37,8 @@ public class ReportsStaffCommandProvider extends CommandProvider {
     private static final String COMMAND_NOTE = "note";
     private static final String COMMAND_TELEPORT = "teleport";
     private static final String COMMAND_DELETE = "delete";
+    private static final String COMMAND_STATS = "stats";
+    private static final String COMMAND_CASE = "case";
 
     private final ReportsModule module;
 
@@ -114,6 +116,19 @@ public class ReportsStaffCommandProvider extends CommandProvider {
                 .withArguments(this.reportArgument())
                 .executes((context, arguments) -> this.withReport(context, arguments, this.module::deleteReport)));
 
+        this.registerLiteral(COMMAND_STATS, true, new String[] {}, builder -> builder
+                .playerOnly()
+                .description(ReportsLang.COMMAND_STATS_DESC)
+                .permission(ReportsPerms.COMMAND_REPORTS_STATS)
+                .executes(this::stats));
+
+        this.registerLiteral(COMMAND_CASE, true, new String[] {}, builder -> builder
+                .playerOnly()
+                .description(ReportsLang.COMMAND_CASE_DESC)
+                .permission(ReportsPerms.COMMAND_REPORTS)
+                .withArguments(Arguments.playerName(CommandArguments.NAME))
+                .executes(this::openCase));
+
         this.registerRoot("reports", true, new String[] { "report" },
                 map -> {
                     map.put(COMMAND_LIST, "list");
@@ -125,9 +140,19 @@ public class ReportsStaffCommandProvider extends CommandProvider {
                     map.put(COMMAND_NOTE, "note");
                     map.put(COMMAND_TELEPORT, "teleport");
                     map.put(COMMAND_DELETE, "delete");
+                    map.put(COMMAND_STATS, "stats");
+                    map.put(COMMAND_CASE, "case");
                 },
                 builder -> builder.description(ReportsLang.COMMAND_REPORTS_ROOT_DESC)
                         .permission(ReportsPerms.COMMAND_REPORTS));
+    }
+
+    private boolean stats(CommandContext context, ParsedArguments arguments) {
+        return this.module.openStats(context.getPlayerOrThrow());
+    }
+
+    private boolean openCase(CommandContext context, ParsedArguments arguments) {
+        return this.module.openCaseFor(context.getPlayerOrThrow(), arguments.getString(CommandArguments.NAME));
     }
 
     private ArgumentNodeBuilder<Report> reportArgument() {

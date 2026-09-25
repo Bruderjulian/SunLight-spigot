@@ -5,9 +5,11 @@ import org.bukkit.entity.Player;
 import su.nightexpress.nightcore.commands.Arguments;
 import su.nightexpress.nightcore.commands.context.CommandContext;
 import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandArguments;
 import su.nightexpress.sunlight.command.CommandProvider;
+import su.nightexpress.sunlight.moduleImpl.reports.ReportsConfig;
 import su.nightexpress.sunlight.moduleImpl.reports.ReportsModule;
 import su.nightexpress.sunlight.moduleImpl.reports.config.ReportsLang;
 import su.nightexpress.sunlight.moduleImpl.reports.config.ReportsPerms;
@@ -22,6 +24,7 @@ public class ReportsSubmitCommandProvider extends CommandProvider {
 
     private static final String COMMAND_REPORT = "report";
     private static final String COMMAND_REPORT_STATUS = "reportstatus";
+    private static final String COMMAND_TOGGLE = "toggle";
 
     private final ReportsModule module;
 
@@ -38,8 +41,10 @@ public class ReportsSubmitCommandProvider extends CommandProvider {
                 .permission(ReportsPerms.COMMAND_REPORT)
                 .withArguments(
                         Arguments.playerName(CommandArguments.PLAYER)
+                                .optional()
                                 .localized(ReportsLang.COMMAND_ARGUMENT_NAME_PLAYER),
                         Arguments.string(ARG_CATEGORY)
+                                .optional()
                                 .localized(ReportsLang.COMMAND_ARGUMENT_NAME_CATEGORY)
                                 .suggestions((reader, context) -> {
                                     CommandSender sender = context.getSender();
@@ -58,16 +63,52 @@ public class ReportsSubmitCommandProvider extends CommandProvider {
                 .description(ReportsLang.COMMAND_REPORT_STATUS_DESC)
                 .permission(ReportsPerms.COMMAND_REPORT_STATUS)
                 .executes(this::showStatus));
+
+        this.registerLiteral(COMMAND_TOGGLE, true, new String[] {}, builder -> builder
+                .playerOnly()
+                .description(ReportsLang.COMMAND_TOGGLE_DESC)
+                .permission(ReportsPerms.COMMAND_REPORT_TOGGLE)
+                .executes((context, arguments) -> {
+                    this.module.toggleOptOut(context.getPlayerOrThrow());
+                    return true;
+                }));
     }
 
     private boolean report(CommandContext context, ParsedArguments arguments) {
         Player player = context.getPlayerOrThrow();
 
+        // Bare /report opens the guided flow, but only when every part of it is actually
+        // available: a player who cannot see any category would otherwise get a dead-end menu.
+        if (!arguments.contains(CommandArguments.PLAYER)) {
+            if (ReportsConfig.COMMAND_GUI.get() && !this.module.getVisibleCategoryIds(player).isEmpty()) {
+                return this.module.openTargetMenu(player);
+            }
+            this.module.sendPrefixed(ReportsLang.ERROR_GUI_UNAVAILABLE, player);
+            return false;
+        }
+
         String targetName = arguments.getString(CommandArguments.PLAYER);
-        String categoryId = arguments.getString(ARG_CATEGORY);
+        String categoryId = arguments.contains(ARG_CATEGORY) ? arguments.getString(ARG_CATEGORY) : null;
         String details = arguments.contains(ARG_DETAILS) ? arguments.getString(ARG_DETAILS) : null;
 
+        if (categoryId == null) {
+            // A target with no category: pick the category in the guided flow rather than
+            // guessing one, since the wrong category sends the report to the wrong staff.
+            return ReportsConfig.COMMAND_GUI.get() ? this.startGuiAt(player, targetName) : this.reportMissingCategory(player);
+        }
+
         return this.module.submit(player, targetName, categoryId, details);
+    }
+
+    private boolean startGuiAt(Player player, String targetName) {
+        this.module.openCategoryDialog(player, targetName);
+        return true;
+    }
+
+    private boolean reportMissingCategory(Player player) {
+        this.module.sendPrefixed(ReportsLang.ERROR_UNKNOWN_CATEGORY, player, b -> b
+                .with(SLPlaceholders.GENERIC_LIST, () -> String.join(", ", this.module.getCategoryIds())));
+        return false;
     }
 
     private boolean showStatus(CommandContext context, ParsedArguments arguments) {

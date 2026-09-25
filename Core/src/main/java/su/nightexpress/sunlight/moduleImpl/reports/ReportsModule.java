@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
+import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.Strings;
 import su.nightexpress.nightcore.util.bukkit.NightSound;
@@ -18,6 +19,7 @@ import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.event.PlayerReportDeleteEvent;
 import su.nightexpress.sunlight.api.event.PlayerReportEvent;
 import su.nightexpress.sunlight.api.event.PlayerReportResolvedEvent;
+import su.nightexpress.sunlight.api.provider.ReportHandle;
 import su.nightexpress.sunlight.api.provider.ReportsProvider;
 import su.nightexpress.sunlight.command.CommandKey;
 import su.nightexpress.sunlight.config.PermissionTree;
@@ -33,15 +35,28 @@ import su.nightexpress.sunlight.moduleImpl.reports.command.ReportsSubmitCommandP
 import su.nightexpress.sunlight.moduleImpl.reports.ReportsConfig;
 import su.nightexpress.sunlight.moduleImpl.reports.config.ReportsLang;
 import su.nightexpress.sunlight.moduleImpl.reports.config.ReportsPerms;
+import su.nightexpress.sunlight.moduleImpl.reports.data.CaseRepository;
 import su.nightexpress.sunlight.moduleImpl.reports.data.ReportRepository;
 import su.nightexpress.sunlight.moduleImpl.reports.data.ReportsDataManager;
 import su.nightexpress.sunlight.moduleImpl.reports.dialog.ReportsDialogKeys;
+import su.nightexpress.sunlight.moduleImpl.reports.dialog.impl.ReportConfirmDialog;
 import su.nightexpress.sunlight.moduleImpl.reports.dialog.impl.ReportNoteDialog;
 import su.nightexpress.sunlight.moduleImpl.reports.dialog.impl.ReportOutcomeDialog;
+import su.nightexpress.sunlight.moduleImpl.reports.dialog.impl.ReportPickCategoryDialog;
+import su.nightexpress.sunlight.moduleImpl.reports.dialog.impl.ReportPickDetailsDialog;
 import su.nightexpress.sunlight.moduleImpl.reports.listener.ReportsPunishListener;
+import su.nightexpress.sunlight.moduleImpl.reports.menu.CaseViewMenu;
+import su.nightexpress.sunlight.moduleImpl.reports.menu.ReportTargetMenu;
 import su.nightexpress.sunlight.moduleImpl.reports.menu.ReportViewMenu;
+import su.nightexpress.sunlight.moduleImpl.reports.menu.ReportsStatsMenu;
 import su.nightexpress.sunlight.moduleImpl.reports.menu.ReportsMenu;
+import su.nightexpress.sunlight.moduleImpl.reports.model.CaseStatus;
 import su.nightexpress.sunlight.moduleImpl.reports.model.Report;
+import su.nightexpress.sunlight.moduleImpl.reports.model.ReportCase;
+import su.nightexpress.sunlight.moduleImpl.reports.model.ReportDraft;
+import su.nightexpress.sunlight.moduleImpl.reports.model.ReportsStats;
+import su.nightexpress.sunlight.moduleImpl.reports.model.ReportsStats.StaffEntry;
+import su.nightexpress.sunlight.moduleImpl.reports.model.ReportsStats.TopEntry;
 import su.nightexpress.sunlight.moduleImpl.reports.model.ReportCategory;
 import su.nightexpress.sunlight.moduleImpl.reports.model.ReportFilter;
 import su.nightexpress.sunlight.moduleImpl.reports.model.ReportNote;
@@ -50,11 +65,14 @@ import su.nightexpress.sunlight.teleport.TeleportContext;
 import su.nightexpress.sunlight.teleport.TeleportFlag;
 import su.nightexpress.sunlight.teleport.TeleportType;
 import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 import su.nightexpress.sunlight.utils.TimeUtil;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -62,19 +80,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Consumer;
 
 public class ReportsModule extends Module implements ReportsProvider {
 
     private static final CommandKey COOLDOWN_KEY = new CommandKey("reports", "submit");
     private static final String PLAYTIME_MODULE_ID = "playtime";
+    private static final UUID NOBODY = new UUID(0L, 0L);
 
     private final ReportRepository repository = new ReportRepository();
+    private final CaseRepository caseRepository = new CaseRepository();
     private final ReportsDataManager dataManager;
     private final Map<String, ReportCategory> categories = new LinkedHashMap<>();
 
     private ReportsMenu menu;
     private ReportViewMenu viewMenu;
+    private ReportTargetMenu targetMenu;
+    private CaseViewMenu caseMenu;
+    private ReportsStatsMenu statsMenu;
 
     private volatile boolean dataLoaded;
 
@@ -87,6 +111,13 @@ public class ReportsModule extends Module implements ReportsProvider {
     protected void loadModule(FileConfig config) {
         config.initializeOptions(ReportsConfig.class);
 
+        // Must happen before any SunUser is deserialised: UserColumns drops any key it cannot
+        // find in the registry, so an unregistered property is silently lost on every load.
+        UserPropertyRegistry.register(ReportsProperties.OPT_OUT);
+        UserPropertyRegistry.register(ReportsProperties.REWARD_DAY_KEY);
+        UserPropertyRegistry.register(ReportsProperties.REWARD_DAY_COUNT);
+        UserPropertyRegistry.register(ReportsProperties.REWARD_LAST_PAID);
+
         this.categories.clear();
         this.categories.putAll(ReportsConfig.readCategories(config));
 
@@ -97,6 +128,7 @@ public class ReportsModule extends Module implements ReportsProvider {
         this.loadMenus();
         this.loadDialogs();
         this.loadData();
+        this.loadTasks();
 
         if (this.plugin.moduleManager().isPresent(BansModule.class)) {
             this.addListener(new ReportsPunishListener(this));
@@ -109,10 +141,14 @@ public class ReportsModule extends Module implements ReportsProvider {
     @Override
     protected void unloadModule() {
         this.repository.clear();
+        this.caseRepository.clear();
         this.categories.clear();
         this.dataLoaded = false;
         this.menu = null;
         this.viewMenu = null;
+        this.targetMenu = null;
+        this.caseMenu = null;
+        this.statsMenu = null;
     }
 
     @Override
@@ -126,13 +162,45 @@ public class ReportsModule extends Module implements ReportsProvider {
 
     @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
-        registry.register("reports_open", (player, payload) -> String.valueOf(this.getOpenReportCount()));
-        registry.register("reports_open_mine",
-                (player, payload) -> String.valueOf(this.getOpenReportCount(player.getUniqueId())));
-        registry.register("reports_total_mine",
-                (player, payload) -> String.valueOf(this.getConcludedReportCount(player.getUniqueId())));
-        registry.register("reports_on_me",
-                (player, payload) -> String.valueOf(this.hasOpenReportAgainst(player.getUniqueId())));
+        // These are deliberately prefixed 'count_' rather than named after the metric. The registry
+        // resolves the longest matching key and hands the rest to the handler as a payload, so a
+        // key like 'reports_open' would swallow '%sunlight_reports_open_<uuid>%' and answer with
+        // the global count instead of failing. 'reports_count_open' cannot collide with the
+        // per-report field keys below.
+        registry.register("reports_count_open", (player, payload) -> String.valueOf(this.getOpenReportCount()));
+        registry.register("reports_count_open_mine",
+                (player, payload) -> String.valueOf(this.getOpenReportCount(this.viewerId(player))));
+        registry.register("reports_count_total_mine",
+                (player, payload) -> String.valueOf(this.getConcludedReportCount(this.viewerId(player))));
+        registry.register("reports_count_on_me",
+                (player, payload) -> String.valueOf(this.hasOpenReportAgainst(this.viewerId(player))));
+
+        // Per-report fields, payload = report id. An unknown id yields an empty string rather than
+        // null so a scoreboard shows a blank instead of a raw placeholder.
+        registry.register("reports_status", (player, payload) -> this.field(payload, Report::getStatusText));
+        registry.register("reports_category",
+                (player, payload) -> this.field(payload, Report::getCategoryDisplay));
+        registry.register("reports_reporter", (player, payload) -> this.field(payload, Report::getReporterName));
+        registry.register("reports_target", (player, payload) -> this.field(payload, Report::getTargetName));
+        registry.register("reports_details", (player, payload) -> this.field(payload, Report::getDetails));
+        registry.register("reports_date", (player, payload) -> this.field(payload, report -> String.valueOf(report.getCreateDate())));
+        registry.register("reports_age", (player, payload) -> this.field(payload, Report::getAgeText));
+    }
+
+    private UUID viewerId(Player player) {
+        return player == null ? this.NOBODY : player.getUniqueId();
+    }
+
+    private String field(String payloadId, Function<Report, String> extractor) {
+        UUID reportId = this.resolveCaseId(payloadId);
+        if (reportId == null)
+            return "";
+
+        Report report = this.repository.getReport(reportId);
+        if (report == null)
+            return "";
+
+        return extractor.apply(report);
     }
 
     private void loadMenus() {
@@ -141,11 +209,33 @@ public class ReportsModule extends Module implements ReportsProvider {
 
         this.viewMenu = new ReportViewMenu(this);
         this.viewMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "report-view.yml"));
+
+        this.targetMenu = new ReportTargetMenu(this);
+        this.targetMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "report-target.yml"));
+
+        this.caseMenu = new CaseViewMenu(this);
+        this.caseMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "case-view.yml"));
+
+        this.statsMenu = new ReportsStatsMenu(this);
+        this.statsMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "stats.yml"));
+    }
+
+    private void loadTasks() {
+        int sweepSeconds = ReportsConfig.LIFECYCLE_SWEEP_SECONDS.get();
+        if (sweepSeconds > 0 && (ReportsConfig.LIFECYCLE_AUTO_CLOSE_DAYS.get() > 0
+                || ReportsConfig.LIFECYCLE_REMIND_AFTER_MINUTES.get() > 0)) {
+            this.addAsyncTask(this::sweepStaleReports, sweepSeconds);
+        }
     }
 
     private void loadDialogs() {
         this.dialogRegistry.register(ReportsDialogKeys.REPORT_NOTE, () -> new ReportNoteDialog(this));
         this.dialogRegistry.register(ReportsDialogKeys.REPORT_OUTCOME, () -> new ReportOutcomeDialog(this));
+        this.dialogRegistry.register(ReportsDialogKeys.REPORT_PICK_CATEGORY,
+                () -> new ReportPickCategoryDialog(this));
+        this.dialogRegistry.register(ReportsDialogKeys.REPORT_PICK_DETAILS,
+                () -> new ReportPickDetailsDialog(this));
+        this.dialogRegistry.register(ReportsDialogKeys.REPORT_CONFIRM, () -> new ReportConfirmDialog(this));
     }
 
     private void loadData() {
@@ -158,6 +248,10 @@ public class ReportsModule extends Module implements ReportsProvider {
             for (ReportNote note : this.dataManager.getNotes()) {
                 this.repository.addNote(note);
             }
+            for (ReportCase reportCase : this.dataManager.getCases()) {
+                this.caseRepository.upsertCase(reportCase);
+            }
+            this.rebuildCaseReports();
             this.dataLoaded = true;
         });
     }
@@ -168,6 +262,10 @@ public class ReportsModule extends Module implements ReportsProvider {
 
     public ReportRepository getRepository() {
         return this.repository;
+    }
+
+    public CaseRepository getCaseRepository() {
+        return this.caseRepository;
     }
 
     public ReportsDataManager getDataManager() {
@@ -215,6 +313,10 @@ public class ReportsModule extends Module implements ReportsProvider {
         }
         if (this.isExempt(sender)) {
             this.sendPrefixed(ReportsLang.ERROR_EXEMPT, sender);
+            return false;
+        }
+        if (this.userManager.getOrFetch(sender).getPropertyOrDefault(ReportsProperties.OPT_OUT)) {
+            this.sendPrefixed(ReportsLang.ERROR_SELF_OPTOUT, sender);
             return false;
         }
         if (this.isBlacklistedWorld(sender)) {
@@ -289,7 +391,34 @@ public class ReportsModule extends Module implements ReportsProvider {
             }
         }
 
+        int maxPerDay = ReportsConfig.ABUSE_MAX_REPORTS_PER_DAY.get();
+        if (maxPerDay > 0 && !sender.hasPermission(ReportsPerms.BYPASS_DAILY_LIMIT)) {
+            int filedToday = this.countFiledToday(sender.getUniqueId());
+            if (filedToday >= maxPerDay) {
+                if (ReportsConfig.ABUSE_SUPPRESS_BEYOND_DAILY_LIMIT.get()) {
+                    return false;
+                }
+                this.sendPrefixed(ReportsLang.ERROR_DAILY_LIMIT, sender, b -> b
+                        .with(SLPlaceholders.GENERIC_CURRENT, () -> String.valueOf(filedToday))
+                        .with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(maxPerDay)));
+            }
+        }
+
         UUID targetId = this.userManager.getRepository().getAssociatedId(targetName);
+
+        int maxPerTarget = ReportsConfig.ABUSE_MAX_OPEN_PER_TARGET.get();
+        if (maxPerTarget > 0) {
+            int openAgainst = targetId == null
+                    ? this.repository.getPendingReportsByTargetName(targetName).size()
+                    : this.repository.getPendingReportsByTargetId(targetId).size();
+            if (openAgainst >= maxPerTarget) {
+                this.sendPrefixed(ReportsLang.ERROR_TARGET_LIMIT, sender, b -> b
+                        .with(SLPlaceholders.GENERIC_TARGET, () -> targetName)
+                        .with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(maxPerTarget)));
+                return false;
+            }
+        }
+
         Report duplicate = this.findDuplicate(sender.getUniqueId(), targetId, targetName);
         if (duplicate != null && !sender.hasPermission(ReportsPerms.COMMAND_REPORT_DUPLICATE)) {
             this.sendPrefixed(ReportsLang.ERROR_ALREADY_REPORTED, sender, b -> b
@@ -307,6 +436,7 @@ public class ReportsModule extends Module implements ReportsProvider {
                     location.getY(), location.getZ());
         }
         this.stampCategoryDisplay(report);
+        this.attachToCase(report, targetId, targetName);
 
         this.dataManager.insertReport(report);
         this.repository.upsertReport(report);
@@ -328,6 +458,43 @@ public class ReportsModule extends Module implements ReportsProvider {
         this.notifyStaff(report);
         this.notifyTarget(report);
         return true;
+    }
+
+    /**
+     * Reports about the same offender land in the same open case so staff work one thing rather
+     * than five rows. A concluded case does not absorb new reports: the situation was addressed,
+     * and a later incident is a new one.
+     */
+    private void attachToCase(Report report, @Nullable UUID targetId, String targetName) {
+        if (!ReportsConfig.CASE_GROUPING_ENABLED.get())
+            return;
+
+        ReportCase open = this.caseRepository.getOpenCaseByTarget(targetId, targetName);
+        if (open == null) {
+            // A fresh case is written once with the right count rather than inserted at zero and
+            // immediately updated.
+            open = ReportCase.create(targetId, targetName);
+            open.setReportCount(1);
+            this.dataManager.insertCase(open);
+            this.caseRepository.upsertCase(open);
+            report.setCaseId(open.getId());
+            return;
+        }
+
+        report.setCaseId(open.getId());
+        open.setReportCount(this.repository.getCaseCount(open.getId()) + 1);
+        this.dataManager.updateCase(open);
+    }
+
+    private void rebuildCaseReports() {
+        for (ReportCase reportCase : this.caseRepository.getCases()) {
+            List<Report> reports = this.repository.getReportsByCase(reportCase.getId());
+            this.caseRepository.setCaseReports(reportCase.getId(), reports);
+            if (reportCase.getReportCount() != reports.size()) {
+                reportCase.setReportCount(reports.size());
+                this.dataManager.updateCase(reportCase);
+            }
+        }
     }
 
     private @Nullable Report findDuplicate(UUID reporterId, @Nullable UUID targetId, String targetName) {
@@ -427,7 +594,7 @@ public class ReportsModule extends Module implements ReportsProvider {
                 .with(report.placeholders()));
 
         boolean rewarded = false;
-        if (status == ReportStatus.RESOLVED) {
+        if (status == ReportStatus.RESOLVED && !ReportsConfig.REWARDS_MODE.get().isPunishmentRequired()) {
             rewarded = this.payReward(report);
         }
 
@@ -502,6 +669,69 @@ public class ReportsModule extends Module implements ReportsProvider {
         this.addNoteInternal(report, ReportNote.system(report.getId(), builder.build().apply(locale.text())));
     }
 
+    public boolean claimCase(@NotNull ReportCase reportCase, @NotNull CommandSender staff) {
+        if (reportCase.isTerminal()) {
+            this.sendPrefixed(ReportsLang.ERROR_ALREADY_CONCLUDED, staff,
+                    b -> b.with(SLPlaceholders.GENERIC_STATUS, () -> reportCase.getStatus().name()));
+            return false;
+        }
+
+        UUID staffId = this.idOf(staff);
+        if (reportCase.getStaffId() != null && !reportCase.getStaffId().equals(staffId)) {
+            this.sendPrefixed(ReportsLang.ERROR_CLAIMED_BY_OTHER, staff,
+                    b -> b.with(SLPlaceholders.GENERIC_TARGET, () -> reportCase.getStaffName()));
+            return false;
+        }
+
+        ReportCase before = reportCase.copy();
+        reportCase.setStatus(CaseStatus.CLAIMED);
+        reportCase.setStaff(staffId, staff.getName());
+        this.commitCase(reportCase, before);
+
+        this.sendPrefixed(ReportsLang.CASE_CLAIMED, staff,
+                b -> b.with(SLPlaceholders.GENERIC_TARGET, reportCase::getTargetName));
+        return true;
+    }
+
+    /**
+     * Concluding a case concludes every report still open inside it, which is what runs each
+     * member's own reward path. Reports already individually denied are left alone.
+     */
+    public boolean concludeCase(@NotNull ReportCase reportCase, @NotNull CaseStatus status,
+            @NotNull CommandSender staff, @Nullable String outcome) {
+        if (!status.isTerminal())
+            return false;
+        if (reportCase.isTerminal()) {
+            this.sendPrefixed(ReportsLang.ERROR_ALREADY_CONCLUDED, staff,
+                    b -> b.with(SLPlaceholders.GENERIC_STATUS, () -> reportCase.getStatus().name()));
+            return false;
+        }
+
+        ReportCase before = reportCase.copy();
+        reportCase.setStatus(status);
+        reportCase.setStaff(this.idOf(staff), staff.getName());
+        reportCase.setOutcomeReason(outcome);
+        this.commitCase(reportCase, before);
+
+        ReportStatus reportOutcome = status == CaseStatus.DENIED ? ReportStatus.DENIED : ReportStatus.RESOLVED;
+        for (Report report : this.repository.getReportsByCase(reportCase.getId())) {
+            if (report.isPending()) {
+                this.conclude(report, reportOutcome, staff, outcome);
+            }
+        }
+
+        this.sendPrefixed(ReportsLang.CASE_CONCLUDED, staff, b -> b
+                .with(SLPlaceholders.GENERIC_STATUS, () -> status.name())
+                .with(SLPlaceholders.GENERIC_TARGET, reportCase::getTargetName));
+        return true;
+    }
+
+    private void commitCase(ReportCase reportCase, ReportCase before) {
+        reportCase.setUpdateDate(System.currentTimeMillis());
+        this.dataManager.updateCase(reportCase);
+        this.caseRepository.applyTransition(before, reportCase);
+    }
+
     public boolean deleteReport(@NotNull Report report, @NotNull CommandSender staff) {
         Report before = this.snapshot(report);
         List<ReportNote> notes = this.repository.getNotes(report.getId());
@@ -540,6 +770,79 @@ public class ReportsModule extends Module implements ReportsProvider {
                 return online;
         }
         return Bukkit.getPlayerExact(report.getTargetName());
+    }
+
+    /**
+     * Closes reports nobody has touched and reminds staff about unattended ones. Runs off-thread,
+     * so anything Bukkit-facing hops back to the main thread.
+     */
+    private void sweepStaleReports() {
+        if (!this.dataLoaded)
+            return;
+
+        int autoCloseDays = ReportsConfig.LIFECYCLE_AUTO_CLOSE_DAYS.get();
+        int remindMinutes = ReportsConfig.LIFECYCLE_REMIND_AFTER_MINUTES.get();
+        long now = System.currentTimeMillis();
+
+        List<Report> toExpire = new ArrayList<>();
+        List<Report> toRemind = new ArrayList<>();
+
+        for (Report report : this.repository.getReports()) {
+            if (!report.isPending())
+                continue;
+
+            if (autoCloseDays > 0 && report.getStatus() == ReportStatus.OPEN
+                    && now - report.getCreateDate() > TimeUnit.DAYS.toMillis(autoCloseDays)) {
+                toExpire.add(report);
+            }
+            if (remindMinutes > 0 && report.getStatus() == ReportStatus.OPEN && !report.isReminded()
+                    && now - report.getCreateDate() > TimeUnit.MINUTES.toMillis(remindMinutes)) {
+                toRemind.add(report);
+            }
+        }
+
+        if (!toRemind.isEmpty()) {
+            this.plugin.runTask(task -> toRemind.forEach(this::markReminded));
+        }
+        if (!toExpire.isEmpty()) {
+            this.plugin.runTask(task -> toExpire.forEach(this::autoExpire));
+        }
+    }
+
+    private void markReminded(Report report) {
+        Report before = this.snapshot(report);
+        report.setReminded(true);
+        this.commit(report, before);
+        this.notifyStaffReminders(report);
+    }
+
+    private void autoExpire(Report report) {
+        if (!report.isPending())
+            return;
+
+        this.addSystemNote(report, ReportsLang.SYSTEM_AUTO_CLOSED, "the server");
+        Report before = this.snapshot(report);
+        report.setStatus(ReportStatus.EXPIRED);
+        this.commit(report, before);
+
+        // Deliberately not PlayerReportResolvedEvent's reward path: an expired report is a record
+        // that nobody worked it, not a judgement that it was unjustified, and pays nothing.
+        this.plugin.getPluginManager().callEvent(new PlayerReportResolvedEvent(report, ReportStatus.EXPIRED, false,
+                false));
+    }
+
+    private void notifyStaffReminders(Report report) {
+        if (!ReportsConfig.NOTIFY_ENABLED.get())
+            return;
+
+        String permission = ReportsConfig.NOTIFY_PERMISSION.get();
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (online.hasPermission(permission)) {
+                this.sendPrefixed(ReportsLang.NOTIFY_REMINDER, online, b -> b
+                        .with(SLPlaceholders.GENERIC_TARGET, report::getTargetName)
+                        .with(report.placeholders()));
+            }
+        }
     }
 
     public void handlePunish(@NotNull PlayerPunishEvent event) {
@@ -582,6 +885,10 @@ public class ReportsModule extends Module implements ReportsProvider {
             return false;
         if (!this.meetsRewardRequirements(report))
             return false;
+        // Caps are evaluated before the compare-and-set on purpose: withholding a reward must
+        // never leave the claim flag set, or a later valid path could never pay this report.
+        if (!this.meetsRewardCaps(report))
+            return false;
         if (!report.tryClaimReward())
             return false;
 
@@ -598,6 +905,72 @@ public class ReportsModule extends Module implements ReportsProvider {
         return true;
     }
 
+    private boolean meetsRewardCaps(Report report) {
+        java.util.Optional<SunUser> user = this.userManager.getOrFetch(report.getReporterId());
+        if (user.isEmpty()) {
+            return false;
+        }
+
+        int maxPerDay = ReportsConfig.REWARDS_MAX_PER_DAY.get();
+        if (maxPerDay > 0 && this.countRewardsToday(user.get()) >= maxPerDay) {
+            this.notifyRewardWithheld(report, ReportsLang.REWARD_WITHHELD_DAILY);
+            return false;
+        }
+
+        int cooldown = ReportsConfig.REWARDS_COOLDOWN_SECONDS.get();
+        if (cooldown > 0) {
+            long lastPaid = user.get().getPropertyOrDefault(ReportsProperties.REWARD_LAST_PAID);
+            if (lastPaid > 0L && !TimeUtil.isPassed(lastPaid + (cooldown * 1000L))) {
+                this.notifyRewardWithheld(report, ReportsLang.REWARD_WITHHELD_COOLDOWN);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void notifyRewardWithheld(Report report, MessageLocale locale) {
+        this.debug("Reward for report " + report.getId() + " withheld: " + locale.getPath());
+
+        Player reporter = Bukkit.getPlayer(report.getReporterId());
+        if (reporter != null) {
+            this.sendPrefixed(locale, reporter);
+        }
+    }
+
+    /**
+     * Reward accounting is stored rather than derived: a report is created at one moment and
+     * rewarded at another, so "rewarded today" has no single timestamp on the row.
+     */
+    private int countRewardsToday(SunUser user) {
+        String today = this.currentDayKey();
+        if (!today.equals(user.getPropertyOrDefault(ReportsProperties.REWARD_DAY_KEY))) {
+            return 0;
+        }
+        return user.getPropertyOrDefault(ReportsProperties.REWARD_DAY_COUNT);
+    }
+
+    private void recordRewardPaid(SunUser user) {
+        String today = this.currentDayKey();
+        if (!today.equals(user.getPropertyOrDefault(ReportsProperties.REWARD_DAY_KEY))) {
+            user.setProperty(ReportsProperties.REWARD_DAY_KEY, today);
+            user.setProperty(ReportsProperties.REWARD_DAY_COUNT, 0);
+        }
+        user.setProperty(ReportsProperties.REWARD_DAY_COUNT,
+                user.getPropertyOrDefault(ReportsProperties.REWARD_DAY_COUNT) + 1);
+        user.setProperty(ReportsProperties.REWARD_LAST_PAID, System.currentTimeMillis());
+    }
+
+    private int countFiledToday(UUID reporterId) {
+        long startOfDay = TimeUtil.toEpochMillis(TimeUtil.getCurrentDate().atStartOfDay());
+        return (int) this.repository.getReportsByReporter(reporterId).stream()
+                .filter(report -> report.getCreateDate() >= startOfDay)
+                .count();
+    }
+
+    private static String currentDayKey() {
+        return TimeUtil.getCurrentDate().toString();
+    }
+
     private boolean meetsRewardRequirements(Report report) {
         int hours = ReportsConfig.REWARDS_MIN_PLAYTIME_HOURS.get();
         if (hours <= 0)
@@ -611,6 +984,8 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     private void dispatchReward(@NotNull Report report) {
+        this.userManager.getOrFetch(report.getReporterId()).ifPresent(this::recordRewardPaid);
+
         List<String> commands = ReportsConfig.REWARDS_COMMANDS.get();
         if (commands.isEmpty())
             return;
@@ -689,6 +1064,20 @@ public class ReportsModule extends Module implements ReportsProvider {
 
     // Menus
 
+    public boolean toggleOptOut(@NotNull Player player) {
+        SunUser user = this.userManager.getOrFetch(player);
+        boolean optOut = !user.getPropertyOrDefault(ReportsProperties.OPT_OUT);
+        user.setProperty(ReportsProperties.OPT_OUT, optOut);
+        user.markDirty();
+
+        this.sendPrefixed(optOut ? ReportsLang.OPTOUT_ENABLED : ReportsLang.OPTOUT_DISABLED, player);
+        return optOut;
+    }
+
+    public boolean isOptedOut(@NotNull Player player) {
+        return this.userManager.getOrFetch(player).getPropertyOrDefault(ReportsProperties.OPT_OUT);
+    }
+
     public boolean openMenu(@NotNull Player player, @NotNull ReportFilter filter) {
         if (!this.dataLoaded) {
             this.sendPrefixed(ReportsLang.ERROR_DATA_NOT_LOADED, player);
@@ -699,6 +1088,50 @@ public class ReportsModule extends Module implements ReportsProvider {
 
     public boolean openView(@NotNull Player player, @NotNull Report report) {
         return this.viewMenu != null && this.viewMenu.open(player, report);
+    }
+
+    /**
+     * Step one. Lists online players, because a menu cannot take free text; the command form
+     * remains the way to report somebody by name who is not online.
+     */
+    public boolean openTargetMenu(@NotNull Player player) {
+        if (!this.dataLoaded) {
+            this.sendPrefixed(ReportsLang.ERROR_DATA_NOT_LOADED, player);
+            return false;
+        }
+        return this.targetMenu != null && this.targetMenu.show(this.plugin, player);
+    }
+
+    public void openCategoryDialog(@NotNull Player player, @NotNull String targetName) {
+        this.plugin.showDialog(player, ReportsDialogKeys.REPORT_PICK_CATEGORY, targetName, () -> {
+        });
+    }
+
+    public void openDetailsDialog(@NotNull Player player, @NotNull ReportDraft draft, @NotNull Runnable callback) {
+        this.plugin.showDialog(player, ReportsDialogKeys.REPORT_PICK_DETAILS, draft, callback);
+    }
+
+    public void openConfirmDialog(@NotNull Player player, @NotNull ReportDraft draft, @NotNull Runnable callback) {
+        this.plugin.showDialog(player, ReportsDialogKeys.REPORT_CONFIRM, draft, callback);
+    }
+
+    public boolean openCaseView(@NotNull Player player, @NotNull ReportCase reportCase) {
+        return this.caseMenu != null && this.caseMenu.open(player, reportCase);
+    }
+
+    public boolean openCaseFor(@NotNull Player player, @NotNull String targetName) {
+        ReportCase reportCase = this.caseRepository.getOpenCaseByTarget(
+                this.userManager.getRepository().getAssociatedId(targetName), targetName);
+        if (reportCase == null) {
+            this.sendPrefixed(ReportsLang.ERROR_NO_CASE, player,
+                    b -> b.with(SLPlaceholders.GENERIC_TARGET, () -> targetName));
+            return false;
+        }
+        return this.openCaseView(player, reportCase);
+    }
+
+    public boolean openStats(@NotNull Player player) {
+        return this.statsMenu != null && this.statsMenu.open(player);
     }
 
     public void openNoteDialog(@NotNull Player player, @NotNull Report report, @NotNull Runnable callback) {
@@ -719,11 +1152,24 @@ public class ReportsModule extends Module implements ReportsProvider {
             case MINE -> this.repository.getReportsByReporter(viewer.getUniqueId());
             case ALL -> this.repository.getReports();
             case TARGET -> this.repository.getReportsByTargetName(targetName);
+            case CASE -> targetName == null ? List.of()
+                    : this.repository.getReportsByCase(this.resolveCaseId(targetName));
         };
 
         // No ORDER BY exists in the query API, so ordering happens here.
         reports.sort((first, second) -> Long.compare(second.getCreateDate(), first.getCreateDate()));
         return reports;
+    }
+
+    private @Nullable UUID resolveCaseId(@Nullable String raw) {
+        if (raw == null || raw.isBlank())
+            return null;
+
+        try {
+            return UUID.fromString(raw);
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
     }
 
     public List<ReportNote> getNotesForViewer(@NotNull Player viewer, @NotNull Report report) {
@@ -753,8 +1199,64 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     @Override
+    public int getOpenReportCountAgainst(@NotNull UUID playerId) {
+        return this.repository.getPendingReportsByTargetId(playerId).size();
+    }
+
+    @Override
+    public int getOpenReportCountAgainst(@Nullable UUID playerId, @Nullable String targetName) {
+        return this.pendingAgainst(playerId, targetName).size();
+    }
+
+    @Override
     public boolean hasOpenReportAgainst(@NotNull UUID playerId) {
-        return !this.repository.getPendingReportsByTargetId(playerId).isEmpty();
+        return this.getOpenReportCountAgainst(playerId) > 0;
+    }
+
+    @Override
+    public boolean hasOpenReportAgainst(@Nullable UUID playerId, @Nullable String targetName) {
+        return !this.pendingAgainst(playerId, targetName).isEmpty();
+    }
+
+    /**
+     * A report filed against a player who had not yet joined carries no UUID, so the name is not
+     * a fallback convenience but a second real identity. Unioning both is only correct when they
+     * refer to the same player, which is the caller's contract.
+     */
+    private List<Report> pendingAgainst(@Nullable UUID playerId, @Nullable String targetName) {
+        if (playerId == null)
+            return this.repository.getPendingReportsByTargetName(targetName);
+
+        List<Report> reports = new ArrayList<>(this.repository.getPendingReportsByTargetId(playerId));
+        if (targetName != null && !targetName.isBlank()) {
+            for (Report report : this.repository.getPendingReportsByTargetName(targetName)) {
+                if (!reports.contains(report))
+                    reports.add(report);
+            }
+        }
+        return reports;
+    }
+
+    @Override
+    public boolean isOptedOut(@NotNull UUID playerId) {
+        return this.userManager.getOrFetch(playerId)
+                .map(user -> user.getPropertyOrDefault(ReportsProperties.OPT_OUT))
+                .orElse(false);
+    }
+
+    @Override
+    public @org.jetbrains.annotations.Nullable ReportHandle getReport(@org.jetbrains.annotations.Nullable UUID reportId) {
+        if (reportId == null)
+            return null;
+
+        Report report = this.repository.getReport(reportId);
+        if (report == null)
+            return null;
+
+        return new ReportHandle(report.getId(), report.getReporterId(), report.getReporterName(),
+                report.getTargetId(), report.getTargetName(), report.getCategoryDisplay(), report.getStatusText(),
+                report.getCreateDate(), report.getUpdateDate(), report.isRewarded(), report.isPending(),
+                report.getCaseId());
     }
 
     @Override
@@ -770,6 +1272,110 @@ public class ReportsModule extends Module implements ReportsProvider {
         return this.userManager.getOrFetch(playerId)
                 .map(user -> user.getPropertyOrDefault(PlaytimeProperties.TOTAL))
                 .orElse(0L);
+    }
+
+    // Statistics
+
+    /**
+     * Derived entirely from the in-memory repository, so it is automatically purge-managed and
+     * needs no table of its own.
+     */
+    public ReportsStats collectStats() {
+        List<Report> reports = this.repository.getReports();
+
+        Map<ReportStatus, Integer> byStatus = new EnumMap<>(ReportStatus.class);
+        for (ReportStatus status : ReportStatus.values()) {
+            byStatus.put(status, 0);
+        }
+
+        List<Long> claimDelays = new ArrayList<>();
+        List<Long> resolveDelays = new ArrayList<>();
+        Map<UUID, Integer> reportsByTarget = new HashMap<>();
+        Map<UUID, Integer> rewardsByReporter = new HashMap<>();
+        Map<UUID, int[]> byStaff = new HashMap<>();
+        Map<UUID, String> staffNames = new HashMap<>();
+
+        for (Report report : reports) {
+            byStatus.merge(report.getStatus(), 1, Integer::sum);
+
+            if (report.getClaimedDate() > 0L) {
+                claimDelays.add(report.getClaimedDate() - report.getCreateDate());
+            }
+            if (report.getStaffId() != null) {
+                staffNames.putIfAbsent(report.getStaffId(), report.getStaffName());
+                byStaff.computeIfAbsent(report.getStaffId(), key -> new int[2])[0]++;
+                if (report.getStatus() == ReportStatus.DENIED) {
+                    byStaff.get(report.getStaffId())[1]++;
+                }
+            }
+            if (report.getTargetId() != null) {
+                reportsByTarget.merge(report.getTargetId(), 1, Integer::sum);
+            }
+            if (report.isRewarded()) {
+                rewardsByReporter.merge(report.getReporterId(), 1, Integer::sum);
+            }
+        }
+
+        // An expired report records that nobody worked it, not that anyone judged it wrong, so it
+        // is excluded from both rates. Including it would make a neglected queue look competent.
+        int resolved = byStatus.getOrDefault(ReportStatus.RESOLVED, 0);
+        int denied = byStatus.getOrDefault(ReportStatus.DENIED, 0);
+        int concluded = resolved + denied;
+
+        return new ReportsStats(
+                byStatus.getOrDefault(ReportStatus.OPEN, 0),
+                byStatus.getOrDefault(ReportStatus.CLAIMED, 0),
+                resolved,
+                denied,
+                byStatus.getOrDefault(ReportStatus.EXPIRED, 0),
+                concluded,
+                rate(resolved, concluded),
+                rate(denied, concluded),
+                median(claimDelays),
+                median(resolveDelays),
+                this.countOptedOut(),
+                this.topEntries(reportsByTarget, 10),
+                this.topEntries(rewardsByReporter, 10),
+                this.staffEntries(byStaff, staffNames)
+        );
+    }
+
+    private static double rate(int part, int whole) {
+        return whole <= 0 ? 0D : (double) part / whole;
+    }
+
+    private static long median(List<Long> values) {
+        if (values.isEmpty())
+            return 0L;
+
+        List<Long> sorted = new ArrayList<>(values);
+        sorted.sort(Long::compare);
+        return sorted.get(sorted.size() / 2);
+    }
+
+    private int countOptedOut() {
+        return (int) this.userManager.getAll().stream()
+                .filter(user -> user.getPropertyOrDefault(ReportsProperties.OPT_OUT))
+                .count();
+    }
+
+    private static List<TopEntry> topEntries(Map<UUID, Integer> counts, int limit) {
+        return counts.entrySet().stream()
+                .sorted(Map.Entry.<UUID, Integer> comparingByValue().reversed())
+                .limit(limit)
+                .map(entry -> new TopEntry(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    private static List<StaffEntry> staffEntries(Map<UUID, int[]> byStaff, Map<UUID, String> staffNames) {
+        return byStaff.entrySet().stream()
+                .sorted((first, second) -> Integer.compare(second.getValue()[0], first.getValue()[0]))
+                .map(entry -> {
+                    int[] counts = entry.getValue();
+                    return new StaffEntry(entry.getKey(), staffNames.get(entry.getKey()), counts[0], counts[1],
+                            rate(counts[1], counts[0]));
+                })
+                .toList();
     }
 
     // Internals
@@ -793,7 +1399,7 @@ public class ReportsModule extends Module implements ReportsProvider {
                 report.getTargetName(), report.getCategoryId(), report.getDetails(), report.getStatus(),
                 report.getStaffId(), report.getStaffName(), report.getCreateDate(), report.getUpdateDate(),
                 report.isRewarded(), report.getLastWorld(), report.getLastX(), report.getLastY(), report.getLastZ(),
-                report.getNoteCount());
+                report.getNoteCount(), report.isReminded(), report.getClaimedDate(), report.getCaseId());
     }
 
     private void commit(Report report, Report before) {

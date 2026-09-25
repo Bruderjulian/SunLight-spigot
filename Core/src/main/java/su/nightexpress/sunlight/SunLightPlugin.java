@@ -312,6 +312,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
     @Override
 
     public Optional<? extends ReportsProvider> reportsProvider() {
-        return java.util.Optional.empty(); // TEMP
+        return this.moduleManager.getByType(ReportsModule.class);
     }
 }
