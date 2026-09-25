@@ -12,8 +12,9 @@ import su.nightexpress.nightcore.manager.AbstractListener;
 import su.nightexpress.sunlight.SunLightPlugin;
 
 /**
- * Triggers recomputation on the events that can change a nameplate. Every handler defers to
- * a task, because TAB is not necessarily ready during the event itself.
+ * Triggers recomputation on the events that can change a nameplate. Every
+ * handler defers to a task, because TAB is not necessarily ready during the
+ * event itself.
  */
 public class NametagsListener extends AbstractListener<SunLightPlugin> {
 

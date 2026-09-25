@@ -9,7 +9,6 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.moduleImpl.nametags.hook.GroupSource;
-import su.nightexpress.sunlight.moduleImpl.nametags.hook.PermissionGroupSource;
 import su.nightexpress.sunlight.moduleImpl.nametags.hook.TeamInfo;
 import su.nightexpress.sunlight.moduleImpl.nametags.hook.TeamSource;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.NameplateVisibility;
@@ -22,9 +21,6 @@ import su.nightexpress.sunlight.moduleImpl.nametags.render.PrefixComposer;
 import su.nightexpress.sunlight.moduleImpl.nametags.render.TabNameTagBackend;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.UserManager;
-import su.nightexpress.sunlight.utils.Utils;
-
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -33,12 +29,12 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Single entry point for building and applying a player's nameplate.
  * <p>
- * TAB owns the actual rendering, so this class never writes packets. It resolves the four
- * contributing parts (team, rank, tag, glow), composes them and hands the result to the
- * backend, which drops redundant writes.
+ * TAB owns the actual rendering, so this class never writes packets. It
+ * resolves the four contributing parts (team, rank, tag, glow), composes them
+ * and hands the result to the backend, which drops redundant writes.
  * <p>
- * Group and team lookups are asynchronous, so recomputation returns a future and only ever
- * touches Bukkit state on the main thread.
+ * Group and team lookups are asynchronous, so recomputation returns a future
+ * and only ever touches Bukkit state on the main thread.
  */
 public class NameplateService {
 
@@ -53,7 +49,9 @@ public class NameplateService {
     private volatile @Nullable TeamSource teamSource;
     private final @Nullable GlowColorSource glowSource;
 
-    /** Last composed nameplate per player, kept so placeholder requests stay cheap. */
+    /**
+     * Last composed nameplate per player, kept so placeholder requests stay cheap.
+     */
     private final Map<UUID, Nameplate> lastComposed = new ConcurrentHashMap<>();
 
     /** Last resolved team per player, for the team placeholder. */
@@ -67,8 +65,7 @@ public class NameplateService {
             @NotNull TabNameTagBackend backend,
             @Nullable GroupSource groupSource,
             @Nullable TeamSource teamSource,
-            @Nullable GlowColorSource glowSource
-    ) {
+            @Nullable GlowColorSource glowSource) {
         this.module = module;
         this.settings = settings;
         this.catalog = catalog;
@@ -81,8 +78,8 @@ public class NameplateService {
     }
 
     /**
-     * Swaps the group and team sources, used when a reload re-resolves them from the
-     * settings. Both are read per recompute, so no cached nameplate goes stale.
+     * Swaps the group and team sources, used when a reload re-resolves them from
+     * the settings. Both are read per recompute, so no cached nameplate goes stale.
      */
     public void setSources(@NotNull GroupSource groupSource, @Nullable TeamSource teamSource) {
         this.groupSource = groupSource;
@@ -90,11 +87,13 @@ public class NameplateService {
     }
 
     /**
-     * Supplies the player's current glow colour name. Implemented by the glow module so the
+     * Supplies the player's current glow colour name. Implemented by the glow
+     * module so the
      * nametags module does not depend on it.
      */
     public interface GlowColorSource {
-        @Nullable String getGlowColor(@NotNull Player player);
+        @Nullable
+        String getGlowColor(@NotNull Player player);
     }
 
     // -----------------------------------------------------
@@ -104,8 +103,8 @@ public class NameplateService {
     /**
      * Recomputes a player's nameplate and pushes it to TAB.
      * <p>
-     * Group and team lookups may be async, so the chain returns futures and always lands
-     * back on the main thread before touching Bukkit or TAB state.
+     * Group and team lookups may be async, so the chain returns futures and always
+     * lands back on the main thread before touching Bukkit or TAB state.
      */
     public void recompute(@NotNull Player player) {
         UUID id = player.getUniqueId();
@@ -115,7 +114,8 @@ public class NameplateService {
         }
 
         GroupSource groupSource = this.groupSource;
-        if (groupSource == null) return;
+        if (groupSource == null)
+            return;
 
         groupSource.resolveGroups(player)
                 .thenCombine(this.resolveTeam(player), (groups, team) -> new Resolved(groups, team))
@@ -138,14 +138,16 @@ public class NameplateService {
     }
 
     private void apply(@NotNull Player player, @NotNull Set<String> groups, @NotNull TeamInfo team) {
-        if (!player.isOnline()) return;
+        if (!player.isOnline())
+            return;
 
         SunUser user = this.userManager.getOrFetch(player);
         long now = System.currentTimeMillis();
 
         Profile profile = this.catalog.resolveProfile(player, user.getPropertyOrDefault(NametagsProperties.PROFILE));
 
-        // Resolved first, then filtered: a suppressed part still counts as "selected" for the
+        // Resolved first, then filtered: a suppressed part still counts as "selected"
+        // for the
         // nametags_tag / nametags_rank placeholders, it just does not render.
         NameplateVisibility visibility = this.resolveVisibility(user);
 
@@ -154,9 +156,11 @@ public class NameplateService {
 
         Part teamPart = visibility.wantsTeam() ? Part.of(team.prefix(), team.suffix(), team.color()) : Part.EMPTY;
         Part rankPart = rank == null || !visibility.wantsRank()
-                ? Part.EMPTY : Part.of(rank.getPrefix(), rank.getSuffix(), rank.getColor());
+                ? Part.EMPTY
+                : Part.of(rank.getPrefix(), rank.getSuffix(), rank.getColor());
         Part tagPart = tag == null || !visibility.wantsTag()
-                ? Part.EMPTY : Part.of(tag.getPrefix(), tag.getSuffix(), tag.getColor());
+                ? Part.EMPTY
+                : Part.of(tag.getPrefix(), tag.getSuffix(), tag.getColor());
 
         String glow = visibility.showAll() ? this.resolveGlow(player, user, tag, now) : null;
 
@@ -177,18 +181,20 @@ public class NameplateService {
     private @Nullable RankDefinition resolveRank(@NotNull Player player,
             @NotNull SunUser user,
             @Nullable Profile profile,
-            @NotNull Set<String> groups
-    ) {
-        // A profile may force a rank, overriding both the stored pick and group resolution.
+            @NotNull Set<String> groups) {
+        // A profile may force a rank, overriding both the stored pick and group
+        // resolution.
         if (profile != null && profile.hasRank()) {
             RankDefinition forced = this.catalog.getRank(profile.getRankId());
-            if (forced != null) return forced;
+            if (forced != null)
+                return forced;
         }
 
         String stored = user.getPropertyOrDefault(NametagsProperties.RANK);
         if (stored != null && !stored.isBlank()) {
             RankDefinition chosen = this.catalog.getRank(stored);
-            if (chosen != null) return chosen;
+            if (chosen != null)
+                return chosen;
         }
 
         return this.catalog.resolveRank(player, groups);
@@ -197,33 +203,36 @@ public class NameplateService {
     private @Nullable TagDefinition resolveTag(@NotNull Player player,
             @NotNull SunUser user,
             @Nullable Profile profile,
-            long nowMillis
-    ) {
+            long nowMillis) {
         String id = null;
         if (profile != null && profile.hasTag()) {
             id = profile.getTagId();
         } else {
             id = user.getPropertyOrDefault(NametagsProperties.TAG);
         }
-        if (id == null || id.isBlank()) return null;
+        if (id == null || id.isBlank())
+            return null;
 
         TagDefinition tag = this.catalog.getTag(id);
-        if (tag == null) return null;
+        if (tag == null)
+            return null;
         return this.access.hasAccess(player, user, tag, nowMillis) ? tag : null;
     }
 
     private @Nullable String resolveGlow(@NotNull Player player,
             @NotNull SunUser user,
             @Nullable TagDefinition tag,
-            long nowMillis
-    ) {
-        if (!this.settings.isResolveGlowColor() || this.glowSource == null) return null;
+            long nowMillis) {
+        if (!this.settings.isResolveGlowColor() || this.glowSource == null)
+            return null;
 
         String color = this.glowSource.getGlowColor(player);
-        if (color == null || color.isBlank()) return null;
+        if (color == null || color.isBlank())
+            return null;
 
         // A tag that opted out of glow keeps its own colour instead.
-        if (tag != null && !this.access.allowsGlow(user, tag, nowMillis)) return null;
+        if (tag != null && !this.access.allowsGlow(user, tag, nowMillis))
+            return null;
 
         return color;
     }
@@ -235,7 +244,8 @@ public class NameplateService {
     }
 
     private @NotNull String applyPlaceholders(@NotNull Player player, @NotNull String text) {
-        if (text.isEmpty()) return text;
+        if (text.isEmpty())
+            return text;
         return PlaceholderContext.builder()
                 .with(CommonPlaceholders.PLAYER.resolver(player))
                 .andThen(SLPlaceholders.forPlaceholderAPI(player))
@@ -269,7 +279,8 @@ public class NameplateService {
 
     /** Recomputes every online player, e.g. after a reload or a rank change. */
     public void recomputeAll() {
-        for (Player player : Bukkit.getOnlinePlayers()) this.recompute(player);
+        for (Player player : Bukkit.getOnlinePlayers())
+            this.recompute(player);
     }
 
     public void forget(@NotNull UUID playerId) {

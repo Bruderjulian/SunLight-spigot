@@ -9,8 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Persistent per-player nametag state. Stored in the user {@code properties} JSON column,
- * so the declared generic type is what Gson deserializes each value back into.
+ * Persistent per-player nametag state. Stored in the user {@code properties}
+ * JSON column, so the declared generic type is what Gson deserializes each
+ * value back into.
  */
 public class NametagsProperties {
 
@@ -23,24 +24,26 @@ public class NametagsProperties {
 
     @SuppressWarnings("unchecked")
     private static UserProperty<Map<String, GrantRecord>> createGrantsProperty() {
-        // The raw Map class is the runtime type; the TypeToken supplies the element types Gson needs.
+        // The raw Map class is the runtime type; the TypeToken supplies the element
+        // types Gson needs.
         Class<Map<String, GrantRecord>> runtimeType = (Class<Map<String, GrantRecord>>) (Class<?>) Map.class;
         return new UserProperty<>("nametagGrants",
-                new TypeToken<Map<String, GrantRecord>>() { }.getType(),
+                new TypeToken<Map<String, GrantRecord>>() {
+                }.getType(),
                 runtimeType,
                 new HashMap<>(),
-                true
-        );
+                true);
     }
 
     @SuppressWarnings("unchecked")
     private static UserProperty<NameplateVisibility> createVisibilityProperty() {
-        // Records need the TypeToken: the raw class alone loses the component types for Gson.
+        // Records need the TypeToken: the raw class alone loses the component types for
+        // Gson.
         return new UserProperty<>("nametagVisibility",
-                new TypeToken<NameplateVisibility>() { }.getType(),
+                new TypeToken<NameplateVisibility>() {
+                }.getType(),
                 (Class<NameplateVisibility>) (Class<?>) NameplateVisibility.class,
                 NameplateVisibility.DEFAULT,
-                true
-        );
+                true);
     }
 }

@@ -18,9 +18,9 @@ import java.util.Set;
 /**
  * Read model over the configured ranks, tags and profiles.
  * <p>
- * Tag and rank lookups use a nested map keyed by group name, so resolving a player's rank
- * does not require scanning every definition. Mutations go through {@link #reload}, which
- * rebuilds the indices atomically.
+ * Tag and rank lookups use a nested map keyed by group name, so resolving a
+ * player's rank does not require scanning every definition. Mutations go
+ * through {@link #reload}, which rebuilds the indices atomically.
  */
 public class NametagsCatalog {
 
@@ -38,7 +38,10 @@ public class NametagsCatalog {
         this.settings = settings;
     }
 
-    /** Immutable, order-preserving snapshot, so config writes keep the author's ordering. */
+    /**
+     * Immutable, order-preserving snapshot, so config writes keep the author's
+     * ordering.
+     */
     private static <K, V> Map<K, V> freeze(@NotNull Map<K, V> source) {
         return java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(source));
     }
@@ -51,7 +54,8 @@ public class NametagsCatalog {
     }
 
     /**
-     * Adds or replaces a tag at runtime. Call {@link NametagsModule#saveCatalog()} to persist
+     * Adds or replaces a tag at runtime. Call {@link NametagsModule#saveCatalog()}
+     * to persist
      * the change, which the admin GUI does after every edit.
      */
     public void putTag(@NotNull TagDefinition tag) {
@@ -62,7 +66,8 @@ public class NametagsCatalog {
 
     public boolean removeTag(@NotNull String tagId) {
         Map<String, TagDefinition> updated = new java.util.LinkedHashMap<>(this.tags);
-        if (updated.remove(tagId.toLowerCase(java.util.Locale.ROOT)) == null) return false;
+        if (updated.remove(tagId.toLowerCase(java.util.Locale.ROOT)) == null)
+            return false;
 
         this.tags = freeze(updated);
         return true;
@@ -77,7 +82,8 @@ public class NametagsCatalog {
 
     public boolean removeRank(@NotNull String rankId) {
         Map<String, RankDefinition> updated = new java.util.LinkedHashMap<>(this.ranksById);
-        if (updated.remove(rankId.toLowerCase(java.util.Locale.ROOT)) == null) return false;
+        if (updated.remove(rankId.toLowerCase(java.util.Locale.ROOT)) == null)
+            return false;
 
         this.setRanks(updated);
         return true;
@@ -91,14 +97,16 @@ public class NametagsCatalog {
 
     public boolean removeProfile(@NotNull String profileId) {
         Map<String, Profile> updated = new java.util.LinkedHashMap<>(this.profiles);
-        if (updated.remove(profileId.toLowerCase(java.util.Locale.ROOT)) == null) return false;
+        if (updated.remove(profileId.toLowerCase(java.util.Locale.ROOT)) == null)
+            return false;
 
         this.profiles = freeze(updated);
         return true;
     }
 
     /**
-     * Replaces the rank list and rebuilds the priority order and the lookup indices.
+     * Replaces the rank list and rebuilds the priority order and the lookup
+     * indices.
      * Editing a rank in place does not need this, because the indices hold the same
      * instances; only add and remove change the set.
      */
@@ -138,7 +146,9 @@ public class NametagsCatalog {
         return this.profiles;
     }
 
-    /** Tags in GUI order: highest sort priority first, then alphabetically by id. */
+    /**
+     * Tags in GUI order: highest sort priority first, then alphabetically by id.
+     */
     public @NotNull List<TagDefinition> getTagsSorted() {
         List<TagDefinition> sorted = new ArrayList<>(this.tags.values());
         sorted.sort(Comparator.comparingInt(TagDefinition::getSortPriority).reversed()
@@ -147,7 +157,8 @@ public class NametagsCatalog {
     }
 
     public @Nullable TagDefinition getTag(@Nullable String id) {
-        if (id == null || id.isBlank()) return null;
+        if (id == null || id.isBlank())
+            return null;
         return this.tags.get(id.toLowerCase(java.util.Locale.ROOT));
     }
 
@@ -164,37 +175,48 @@ public class NametagsCatalog {
     }
 
     public @Nullable Profile getProfile(@Nullable String id) {
-        if (id == null || id.isBlank()) return null;
+        if (id == null || id.isBlank())
+            return null;
         return this.profiles.get(id.toLowerCase(java.util.Locale.ROOT));
     }
 
     /**
-     * Picks the best profile a player qualifies for, either by explicit choice or by
+     * Picks the best profile a player qualifies for, either by explicit choice or
+     * by
      * world membership and permission. Returns {@code null} when nothing matches.
      */
     public @Nullable Profile resolveProfile(@NotNull Player player, @Nullable String chosenId) {
         Profile chosen = this.getProfile(chosenId);
-        if (chosen != null && this.isProfileAvailable(player, chosen)) return chosen;
+        if (chosen != null && this.isProfileAvailable(player, chosen))
+            return chosen;
 
         Profile best = null;
         for (Profile profile : this.profiles.values()) {
-            if (!this.isProfileAvailable(player, profile)) continue;
-            if (best == null || profile.getPriority() > best.getPriority()) best = profile;
+            if (!this.isProfileAvailable(player, profile))
+                continue;
+            if (best == null || profile.getPriority() > best.getPriority())
+                best = profile;
         }
         return best;
     }
 
     /**
-     * Whether the player may select this profile at all. Public so the player-facing menu
-     * can show locked profiles greyed out instead of silently hiding them, which would
+     * Whether the player may select this profile at all. Public so the
+     * player-facing menu
+     * can show locked profiles greyed out instead of silently hiding them, which
+     * would
      * otherwise look like a misconfigured profile to its admin.
      */
     public boolean isProfileAvailable(@NotNull Player player, @NotNull Profile profile) {
-        if (!profile.appliesTo(player.getWorld().getName())) return false;
+        if (!profile.appliesTo(player.getWorld().getName()))
+            return false;
 
-        // A profile that declares no worlds is a global default, so everyone may use it.
-        // A world-scoped profile still needs the explicit node unless the player is an admin.
-        if (profile.getWorlds().isEmpty()) return true;
+        // A profile that declares no worlds is a global default, so everyone may use
+        // it.
+        // A world-scoped profile still needs the explicit node unless the player is an
+        // admin.
+        if (profile.getWorlds().isEmpty())
+            return true;
         return NametagsPerms.hasProfileAccess(player, profile.getId()) || player.hasPermission(NametagsPerms.ADMIN);
     }
 
@@ -206,13 +228,17 @@ public class NametagsCatalog {
         return this.ranks;
     }
 
-    /** Live, priority-ordered rank view keyed by rank id, for persisting admin edits. */
+    /**
+     * Live, priority-ordered rank view keyed by rank id, for persisting admin
+     * edits.
+     */
     public @NotNull Map<String, RankDefinition> getRanksById() {
         return this.ranksById;
     }
 
     public @Nullable RankDefinition getRank(@Nullable String id) {
-        if (id == null || id.isBlank()) return null;
+        if (id == null || id.isBlank())
+            return null;
         return this.ranksById.get(id.toLowerCase(java.util.Locale.ROOT));
     }
 
@@ -224,11 +250,14 @@ public class NametagsCatalog {
         RankDefinition best = null;
         for (String group : groups) {
             for (RankDefinition rank : this.ranksByGroup.getOrDefault(group, List.of())) {
-                if (!rank.isAvailable(player)) continue;
-                if (best == null || rank.getPriority() > best.getPriority()) best = rank;
+                if (!rank.isAvailable(player))
+                    continue;
+                if (best == null || rank.getPriority() > best.getPriority())
+                    best = rank;
             }
         }
-        if (best != null) return best;
+        if (best != null)
+            return best;
         return this.getDefaultRank();
     }
 

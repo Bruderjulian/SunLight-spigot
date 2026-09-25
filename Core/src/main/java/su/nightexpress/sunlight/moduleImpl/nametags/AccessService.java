@@ -19,10 +19,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Decides whether a player may use a tag, and owns every mutation of a tag entitlement.
+ * Decides whether a player may use a tag, and owns every mutation of a tag
+ * entitlement.
  * <p>
- * Entitlements live in the user's {@code properties} column, so they follow the player
- * across a name change and are saved by the existing user save cycle.
+ * Entitlements live in the user's {@code properties} column, so they follow the
+ * player across a name change and are saved by the existing user save cycle.
  */
 public class AccessService {
 
@@ -37,8 +38,8 @@ public class AccessService {
     // -----------------------------------------------------
 
     /**
-     * Whether the player may currently use the tag. Paid modes need an active grant, so an
-     * expired subscription correctly reports {@code false}.
+     * Whether the player may currently use the tag. Paid modes need an active
+     * grant, so an expired subscription correctly reports {@code false}.
      */
     public boolean hasAccess(@NotNull Player player, @NotNull TagDefinition tag) {
         return this.hasAccess(player, this.userManager.getOrFetch(player), tag, System.currentTimeMillis());
@@ -47,10 +48,11 @@ public class AccessService {
     public boolean hasAccess(@NotNull Player player,
             @NotNull SunUser user,
             @NotNull TagDefinition tag,
-            long nowMillis
-    ) {
-        if (EconomyUtils.hasBypass(player, NametagsPerms.BYPASS_ACCESS)) return true;
-        if (player.hasPermission(NametagsPerms.ADMIN)) return true;
+            long nowMillis) {
+        if (EconomyUtils.hasBypass(player, NametagsPerms.BYPASS_ACCESS))
+            return true;
+        if (player.hasPermission(NametagsPerms.ADMIN))
+            return true;
 
         return switch (tag.getAccessMode()) {
             case FREE -> true;
@@ -60,7 +62,8 @@ public class AccessService {
     }
 
     public boolean hasTagPermission(@NotNull Player player, @NotNull TagDefinition tag) {
-        if (tag.hasExtraPermission() && !player.hasPermission(tag.getPermission())) return false;
+        if (tag.hasExtraPermission() && !player.hasPermission(tag.getPermission()))
+            return false;
         return NametagsPerms.hasTagAccess(player, tag.getId());
     }
 
@@ -107,7 +110,8 @@ public class AccessService {
                             nowMillis + tag.getSubscriptionPeriod().toMillis(), "")
                     : GrantRecord.purchase(tag.getId(), nowMillis);
         }
-        if (updated == null) return false;
+        if (updated == null)
+            return false;
 
         grants.put(tag.getId(), updated);
         user.setProperty(NametagsProperties.GRANTS, grants);
@@ -117,50 +121,59 @@ public class AccessService {
     /** @return {@code true} when a grant existed and was removed */
     public boolean revoke(@NotNull SunUser user, @NotNull String tagId) {
         Map<String, GrantRecord> grants = new HashMap<>(this.getGrants(user));
-        if (grants.remove(tagId) == null) return false;
+        if (grants.remove(tagId) == null)
+            return false;
 
         user.setProperty(NametagsProperties.GRANTS, grants);
         return true;
     }
 
     /**
-     * Buys or subscribes to a tag, withdrawing the configured price. An active subscription
-     * is extended rather than restarted.
+     * Buys or subscribes to a tag, withdrawing the configured price. An active
+     * subscription is extended rather than restarted.
      * <p>
-     * A cost bypass skips the withdrawal but still grants the tag, so staff can hand out
-     * paid tags without a balance change. A tag without a price is granted for free.
+     * A cost bypass skips the withdrawal but still grants the tag, so staff can
+     * hand out paid tags without a balance change. A tag without a price is granted
+     * for free.
      *
      * @return {@link PurchaseResult#SUCCESS} or the reason the purchase was refused
      */
     public @NotNull PurchaseResult purchase(@NotNull Player player, @NotNull TagDefinition tag) {
-        if (tag.getPriceMode() == PriceMode.EXTERNAL) return PurchaseResult.EXTERNAL;
+        if (tag.getPriceMode() == PriceMode.EXTERNAL)
+            return PurchaseResult.EXTERNAL;
 
         if (tag.hasPrice()) {
             boolean bypassCost = EconomyUtils.hasBypass(player, NametagsPerms.BYPASS_COST);
             if (!bypassCost) {
-                if (!EconomyUtils.hasCurrency()) return PurchaseResult.NO_ECONOMY;
-                if (!EconomyUtils.canAfford(player, tag.getPrice())) return PurchaseResult.NO_FUNDS;
+                if (!EconomyUtils.hasCurrency())
+                    return PurchaseResult.NO_ECONOMY;
+                if (!EconomyUtils.canAfford(player, tag.getPrice()))
+                    return PurchaseResult.NO_FUNDS;
                 EconomyUtils.withdraw(player, tag.getPrice());
             }
         }
 
         SunUser user = this.userManager.getOrFetch(player);
-        if (!this.grant(user, tag, System.currentTimeMillis())) return PurchaseResult.REFUSED;
+        if (!this.grant(user, tag, System.currentTimeMillis()))
+            return PurchaseResult.REFUSED;
         return PurchaseResult.SUCCESS;
     }
 
     /**
      * Drops every expired grant from a user's stored map.
      *
-     * @return the tag ids whose entitlement just lapsed, so the caller can tell the player
+     * @return the tag ids whose entitlement just lapsed, so the caller can tell the
+     *         player
      */
     public @NotNull Set<String> sweepExpired(@NotNull SunUser user, long nowMillis) {
         Map<String, GrantRecord> grants = new HashMap<>(this.getGrants(user));
         Set<String> expired = new LinkedHashSet<>();
         grants.forEach((tagId, grant) -> {
-            if (grant.isExpired(nowMillis)) expired.add(tagId);
+            if (grant.isExpired(nowMillis))
+                expired.add(tagId);
         });
-        if (expired.isEmpty()) return Set.of();
+        if (expired.isEmpty())
+            return Set.of();
 
         expired.forEach(grants::remove);
         user.setProperty(NametagsProperties.GRANTS, grants);
