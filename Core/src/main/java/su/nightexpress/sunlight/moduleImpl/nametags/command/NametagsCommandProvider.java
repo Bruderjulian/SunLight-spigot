@@ -133,15 +133,21 @@ public class NametagsCommandProvider extends CommandProvider {
         String raw = Utils.lowercase(arguments.getString(CommandArguments.NAME));
         boolean clear = ARG_NONE.equals(raw);
 
-        if (!clear && this.module.getCatalog().getTag(raw) == null) {
+        TagDefinition tag = clear ? null : this.module.getCatalog().getTag(raw);
+        if (!clear && tag == null) {
             this.module.sendPrefixed(NametagsLang.COMMAND_TAG_ERROR_INVALID, context.getSender(),
                 replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, () -> raw));
             return false;
         }
 
-        if (!this.module.selectTag(player, clear ? null : raw)) {
+        if (tag != null && !this.module.getAccess().hasAccess(player, tag)) {
             this.module.sendPrefixed(NametagsLang.COMMAND_TAG_ERROR_NO_ACCESS, context.getSender(),
-                replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, () -> raw));
+                replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, tag::getDisplay));
+            return false;
+        }
+
+        if (!this.module.selectTag(player, clear ? null : raw)) {
+            this.module.sendPrefixed(NametagsLang.COMMAND_TAG_ERROR_CANCELLED, context.getSender());
             return false;
         }
 
@@ -151,8 +157,7 @@ public class NametagsCommandProvider extends CommandProvider {
             this.module.sendPrefixed(NametagsLang.COMMAND_TAG_CLEARED, context.getSender());
         } else {
             this.module.sendPrefixed(NametagsLang.COMMAND_TAG_SELECTED, context.getSender(),
-                replacer -> replacer.with(SLPlaceholders.GENERIC_NAME,
-                    () -> this.module.getCatalog().getTag(raw).getDisplay()));
+                replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, tag::getDisplay));
         }
         return true;
     }

@@ -5,6 +5,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,6 +64,7 @@ public class UltimateTeamsSource implements TeamSource {
 
     private boolean resolved;
     private final Map<UUID, TeamInfo> cache = new ConcurrentHashMap<>();
+    private @Nullable Listener listener;
 
     public UltimateTeamsSource(@NotNull SunLightPlugin plugin) {
         this.plugin = plugin;
@@ -102,8 +104,10 @@ public class UltimateTeamsSource implements TeamSource {
     @Override
     public void registerListeners(@NotNull Runnable onChange) {
         if (!this.isAvailable()) return;
+        this.unregisterListener();
 
         Listener listener = new Listener() { };
+        this.listener = listener;
         for (String name : WATCHED_EVENTS) {
             Class<? extends Event> type = this.eventClass(name);
             if (type == null) continue;
@@ -128,7 +132,16 @@ public class UltimateTeamsSource implements TeamSource {
 
     @Override
     public void shutdown() {
+        this.unregisterListener();
         this.cache.clear();
+    }
+
+    /** Bukkit holds no other reference, so the listener has to be released explicitly. */
+    private void unregisterListener() {
+        if (this.listener == null) return;
+
+        HandlerList.unregisterAll(this.listener);
+        this.listener = null;
     }
 
     // -----------------------------------------------------

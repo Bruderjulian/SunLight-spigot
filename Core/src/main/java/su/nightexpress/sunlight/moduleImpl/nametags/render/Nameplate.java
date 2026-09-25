@@ -34,9 +34,4 @@ public record Nameplate(@NotNull String prefix, @NotNull String suffix, @NotNull
     public boolean isEmpty() {
         return !this.hasPrefix() && !this.hasSuffix() && !this.hasColor();
     }
-
-    /** Whether anything at all needs to be pushed to the backend. */
-    public boolean needsUpdate() {
-        return !this.isEmpty();
-    }
 }

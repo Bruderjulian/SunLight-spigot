@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.moduleImpl.nametags;
 
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,8 +48,8 @@ public class NameplateService {
     private final UserManager userManager;
     private final TabNameTagBackend backend;
 
-    private final GroupSource groupSource;
-    private final @Nullable TeamSource teamSource;
+    private volatile @NotNull GroupSource groupSource;
+    private volatile @Nullable TeamSource teamSource;
     private final @Nullable GlowColorSource glowSource;
 
     /** Last composed nameplate per player, kept so placeholder requests stay cheap. */
@@ -62,7 +61,7 @@ public class NameplateService {
             @NotNull AccessService access,
             @NotNull UserManager userManager,
             @NotNull TabNameTagBackend backend,
-            @NotNull GroupSource groupSource,
+            @Nullable GroupSource groupSource,
             @Nullable TeamSource teamSource,
             @Nullable GlowColorSource glowSource
     ) {
@@ -75,6 +74,15 @@ public class NameplateService {
         this.groupSource = groupSource;
         this.teamSource = teamSource;
         this.glowSource = glowSource;
+    }
+
+    /**
+     * Swaps the group and team sources, used when a reload re-resolves them from the
+     * settings. Both are read per recompute, so no cached nameplate goes stale.
+     */
+    public void setSources(@NotNull GroupSource groupSource, @Nullable TeamSource teamSource) {
+        this.groupSource = groupSource;
+        this.teamSource = teamSource;
     }
 
     /**
@@ -102,7 +110,10 @@ public class NameplateService {
             return;
         }
 
-        this.groupSource.resolveGroups(player)
+        GroupSource groupSource = this.groupSource;
+        if (groupSource == null) return;
+
+        groupSource.resolveGroups(player)
                 .thenCombine(this.resolveTeam(player), (groups, team) -> new Resolved(groups, team))
                 .exceptionally(throwable -> new Resolved(Set.of(), TeamInfo.EMPTY))
                 .thenAccept(resolved -> this.module.plugin().runTask(
@@ -113,10 +124,11 @@ public class NameplateService {
     }
 
     private java.util.concurrent.CompletableFuture<TeamInfo> resolveTeam(@NotNull Player player) {
-        if (this.teamSource == null || !this.settings.isUseUltimateTeams() || !this.teamSource.isAvailable()) {
+        TeamSource teamSource = this.teamSource;
+        if (teamSource == null || !this.settings.isUseUltimateTeams() || !teamSource.isAvailable()) {
             return java.util.concurrent.CompletableFuture.completedFuture(TeamInfo.EMPTY);
         }
-        return this.teamSource.resolveTeam(player)
+        return teamSource.resolveTeam(player)
                 .thenApply(info -> info == null ? TeamInfo.EMPTY : info)
                 .exceptionally(throwable -> TeamInfo.EMPTY);
     }
@@ -136,7 +148,7 @@ public class NameplateService {
         Part rankPart = rank == null ? Part.EMPTY : Part.of(rank.getPrefix(), rank.getSuffix(), rank.getColor());
         Part tagPart = tag == null ? Part.EMPTY : Part.of(tag.getPrefix(), tag.getSuffix(), tag.getColor());
 
-        String glow = this.resolveGlow(player, tag, now);
+        String glow = this.resolveGlow(player, user, tag, now);
 
         Nameplate composed = PrefixComposer.compose(teamPart, rankPart, tagPart, glow,
                 this.settings.isTagColorOverridesRank());
@@ -184,14 +196,18 @@ public class NameplateService {
         return this.access.hasAccess(player, user, tag, nowMillis) ? tag : null;
     }
 
-    private @Nullable String resolveGlow(@NotNull Player player, @Nullable TagDefinition tag, long nowMillis) {
+    private @Nullable String resolveGlow(@NotNull Player player,
+            @NotNull SunUser user,
+            @Nullable TagDefinition tag,
+            long nowMillis
+    ) {
         if (!this.settings.isResolveGlowColor() || this.glowSource == null) return null;
 
         String color = this.glowSource.getGlowColor(player);
         if (color == null || color.isBlank()) return null;
 
         // A tag that opted out of glow keeps its own colour instead.
-        if (tag != null && !tag.isGlow()) return null;
+        if (tag != null && !this.access.allowsGlow(user, tag, nowMillis)) return null;
 
         return color;
     }
@@ -235,11 +251,6 @@ public class NameplateService {
         for (Player player : Bukkit.getOnlinePlayers()) this.recompute(player);
     }
 
-    /** Recomputes everyone in a world, used when a world-scoped profile applies. */
-    public void recomputeWorld(@NotNull World world) {
-        for (Player player : world.getPlayers()) this.recompute(player);
-    }
-
     public void forget(@NotNull UUID playerId) {
         this.lastComposed.remove(playerId);
         this.backend.remove(playerId);
@@ -248,9 +259,5 @@ public class NameplateService {
     public void clear() {
         this.lastComposed.clear();
         this.backend.clearCache();
-    }
-
-    public @NotNull TabNameTagBackend getBackend() {
-        return this.backend;
     }
 }

@@ -83,11 +83,6 @@ public class TabNameTagBackend {
         this.registeredPlaceholders.clear();
     }
 
-    /** Clears cached values so the next apply recomputes from scratch. */
-    public void invalidateAll() {
-        this.applied.clear();
-    }
-
     // -----------------------------------------------------
     // Applying
     // -----------------------------------------------------
@@ -113,24 +108,15 @@ public class TabNameTagBackend {
     }
 
     /** Removes any custom nametag from TAB and forgets the cached value. */
-    public void clear(@NotNull Player player) {
-        this.applied.remove(player.getUniqueId());
+    public void remove(@NotNull UUID playerId) {
+        this.applied.remove(playerId);
 
-        TabPlayer tabPlayer = this.tabPlayer(player);
+        TabPlayer tabPlayer = this.tabPlayer(playerId);
         NameTagManager manager = this.nameTagManager();
         if (tabPlayer == null || manager == null || !tabPlayer.isLoaded()) return;
 
         manager.setPrefix(tabPlayer, "");
         manager.setSuffix(tabPlayer, "");
-    }
-
-    public void remove(@NotNull UUID playerId) {
-        this.applied.remove(playerId);
-    }
-
-    public @Nullable Nameplate getApplied(@NotNull UUID playerId) {
-        Applied value = this.applied.get(playerId);
-        return value == null ? null : value.nameplate();
     }
 
     public void clearCache() {
@@ -152,8 +138,12 @@ public class TabNameTagBackend {
     }
 
     private @Nullable TabPlayer tabPlayer(@NotNull Player player) {
+        return this.tabPlayer(player.getUniqueId());
+    }
+
+    private @Nullable TabPlayer tabPlayer(@NotNull UUID playerId) {
         TabAPI api = this.api();
-        return api == null ? null : api.getPlayer(player.getUniqueId());
+        return api == null ? null : api.getPlayer(playerId);
     }
 
     private @Nullable NameTagManager nameTagManager() {

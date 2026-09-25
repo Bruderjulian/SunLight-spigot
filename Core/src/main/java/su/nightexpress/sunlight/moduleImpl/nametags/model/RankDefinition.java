@@ -2,11 +2,11 @@ package su.nightexpress.sunlight.moduleImpl.nametags.model;
 
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.config.Writeable;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
 import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.LinkedHashSet;
@@ -74,7 +74,7 @@ public class RankDefinition implements Writeable {
 
     /**
      * Whether the player qualifies for this rank, either through group inheritance or
-     * through the {@code nametags.rank.<group>} permission.
+     * through the {@code sunlight.nametags.rank.<group>} permission.
      */
     public boolean isAvailable(@NotNull Player player) {
         if (this.ranks.isEmpty()) return false;
@@ -83,7 +83,7 @@ public class RankDefinition implements Writeable {
         for (String rank : this.ranks) {
             if (rank.equals(SLPlaceholders.WILDCARD)) return true;
             if (playerRanks.contains(rank)) return true;
-            if (player.hasPermission("nametags.rank." + rank)) return true;
+            if (NametagsPerms.hasRankAccess(player, rank)) return true;
         }
         return false;
     }
@@ -148,21 +148,5 @@ public class RankDefinition implements Writeable {
 
     public void setDefault(boolean isDefault) {
         this.isDefault = isDefault;
-    }
-
-    /** Resolves the best matching rank for a player, or {@code null} if none applies. */
-    public @Nullable RankDefinition resolve(@NotNull Iterable<RankDefinition> definitions, @NotNull Player player) {
-        RankDefinition best = null;
-        for (RankDefinition definition : definitions) {
-            if (definition.isDefault()) {
-                if (best == null) best = definition;
-                continue;
-            }
-            if (!definition.isAvailable(player)) continue;
-            if (best == null || definition.priority > best.priority) {
-                best = definition;
-            }
-        }
-        return best;
     }
 }

@@ -77,14 +77,8 @@ public class NametagsModule extends Module implements NametagsProvider {
         this.backend.registerPlaceholders();
 
         this.nameplates = new NameplateService(this, this.settings, this.catalog, this.access,
-                this.userManager, this.backend, this.resolveGroupSource(), this.resolveTeamSource(),
-                this::resolveGlowColor);
-
-        this.teamSource = this.resolveTeamSource();
-        if (this.teamSource != null) {
-            this.teamSource.registerListeners(this.nameplates::recomputeAll);
-        }
-        this.resolveGroupSource().registerListeners(this.nameplates::recomputeAll);
+                this.userManager, this.backend, null, null, this::resolveGlowColor);
+        this.refreshSources();
 
         this.addListener(new NametagsListener(this.plugin, this));
         this.addTask(this.nameplates::recomputeAll, this.settings.getUpdateInterval());
@@ -135,7 +129,7 @@ public class NametagsModule extends Module implements NametagsProvider {
     public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("nametags_prefix", (player, payload) -> this.nameplates.getPrefixFor(player.getUniqueId()));
         registry.register("nametags_suffix", (player, payload) -> this.nameplates.getSuffixFor(player.getUniqueId()));
-        registry.register("nametags_color", (player, payload) -> this.nameplates.getLastComposed(player.getUniqueId()).color());
+        registry.register("nametags_color", (player, payload) -> this.placeholderColor(player.getUniqueId()));
         registry.register("nametags_tag", (player, payload) -> {
             TagDefinition tag = this.getSelectedTag(player);
             return tag == null ? "" : tag.getDisplay();
@@ -178,9 +172,34 @@ public class NametagsModule extends Module implements NametagsProvider {
         UltimateTeamsSource source = new UltimateTeamsSource(this.plugin);
         if (source.isAvailable()) {
             this.plugin.debug("UltimateTeams team prefixes enabled.");
-            return source;
+            this.teamSource = source;
+            return this.teamSource;
         }
         return null;
+    }
+
+    /**
+     * Discards the current hook sources and re-resolves them from the settings, so toggling
+     * a hook in the config takes effect on reload. Every source is cached, because its
+     * cache and its listeners must be the same instance the nameplate service reads through.
+     */
+    private void refreshSources() {
+        if (this.groupSource != null) {
+            this.groupSource.shutdown();
+            this.groupSource = null;
+        }
+        if (this.teamSource != null) {
+            this.teamSource.shutdown();
+            this.teamSource = null;
+        }
+        if (this.nameplates == null) return;
+
+        GroupSource groupSource = this.resolveGroupSource();
+        TeamSource teamSource = this.resolveTeamSource();
+
+        this.nameplates.setSources(groupSource, teamSource);
+        groupSource.registerListeners(this.nameplates::recomputeAll);
+        if (teamSource != null) teamSource.registerListeners(this.nameplates::recomputeAll);
     }
 
     /**
@@ -210,6 +229,10 @@ public class NametagsModule extends Module implements NametagsProvider {
         return this.nameplates == null ? "" : this.nameplates.getSuffixFor(playerId);
     }
 
+    private @NotNull String placeholderColor(@NotNull java.util.UUID playerId) {
+        return this.nameplates == null ? "" : this.nameplates.getLastComposed(playerId).color();
+    }
+
     private void sweepExpired() {
         if (this.access == null) return;
 
@@ -222,10 +245,11 @@ public class NametagsModule extends Module implements NametagsProvider {
         }
     }
 
-    /** Re-reads the settings file and recomputes every player. */
+    /** Re-reads the settings file, re-resolves the hook sources and recomputes every player. */
     public void reload() {
         this.settings.load(this.getConfig());
         this.catalog.reload();
+        this.refreshSources();
         this.nameplates.clear();
         this.nameplates.recomputeAll();
     }
@@ -278,20 +302,23 @@ public class NametagsModule extends Module implements NametagsProvider {
      * Buys or subscribes to a tag on the player's behalf, firing
      * {@link PlayerTagPurchaseEvent} on success.
      *
-     * @return the stored grant, or {@code null} when the purchase was refused
+     * @return {@link PurchaseResult#SUCCESS} or the reason the purchase was refused
      */
-    public @Nullable su.nightexpress.sunlight.moduleImpl.nametags.model.GrantRecord purchaseTag(@NotNull Player player,
+    public @NotNull su.nightexpress.sunlight.moduleImpl.nametags.model.PurchaseResult purchaseTag(@NotNull Player player,
             @NotNull TagDefinition tag
     ) {
+        su.nightexpress.sunlight.moduleImpl.nametags.model.PurchaseResult result = this.access.purchase(player, tag);
+        if (!result.isSuccess()) return result;
+
         boolean bypassCost = su.nightexpress.sunlight.utils.EconomyUtils
                 .hasBypass(player, su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms.BYPASS_COST);
 
-        var grant = this.access.purchase(player, tag);
-        if (grant == null) return null;
-
-        this.plugin.getPluginManager().callEvent(new PlayerTagPurchaseEvent(player, tag,
-                bypassCost ? 0D : tag.getPrice(), grant.getExpiresAt()));
-        return grant;
+        var grant = this.access.getGrant(this.userManager.getOrFetch(player), tag.getId());
+        if (grant != null) {
+            this.plugin.getPluginManager().callEvent(new PlayerTagPurchaseEvent(player, tag,
+                    (bypassCost || !tag.hasPrice()) ? 0D : tag.getPrice(), grant.getExpiresAt()));
+        }
+        return result;
     }
 
     @Override
@@ -325,7 +352,15 @@ public class NametagsModule extends Module implements NametagsProvider {
                     oldId == null || oldId.isBlank() ? null : oldId, id);
             this.plugin.getPluginManager().callEvent(event);
             if (event.isCancelled()) return false;
-            id = event.getNewTag();
+
+            // A listener may rewrite the replacement, so re-validate before persisting it.
+            String replaced = event.getNewTag();
+            if (replaced == null || replaced.isBlank()) {
+                id = null;
+            } else {
+                id = Utils.lowercase(replaced);
+                if (!this.catalog.hasTag(id)) return false;
+            }
         }
 
         if (id == null) {

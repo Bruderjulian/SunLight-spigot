@@ -4,7 +4,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
 
 /**
@@ -46,10 +45,6 @@ public class PlayerTagPurchaseEvent extends PlayerEvent {
 
     public boolean isSubscription() {
         return this.tag.isSubscription();
-    }
-
-    public @Nullable Long getSubscriptionExpiry() {
-        return this.expiresAt > 0L ? this.expiresAt : null;
     }
 
     @Override

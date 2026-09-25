@@ -42,11 +42,6 @@ public class GrantRecord {
         return new GrantRecord(tagId, TagAccessMode.PURCHASE, nowMillis, 0L, "");
     }
 
-    /** Creates a subscription grant that never expires. */
-    public static GrantRecord subscription(@org.jetbrains.annotations.NotNull String tagId, long nowMillis) {
-        return new GrantRecord(tagId, TagAccessMode.SUBSCRIPTION, nowMillis, 0L, "");
-    }
-
     public @org.jetbrains.annotations.NotNull String getTagId() {
         return this.tagId;
     }

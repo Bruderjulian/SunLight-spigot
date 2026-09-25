@@ -81,6 +81,10 @@ public class NametagsLang implements LangContainer {
         .builder("Command.Nametags.Tag.Error.NoAccess")
         .chatMessage(SOFT_RED.wrap("You don't have access to the ") + GENERIC_NAME + SOFT_RED.wrap(" tag."));
 
+    public static final MessageLocale COMMAND_TAG_ERROR_CANCELLED = LangEntry
+        .builder("Command.Nametags.Tag.Error.Cancelled")
+        .chatMessage(SOFT_RED.wrap("Another plugin cancelled the tag change."));
+
     public static final MessageLocale COMMAND_TAG_ERROR_NO_EQUITY = LangEntry
         .builder("Command.Nametags.Tag.Error.NoEquity")
         .chatMessage(SOFT_RED.wrap("You can't afford the ") + GENERIC_NAME + SOFT_RED.wrap(" tag (")
@@ -99,6 +103,9 @@ public class NametagsLang implements LangContainer {
 
     public static final MessageLocale COMMAND_TAG_SUBSCRIBED = LangEntry.builder("Command.Nametags.Tag.Subscribed")
         .chatMessage(GREEN.wrap("Your subscription for ") + GENERIC_NAME + GREEN.wrap(" is now active."));
+
+    public static final MessageLocale COMMAND_TAG_RENEWED = LangEntry.builder("Command.Nametags.Tag.Renewed")
+        .chatMessage(GREEN.wrap("Your subscription for ") + GENERIC_NAME + GREEN.wrap(" was extended."));
 
     public static final MessageLocale COMMAND_TAG_EXPIRED = LangEntry.builder("Command.Nametags.Tag.Expired")
         .chatMessage(SOFT_RED.wrap("Your subscription for ") + GENERIC_NAME + SOFT_RED.wrap(" has expired."));

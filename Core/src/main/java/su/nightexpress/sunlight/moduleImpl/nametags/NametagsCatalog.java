@@ -3,6 +3,7 @@ package su.nightexpress.sunlight.moduleImpl.nametags;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.Profile;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.RankDefinition;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
@@ -80,20 +81,6 @@ public class NametagsCatalog {
         return true;
     }
 
-    public void putProfile(@NotNull Profile profile) {
-        Map<String, Profile> updated = new java.util.LinkedHashMap<>(this.profiles);
-        updated.put(profile.getId(), profile);
-        this.profiles = freeze(updated);
-    }
-
-    public boolean removeProfile(@NotNull String profileId) {
-        Map<String, Profile> updated = new java.util.LinkedHashMap<>(this.profiles);
-        if (updated.remove(profileId.toLowerCase(java.util.Locale.ROOT)) == null) return false;
-
-        this.profiles = freeze(updated);
-        return true;
-    }
-
     // -----------------------------------------------------
     // Tags
     // -----------------------------------------------------
@@ -163,7 +150,7 @@ public class NametagsCatalog {
         // A profile that declares no worlds is a global default, so everyone may use it.
         // A world-scoped profile still needs the explicit node unless the player is an admin.
         if (profile.getWorlds().isEmpty()) return true;
-        return player.hasPermission("nametags.profile." + profile.getId()) || player.hasPermission("nametags.admin");
+        return NametagsPerms.hasProfileAccess(player, profile.getId()) || player.hasPermission(NametagsPerms.ADMIN);
     }
 
     // -----------------------------------------------------
@@ -174,7 +161,7 @@ public class NametagsCatalog {
         return this.ranks;
     }
 
-    /** Live, id-keyed rank view, for persisting admin edits. */
+    /** Fresh id-keyed snapshot of the sorted ranks, for persisting admin edits. */
     public @NotNull Map<String, RankDefinition> getRanksById() {
         Map<String, RankDefinition> byId = new java.util.LinkedHashMap<>();
         this.ranks.forEach(rank -> byId.put(rank.getId(), rank));
@@ -203,17 +190,6 @@ public class NametagsCatalog {
         }
         if (best != null) return best;
         return this.getDefaultRank();
-    }
-
-    /** Resolves a rank purely from group names, for offline players. */
-    public @Nullable RankDefinition resolveRank(@NotNull Set<String> groups) {
-        RankDefinition best = null;
-        for (String group : groups) {
-            for (RankDefinition rank : this.ranksByGroup.getOrDefault(group, List.of())) {
-                if (best == null || rank.getPriority() > best.getPriority()) best = rank;
-            }
-        }
-        return best != null ? best : this.getDefaultRank();
     }
 
     public @Nullable RankDefinition getDefaultRank() {

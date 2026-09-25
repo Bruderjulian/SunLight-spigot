@@ -31,16 +31,4 @@ public enum SubscriptionPeriod {
     public long toMillis() {
         return this.duration.toMillis();
     }
-
-    /**
-     * Adds one period to the given timestamp, never returning a value in the past.
-     *
-     * @param fromMillis the timestamp to extend from
-     * @param nowMillis  the current time, used to avoid producing an already-expired result
-     * @return the new expiry timestamp
-     */
-    public long nextExpiryFrom(long fromMillis, long nowMillis) {
-        long candidate = fromMillis + this.toMillis();
-        return Math.max(candidate, nowMillis + this.toMillis());
-    }
 }

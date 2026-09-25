@@ -2,6 +2,7 @@ package su.nightexpress.sunlight.moduleImpl.nametags.menu;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -35,7 +36,7 @@ public class AdminTagsMenu extends AbstractMenu {
     private static final int PAGE_SIZE = 28;
     private static final int FIRST_SLOT = 0;
     private static final int SLOT_CREATE = 40;
-    private static final int SLOT_DELETE = 41;
+    private static final int SLOT_CLOSE = 41;
 
     private final SunLightPlugin plugin;
     private final NametagsModule module;
@@ -111,9 +112,9 @@ public class AdminTagsMenu extends AbstractMenu {
                             GRAY.wrap("Access: ") + WHITE.wrap(pretty(tag.getAccessMode())),
                             tag.hasPrice() ? GRAY.wrap("Price: ") + WHITE.wrap(EconomyUtils.format(tag.getPrice())) : "",
                             "",
-                            GRAY.wrap("Right click to delete"))),
+                            GRAY.wrap("Shift + right click to delete"))),
                     ctx -> this.onClickTag(ctx.getPlayer(), tag,
-                        ctx.getEvent().getClick() == org.bukkit.event.inventory.ClickType.RIGHT))
+                        ctx.getEvent().getClick() == ClickType.SHIFT_RIGHT))
                 .slots(FIRST_SLOT + index - fromIndex)
                 .build());
         }
@@ -131,8 +132,8 @@ public class AdminTagsMenu extends AbstractMenu {
                     .setDisplayName(RED.wrap("Close"))
                     .setLore(java.util.List.of(GRAY.wrap("Click to close."))),
                 ctx -> ctx.getPlayer().closeInventory())
-            .slots(SLOT_DELETE)
-            .build());
+                .slots(SLOT_CLOSE)
+                .build());
     }
 
     private void onClickTag(@NotNull Player player, @NotNull TagDefinition tag, boolean delete) {

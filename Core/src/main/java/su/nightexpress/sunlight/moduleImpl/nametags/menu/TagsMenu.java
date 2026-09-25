@@ -10,16 +10,22 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
 import org.jetbrains.annotations.NotNull;
 import su.nightexpress.nightcore.config.FileConfig;
+import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.ui.inventory.item.MenuItem;
 import su.nightexpress.nightcore.ui.inventory.menu.AbstractMenu;
 import su.nightexpress.nightcore.ui.inventory.viewer.MenuViewer;
 import su.nightexpress.nightcore.ui.inventory.viewer.ViewerContext;
 import su.nightexpress.nightcore.util.bukkit.NightItem;
+import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.SLUtils;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.moduleImpl.nametags.AccessService;
 import su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule;
 import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.GrantRecord;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.PriceMode;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.PurchaseResult;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.TagAccessMode;
 import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.utils.EconomyUtils;
@@ -150,19 +156,36 @@ public class TagsMenu extends AbstractMenu {
         }
 
         GrantRecord grant = this.module.getAccess().getGrant(user, tag.getId());
-        if (grant != null && grant.isActive(now) && grant.getMode() == su.nightexpress.sunlight.moduleImpl.nametags.model.TagAccessMode.SUBSCRIPTION) {
-            lore.add(GRAY.wrap("Renews: ") + WHITE.wrap(this.formatExpiry(grant)));
+        if (grant != null && grant.isActive(now) && grant.getMode() == TagAccessMode.SUBSCRIPTION && !grant.isPermanent()) {
+            lore.add(GRAY.wrap("Renews: ") + WHITE.wrap(SLUtils.formatDate(grant.getExpiresAt())));
         }
 
         lore.add("");
         if (isSelected) {
             lore.add(GREEN.wrap("✔ Selected"));
-        } else if (hasAccess) {
+        }
+        if (this.isRenewable(player, user, tag, now, hasAccess)) {
+            lore.add(GOLD.wrap("→ " + UNDERLINED.wrap("Click to renew")));
+        } else if (hasAccess && !isSelected) {
             lore.add(GOLD.wrap("→ " + UNDERLINED.wrap("Click to select")));
-        } else {
+        } else if (!hasAccess) {
             lore.add(this.lockedHint(tag));
         }
         return lore;
+    }
+
+    /**
+     * Whether clicking this tag should renew rather than select it. Only a subscription the
+     * player already holds qualifies, so the {@code grant} extend path stays reachable.
+     */
+    private boolean isRenewable(@NotNull Player player,
+            @NotNull SunUser user,
+            @NotNull TagDefinition tag,
+            long now,
+            boolean hasAccess
+    ) {
+        if (!tag.isSubscription() || !hasAccess) return false;
+        return this.module.getAccess().getGrant(user, tag.getId()) != null;
     }
 
     private @NotNull String accessLabel(@NotNull TagDefinition tag, boolean hasAccess) {
@@ -190,26 +213,23 @@ public class TagsMenu extends AbstractMenu {
         return SOFT_RED.wrap("You do not have access.");
     }
 
-    private @NotNull String formatExpiry(@NotNull GrantRecord grant) {
-        if (grant.isPermanent()) return "never";
-        return su.nightexpress.sunlight.SLUtils.formatDate(grant.getExpiresAt());
-    }
-
     private void onTagClick(@NotNull Player player, @NotNull SunUser user, @NotNull TagDefinition tag, long now) {
-        boolean hasAccess = this.module.getAccess().hasAccess(player, user, tag, now);
+        AccessService access = this.module.getAccess();
+        boolean hasAccess = access.hasAccess(player, user, tag, now);
+        boolean renew = this.isRenewable(player, user, tag, now, hasAccess);
 
-        if (hasAccess) {
+        if (hasAccess && !renew) {
             this.module.selectTag(player, tag.getId());
             this.module.recompute(player);
             this.module.sendPrefixed(NametagsLang.COMMAND_TAG_SELECTED, player,
-                replacer -> replacer.with(su.nightexpress.sunlight.SLPlaceholders.GENERIC_NAME, tag::getDisplay));
+                replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, tag::getDisplay));
             this.show(this.plugin, player);
             return;
         }
 
         if (!tag.requiresGrant()) {
             this.module.sendPrefixed(NametagsLang.COMMAND_TAG_ERROR_NO_ACCESS, player,
-                replacer -> replacer.with(su.nightexpress.sunlight.SLPlaceholders.GENERIC_NAME, tag::getDisplay));
+                replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, tag::getDisplay));
             return;
         }
 
@@ -218,19 +238,36 @@ public class TagsMenu extends AbstractMenu {
             return;
         }
 
-        var granted = this.module.purchaseTag(player, tag);
-        if (granted == null) {
-            this.module.sendPrefixed(NametagsLang.COMMAND_TAG_ERROR_ECONOMY, player);
+        PurchaseResult result = this.module.purchaseTag(player, tag);
+        if (!result.isSuccess()) {
+            this.sendPurchaseError(player, tag, result);
             return;
         }
 
         this.module.selectTag(player, tag.getId());
         this.module.recompute(player);
-        this.module.sendPrefixed(
-            tag.isSubscription() ? NametagsLang.COMMAND_TAG_SUBSCRIBED : NametagsLang.COMMAND_TAG_BOUGHT, player,
-            replacer -> replacer.with(su.nightexpress.sunlight.SLPlaceholders.GENERIC_NAME, tag::getDisplay));
+
+        MessageLocale message = renew ? NametagsLang.COMMAND_TAG_RENEWED
+            : tag.isSubscription() ? NametagsLang.COMMAND_TAG_SUBSCRIBED
+            : NametagsLang.COMMAND_TAG_BOUGHT;
+        this.module.sendPrefixed(message, player,
+            replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, tag::getDisplay));
 
         this.show(this.plugin, player);
+    }
+
+    /** Reports why a purchase was refused, so a short balance is not blamed on a missing economy. */
+    private void sendPurchaseError(@NotNull Player player, @NotNull TagDefinition tag, @NotNull PurchaseResult result) {
+        switch (result) {
+            case NO_ECONOMY -> this.module.sendPrefixed(NametagsLang.COMMAND_TAG_ERROR_ECONOMY, player);
+            case EXTERNAL -> this.module.sendPrefixed(NametagsLang.COMMAND_TAG_ERROR_EXTERNAL, player);
+            case NO_FUNDS -> this.module.sendPrefixed(NametagsLang.COMMAND_TAG_ERROR_NO_EQUITY, player,
+                replacer -> replacer
+                    .with(SLPlaceholders.GENERIC_NAME, tag::getDisplay)
+                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(tag.getPrice())));
+            default -> this.module.sendPrefixed(NametagsLang.COMMAND_TAG_ERROR_NO_ACCESS, player,
+                replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, tag::getDisplay));
+        }
     }
 
     @Override
