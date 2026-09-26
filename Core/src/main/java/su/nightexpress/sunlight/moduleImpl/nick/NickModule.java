@@ -65,12 +65,7 @@ public class NickModule extends Module implements NickProvider {
     @Override
     protected void unloadModule() {
         // Reset player names so a nick does not leak after the module is disabled/reloaded.
-        Players.getOnline().forEach(player -> {
-            Players.setDisplayName(player, (NightComponent) null);
-            if (NickConfig.APPLY_TO_TABLIST.get()) {
-                Players.setPlayerListName(player, (NightComponent) null);
-            }
-        });
+        Players.getOnline().forEach(this::resetNickname);
     }
 
     @Override
@@ -312,10 +307,20 @@ public class NickModule extends Module implements NickProvider {
                 Players.setPlayerListName(player, nickname);
             }
         } else {
-            Players.setDisplayName(player, (NightComponent) null);
-            if (NickConfig.APPLY_TO_TABLIST.get()) {
-                Players.setPlayerListName(player, (NightComponent) null);
-            }
+            this.resetNickname(player);
+        }
+    }
+
+    /**
+     * Restores the default names of the given {@code player}, so no nickname is left behind.
+     */
+    private void resetNickname(@NotNull Player player) {
+        Players.setDisplayName(player, (NightComponent) null);
+        if (NickConfig.APPLY_TO_TABLIST.get()) {
+            // Unlike the display name, the tab list name cannot be reset with 'null',
+            // because the bridge API requires a non-null component. The real name is
+            // equivalent to the default tab list entry.
+            Players.setPlayerListName(player, player.getName());
         }
     }
 }
