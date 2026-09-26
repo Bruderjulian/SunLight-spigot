@@ -13,6 +13,7 @@ import su.nightexpress.sunlight.api.SunlightAPI;
 import su.nightexpress.sunlight.api.provider.AfkProvider;
 import su.nightexpress.sunlight.api.provider.FreezeProvider;
 import su.nightexpress.sunlight.api.provider.GlowProvider;
+import su.nightexpress.sunlight.api.provider.LinksProvider;
 import su.nightexpress.sunlight.api.provider.NametagsProvider;
 import su.nightexpress.sunlight.api.provider.NickProvider;
 import su.nightexpress.sunlight.api.provider.ReportsProvider;
@@ -40,6 +41,7 @@ import su.nightexpress.sunlight.moduleImpl.greetings.GreetingsModule;
 import su.nightexpress.sunlight.moduleImpl.homes.HomesModule;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesModule;
 import su.nightexpress.sunlight.moduleImpl.kits.KitsModule;
+import su.nightexpress.sunlight.moduleImpl.links.LinksModule;
 import su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.PhantomsModule;
 import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
@@ -205,6 +207,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("inventories", "Inventories", InventoriesModule::new);
         manager.register("kits", "Kits", KitsModule::new);
         manager.register("nerf_phantoms", "Nerf Phantoms", PhantomsModule::new);
+        manager.register("links", "Links", LinksModule::new);
         manager.register("nametags", "Nametags", NametagsModule::new,
                 LoadCondition::tabOrBridge);
         manager.register("nick", "Nick", NickModule::new);
@@ -295,6 +298,12 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
     public Optional<? extends SocialsProvider> socialsProvider() {
         return this.moduleManager.getByType(SocialsModule.class);
+    }
+
+    @Override
+
+    public Optional<? extends LinksProvider> linksProvider() {
+        return this.moduleManager.getByType(LinksModule.class);
     }
 
     @Override

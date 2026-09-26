@@ -1,12 +1,6 @@
 package su.nightexpress.sunlight.moduleImpl.socials.config;
 
-import org.bukkit.Material;
 import su.nightexpress.nightcore.config.ConfigValue;
-import su.nightexpress.nightcore.config.FileConfig;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class SocialsConfig {
 
@@ -80,34 +74,4 @@ public class SocialsConfig {
         "Placeholders: %reporter%, %reporter_name%, %target%, %target_name%, %category%,",
         "%details%, %report_id%, %date%."
     );
-
-    public static Map<String, SocialLink> readLinks(FileConfig config) {
-        Map<String, SocialLink> defaults = defaultLinks();
-
-        defaults.forEach((id, link) -> {
-            String path = "Socials.Links." + id;
-            if (!config.contains(path)) {
-                link.write(config, path);
-            }
-        });
-
-        Map<String, SocialLink> map = new TreeMap<>();
-        for (String id : config.getSection("Socials.Links")) {
-            map.put(id.toLowerCase(java.util.Locale.ROOT), SocialLink.read(config, "Socials.Links." + id));
-        }
-        if (map.isEmpty()) {
-            return new LinkedHashMap<>(defaults);
-        }
-        return new LinkedHashMap<>(map);
-    }
-
-    private static Map<String, SocialLink> defaultLinks() {
-        Map<String, SocialLink> map = new LinkedHashMap<>();
-        map.put("discord", new SocialLink("<#5865F2>Discord", "https://discord.gg/example", "", Material.PLAYER_HEAD));
-        map.put("site", new SocialLink("<#7BD88F>Website", "https://example.com", "", Material.GRASS_BLOCK));
-        map.put("store", new SocialLink("<#FFD75F>Store", "https://example.com/store", "", Material.GOLD_INGOT));
-        map.put("vote", new SocialLink("<#FF6B6B>Vote", "https://example.com/vote", "", Material.DIAMOND));
-        map.put("map", new SocialLink("<#6BCBFF>Map", "https://example.com/map", "", Material.MAP));
-        return map;
-    }
 }

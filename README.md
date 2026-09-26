@@ -4,7 +4,7 @@
 
 **SunLight** is a modern, lightweight, all-in-one core solution featuring the essential tools every server needs. 
 
-It includes **28** fully optional and customizable modules, allowing you to select only what your server actually requires!
+It includes **29** fully optional and customizable modules, allowing you to select only what your server actually requires!
 
 ---
 
@@ -40,6 +40,7 @@ It includes **28** fully optional and customizable modules, allowing you to sele
 - **Inventories**: View and edit online/offline player inventories and Ender Chests, and access workstations like Anvils or Looms from anywhere!
 - **Items**: Modify and obtain in-game items. Edit item data in hand, including durability, model data, stack sizes, name/lore, and more!
 - **Kits**: Create unlimited item sets with a GUI editor, kit previews, cooldowns, and claim costs.
+- **Links**: Manage your server's links (Discord, store, vote, map, …) from the config, a GUI editor, or commands. Each link can carry an optional command that runs when the link is opened, either from the console or as the player, and each link keeps a click counter you can review and reset in the editor. Exposed as `/links`, `/links <id>` and a command per link.
 - **Nametags**: TAB-rendered nametags with rank and team prefixes, per-player tags, purchasable and subscription tags, and named per-world profiles — all editable through GUI. Players can suppress the rank, tag, or team part of their own nametag, or reduce it to just their name.
 - **Nerf Phantoms**: Control Phantom behavior by disabling spawns, modifying damage/HP, or allowing players to personally reset their insomnia timer.
 - **Nick**: Let players set custom nicknames with length/regex/banned-word validation, color permissions, and tablist support.
@@ -48,6 +49,7 @@ It includes **28** fully optional and customizable modules, allowing you to sele
 - **Random Teleport**: Randomly teleports players within world-specific coordinates, featuring chunk safety checks and automatic world redirection.
 - **Reports**: Cross-server player reports with a staff triage GUI, claim/release workflow, staff note trails, teleport-to-reporter, and a reward paid when a report is justified — whether a staff member concludes it or the reported player is punished. Groups repeat reports against one player into a case, auto-closes stale reports, has a statistics screen, and offers a guided report flow for players. Submission is guarded by a cooldown, open-report caps (per reporter and per target), a daily limit, a duplicate lock, and length limits.
 - **Scheduler**: Create custom server tasks that run in the background at specific times/intervals!
+- **Socials**: Relays in-game events to a Discord channel through DiscordSRV — joins, quits, deaths, advancements, chat, reports and punishments. Your server's actual links live in the **Links** module; this one is only the Discord bridge.
 - **Spawns**: Create unlimited spawn points with rank-based auto-teleportation on join or respawn and a GUI editor.
 - **Texts**: Maps the contents of text files to unique custom commands with MiniMessage and PlaceholderAPI support.
 - **Vanish**: Hide yourself from others with a status-persisting logout feature and a Boss Bar indicator.
