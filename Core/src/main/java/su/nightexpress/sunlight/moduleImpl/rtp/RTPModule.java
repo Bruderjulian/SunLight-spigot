@@ -22,8 +22,8 @@ public class RTPModule extends Module {
 
     public RTPModule(final ModuleDefinition<RTPModule> definition, final SunLightPlugin plugin) {
         super(definition, plugin);
-        this.engine = new RTPEngine(this, plugin.teleportManager());
         this.settings = new RTPSettings();
+        this.engine = new RTPEngine(this, plugin.teleportManager());
     }
 
     public RTPEngine getEngine() {
