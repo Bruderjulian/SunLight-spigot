@@ -51,7 +51,7 @@ public class GlowEffect implements Writeable {
     public void write(FileConfig config, String path) {
         config.set(path + ".Name", this.name);
         config.set(path + ".Type", this.type.name());
-        config.set(path + ".Colors", this.colors.stream().map(c -> c.examinableName()).toList());
+        config.set(path + ".Colors", this.colors.stream().map(NamedTextColor::toString).toList());
         config.set(path + ".Interval", this.interval);
     }
 

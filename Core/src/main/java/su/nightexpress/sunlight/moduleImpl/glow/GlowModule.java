@@ -127,7 +127,7 @@ public class GlowModule extends Module implements GlowProvider {
     public @Nullable String getGlowColor(@NotNull Player player) {
         GlowState state = this.states.get(player.getUniqueId());
         if (state == null) return null;
-        return state.lastColor.examinableName();
+        return state.lastColor == null ? null : state.lastColor.toString();
     }
 
     @Override
