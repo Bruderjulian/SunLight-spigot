@@ -206,7 +206,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("kits", "Kits", KitsModule::new);
         manager.register("nerf_phantoms", "Nerf Phantoms", PhantomsModule::new);
         manager.register("nametags", "Nametags", NametagsModule::new,
-                LoadCondition::tab);
+                LoadCondition::tabOrBridge);
         manager.register("nick", "Nick", NickModule::new);
         manager.register("playerwarps", "Player Warps", PlayerWarpsModule::new);
         manager.register("ptp", "PTP", PTPModule::new);

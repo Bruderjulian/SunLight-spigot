@@ -11,6 +11,7 @@ libraries:
   - org.apache.commons:commons-text:1.10.0
 softdepend:
   - TAB
+  - TAB-Bridge
   - UltimateTeams
   - LuckPerms
   - PlaceholderAPI

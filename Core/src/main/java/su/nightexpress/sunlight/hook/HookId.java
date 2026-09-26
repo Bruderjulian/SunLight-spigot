@@ -11,6 +11,7 @@ public class HookId {
     public static final String GRIEF_PREVENTION = "GriefPrevention";
 
     public static final String TAB = "TAB";
+    public static final String TAB_BRIDGE = "TAB-Bridge";
     public static final String ULTIMATE_TEAMS = "UltimateTeams";
     public static final String LUCKPERMS = "LuckPerms";
 
@@ -28,6 +29,15 @@ public class HookId {
 
     public static boolean hasTAB() {
         return Utils.isLoaded(TAB);
+    }
+
+    /**
+     * Whether TAB-Bridge is present, which means TAB is rendering nametags on the proxy
+     * rather than here. The two are mutually exclusive in practice: Bridge only does
+     * anything when there is a TAB on the proxy to talk to.
+     */
+    public static boolean hasTabBridge() {
+        return Utils.isLoaded(TAB_BRIDGE);
     }
 
     public static boolean hasUltimateTeams() {

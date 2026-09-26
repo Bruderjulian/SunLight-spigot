@@ -30,9 +30,9 @@ import java.util.function.Function;
  */
 public class TabNameTagBackend {
 
-    private static final String PREFIX_PLACEHOLDER = "%sunlight_nametags_prefix%";
-    private static final String SUFFIX_PLACEHOLDER = "%sunlight_nametags_suffix%";
-    private static final String NAME_PLACEHOLDER = "%sunlight_nametags_formatted_name%";
+    public static final String PREFIX_PLACEHOLDER = "%sunlight_nametags_prefix%";
+    public static final String SUFFIX_PLACEHOLDER = "%sunlight_nametags_suffix%";
+    public static final String NAME_PLACEHOLDER = "%sunlight_nametags_formatted_name%";
 
     private final SunLightPlugin plugin;
     private final Function<UUID, String> prefixSupplier;

@@ -218,6 +218,12 @@ public class ReportViewMenu extends AbstractObjectMenu<Report> {
                                         TimeFormats.formatSince(note.getDate(), TimeFormatType.LITERAL))))
                         .setLore(Lists.newList(GRAY.wrap(note.getText())))
                         .hideAllComponents())
+                // Notes are an append-only audit trail, so a note has nothing to do on click.
+                // A no-op is still required: ItemPopulator demands an action provider, and a
+                // bound action does not suppress the menu's own onClick, so drop-clicking a
+                // note still deletes the report it belongs to.
+                .actionProvider(note -> actionContext -> {
+                })
                 .build();
     }
 

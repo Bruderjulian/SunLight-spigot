@@ -10,6 +10,7 @@ import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.provider.NametagsProvider;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
+import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -106,8 +107,37 @@ public class NametagsModule extends Module implements NametagsProvider {
 
         this.plugin.runTask(() -> {
             this.nameplates.recomputeAll();
-            this.plugin.debug("Nametags module ready (TAB backend active).");
+            this.logRenderBackend();
         });
+    }
+
+    /**
+     * Says where the nameplates end up, because the two supported layouts need different
+     * setup and the module is otherwise silent about which one it took.
+     */
+    private void logRenderBackend() {
+        if (HookId.hasTAB()) {
+            this.plugin.debug("Nametags module ready (TAB backend active).");
+            return;
+        }
+
+        // TAB is on the proxy. TabNameTagBackend's TAB API calls all no-op here, so
+        // nothing is pushed directly; the values reach the proxy as PlaceholderAPI
+        // placeholders that TAB-Bridge forwards on request.
+        this.info("TAB is not installed on this server, so nameplates are delivered to it as "
+                + "PlaceholderAPI placeholders. Set tagprefix and tagsuffix to these in TAB's groups.yml "
+                + "and users.yml on the proxy, otherwise ranks and tags are not rendered:");
+        this.info("  tagprefix: " + papi(TabNameTagBackend.PREFIX_PLACEHOLDER));
+        this.info("  tagsuffix: " + papi(TabNameTagBackend.SUFFIX_PLACEHOLDER));
+    }
+
+    /**
+     * Rewrites one of TAB's own placeholder identifiers into its PlaceholderAPI form, which is
+     * what TAB-Bridge resolves on the backend. The two agree on the tail because the
+     * PlaceholderAPI expansion is named after this plugin.
+     */
+    private static @NotNull String papi(@NotNull String tabPlaceholder) {
+        return "%papi_" + tabPlaceholder.substring(1, tabPlaceholder.length() - 1) + "%";
     }
 
     @Override
