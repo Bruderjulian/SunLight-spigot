@@ -66,35 +66,35 @@ public class ReportsStaffCommandProvider extends CommandProvider {
                 .withArguments(this.reportArgument())
                 .executes(this::view));
 
-        this.registerLiteral(COMMAND_CLAIM, true, new String[] {}, builder -> builder
+        this.registerLiteral(COMMAND_CLAIM, true, new String[] { "reportclaim" }, builder -> builder
                 .playerOnly()
                 .description(ReportsLang.COMMAND_CLAIM_DESC)
                 .permission(ReportsPerms.COMMAND_REPORT_CLAIM)
                 .withArguments(this.reportArgument())
                 .executes((context, arguments) -> this.withReport(context, arguments, this.module::claim)));
 
-        this.registerLiteral(COMMAND_RELEASE, true, new String[] {}, builder -> builder
+        this.registerLiteral(COMMAND_RELEASE, true, new String[] { "reportrelease" }, builder -> builder
                 .playerOnly()
                 .description(ReportsLang.COMMAND_RELEASE_DESC)
                 .permission(ReportsPerms.COMMAND_REPORT_CLAIM)
                 .withArguments(this.reportArgument())
                 .executes((context, arguments) -> this.withReport(context, arguments, this.module::release)));
 
-        this.registerLiteral(COMMAND_RESOLVE, true, new String[] {}, builder -> builder
+        this.registerLiteral(COMMAND_RESOLVE, true, new String[] { "reportresolve" }, builder -> builder
                 .playerOnly()
                 .description(ReportsLang.COMMAND_RESOLVE_DESC)
                 .permission(ReportsPerms.COMMAND_REPORT_RESOLVE)
                 .withArguments(this.reportArgument(), this.noteArgument())
                 .executes((context, arguments) -> this.conclude(context, arguments, ReportStatus.RESOLVED)));
 
-        this.registerLiteral(COMMAND_DENY, true, new String[] {}, builder -> builder
+        this.registerLiteral(COMMAND_DENY, true, new String[] { "reportdeny" }, builder -> builder
                 .playerOnly()
                 .description(ReportsLang.COMMAND_DENY_DESC)
                 .permission(ReportsPerms.COMMAND_REPORT_DENY)
                 .withArguments(this.reportArgument(), this.noteArgument())
                 .executes((context, arguments) -> this.conclude(context, arguments, ReportStatus.DENIED)));
 
-        this.registerLiteral(COMMAND_NOTE, true, new String[] {}, builder -> builder
+        this.registerLiteral(COMMAND_NOTE, true, new String[] { "reportnote" }, builder -> builder
                 .playerOnly()
                 .description(ReportsLang.COMMAND_NOTE_DESC)
                 .permission(ReportsPerms.COMMAND_REPORT_NOTE)
@@ -109,20 +109,20 @@ public class ReportsStaffCommandProvider extends CommandProvider {
                 .withArguments(this.reportArgument())
                 .executes(this::teleport));
 
-        this.registerLiteral(COMMAND_DELETE, true, new String[] {}, builder -> builder
+        this.registerLiteral(COMMAND_DELETE, true, new String[] { "reportdelete" }, builder -> builder
                 .playerOnly()
                 .description(ReportsLang.COMMAND_DELETE_DESC)
                 .permission(ReportsPerms.COMMAND_REPORT_DELETE)
                 .withArguments(this.reportArgument())
                 .executes((context, arguments) -> this.withReport(context, arguments, this.module::deleteReport)));
 
-        this.registerLiteral(COMMAND_STATS, true, new String[] {}, builder -> builder
+        this.registerLiteral(COMMAND_STATS, true, new String[] { "reportstats" }, builder -> builder
                 .playerOnly()
                 .description(ReportsLang.COMMAND_STATS_DESC)
                 .permission(ReportsPerms.COMMAND_REPORTS_STATS)
                 .executes(this::stats));
 
-        this.registerLiteral(COMMAND_CASE, true, new String[] {}, builder -> builder
+        this.registerLiteral(COMMAND_CASE, true, new String[] { "reportcase" }, builder -> builder
                 .playerOnly()
                 .description(ReportsLang.COMMAND_CASE_DESC)
                 .permission(ReportsPerms.COMMAND_REPORTS)

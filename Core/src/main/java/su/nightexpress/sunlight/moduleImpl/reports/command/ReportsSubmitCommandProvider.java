@@ -64,7 +64,7 @@ public class ReportsSubmitCommandProvider extends CommandProvider {
                 .permission(ReportsPerms.COMMAND_REPORT_STATUS)
                 .executes(this::showStatus));
 
-        this.registerLiteral(COMMAND_TOGGLE, true, new String[] {}, builder -> builder
+        this.registerLiteral(COMMAND_TOGGLE, true, new String[] { "reporttoggle" }, builder -> builder
                 .playerOnly()
                 .description(ReportsLang.COMMAND_TOGGLE_DESC)
                 .permission(ReportsPerms.COMMAND_REPORT_TOGGLE)

@@ -23,6 +23,7 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.integration.currency.EconomyBridge;
 import su.nightexpress.nightcore.manager.SimpleManager;
 import su.nightexpress.nightcore.util.CommandUtil;
+import su.nightexpress.nightcore.util.bridge.Software;
 import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
@@ -60,7 +61,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
     @Override
     protected void onShutdown() {
-        this.commands.forEach(NightCommand::unregister);
+        this.commands.forEach(this::unregister);
         this.commands.clear();
         this.providers.clear();
         this.providerModules.clear();
@@ -177,15 +178,42 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
             this.unregisterConflicts(command, false);
         }
 
-        if (!command.register()) {
-            this.plugin.warn("Command '" + command.getName() + "' (aliases: " + command.getAliases()
-                    + ") was not registered with the passed in label, which indicates the SunLight's fallback prefix was used one or more times. "
-                    + "This usually means that another plugin has a command with the same label. "
-                    + "Enable 'Commands.Conflict-Unregister' in the config to let SunLight replace conflicting commands, "
-                    + "or change the command's aliases in 'plugins/SunLight/commands/' configs.");
-        }
+        // Bukkit registers the plain labels *and* the '<plugin>:<label>' forms in one go,
+        // so '/sunlight:<cmd>' and '/sunlight:<alias>' are always available - no matter
+        // whether the plain label was free or already taken by another command. A failed
+        // plain registration is therefore not an error and must stay silent.
+        command.register();
 
         this.commands.add(command);
+    }
+
+    private void unregister(NightCommand command) {
+        this.dropPrefixedLabels(command);
+        command.unregister();
+    }
+
+    /**
+     * Removes the {@code <plugin>:<label>} entries of the given {@code command}.
+     * <p>
+     * Bukkit adds them next to the plain labels on every registration, but NightCore's
+     * {@code unregister()} only drops the plain ones. Left behind, they keep pointing at
+     * the dead command instance after a reload and still dispatch to it.
+     */
+    private void dropPrefixedLabels(NightCommand command) {
+        Map<String, Command> knownCommands = Software.instance().getKnownCommands(Software.instance().getCommandMap());
+        if (knownCommands.isEmpty()) {
+            return;
+        }
+
+        String prefix = Utils.lowercase(this.plugin.getName()) + ':';
+        Set<String> labels = new HashSet<>();
+        labels.add(Utils.lowercase(command.getName()));
+        command.getAliases().forEach(alias -> labels.add(Utils.lowercase(alias)));
+
+        knownCommands.keySet().removeIf(key -> {
+            String lower = Utils.lowercase(key);
+            return lower.startsWith(prefix) && labels.contains(lower.substring(prefix.length()));
+        });
     }
 
     public Set<CommandProvider> getProviders() {
