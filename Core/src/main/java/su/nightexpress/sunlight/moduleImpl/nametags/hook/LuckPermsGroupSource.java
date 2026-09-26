@@ -61,7 +61,7 @@ public class LuckPermsGroupSource implements GroupSource {
         if (api == null) return;
 
         // Recalculation is the one event that covers group adds, removes and data reloads.
-        this.subscriptions.add(api.getEventBus().subscribe(this,
+        this.subscriptions.add(api.getEventBus().subscribe(this.plugin,
                 UserDataRecalculateEvent.class,
                 event -> this.plugin.runTask(onChange)
         ));
