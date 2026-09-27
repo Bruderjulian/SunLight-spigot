@@ -1,11 +1,18 @@
 package su.nightexpress.sunlight;
 
+import java.util.Comparator;
 import java.util.Optional;
+
+import org.bukkit.command.CommandSender;
 
 import su.nightexpress.nightcore.NightCorePlugin;
 import su.nightexpress.nightcore.NightPlugin;
 import su.nightexpress.nightcore.commands.Commands;
+import su.nightexpress.nightcore.commands.NodeUtils;
 import su.nightexpress.nightcore.commands.command.NightCommand;
+import su.nightexpress.nightcore.commands.context.CommandContext;
+import su.nightexpress.nightcore.commands.tree.CommandNode;
+import su.nightexpress.nightcore.commands.tree.ExecutableNode;
 import su.nightexpress.nightcore.config.PluginDetails;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.Version;
@@ -21,6 +28,7 @@ import su.nightexpress.sunlight.api.provider.SocialsProvider;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.command.CommandRegistry;
 import su.nightexpress.sunlight.config.Config;
+import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.config.Perms;
@@ -63,6 +71,8 @@ import su.nightexpress.sunlight.nms.v26p1.NMSv26p1;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
+
+import static su.nightexpress.sunlight.SLPlaceholders.*;
 
 public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
@@ -225,6 +235,17 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
     private void registerCommands() {
         this.rootCommand = NightCommand.forPlugin((NightCorePlugin) this, builder -> builder
+                .withHelpCommand(false)
+                .executes((context, arguments) -> {
+                    this.sendHelp(context);
+                    return true;
+                })
+                .branch(Commands.literal("help")
+                        .description(CoreLang.COMMAND_HELP_DESC)
+                        .executes((context, arguments) -> {
+                            this.sendHelp(context);
+                            return true;
+                        }))
                 .branch(Commands.literal("reload")
                         .description(CoreLang.COMMAND_RELOAD_DESC)
                         .permission(Perms.COMMAND_RELOAD)
@@ -232,6 +253,35 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
                             this.doReload(context.getSender());
                             return true;
                         })));
+    }
+
+    /**
+     * Prints the root command help. Handled explicitly (instead of relying on the
+     * hub fallback) so that both '/sunlight' and '/sunlight help' always list the
+     * available sub-commands.
+     */
+    private void sendHelp(CommandContext context) {
+        CommandSender sender = context.getSender();
+        CommandNode root = context.getRoot();
+
+        Lang.PLUGIN_HELP.message().send(sender, replacer -> replacer
+                .replace(GENERIC_NAME, this.getNameLocalized())
+                .replace(GENERIC_ENTRY, list -> {
+                    root.getChildren().stream().sorted(Comparator.comparing(CommandNode::getName)).forEach(child -> {
+                        if (!child.hasPermission(sender))
+                            return;
+                        if (!(child instanceof ExecutableNode executable))
+                            return;
+
+                        String label = root instanceof ExecutableNode hub
+                                ? (NodeUtils.formatLabel(hub, context) + " " + executable.getUsage()).trim()
+                                : (root.getName() + " " + executable.getUsage()).trim();
+
+                        list.add(Lang.PLUGIN_HELP_ENTRY.text()
+                                .replace(GENERIC_COMMAND, label)
+                                .replace(GENERIC_DESCRIPTION, executable.getDescription()));
+                    });
+                }));
     }
 
     private void registerPermissions(PermissionTree tree) {
