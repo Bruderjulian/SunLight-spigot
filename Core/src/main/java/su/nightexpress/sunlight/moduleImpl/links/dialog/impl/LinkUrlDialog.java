@@ -33,6 +33,12 @@ public class LinkUrlDialog extends AbstractLinkTextDialog {
 
     @Override
     protected @Nullable String apply(@NotNull Link link, @NotNull String input) {
+        // Clearing the URL is only valid for command-only links; otherwise the link would be left
+        // with nothing to activate.
+        if (input.isBlank() && !link.hasCommand()) {
+            return null;
+        }
+
         link.setUrl(input);
         return link.getUrl();
     }

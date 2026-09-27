@@ -47,6 +47,10 @@ public class LinkIconSelectionMenu extends AbstractObjectMenu<Link> {
                 .itemProvider((context, material) -> NightItem.fromType(material).hideAllComponents())
                 .actionProvider(material -> context -> {
                     Link link = this.getObject(context);
+                    if (!this.module.isPresent(link.getId())) {
+                        this.module.openEditor(context.getPlayer());
+                        return;
+                    }
                     link.setIcon(NightItem.fromType(material));
                     this.module.saveLink(link);
                     this.module.openLinkSettings(context.getPlayer(), link);

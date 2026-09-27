@@ -18,6 +18,21 @@ public class LinkDefaults {
      */
     public static final Pattern ID_PATTERN = Pattern.compile("^[a-z][a-z0-9_]{0,31}$");
 
+    /**
+     * IDs that would shadow the module's own commands. A link with one of these IDs would hijack
+     * {@code /links}, {@code /links all}, {@code /links get}, a standalone helper (e.g.
+     * {@code /alllinks}) or an admin command (e.g. {@code /createlink}), so creation is rejected and
+     * existing config entries are skipped with a warning.
+     */
+    public static final java.util.Set<String> RESERVED_IDS = java.util.Set.of(
+        "all", "get",
+        "links", "serverlinks", "alllinks", "linklist", "getlink",
+        "linksadmin", "links-admin", "editlinks",
+        "createlink", "deletelink", "setlinkurl", "setlinkname", "setlinkcommand",
+        "setlinkexecutor", "setlinkpermission", "setlinkicon", "setlinkpriority",
+        "togglelink", "resetlinkclicks"
+    );
+
     public static final List<Material> ICON_PALETTE = List.of(
             Material.PLAYER_HEAD,
             Material.DIAMOND,
@@ -61,7 +76,11 @@ public class LinkDefaults {
     }
 
     public static boolean isValidId(@NotNull String id) {
-        return ID_PATTERN.matcher(id).matches();
+        return ID_PATTERN.matcher(id).matches() && !RESERVED_IDS.contains(id);
+    }
+
+    public static boolean isReservedId(@NotNull String id) {
+        return RESERVED_IDS.contains(id);
     }
 
     /**

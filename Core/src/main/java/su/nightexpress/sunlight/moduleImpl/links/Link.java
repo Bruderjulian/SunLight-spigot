@@ -11,6 +11,11 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
 import su.nightexpress.sunlight.moduleImpl.links.config.LinksPerms;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class Link implements PlaceholderResolvable {
 
     private final String id;
@@ -20,12 +25,22 @@ public class Link implements PlaceholderResolvable {
     private String command;
     private LinkExecutor executor;
     private String permission;
+    private String usePermission;
     private NightItem icon;
     private int priority;
     private boolean enabled;
     private long clicks;
 
-    private boolean dirty;
+    private int cooldown;
+    private double cost;
+    private String sound;
+    private String actionbar;
+    private String particle;
+    private int particleCount;
+    private List<String> firstRewardCommands;
+    private final Set<String> seenPlayers;
+
+    private volatile boolean dirty;
 
     public Link(@NotNull String id, @NotNull String display, @NotNull String url) {
         this.id = id;
@@ -34,10 +49,19 @@ public class Link implements PlaceholderResolvable {
         this.command = "";
         this.executor = LinkExecutor.CONSOLE;
         this.permission = "";
+        this.usePermission = "";
         this.icon = NightItem.fromType(Material.PAPER);
         this.priority = 0;
         this.enabled = true;
         this.clicks = 0L;
+        this.cooldown = 0;
+        this.cost = 0D;
+        this.sound = "";
+        this.actionbar = "";
+        this.particle = "";
+        this.particleCount = 20;
+        this.firstRewardCommands = new ArrayList<>();
+        this.seenPlayers = new HashSet<>();
     }
 
     public void load(@NotNull FileConfig config, @NotNull String path) {
@@ -48,10 +72,20 @@ public class Link implements PlaceholderResolvable {
         this.setExecutor(Enums.parse(config.getString(path + ".Command-Executor", ""), LinkExecutor.class)
                 .orElse(LinkExecutor.CONSOLE));
         this.setPermission(config.getString(path + ".Permission", ""));
+        this.setUsePermission(config.getString(path + ".Use-Permission", ""));
         this.setIcon(this.readIcon(config, path + ".Icon"));
         this.setPriority(config.getInt(path + ".Priority"));
         this.setEnabled(config.getBoolean(path + ".Enabled", true));
         this.setClicks(config.getLong(path + ".Clicks"));
+        this.setCooldown(config.getInt(path + ".Cooldown"));
+        this.setCost(config.getDouble(path + ".Cost"));
+        this.setSound(config.getString(path + ".Sound", ""));
+        this.setActionbar(config.getString(path + ".Actionbar", ""));
+        this.setParticle(config.getString(path + ".Particle-Type", ""));
+        this.setParticleCount(config.getInt(path + ".Particle-Count", 20));
+        this.setFirstRewardCommands(config.getStringList(path + ".First-Reward-Commands"));
+        this.seenPlayers.clear();
+        this.seenPlayers.addAll(config.getStringList(path + ".Seen-Players"));
     }
 
     public void write(@NotNull FileConfig config, @NotNull String path) {
@@ -61,9 +95,18 @@ public class Link implements PlaceholderResolvable {
         config.set(path + ".Command", this.command);
         config.set(path + ".Command-Executor", this.executor.name());
         config.set(path + ".Permission", this.permission);
+        config.set(path + ".Use-Permission", this.usePermission);
         config.set(path + ".Icon", this.icon);
         config.set(path + ".Priority", this.priority);
         config.set(path + ".Clicks", this.clicks);
+        config.set(path + ".Cooldown", this.cooldown);
+        config.set(path + ".Cost", this.cost);
+        config.set(path + ".Sound", this.sound);
+        config.set(path + ".Actionbar", this.actionbar);
+        config.set(path + ".Particle-Type", this.particle);
+        config.set(path + ".Particle-Count", this.particleCount);
+        config.set(path + ".First-Reward-Commands", this.firstRewardCommands);
+        config.set(path + ".Seen-Players", new ArrayList<>(this.seenPlayers));
     }
 
     /**
@@ -95,6 +138,26 @@ public class Link implements PlaceholderResolvable {
         return this.permission != null && !this.permission.isBlank();
     }
 
+    public boolean hasUsePermission() {
+        return this.usePermission != null && !this.usePermission.isBlank();
+    }
+
+    public boolean hasSound() {
+        return this.sound != null && !this.sound.isBlank() && !"none".equalsIgnoreCase(this.sound.trim());
+    }
+
+    public boolean hasActionbar() {
+        return this.actionbar != null && !this.actionbar.isBlank();
+    }
+
+    public boolean hasParticle() {
+        return this.particle != null && !this.particle.isBlank() && !"none".equalsIgnoreCase(this.particle.trim());
+    }
+
+    public boolean hasFirstReward() {
+        return this.firstRewardCommands != null && this.firstRewardCommands.stream().anyMatch(s -> s != null && !s.isBlank());
+    }
+
     /**
      * A link with neither a URL nor a command can do nothing when activated, so it is treated as
      * misconfigured instead of presenting the player with an empty click target.
@@ -104,6 +167,13 @@ public class Link implements PlaceholderResolvable {
     }
 
     public boolean hasAccess(@NotNull CommandSender sender) {
+        return this.canSee(sender);
+    }
+
+    /**
+     * Whether the sender can see the link in menus and lists.
+     */
+    public boolean canSee(@NotNull CommandSender sender) {
         if (!this.enabled)
             return false;
 
@@ -112,6 +182,16 @@ public class Link implements PlaceholderResolvable {
 
         return sender.hasPermission(LinksPerms.COMMAND_LINK) || sender.hasPermission(LinksPerms.COMMAND
                 .childrenNode("link." + this.id));
+    }
+
+    /**
+     * Whether the sender can activate the link. Implies {@link #canSee(CommandSender)}.
+     */
+    public boolean canUse(@NotNull CommandSender sender) {
+        if (!this.canSee(sender))
+            return false;
+
+        return !this.hasUsePermission() || sender.hasPermission(this.usePermission);
     }
 
     public boolean isDirty() {
@@ -175,11 +255,124 @@ public class Link implements PlaceholderResolvable {
         this.permission = permission == null ? "" : permission.trim();
     }
 
+    public @NotNull String getUsePermission() {
+        return this.usePermission;
+    }
+
+    public void setUsePermission(@Nullable String usePermission) {
+        if (usePermission != null && "none".equalsIgnoreCase(usePermission.trim())) {
+            usePermission = "";
+        }
+        this.usePermission = usePermission == null ? "" : usePermission.trim();
+    }
+
+    public int getCooldown() {
+        return this.cooldown;
+    }
+
+    public void setCooldown(int cooldown) {
+        this.cooldown = Math.max(0, cooldown);
+    }
+
+    public double getCost() {
+        return this.cost;
+    }
+
+    public void setCost(double cost) {
+        this.cost = Math.max(0D, cost);
+    }
+
+    public @NotNull String getSound() {
+        return this.sound;
+    }
+
+    public void setSound(@Nullable String sound) {
+        if (sound != null && "none".equalsIgnoreCase(sound.trim())) {
+            sound = "";
+        }
+        this.sound = sound == null ? "" : sound.trim();
+    }
+
+    public @NotNull String getActionbar() {
+        return this.actionbar;
+    }
+
+    public void setActionbar(@Nullable String actionbar) {
+        this.actionbar = actionbar == null ? "" : actionbar;
+    }
+
+    public @NotNull String getParticle() {
+        return this.particle;
+    }
+
+    public void setParticle(@Nullable String particle) {
+        if (particle != null && "none".equalsIgnoreCase(particle.trim())) {
+            particle = "";
+        }
+        this.particle = particle == null ? "" : particle.trim().toUpperCase(java.util.Locale.ROOT);
+    }
+
+    public int getParticleCount() {
+        return this.particleCount;
+    }
+
+    public void setParticleCount(int particleCount) {
+        this.particleCount = Math.max(0, Math.min(100, particleCount));
+    }
+
+    public @NotNull List<String> getFirstRewardCommands() {
+        return new ArrayList<>(this.firstRewardCommands);
+    }
+
+    public void setFirstRewardCommands(@Nullable List<String> commands) {
+        this.firstRewardCommands = new ArrayList<>();
+        if (commands == null) return;
+        commands.stream()
+                .filter(s -> s != null && !s.isBlank())
+                .map(s -> {
+                    String result = s.trim();
+                    while (result.startsWith("/")) result = result.substring(1);
+                    return result.trim();
+                })
+                .filter(s -> !s.isBlank())
+                .forEach(this.firstRewardCommands::add);
+    }
+
+    public void setFirstRewardCommand(@Nullable String command) {
+        this.setFirstRewardCommands(command == null || command.isBlank() ? List.of() : List.of(command));
+    }
+
+    public boolean hasSeen(@NotNull java.util.UUID uuid) {
+        return this.seenPlayers.contains(uuid.toString());
+    }
+
+    public boolean markSeen(@NotNull java.util.UUID uuid) {
+        boolean added = this.seenPlayers.add(uuid.toString());
+        if (added) this.markDirty();
+        return added;
+    }
+
+    public int getUniqueClicks() {
+        return this.seenPlayers.size();
+    }
+
+    public void clearSeen() {
+        if (!this.seenPlayers.isEmpty()) {
+            this.seenPlayers.clear();
+            this.markDirty();
+        }
+    }
+
     public @NotNull NightItem getIcon() {
         return this.icon.copy();
     }
 
     public void setIcon(@NotNull NightItem icon) {
+        // An air icon would render as an empty menu slot, so fall back to paper like the config loader.
+        if (icon.getMaterial().isAir()) {
+            this.icon = NightItem.fromType(Material.PAPER);
+            return;
+        }
         this.icon = icon.copy();
     }
 
@@ -214,6 +407,7 @@ public class Link implements PlaceholderResolvable {
 
     public void resetClicks() {
         this.clicks = 0L;
+        this.clearSeen();
         this.markDirty();
     }
 }

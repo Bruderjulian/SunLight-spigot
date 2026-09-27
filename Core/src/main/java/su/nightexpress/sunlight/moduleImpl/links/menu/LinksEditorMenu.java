@@ -54,7 +54,14 @@ public class LinksEditorMenu extends AbstractMenu {
                             .setLore(lore)
                             .replace(builder -> builder.with(link.placeholders()));
                 })
-                .actionProvider(link -> context -> this.module.openLinkSettings(context.getPlayer(), link))
+                .actionProvider(link -> context -> {
+                    Link fresh = this.module.getLink(link.getId());
+                    if (fresh == null) {
+                        context.getViewer().refresh();
+                        return;
+                    }
+                    this.module.openLinkSettings(context.getPlayer(), fresh);
+                })
                 .build();
 
         this.addDefaultButton("create", MenuItem.button()

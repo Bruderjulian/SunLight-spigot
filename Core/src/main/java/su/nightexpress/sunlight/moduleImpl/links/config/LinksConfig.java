@@ -40,8 +40,23 @@ public class LinksConfig {
         for (String id : config.getSection(PATH_LINKS)) {
             String key = id.toLowerCase(Locale.ROOT);
             if (!LinkDefaults.isValidId(key)) {
-                warn.accept("Link ID '%s' is invalid (allowed: a-z, 0-9 and underscore, max 32 chars) and was skipped."
-                        .formatted(id));
+                if (LinkDefaults.isReservedId(key)) {
+                    warn.accept("Link ID '%s' is reserved by the Links commands and was skipped. Rename it."
+                            .formatted(id));
+                } else {
+                    warn.accept("Link ID '%s' is invalid (allowed: a-z, 0-9 and underscore, max 32 chars) and was skipped."
+                            .formatted(id));
+                }
+                continue;
+            }
+
+            if (!id.equals(key)) {
+                warn.accept("Link ID '%s' contains upper-case characters and was loaded as '%s'. Rename it to lower-case to silence this warning."
+                        .formatted(id, key));
+            }
+
+            if (map.containsKey(key)) {
+                warn.accept("Duplicate link ID '%s' (case-insensitive) and was skipped.".formatted(id));
                 continue;
             }
 
@@ -49,8 +64,8 @@ public class LinksConfig {
             link.load(config, PATH_LINKS + "." + id);
 
             if (!link.isActionable()) {
-                warn.accept("Link '%s' has neither a URL nor a command and was skipped.".formatted(key));
-                continue;
+                warn.accept("Link '%s' has neither a URL nor a command. It is hidden from players until one is set."
+                        .formatted(key));
             }
 
             map.put(key, link);

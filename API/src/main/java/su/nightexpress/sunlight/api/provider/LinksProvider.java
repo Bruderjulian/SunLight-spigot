@@ -8,7 +8,8 @@ import java.util.Set;
 public interface LinksProvider {
 
     /**
-     * @return Every enabled link, keyed by ID. Command-only links map to an empty string.
+     * @return Every enabled and actionable link, keyed by ID. Command-only links map to an empty string.
+     * Misconfigured links (no URL and no command) are excluded until an admin repairs them.
      */
     Map<String, String> getLinkMap();
 
@@ -24,4 +25,18 @@ public interface LinksProvider {
      * @return {@code false} when no link with that ID exists.
      */
     boolean activateLink(Player player, String id);
+
+    /**
+     * @return Total recorded clicks across all links.
+     */
+    default long getTotalClicks() {
+        return 0L;
+    }
+
+    /**
+     * @return Clicks recorded for the link, or -1 when no link with that ID exists.
+     */
+    default long getClicks(String id) {
+        return -1L;
+    }
 }

@@ -66,10 +66,14 @@ public class SocialsModule extends Module implements SocialsProvider {
     @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
         // Kept so scoreboards and menus using the old 'socials_<id>' placeholders keep resolving after
-        // the link data moved to the Links module.
+        // the link data moved to the Links module. Resolved by ID on every evaluation so a Links
+        // reload or deletion cannot leave a stale Link reference behind.
         this.plugin.moduleManager().getByType(LinksModule.class)
-                .ifPresent(links -> links.getLinks()
-                        .forEach((id, link) -> registry.register("socials_" + id, (player, payload) -> link.getUrl())));
+                .ifPresent(links -> links.getLinkIds()
+                        .forEach(id -> registry.register("socials_" + id, (player, payload) -> {
+                            var link = links.getLink(id);
+                            return link == null ? "" : link.getUrl();
+                        })));
     }
 
     public boolean isDiscordAvailable() {

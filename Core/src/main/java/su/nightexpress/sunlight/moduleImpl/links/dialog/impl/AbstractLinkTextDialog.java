@@ -14,8 +14,10 @@ import su.nightexpress.nightcore.ui.dialog.build.DialogButtons;
 import su.nightexpress.nightcore.ui.dialog.build.DialogInputs;
 import su.nightexpress.nightcore.ui.dialog.build.DialogTypes;
 import su.nightexpress.nightcore.ui.dialog.wrap.Dialog;
+import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.moduleImpl.links.Link;
 import su.nightexpress.sunlight.moduleImpl.links.LinksModule;
+import su.nightexpress.sunlight.moduleImpl.links.config.LinksLang;
 
 /**
  * Shared shape of every single-text field editor in the link settings menu. Subclasses only decide what
@@ -56,8 +58,12 @@ public abstract class AbstractLinkTextDialog extends Dialog<Link> {
                         return;
                     }
 
-                    if (this.apply(link, nbtHolder.getText(this.jsonKey, "")) == null) {
-                        // Rejected: leave the link untouched so the admin can retry.
+                    String input = nbtHolder.getText(this.jsonKey, "");
+                    if (this.apply(link, input) == null) {
+                        // Rejected: the link is untouched. Tell the admin instead of closing silently,
+                        // otherwise invalid input (e.g. a non-numeric priority) looks like it worked.
+                        this.module.sendPrefixed(LinksLang.DIALOG_INPUT_INVALID, player,
+                                replacer -> replacer.with(SLPlaceholders.GENERIC_VALUE, () -> input));
                         return;
                     }
 

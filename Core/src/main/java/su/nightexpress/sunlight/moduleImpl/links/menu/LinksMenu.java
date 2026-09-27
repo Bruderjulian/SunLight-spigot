@@ -39,14 +39,29 @@ public class LinksMenu extends AbstractMenu {
                     // Built by hand rather than from an IconLocale: the lore has to show the link's own
                     // URL and command, which a static icon definition cannot express.
                     List<String> lore = new ArrayList<>();
-                    if (link.hasUrl()) {
+                    if (link.hasUrl() && this.module.getSettings().isShowUrl()) {
                         lore.add(GRAY.wrap(link.getUrl()));
                     }
                     if (link.hasCommand()) {
                         lore.add(GOLD.wrap("Runs ") + GRAY.wrap(link.getCommand()));
                     }
+                    if (link.getCost() > 0D) {
+                        lore.add(GOLD.wrap("Cost: ") + GRAY.wrap(String.valueOf(link.getCost())));
+                    }
+                    if (link.getCooldown() > 0) {
+                        long left = this.module.getCooldownLeftMillis(context.getPlayer(), link);
+                        if (left > 0L) {
+                            lore.add(RED.wrap("On cooldown"));
+                        } else {
+                            lore.add(GRAY.wrap("Cooldown: ") + WHITE.wrap(link.getCooldown() + "s"));
+                        }
+                    }
                     lore.add("");
-                    lore.add(YELLOW.wrap("→ ") + UNDERLINED.wrap("Click to open"));
+                    if (!link.canUse(context.getPlayer())) {
+                        lore.add(RED.wrap("Locked"));
+                    } else {
+                        lore.add(YELLOW.wrap("→ ") + UNDERLINED.wrap("Click to open"));
+                    }
 
                     return link.getIcon()
                             .hideAllComponents()
@@ -54,7 +69,16 @@ public class LinksMenu extends AbstractMenu {
                             .setLore(lore)
                             .replace(builder -> builder.with(link.placeholders()));
                 })
-                .actionProvider(link -> context -> this.module.activateLink(context.getPlayer(), link))
+                .actionProvider(link -> context -> {
+                    // Resolved by ID: the menu snapshot can outlive a delete or a reload, and must
+                    // never act on a stale object.
+                    Link fresh = this.module.getLink(link.getId());
+                    if (fresh == null) {
+                        context.getViewer().refresh();
+                        return;
+                    }
+                    this.module.activateLink(context.getPlayer(), fresh);
+                })
                 .build();
 
         this.load(plugin, FileConfig.load(module.getLocalUIPath(), LinksFiles.FILE_MENU_LIST));

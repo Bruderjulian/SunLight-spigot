@@ -38,6 +38,13 @@ public class LinkSettingsMenu extends AbstractObjectMenu<Link> {
     private static final int SLOT_PERM     = 20;
     private static final int SLOT_PRIORITY = 21;
     private static final int SLOT_CLICKS   = 22;
+    private static final int SLOT_USE_PERM = 23;
+    private static final int SLOT_COOLDOWN = 24;
+    private static final int SLOT_COST     = 25;
+    private static final int SLOT_REWARD   = 28;
+    private static final int SLOT_SOUND    = 29;
+    private static final int SLOT_ACTIONBAR = 30;
+    private static final int SLOT_PARTICLE = 31;
     private static final int SLOT_RETURN   = 40;
     private static final int SLOT_DELETE   = 44;
 
@@ -179,6 +186,98 @@ public class LinkSettingsMenu extends AbstractObjectMenu<Link> {
                         })
                         .build())
                 .slots(SLOT_CLICKS)
+                .build());
+
+        this.addDefaultButton("use_permission", MenuItem.button()
+                .defaultState(ItemState.builder()
+                        .icon(NightItem.fromType(Material.IRON_BARS)
+                                .localized(LinksLang.ICON_SETTINGS_USE_PERMISSION)
+                                .hideAllComponents())
+                        .displayModifier((context, item) -> item
+                                .replace(builder -> builder.with(this.getObject(context).placeholders())))
+                        .action(context -> this.plugin.showDialog(context.getPlayer(),
+                                LinksDialogKeys.LINK_USE_PERMISSION, this.getObject(context),
+                                () -> context.getViewer().refresh()))
+                        .build())
+                .slots(SLOT_USE_PERM)
+                .build());
+
+        this.addDefaultButton("cooldown", MenuItem.button()
+                .defaultState(ItemState.builder()
+                        .icon(NightItem.fromType(Material.REPEATER)
+                                .localized(LinksLang.ICON_SETTINGS_COOLDOWN)
+                                .hideAllComponents())
+                        .displayModifier((context, item) -> item
+                                .replace(builder -> builder.with(this.getObject(context).placeholders())))
+                        .action(context -> this.plugin.showDialog(context.getPlayer(), LinksDialogKeys.LINK_COOLDOWN,
+                                this.getObject(context), () -> context.getViewer().refresh()))
+                        .build())
+                .slots(SLOT_COOLDOWN)
+                .build());
+
+        this.addDefaultButton("cost", MenuItem.button()
+                .defaultState(ItemState.builder()
+                        .icon(NightItem.fromType(Material.GOLD_INGOT)
+                                .localized(LinksLang.ICON_SETTINGS_COST)
+                                .hideAllComponents())
+                        .displayModifier((context, item) -> item
+                                .replace(builder -> builder.with(this.getObject(context).placeholders())))
+                        .action(context -> this.plugin.showDialog(context.getPlayer(), LinksDialogKeys.LINK_COST,
+                                this.getObject(context), () -> context.getViewer().refresh()))
+                        .build())
+                .slots(SLOT_COST)
+                .build());
+
+        this.addDefaultButton("reward", MenuItem.button()
+                .defaultState(ItemState.builder()
+                        .icon(NightItem.fromType(Material.CHEST)
+                                .localized(LinksLang.ICON_SETTINGS_REWARD)
+                                .hideAllComponents())
+                        .displayModifier((context, item) -> item
+                                .replace(builder -> builder.with(this.getObject(context).placeholders())))
+                        .action(context -> this.plugin.showDialog(context.getPlayer(), LinksDialogKeys.LINK_REWARD,
+                                this.getObject(context), () -> context.getViewer().refresh()))
+                        .build())
+                .slots(SLOT_REWARD)
+                .build());
+
+        this.addDefaultButton("sound", MenuItem.button()
+                .defaultState(ItemState.builder()
+                        .icon(NightItem.fromType(Material.NOTE_BLOCK)
+                                .localized(LinksLang.ICON_SETTINGS_SOUND)
+                                .hideAllComponents())
+                        .displayModifier((context, item) -> item
+                                .replace(builder -> builder.with(this.getObject(context).placeholders())))
+                        .action(context -> this.plugin.showDialog(context.getPlayer(), LinksDialogKeys.LINK_SOUND,
+                                this.getObject(context), () -> context.getViewer().refresh()))
+                        .build())
+                .slots(SLOT_SOUND)
+                .build());
+
+        this.addDefaultButton("actionbar", MenuItem.button()
+                .defaultState(ItemState.builder()
+                        .icon(NightItem.fromType(Material.OAK_SIGN)
+                                .localized(LinksLang.ICON_SETTINGS_ACTIONBAR)
+                                .hideAllComponents())
+                        .displayModifier((context, item) -> item
+                                .replace(builder -> builder.with(this.getObject(context).placeholders())))
+                        .action(context -> this.plugin.showDialog(context.getPlayer(), LinksDialogKeys.LINK_ACTIONBAR,
+                                this.getObject(context), () -> context.getViewer().refresh()))
+                        .build())
+                .slots(SLOT_ACTIONBAR)
+                .build());
+
+        this.addDefaultButton("particle", MenuItem.button()
+                .defaultState(ItemState.builder()
+                        .icon(NightItem.fromType(Material.FIREWORK_ROCKET)
+                                .localized(LinksLang.ICON_SETTINGS_PARTICLE)
+                                .hideAllComponents())
+                        .displayModifier((context, item) -> item
+                                .replace(builder -> builder.with(this.getObject(context).placeholders())))
+                        .action(context -> this.plugin.showDialog(context.getPlayer(), LinksDialogKeys.LINK_PARTICLE,
+                                this.getObject(context), () -> context.getViewer().refresh()))
+                        .build())
+                .slots(SLOT_PARTICLE)
                 .build());
 
         this.addDefaultButton("return", MenuItem.button()

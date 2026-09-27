@@ -13,8 +13,10 @@ import su.nightexpress.nightcore.ui.dialog.build.DialogButtons;
 import su.nightexpress.nightcore.ui.dialog.build.DialogTypes;
 import su.nightexpress.nightcore.ui.dialog.wrap.Dialog;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
+import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.moduleImpl.links.Link;
 import su.nightexpress.sunlight.moduleImpl.links.LinksModule;
+import su.nightexpress.sunlight.moduleImpl.links.config.LinksLang;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.SOFT_RED;
 import static su.nightexpress.sunlight.moduleImpl.links.LinksPlaceholders.LINK_NAME;
@@ -40,7 +42,11 @@ public class LinkDeletionDialog extends Dialog<Link> {
                         .build())
                 .type(DialogTypes.multiAction(DialogButtons.confirm()).exitAction(DialogButtons.cancel()).build())
                 .handleResponse(DialogActions.CONFIRM, (viewer, identifier, nbtHolder) -> {
-                    this.module.deleteLink(link);
+                    if (this.module.deleteLink(link)) {
+                        this.module.sendPrefixed(LinksLang.ADMIN_DELETE_FEEDBACK, player,
+                                replacer -> replacer.with(SLPlaceholders.GENERIC_VALUE, link::getId));
+                        this.module.sendPrefixed(LinksLang.ADMIN_RELOAD_REQUIRED, player);
+                    }
                     viewer.callback();
                 })
                 .build();
