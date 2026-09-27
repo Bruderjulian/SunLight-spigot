@@ -61,10 +61,12 @@ public class GlowModule extends Module implements GlowProvider {
 
     @Override
     protected void unloadModule() {
-        this.states.forEach((uuid, state) -> {
+        for (UUID uuid : this.states.keySet()) {
             Player player = Utils.getPlayer(uuid);
-            if (player != null && player.isOnline()) player.setGlowing(false);
-        });
+            if (player != null && player.isOnline()) {
+                player.setGlowing(false);
+            }
+        }
         this.states.clear();
     }
 
