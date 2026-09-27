@@ -3,6 +3,7 @@ package su.nightexpress.sunlight.moduleImpl.links.config;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.sunlight.moduleImpl.links.Link;
 import su.nightexpress.sunlight.moduleImpl.links.LinkDefaults;
+import su.nightexpress.sunlight.moduleImpl.links.LinksModule;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -61,12 +62,15 @@ public class LinksConfig {
             }
 
             Link link = new Link(key, key, "");
-            link.load(config, PATH_LINKS + "." + id);
+            String linkPath = PATH_LINKS + "." + id;
+            link.load(config, linkPath);
 
             if (!link.isActionable()) {
                 warn.accept("Link '%s' has neither a URL nor a command. It is hidden from players until one is set."
                         .formatted(key));
             }
+
+            warnFeedbackIssues(config, linkPath, link, warn);
 
             map.put(key, link);
         }
@@ -77,5 +81,28 @@ public class LinksConfig {
         }
 
         return map;
+    }
+
+    /**
+     * Warns about feedback values that will silently do nothing at runtime. The link itself is kept:
+     * a typo'd sound or particle must not take the whole link down.
+     */
+    private static void warnFeedbackIssues(FileConfig config, String linkPath, Link link, Consumer<String> warn) {
+        if (link.hasSound()) {
+            String name = LinksModule.soundName(link.getSound());
+            if (!LinksModule.isVanillaSound(name)) {
+                warn.accept("Link '%s' uses sound '%s', which is not a vanilla sound. If it is not a custom resource-pack sound, it will be silent."
+                        .formatted(link.getId(), name));
+            }
+        }
+
+        String configuredParticle = config.getString(linkPath + ".Particle.Name", "");
+        if (configuredParticle.isBlank()) {
+            configuredParticle = config.getString(linkPath + ".Particle-Type", "");
+        }
+        if (!configuredParticle.isBlank() && !link.hasParticle()) {
+            warn.accept("Link '%s' has invalid particle '%s' and it was disabled.".formatted(link.getId(),
+                    configuredParticle.trim()));
+        }
     }
 }

@@ -9,7 +9,6 @@ import su.nightexpress.sunlight.moduleImpl.links.LinksPlaceholders;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_AMOUNT;
-import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_COOLDOWN;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_INPUT;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_NAME;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_NEW_VALUE;
@@ -232,9 +231,6 @@ public class LinksLang implements LangContainer {
             .chatMessage(SOFT_GREEN.wrap("Link ") + GOLD.wrap(GENERIC_VALUE) + SOFT_GREEN.wrap(" particle set to ")
                     + AQUA.wrap(GENERIC_NEW_VALUE) + SOFT_GREEN.wrap("."));
 
-    public static final MessageLocale ADMIN_SET_INVALID_NUMBER = LangEntry.builder("Links.Admin.Set.InvalidNumber")
-            .chatMessage(SOFT_RED.wrap("'") + RED.wrap(GENERIC_VALUE) + SOFT_RED.wrap("' is not a valid number."));
-
     public static final MessageLocale ADMIN_SET_INVALID_SOUND = LangEntry.builder("Links.Admin.Set.InvalidSound")
             .chatMessage(SOFT_RED.wrap("'") + RED.wrap(GENERIC_VALUE) + SOFT_RED.wrap("' is not a valid sound."));
 
@@ -252,7 +248,8 @@ public class LinksLang implements LangContainer {
 
     public static final MessageLocale ADMIN_RESET_CLICKS_FEEDBACK = LangEntry
             .builder("Links.Admin.ResetClicks.Feedback")
-            .chatMessage(SOFT_GREEN.wrap("Link ") + GOLD.wrap(GENERIC_VALUE) + SOFT_GREEN.wrap(" click counter reset."));
+            .chatMessage(SOFT_GREEN.wrap("Link ") + GOLD.wrap(GENERIC_VALUE) + SOFT_GREEN.wrap(" click statistics reset.")
+                    + GRAY.wrap(" Claimed first-click rewards are kept."));
 
     public static final MessageLocale ADMIN_RELOAD_REQUIRED = LangEntry.builder("Links.Admin.ReloadRequired")
             .chatMessage(SOFT_YELLOW.wrap("A restart or reload is required for a new link's command to become available."));
@@ -415,7 +412,7 @@ public class LinksLang implements LangContainer {
             .accentColor(ORANGE)
             .name("Clicks")
             .appendCurrent("Clicks", LinksPlaceholders.LINK_CLICKS)
-            .appendInfo("Times the link was opened", "by a player.")
+            .appendInfo("Times the link was opened", "by a player.", "Resetting keeps claimed", "first-click rewards.")
             .br()
             .appendClick("Click to reset")
             .build();

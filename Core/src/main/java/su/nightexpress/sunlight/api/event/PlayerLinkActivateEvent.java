@@ -13,6 +13,10 @@ import su.nightexpress.sunlight.moduleImpl.links.Link;
  * <p>
  * Cancellable: cancel to silently (or with your own feedback) block the activation.
  * Clicks, cooldowns, costs and rewards are all skipped when cancelled.
+ * <p>
+ * {@link #isFirstClick()} reflects the pre-activation state. Reward eligibility is tracked
+ * separately per player, so a listener that re-enters activation sees the same pre-state while
+ * the reward itself is still granted at most once.
  */
 public class PlayerLinkActivateEvent extends Event implements Cancellable {
 

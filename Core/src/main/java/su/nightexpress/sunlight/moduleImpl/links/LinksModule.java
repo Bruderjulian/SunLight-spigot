@@ -1,22 +1,34 @@
 package su.nightexpress.sunlight.moduleImpl.links;
 
 import org.bukkit.Material;
-import org.bukkit.Particle;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
+import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.Players;
+import su.nightexpress.nightcore.util.StringUtil;
 import su.nightexpress.nightcore.util.bukkit.NightItem;
 import su.nightexpress.nightcore.util.bukkit.NightSound;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers;
+import su.nightexpress.nightcore.util.time.TimeFormatType;
+import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.event.PlayerLinkActivateEvent;
 import su.nightexpress.sunlight.api.provider.LinksProvider;
+import su.nightexpress.sunlight.config.PermissionTree;
+import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
+import su.nightexpress.sunlight.module.Module;
+import su.nightexpress.sunlight.module.ModuleDefinition;
+import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
+import su.nightexpress.sunlight.utils.EconomyUtils;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -49,6 +61,7 @@ import su.nightexpress.sunlight.moduleImpl.links.menu.LinksMenu;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -93,8 +106,11 @@ public class LinksModule extends Module implements LinksProvider {
         this.links.putAll(LinksConfig.readLinks(config, this::warn));
 
         this.plugin.injectLang(LinksLang.class);
+        UserPropertyRegistry.register(LinksProperties.CLAIMED_REWARDS);
 
         this.registerDialogs();
+
+        this.addListener(new LinksListener(this.plugin, this));
 
         this.menu = new LinksMenu(this.plugin, this);
         this.editorMenu = new LinksEditorMenu(this.plugin, this);
@@ -205,37 +221,39 @@ public class LinksModule extends Module implements LinksProvider {
      * comparing them would sort by formatting codes instead of visible text.
      */
     public @NotNull List<Link> getSortedLinks() {
-        return this.links.values()
-                .stream()
-                .filter(Link::isEnabled)
-                .filter(Link::isActionable)
-                .sorted(Comparator.comparingInt(Link::getPriority).reversed().thenComparing(Link::getId))
-                .toList();
+        synchronized (this.links) {
+            return this.links.values()
+                    .stream()
+                    .filter(Link::isEnabled)
+                    .filter(Link::isActionable)
+                    .sorted(Comparator.comparingInt(Link::getPriority).reversed().thenComparing(Link::getId))
+                    .toList();
+        }
     }
 
     /**
      * @return Every link, including disabled ones. For admin-facing views only.
      */
     public @NotNull List<Link> getAllLinks() {
-        return this.links.values()
-                .stream()
-                .sorted(Comparator.comparingInt(Link::getPriority).reversed().thenComparing(Link::getId))
-                .toList();
+        synchronized (this.links) {
+            return this.links.values()
+                    .stream()
+                    .sorted(Comparator.comparingInt(Link::getPriority).reversed().thenComparing(Link::getId))
+                    .toList();
+        }
     }
 
     public @NotNull List<Link> getVisibleLinks(@NotNull CommandSender sender) {
         return this.getSortedLinks().stream().filter(link -> link.canSee(sender)).toList();
     }
 
-    public @NotNull List<Link> getUsableLinks(@NotNull CommandSender sender) {
-        return this.getSortedLinks().stream().filter(link -> link.canUse(sender)).toList();
-    }
-
     public @NotNull List<Link> getTopLinks(int limit) {
-        return this.links.values().stream()
-                .sorted(Comparator.comparingLong(Link::getClicks).reversed().thenComparing(Link::getId))
-                .limit(Math.max(1, limit))
-                .toList();
+        synchronized (this.links) {
+            return this.links.values().stream()
+                    .sorted(Comparator.comparingLong(Link::getClicks).reversed().thenComparing(Link::getId))
+                    .limit(Math.max(1, limit))
+                    .toList();
+        }
     }
 
     // Editing
@@ -394,6 +412,9 @@ public class LinksModule extends Module implements LinksProvider {
             return;
         }
 
+        // Pre-activation state for the event. Reward eligibility is tracked separately via per-user
+        // claims (see claimReward), so even a listener that re-enters activation cannot cause a
+        // double grant: the claim, not this flag, is the single source of truth for rewards.
         boolean firstClick = !link.hasSeen(player.getUniqueId());
 
         PlayerLinkActivateEvent event = new PlayerLinkActivateEvent(player, link, firstClick);
@@ -402,49 +423,59 @@ public class LinksModule extends Module implements LinksProvider {
             return;
         }
 
-        long cooldownLeft = this.getCooldownLeftMillis(player, link);
-        if (cooldownLeft > 0L) {
-            this.sendPrefixed(LinksLang.ERROR_COOLDOWN, player, replacer -> replacer
-                    .with(SLPlaceholders.GENERIC_TIME, () -> formatCooldownLeft(cooldownLeft))
-                    .with(link.placeholders()));
-            return;
-        }
-
-        double cost = link.getCost();
-        boolean charge = cost > 0D
-                && su.nightexpress.sunlight.utils.EconomyUtils.hasCurrency()
-                && !su.nightexpress.sunlight.utils.EconomyUtils.hasBypass(player, LinksPerms.BYPASS_COST);
-        if (charge && !su.nightexpress.sunlight.utils.EconomyUtils.canAfford(player, cost)) {
-            this.sendPrefixed(LinksLang.ERROR_COST, player, replacer -> replacer
-                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> su.nightexpress.sunlight.utils.EconomyUtils.format(cost))
-                    .with(link.placeholders()));
-            return;
-        }
-
         boolean commandsEnabled = this.settings.isExecuteCommandsEnabled();
-        if (link.hasCommand() && commandsEnabled) {
-            this.executeLinkCommand(player, link);
-        }
 
-        // A command-only link with command execution disabled does nothing at all: don't count the
-        // click and tell the player instead of pretending it was activated.
+        // A command-only link with command execution disabled does nothing at all: fail before any
+        // state (cooldown, cost, clicks) is touched, instead of pretending it was activated.
         if (!link.hasUrl() && (!commandsEnabled || !link.hasCommand())) {
             this.sendPrefixed(LinksLang.ERROR_NOT_ACTIONABLE, player);
             return;
         }
 
-        if (charge) {
-            su.nightexpress.sunlight.utils.EconomyUtils.withdraw(player, cost);
+        if (link.getCooldown() > 0 && this.settings.isCooldownsEnabled()
+                && !EconomyUtils.hasCooldownBypass(player, LinksPerms.BYPASS_COOLDOWN)) {
+            long cooldownLeft = this.getCooldownLeftMillis(player, link);
+            if (cooldownLeft > 0L) {
+                this.sendPrefixed(LinksLang.ERROR_COOLDOWN, player, replacer -> replacer
+                        .with(SLPlaceholders.GENERIC_TIME,
+                                () -> TimeFormats.formatAmount(cooldownLeft, TimeFormatType.LITERAL))
+                        .with(link.placeholders()));
+                return;
+            }
         }
 
-        boolean first = link.markSeen(player.getUniqueId());
-        if (first && link.hasFirstReward()) {
-            this.executeCommands(player, link, link.getFirstRewardCommands());
-            this.sendPrefixed(LinksLang.FIRST_REWARD_NOTIFY, player, replacer -> replacer.with(link.placeholders()));
+        double cost = link.getCost();
+        boolean charge = this.settings.isCostsEnabled() && cost > 0D
+                && EconomyUtils.hasCurrency()
+                && !EconomyUtils.hasBypass(player, LinksPerms.BYPASS_COST);
+        if (charge && !EconomyUtils.canAfford(player, cost)) {
+            this.sendPrefixed(LinksLang.ERROR_COST, player, replacer -> replacer
+                    .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost))
+                    .with(link.placeholders()));
+            return;
         }
 
-        if (link.getCooldown() > 0 && !su.nightexpress.sunlight.utils.EconomyUtils.hasCooldownBypass(player, LinksPerms.BYPASS_COOLDOWN)) {
+        // Stamped before any command runs so a command that re-enters activation (e.g. dispatching
+        // '/links <id>') is blocked instead of recursing.
+        if (link.getCooldown() > 0 && this.settings.isCooldownsEnabled()
+                && !EconomyUtils.hasCooldownBypass(player, LinksPerms.BYPASS_COOLDOWN)) {
             this.setCooldown(player, link);
+        }
+
+        if (link.hasCommand() && commandsEnabled) {
+            this.executeLinkCommand(player, link);
+        }
+
+        if (charge) {
+            EconomyUtils.withdraw(player, cost);
+        }
+
+        // Seen = activation history for the unique-clicks stat. Reward eligibility is per-user and
+        // survives stat resets (see claimReward), so resetting clicks never re-grants rewards.
+        link.markSeen(player.getUniqueId());
+
+        if (commandsEnabled && link.hasFirstReward() && this.claimReward(player, link)) {
+            this.sendPrefixed(LinksLang.FIRST_REWARD_NOTIFY, player, replacer -> replacer.with(link.placeholders()));
         }
 
         // Clicks are batched to disk by the async saver; a synchronous config write on every click
@@ -453,6 +484,25 @@ public class LinksModule extends Module implements LinksProvider {
 
         this.playFeedback(player, link);
         this.sendLink(player, link);
+    }
+
+    /**
+     * Grants the link's first-click reward if the player never claimed it.
+     *
+     * @return {@code true} when the reward was granted by this call.
+     */
+    private boolean claimReward(@NotNull Player player, @NotNull Link link) {
+        SunUser user = this.userManager.getOrFetch(player);
+
+        // Copy-on-write: the default instance is shared, so it must never be mutated in place.
+        Set<String> claimed = new HashSet<>(user.getPropertyOrDefault(LinksProperties.CLAIMED_REWARDS));
+        if (!claimed.add(link.getId())) {
+            return false;
+        }
+
+        user.setProperty(LinksProperties.CLAIMED_REWARDS, claimed);
+        this.executeCommands(player, link, link.getFirstRewardCommands());
+        return true;
     }
 
     public long getCooldownLeftMillis(@NotNull Player player, @NotNull Link link) {
@@ -475,29 +525,19 @@ public class LinksModule extends Module implements LinksProvider {
                 .put(link.getId(), System.currentTimeMillis() + link.getCooldown() * 1000L);
     }
 
-    public void clearCooldown(@NotNull Player player, @NotNull Link link) {
-        Map<String, Long> map = this.cooldowns.get(player.getUniqueId());
-        if (map != null) map.remove(link.getId());
-    }
-
-    private static @NotNull String formatCooldownLeft(long millis) {
-        long seconds = Math.max(1L, (millis + 999L) / 1000L);
-        if (seconds < 60L) return seconds + "s";
-        long minutes = seconds / 60L;
-        long rest = seconds % 60L;
-        if (minutes < 60L) return rest == 0L ? minutes + "m" : minutes + "m " + rest + "s";
-        long hours = minutes / 60L;
-        long restMinutes = minutes % 60L;
-        return restMinutes == 0L ? hours + "h" : hours + "h " + restMinutes + "m";
+    public void clearCooldowns(@NotNull Player player) {
+        this.cooldowns.remove(player.getUniqueId());
     }
 
     public void playFeedback(@NotNull Player player, @NotNull Link link) {
         if (link.hasSound()) {
             NightSound sound = parseSound(link.getSound());
-            if (sound != null) {
+            if (sound != null && !sound.isEmpty()) {
                 try {
                     sound.play(player);
-                } catch (Exception ignored) {
+                } catch (IllegalArgumentException ignored) {
+                    // Unknown sound name (e.g. a resource-pack sound the client lacks). Load-time
+                    // validation already warned about non-vanilla names; never fail the activation.
                 }
             }
         }
@@ -511,41 +551,72 @@ public class LinksModule extends Module implements LinksProvider {
             Players.sendActionBar(player, context.apply(link.getActionbar()));
         }
 
-        if (link.hasParticle()) {
-            try {
-                Particle particle = Particle.valueOf(link.getParticle().trim().toUpperCase(Locale.ROOT));
-                player.spawnParticle(particle, player.getLocation().add(0D, 1D, 0D), Math.max(1, link.getParticleCount()));
-            } catch (Exception ignored) {
-            }
+        if (link.hasParticle() && link.getParticleCount() > 0) {
+            link.getParticle().play(player, player.getLocation().add(0D, 1D, 0D), 0.3D, 0.05D,
+                    link.getParticleCount());
         }
     }
 
+    /**
+     * Parses a {@code NAME;volume;pitch} sound string. Lenient by design: volume and pitch fall back
+     * to {@code 1} when absent or malformed, mirroring {@link NightSound#deserialize(String)}.
+     * Custom (resource-pack) sound names are allowed; use {@link #isVanillaSound(String)} when a
+     * strict vanilla check is needed.
+     *
+     * @return The sound, or {@code null} when there is no name to play.
+     */
     public static @Nullable NightSound parseSound(@NotNull String raw) {
         String input = raw.trim();
         if (input.isEmpty() || "none".equalsIgnoreCase(input)) return null;
-        String[] split = input.split(";");
+
+        String[] split = input.split(";", -1);
+        String name = split[0].trim();
+        if (name.isEmpty()) return null;
+
+        float volume;
+        float pitch;
         try {
-            String name = split[0].trim().toUpperCase(Locale.ROOT);
-            float volume = split.length > 1 ? Float.parseFloat(split[1].trim()) : 1F;
-            float pitch = split.length > 2 ? Float.parseFloat(split[2].trim()) : 1F;
-            return NightSound.of(name, volume, pitch);
-        } catch (Exception exception) {
+            volume = split.length > 1 && !split[1].isBlank() ? Float.parseFloat(split[1].trim()) : 1F;
+            pitch = split.length > 2 && !split[2].isBlank() ? Float.parseFloat(split[2].trim()) : 1F;
+        } catch (NumberFormatException exception) {
             return null;
         }
+
+        return NightSound.of(name, volume, pitch);
     }
 
+    /**
+     * @return {@code true} when the value is a syntactically valid {@code NAME[;volume[;pitch]]}
+     *         sound. The name itself is not checked against the vanilla registry, so custom
+     *         resource-pack sounds pass.
+     */
     public static boolean isValidSound(@NotNull String raw) {
+        if (raw.isBlank() || "none".equalsIgnoreCase(raw.trim())) return true;
         return parseSound(raw) != null;
+    }
+
+    /**
+     * @return {@code true} when the name is a vanilla {@link Sound}. In this API version sounds are
+     *         an interface, not an enum, so the check goes through {@link Registry#SOUNDS} with the
+     *         enum-style name ({@code ENTITY_PLAYER_LEVELUP}) mapped to its key
+     *         ({@code entity.player.levelup}). Namespaced or dotted names are treated as custom
+     *         sounds and return {@code false} without implying they are broken.
+     */
+    public static boolean isVanillaSound(@NotNull String name) {
+        String value = name.trim();
+        if (value.isEmpty() || value.contains(":") || value.contains(".")) return false;
+        NamespacedKey key = NamespacedKey.minecraft(value.toLowerCase(Locale.ROOT).replace('_', '.'));
+        return Registry.SOUNDS.get(key) != null;
+    }
+
+    public static @NotNull String soundName(@NotNull String raw) {
+        return raw.split(";", -1)[0].trim();
     }
 
     public static boolean isValidParticle(@NotNull String raw) {
         if (raw == null || raw.isBlank() || "none".equalsIgnoreCase(raw.trim())) return true;
-        try {
-            Particle.valueOf(raw.trim().toUpperCase(Locale.ROOT));
-            return true;
-        } catch (Exception exception) {
-            return false;
-        }
+        // Server-side particles are enum-only: unlike sounds, there is no custom namespace.
+        return StringUtil.getEnum(raw.trim().toUpperCase(Locale.ROOT), org.bukkit.Particle.class).isPresent();
     }
 
     @Override
@@ -623,17 +694,21 @@ public class LinksModule extends Module implements LinksProvider {
 
     @Override
     public @NotNull Map<String, String> getLinkMap() {
-        return this.links.entrySet()
-                .stream()
-                .filter(entry -> entry.getValue().isEnabled())
-                .filter(entry -> entry.getValue().isActionable())
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getUrl(), (a, b) -> a,
-                        LinkedHashMap::new));
+        synchronized (this.links) {
+            return this.links.entrySet()
+                    .stream()
+                    .filter(entry -> entry.getValue().isEnabled())
+                    .filter(entry -> entry.getValue().isActionable())
+                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getUrl(), (a, b) -> a,
+                            LinkedHashMap::new));
+        }
     }
 
     @Override
     public long getTotalClicks() {
-        return this.links.values().stream().mapToLong(Link::getClicks).sum();
+        synchronized (this.links) {
+            return this.links.values().stream().mapToLong(Link::getClicks).sum();
+        }
     }
 
     @Override

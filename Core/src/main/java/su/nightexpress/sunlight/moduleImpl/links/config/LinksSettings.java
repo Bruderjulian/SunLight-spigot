@@ -23,6 +23,18 @@ public class LinksSettings extends AbstractConfig {
             "The URL is always clickable either way; this only controls the plain text copy."
     );
 
+    private final ConfigProperty<Boolean> cooldownsEnabled = this.addProperty(ConfigTypes.BOOLEAN,
+            "Settings.Cooldowns-Enabled", true,
+            "Master switch for per-link cooldowns. When disabled, every link behaves as if its",
+            "'Cooldown' was 0, regardless of the configured value."
+    );
+
+    private final ConfigProperty<Boolean> costsEnabled = this.addProperty(ConfigTypes.BOOLEAN,
+            "Settings.Costs-Enabled", true,
+            "Master switch for per-link Vault costs. When disabled, every link behaves as if its",
+            "'Cost' was 0, regardless of the configured value."
+    );
+
     public boolean isMenuEnabled() {
         return this.menuEnabled.get();
     }
@@ -33,5 +45,13 @@ public class LinksSettings extends AbstractConfig {
 
     public boolean isShowUrl() {
         return this.showUrl.get();
+    }
+
+    public boolean isCooldownsEnabled() {
+        return this.cooldownsEnabled.get();
+    }
+
+    public boolean isCostsEnabled() {
+        return this.costsEnabled.get();
     }
 }

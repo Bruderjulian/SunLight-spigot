@@ -119,6 +119,8 @@ public class LinksCommandProvider extends CommandProvider {
             return false;
         }
 
+        // Duplicates the checks inside activateLink() on purpose: the console branch below never
+        // reaches activateLink(), so removing these would let console bypass use permissions.
         if (!link.canSee(context.getSender())) {
             this.module.sendPrefixed(LinksLang.ERROR_NO_PERMISSION, context.getSender());
             return false;

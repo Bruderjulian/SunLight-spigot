@@ -6,15 +6,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.Enums;
+import su.nightexpress.nightcore.util.StringUtil;
 import su.nightexpress.nightcore.util.bukkit.NightItem;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
+import su.nightexpress.nightcore.util.wrapper.UniParticle;
 import su.nightexpress.sunlight.moduleImpl.links.config.LinksPerms;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 
 public class Link implements PlaceholderResolvable {
 
@@ -35,9 +40,17 @@ public class Link implements PlaceholderResolvable {
     private double cost;
     private String sound;
     private String actionbar;
-    private String particle;
+    private UniParticle particle;
     private int particleCount;
     private List<String> firstRewardCommands;
+
+    /**
+     * UUID strings of players that activated this link. Drives the unique-clicks stat only; first-click
+     * reward eligibility is tracked per-user instead, so stat resets never re-grant rewards.
+     * <p>
+     * Synchronized: the async click saver serializes this off the main thread while activations
+     * mutate it on it. Every access synchronizes on the set itself.
+     */
     private final Set<String> seenPlayers;
 
     private volatile boolean dirty;
@@ -58,10 +71,10 @@ public class Link implements PlaceholderResolvable {
         this.cost = 0D;
         this.sound = "";
         this.actionbar = "";
-        this.particle = "";
+        this.particle = UniParticle.of(null);
         this.particleCount = 20;
         this.firstRewardCommands = new ArrayList<>();
-        this.seenPlayers = new HashSet<>();
+        this.seenPlayers = Collections.synchronizedSet(new LinkedHashSet<>());
     }
 
     public void load(@NotNull FileConfig config, @NotNull String path) {
@@ -81,11 +94,17 @@ public class Link implements PlaceholderResolvable {
         this.setCost(config.getDouble(path + ".Cost"));
         this.setSound(config.getString(path + ".Sound", ""));
         this.setActionbar(config.getString(path + ".Actionbar", ""));
-        this.setParticle(config.getString(path + ".Particle-Type", ""));
+        this.setParticle(UniParticle.read(config, path + ".Particle"));
+        if (this.particle.isEmpty() && config.contains(path + ".Particle-Type")) {
+            // Legacy schema from before particles carried data: a bare particle name.
+            this.setParticle(config.getString(path + ".Particle-Type", ""));
+        }
         this.setParticleCount(config.getInt(path + ".Particle-Count", 20));
         this.setFirstRewardCommands(config.getStringList(path + ".First-Reward-Commands"));
-        this.seenPlayers.clear();
-        this.seenPlayers.addAll(config.getStringList(path + ".Seen-Players"));
+        synchronized (this.seenPlayers) {
+            this.seenPlayers.clear();
+            this.seenPlayers.addAll(config.getStringList(path + ".Seen-Players"));
+        }
     }
 
     public void write(@NotNull FileConfig config, @NotNull String path) {
@@ -103,10 +122,17 @@ public class Link implements PlaceholderResolvable {
         config.set(path + ".Cost", this.cost);
         config.set(path + ".Sound", this.sound);
         config.set(path + ".Actionbar", this.actionbar);
-        config.set(path + ".Particle-Type", this.particle);
+        this.particle.write(config, path + ".Particle");
+        if (config.contains(path + ".Particle-Type")) {
+            config.remove(path + ".Particle-Type");
+        }
         config.set(path + ".Particle-Count", this.particleCount);
         config.set(path + ".First-Reward-Commands", this.firstRewardCommands);
-        config.set(path + ".Seen-Players", new ArrayList<>(this.seenPlayers));
+        synchronized (this.seenPlayers) {
+            // Sorted: LinkedHashSet alone would still reshuffle the file whenever the first
+            // entry differs, so every save sorts for a stable diff.
+            config.set(path + ".Seen-Players", this.seenPlayers.stream().sorted().toList());
+        }
     }
 
     /**
@@ -151,7 +177,7 @@ public class Link implements PlaceholderResolvable {
     }
 
     public boolean hasParticle() {
-        return this.particle != null && !this.particle.isBlank() && !"none".equalsIgnoreCase(this.particle.trim());
+        return !this.particle.isEmpty() && this.particle.getParticle() != null;
     }
 
     public boolean hasFirstReward() {
@@ -301,15 +327,28 @@ public class Link implements PlaceholderResolvable {
         this.actionbar = actionbar == null ? "" : actionbar;
     }
 
-    public @NotNull String getParticle() {
+    public @NotNull UniParticle getParticle() {
         return this.particle;
     }
 
-    public void setParticle(@Nullable String particle) {
-        if (particle != null && "none".equalsIgnoreCase(particle.trim())) {
-            particle = "";
+    public void setParticle(@Nullable UniParticle particle) {
+        this.particle = particle == null ? UniParticle.of(null) : particle;
+        this.particle.validateData();
+    }
+
+    public void setParticle(@Nullable String name) {
+        if (name == null || name.isBlank() || "none".equalsIgnoreCase(name.trim())) {
+            this.setParticle(UniParticle.of(null));
+            return;
         }
-        this.particle = particle == null ? "" : particle.trim().toUpperCase(java.util.Locale.ROOT);
+
+        this.setParticle(UniParticle.of(StringUtil.getEnum(name.trim().toUpperCase(Locale.ROOT),
+                org.bukkit.Particle.class).orElse(null)));
+    }
+
+    public @NotNull String getParticleName() {
+        org.bukkit.Particle particle = this.particle.getParticle();
+        return particle == null ? "" : particle.name();
     }
 
     public int getParticleCount() {
@@ -342,24 +381,32 @@ public class Link implements PlaceholderResolvable {
         this.setFirstRewardCommands(command == null || command.isBlank() ? List.of() : List.of(command));
     }
 
-    public boolean hasSeen(@NotNull java.util.UUID uuid) {
-        return this.seenPlayers.contains(uuid.toString());
+    public boolean hasSeen(@NotNull UUID uuid) {
+        synchronized (this.seenPlayers) {
+            return this.seenPlayers.contains(uuid.toString());
+        }
     }
 
-    public boolean markSeen(@NotNull java.util.UUID uuid) {
-        boolean added = this.seenPlayers.add(uuid.toString());
-        if (added) this.markDirty();
-        return added;
+    public boolean markSeen(@NotNull UUID uuid) {
+        synchronized (this.seenPlayers) {
+            boolean added = this.seenPlayers.add(uuid.toString());
+            if (added) this.markDirty();
+            return added;
+        }
     }
 
     public int getUniqueClicks() {
-        return this.seenPlayers.size();
+        synchronized (this.seenPlayers) {
+            return this.seenPlayers.size();
+        }
     }
 
     public void clearSeen() {
-        if (!this.seenPlayers.isEmpty()) {
-            this.seenPlayers.clear();
-            this.markDirty();
+        synchronized (this.seenPlayers) {
+            if (!this.seenPlayers.isEmpty()) {
+                this.seenPlayers.clear();
+                this.markDirty();
+            }
         }
     }
 

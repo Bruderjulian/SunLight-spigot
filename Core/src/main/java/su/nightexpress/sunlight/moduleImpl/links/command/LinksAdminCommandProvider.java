@@ -131,7 +131,7 @@ public class LinksAdminCommandProvider extends CommandProvider {
         this.registerLiteral(COMMAND_SET_COOLDOWN, true, new String[] { "setlinkcooldown" }, builder -> builder
                 .description(LinksLang.COMMAND_ADMIN_SET_COOLDOWN_DESC)
                 .permission(LinksPerms.COMMAND_ADMIN_SET_COOLDOWN)
-                .withArguments(this.linkArgument(), Arguments.integer("seconds"))
+                .withArguments(this.linkArgument(), Arguments.integer("seconds", 0))
                 .executes(this::setCooldown));
 
         this.registerLiteral(COMMAND_SET_COST, true, new String[] { "setlinkcost" }, builder -> builder
@@ -161,7 +161,8 @@ public class LinksAdminCommandProvider extends CommandProvider {
         this.registerLiteral(COMMAND_SET_PARTICLE, true, new String[] { "setlinkparticle" }, builder -> builder
                 .description(LinksLang.COMMAND_ADMIN_SET_PARTICLE_DESC)
                 .permission(LinksPerms.COMMAND_ADMIN_SET_PARTICLE)
-                .withArguments(this.linkArgument(), Arguments.greedyString("particle").optional())
+                .withArguments(this.linkArgument(), Arguments.string("particle").optional(),
+                        Arguments.integer("count", 0, 100).optional())
                 .executes(this::setParticle));
 
         this.registerLiteral(COMMAND_TOGGLE, true, new String[] { "togglelink" }, builder -> builder
@@ -361,13 +362,8 @@ public class LinksAdminCommandProvider extends CommandProvider {
 
     private boolean setCooldown(CommandContext context, ParsedArguments arguments) {
         Link link = arguments.get(ARG_LINK, Link.class);
+        // Non-negative is enforced by the argument type; the setter clamps defensively.
         int seconds = arguments.getInt("seconds");
-
-        if (seconds < 0) {
-            this.module.sendPrefixed(LinksLang.ADMIN_SET_INVALID_NUMBER, context.getSender(),
-                    replacer -> replacer.with(SLPlaceholders.GENERIC_VALUE, () -> String.valueOf(seconds)));
-            return false;
-        }
 
         link.setCooldown(seconds);
         this.module.saveLink(link);
@@ -378,13 +374,8 @@ public class LinksAdminCommandProvider extends CommandProvider {
 
     private boolean setCost(CommandContext context, ParsedArguments arguments) {
         Link link = arguments.get(ARG_LINK, Link.class);
+        // Non-negative is enforced by the argument type; the setter clamps defensively.
         double cost = arguments.getDouble("cost");
-
-        if (cost < 0D) {
-            this.module.sendPrefixed(LinksLang.ADMIN_SET_INVALID_NUMBER, context.getSender(),
-                    replacer -> replacer.with(SLPlaceholders.GENERIC_VALUE, () -> String.valueOf(cost)));
-            return false;
-        }
 
         link.setCost(cost);
         this.module.saveLink(link);
@@ -445,9 +436,13 @@ public class LinksAdminCommandProvider extends CommandProvider {
         }
 
         link.setParticle(particle);
+        // Count is optional and keeps its current value when omitted.
+        link.setParticleCount(arguments.getInt("count", link.getParticleCount()));
         this.module.saveLink(link);
 
-        this.feedback(context, LinksLang.ADMIN_SET_PARTICLE_FEEDBACK, link, particle.isEmpty() ? VALUE_NONE : particle);
+        String display = link.getParticleName().isEmpty() ? VALUE_NONE
+                : link.getParticleName() + " x" + link.getParticleCount();
+        this.feedback(context, LinksLang.ADMIN_SET_PARTICLE_FEEDBACK, link, display);
         return true;
     }
 
