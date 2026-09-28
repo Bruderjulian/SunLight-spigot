@@ -17,6 +17,15 @@ public class GlowPerms {
     public static final Permission COMMAND_GLOW_CLEAR = COMMAND.permission("glow.clear");
     public static final Permission COMMAND_GLOW_CLEAR_OTHERS = COMMAND.permission("glow.clear.others");
     public static final Permission COMMAND_GLOW_LIST = COMMAND.permission("glow.list");
+    public static final Permission COMMAND_GLOW_COLOR = COMMAND.permission("glow.color");
+    public static final Permission COMMAND_GLOW_COLOR_OTHERS = COMMAND.permission("glow.color.others");
+    public static final Permission COMMAND_GLOW_PHASE = COMMAND.permission("glow.phase");
+    public static final Permission COMMAND_GLOW_PRESET = COMMAND.permission("glow.preset");
+    public static final Permission COMMAND_GLOW_ON = COMMAND.permission("glow.on");
+    public static final Permission COMMAND_GLOW_ON_OTHERS = COMMAND.permission("glow.on.others");
+    public static final Permission COMMAND_GLOW_OFF = COMMAND.permission("glow.off");
+    public static final Permission COMMAND_GLOW_OFF_OTHERS = COMMAND.permission("glow.off.others");
+    public static final Permission COMMAND_GLOW_GUI = COMMAND.permission("glow.gui");
 
     public static final Permission BYPASS_COLOR = BYPASS.permission("color");
 
@@ -25,7 +34,8 @@ public class GlowPerms {
     }
 
     public static boolean hasColorAccess(org.bukkit.command.CommandSender sender, String effectId) {
-        if (sender.hasPermission(BYPASS_COLOR)) return true;
+        if (sender.hasPermission(BYPASS_COLOR))
+            return true;
         return COLOR.hasChildAccess(sender, effectId) || sender.hasPermission(COLOR.childrenNode("*"));
     }
 }

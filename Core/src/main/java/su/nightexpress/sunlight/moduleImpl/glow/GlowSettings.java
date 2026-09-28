@@ -10,7 +10,8 @@ import java.util.Map;
 
 public class GlowSettings extends AbstractConfig {
 
-    private static final ConfigType<GlowEffect> GLOW_EFFECT_TYPE = ConfigType.of(GlowEffect::read, (config, path, value) -> value.write(config, path));
+    private static final ConfigType<GlowEffect> GLOW_EFFECT_TYPE = ConfigType.of(GlowEffect::read,
+            (config, path, value) -> value.write(config, path));
 
     private final ConfigProperty<Long> updateInterval = this.addProperty(ConfigTypes.LONG,
             "Animation.Update_Interval",
@@ -28,22 +29,20 @@ public class GlowSettings extends AbstractConfig {
             ConfigTypes.forMapWithLowerKeys(GLOW_EFFECT_TYPE),
             "Effects",
             GlowDefaults.getDefaultEffects(),
-            "Available glow effects players can choose from.",
+            "Available glow effects players can choose from. Global presets.",
             "",
             "[ SETTINGS DESCRIPTION ]",
             "├── Name: Display name shown in '/glow list'.",
-            "├── Type: STATIC, CYCLE, GRADIENT, RAINBOW or FLASH.",
-            "│     -> STATIC: single color, first entry of 'Colors' is used.",
-            "│     -> CYCLE: loops through 'Colors' in order.",
-            "│     -> GRADIENT: goes through 'Colors' forth and back (smooth).",
-            "│     -> RAINBOW: cycles through the rainbow palette.",
-            "│     -> FLASH: alternates between the entries of 'Colors'.",
-            "├── Colors: Bukkit color names, e.g. RED, GOLD, YELLOW, GREEN, AQUA, BLUE, etc.",
-            "└── Interval: Frame duration in ticks (20 = 1 second). Should be >= 'Update_Interval'.",
+            "├── Type: STATIC or PHASED.",
+            "│     -> STATIC: single color, first entry of 'Phases' is used.",
+            "│     -> PHASED: loops through 'Phases' in order, each with its own duration.",
+            "├── Phases: List of 'COLOR@DURATION' tokens, e.g. 'RED@40', 'GOLD@20'.",
+            "│     -> Colors: Bukkit color names, e.g. RED, GOLD, YELLOW, GREEN, AQUA, BLUE, etc.",
+            "│     -> Duration: Per-phase frame duration in ticks (20 = 1 second, 1-1200).",
             "",
             "Glow colors are sent as client-side (packet) teams and never touch the server scoreboard.");
 
-    public void load(FileConfig config) {
+    public void load(final FileConfig config) {
         super.load(config);
     }
 

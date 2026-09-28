@@ -13,62 +13,92 @@ public class GlowEffect implements Writeable {
     private final String id;
     private final String name;
     private final GlowType type;
-    private final List<NamedTextColor> colors;
-    private final long interval;
+    private final List<GlowPhase> phases;
 
-    public GlowEffect(String id, String name, GlowType type, List<NamedTextColor> colors, long interval) {
+    public GlowEffect(final String id, final String name, final GlowType type, final List<GlowPhase> phases) {
         this.id = Utils.lowercase(id);
         this.name = name;
-        this.type = type;
-        this.colors = List.copyOf(colors);
-        this.interval = Math.max(1L, interval);
+        GlowType resolved = type == null ? GlowType.STATIC : type;
+        List<GlowPhase> copy = phases == null || phases.isEmpty()
+            ? List.of(new GlowPhase(NamedTextColor.WHITE, GlowPhase.DEFAULT_DURATION))
+            : List.copyOf(phases);
+        // Normalize: single-phase PHASED behaves like STATIC.
+        if (resolved == GlowType.PHASED && copy.size() < 2) {
+            resolved = GlowType.STATIC;
+        }
+        if (resolved == GlowType.STATIC) {
+            copy = List.of(copy.getFirst());
+        }
+        this.type = resolved;
+        this.phases = copy;
     }
 
-    public static GlowEffect read(FileConfig config, String path) {
-        String id = path.substring(path.lastIndexOf('.') + 1);
-        String name = config.getString(path + ".Name", id);
-        GlowType type = Utils.enumValueOf(config.getString(path + ".Type", GlowType.STATIC.name()), GlowType.class);
-        if (type == null)
-            type = GlowType.STATIC;
+    /** Backwards-compatible factory for single-color effects. */
+    public static GlowEffect ofColor(final String id, final String name, final NamedTextColor color) {
+        return new GlowEffect(id, name, GlowType.STATIC, List.of(new GlowPhase(color, GlowPhase.DEFAULT_DURATION)));
+    }
 
-        List<NamedTextColor> colors = new ArrayList<>();
-        for (String raw : config.getStringList(path + ".Colors")) {
-            NamedTextColor color = parseColor(raw);
-            if (color != null && !colors.contains(color)) {
-                colors.add(color);
+    public static GlowEffect read(final FileConfig config, final String path) {
+        final String id = path.substring(path.lastIndexOf('.') + 1);
+        final String name = config.getString(path + ".Name", id);
+        GlowType type = Utils.enumValueOf(config.getString(path + ".Type", GlowType.STATIC.name()), GlowType.class);
+
+        List<GlowPhase> phases = new ArrayList<>();
+        if (config.contains(path + ".Phases")) {
+            for (final String raw : config.getStringList(path + ".Phases")) {
+                final GlowPhase phase = GlowPhase.parse(raw);
+                if (phase != null) {
+                    phases.add(phase);
+                }
             }
         }
-        if (colors.isEmpty()) {
-            colors.add(NamedTextColor.WHITE);
+
+        // Legacy fallback: entries stored as Colors + Interval become phases,
+        // each color one phase with the shared interval. This preserves old
+        // single-color and multi-color configs as STATIC / PHASED respectively.
+        if (phases.isEmpty() && config.contains(path + ".Colors")) {
+            final List<NamedTextColor> legacyColors = new ArrayList<>();
+            for (final String raw : config.getStringList(path + ".Colors")) {
+                final NamedTextColor color = parseColor(raw);
+                if (color != null && !legacyColors.contains(color)) {
+                    legacyColors.add(color);
+                }
+            }
+            final long legacyInterval = Math.max(1L, config.getLong(path + ".Interval", GlowPhase.DEFAULT_DURATION));
+            for (final NamedTextColor color : legacyColors) {
+                phases.add(new GlowPhase(color, legacyInterval));
+            }
         }
 
-        long interval = Math.max(1L, config.getLong(path + ".Interval", 10L));
+        if (phases.isEmpty()) {
+            phases.add(new GlowPhase(NamedTextColor.WHITE, GlowPhase.DEFAULT_DURATION));
+        }
+        if (type == null) {
+            type = phases.size() > 1 ? GlowType.PHASED : GlowType.STATIC;
+        }
+        // Unknown legacy type strings resolve to null via enumValueOf; default sensibly.
+        if (type == GlowType.PHASED && phases.size() < 2 && phases.size() == 1) {
+            type = GlowType.STATIC;
+        }
 
-        return new GlowEffect(id, name, type, resolveFrames(type, colors), interval);
+        return new GlowEffect(id, name, type, phases);
     }
 
     @Override
-    public void write(FileConfig config, String path) {
+    public void write(final FileConfig config, final String path) {
         config.set(path + ".Name", this.name);
         config.set(path + ".Type", this.type.name());
-        config.set(path + ".Colors", this.colors.stream().map(NamedTextColor::toString).toList());
-        config.set(path + ".Interval", this.interval);
+        config.set(path + ".Phases", this.phases.stream().map(GlowPhase::encode).toList());
+        config.remove(path + ".Colors");
+        config.remove(path + ".Interval");
     }
 
-    private static List<NamedTextColor> resolveFrames(GlowType type, List<NamedTextColor> colors) {
-        return switch (type) {
-            case STATIC -> List.of(colors.getFirst());
-            case RAINBOW -> GlowDefaults.RAINBOW_COLORS;
-            default -> List.copyOf(colors);
-        };
-    }
-
-    public static NamedTextColor parseColor(String raw) {
+    public static NamedTextColor parseColor(final String raw) {
         if (raw == null)
             return null;
         try {
             return NamedTextColor.NAMES.value(raw.trim().toUpperCase().replace(" ", "_"));
-        } catch (IllegalArgumentException exception) {
+        } catch (final IllegalArgumentException exception) {
             return null;
         }
     }
@@ -85,31 +115,37 @@ public class GlowEffect implements Writeable {
         return this.type;
     }
 
-    public List<NamedTextColor> getColors() {
-        return this.colors;
+    public List<GlowPhase> getPhases() {
+        return this.phases;
     }
 
+    /** Derived color list, kept for menu / permission / placeholder convenience. */
+    public List<NamedTextColor> getColors() {
+        return this.phases.stream().map(GlowPhase::color).distinct().toList();
+    }
+
+    /** Legacy accessor: global frame duration. Now returns the first phase duration. */
     public long getInterval() {
-        return this.interval;
+        return this.phases.isEmpty() ? GlowPhase.DEFAULT_DURATION : this.phases.getFirst().durationTicks();
     }
 
     public boolean isAnimated() {
-        return this.type.isAnimated() && this.colors.size() > 1;
+        return this.type.isAnimated() && this.phases.size() > 1;
     }
 
-    public NamedTextColor getFrame(int frameIndex) {
-        if (this.colors.isEmpty())
-            return NamedTextColor.WHITE;
-        if (!this.isAnimated())
-            return this.colors.getFirst();
+    public NamedTextColor getFrame(final int phaseIndex) {
+        return this.getPhase(phaseIndex).color();
+    }
 
-        int size = this.colors.size();
-        if (this.type.isPingPong() && size > 2) {
-            int cycle = (size - 1) * 2;
-            int mod = Math.floorMod(frameIndex, cycle);
-            int index = mod < size ? mod : cycle - mod;
-            return this.colors.get(index);
-        }
-        return this.colors.get(Math.floorMod(frameIndex, size));
+    public GlowPhase getPhase(final int phaseIndex) {
+        if (this.phases.isEmpty())
+            return new GlowPhase(NamedTextColor.WHITE, GlowPhase.DEFAULT_DURATION);
+        if (!this.isAnimated())
+            return this.phases.getFirst();
+        return this.phases.get(Math.floorMod(phaseIndex, this.phases.size()));
+    }
+
+    public int phaseCount() {
+        return this.phases.size();
     }
 }

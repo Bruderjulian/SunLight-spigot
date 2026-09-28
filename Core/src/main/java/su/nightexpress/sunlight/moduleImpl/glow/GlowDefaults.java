@@ -8,18 +8,8 @@ import java.util.Map;
 
 public class GlowDefaults {
 
-    public static final List<NamedTextColor> RAINBOW_COLORS = List.of(
-        NamedTextColor.RED,
-        NamedTextColor.GOLD,
-        NamedTextColor.YELLOW,
-        NamedTextColor.GREEN,
-        NamedTextColor.AQUA,
-        NamedTextColor.BLUE,
-        NamedTextColor.LIGHT_PURPLE
-    );
-
     public static Map<String, GlowEffect> getDefaultEffects() {
-        Map<String, GlowEffect> map = new LinkedHashMap<>();
+        final Map<String, GlowEffect> map = new LinkedHashMap<>();
 
         addStatic(map, "white", "<white>White", NamedTextColor.WHITE);
         addStatic(map, "gray", "<gray>Gray", NamedTextColor.GRAY);
@@ -38,27 +28,42 @@ public class GlowDefaults {
         addStatic(map, "pink", "<light_purple>Pink", NamedTextColor.LIGHT_PURPLE);
         addStatic(map, "purple", "<dark_purple>Purple", NamedTextColor.DARK_PURPLE);
 
-        map.put("rainbow", new GlowEffect("rainbow", "<red>R<gold>a<yellow>i<green>n<aqua>b<blue>o<light_purple>w", GlowType.RAINBOW, RAINBOW_COLORS, 10L));
+        map.put("rainbow", new GlowEffect("rainbow", "<red>R<gold>a<yellow>i<green>n<aqua>b<blue>o<light_purple>w",
+            GlowType.PHASED, List.of(
+                new GlowPhase(NamedTextColor.RED, 10L),
+                new GlowPhase(NamedTextColor.GOLD, 10L),
+                new GlowPhase(NamedTextColor.YELLOW, 10L),
+                new GlowPhase(NamedTextColor.GREEN, 10L),
+                new GlowPhase(NamedTextColor.AQUA, 10L),
+                new GlowPhase(NamedTextColor.BLUE, 10L),
+                new GlowPhase(NamedTextColor.LIGHT_PURPLE, 10L))));
 
-        map.put("sunset", new GlowEffect("sunset", "<red>Sunset Gradient", GlowType.GRADIENT,
-            List.of(NamedTextColor.RED, NamedTextColor.GOLD, NamedTextColor.YELLOW, NamedTextColor.GOLD), 10L));
+        map.put("sunset", new GlowEffect("sunset", "<red>Sunset", GlowType.PHASED, List.of(
+            new GlowPhase(NamedTextColor.RED, 20L),
+            new GlowPhase(NamedTextColor.GOLD, 20L),
+            new GlowPhase(NamedTextColor.YELLOW, 20L))));
 
-        map.put("ocean", new GlowEffect("ocean", "<aqua>Ocean Gradient", GlowType.GRADIENT,
-            List.of(NamedTextColor.DARK_BLUE, NamedTextColor.BLUE, NamedTextColor.AQUA, NamedTextColor.GREEN), 10L));
+        map.put("ocean", new GlowEffect("ocean", "<aqua>Ocean", GlowType.PHASED, List.of(
+            new GlowPhase(NamedTextColor.DARK_BLUE, 20L),
+            new GlowPhase(NamedTextColor.BLUE, 20L),
+            new GlowPhase(NamedTextColor.AQUA, 20L),
+            new GlowPhase(NamedTextColor.GREEN, 20L))));
 
-        map.put("candy", new GlowEffect("candy", "<light_purple>Candy", GlowType.CYCLE,
-            List.of(NamedTextColor.LIGHT_PURPLE, NamedTextColor.DARK_PURPLE, NamedTextColor.AQUA, NamedTextColor.DARK_AQUA), 10L));
+        map.put("candy", new GlowEffect("candy", "<light_purple>Candy", GlowType.PHASED, List.of(
+            new GlowPhase(NamedTextColor.LIGHT_PURPLE, 15L),
+            new GlowPhase(NamedTextColor.DARK_PURPLE, 15L),
+            new GlowPhase(NamedTextColor.AQUA, 15L),
+            new GlowPhase(NamedTextColor.DARK_AQUA, 15L))));
 
-        map.put("alert", new GlowEffect("alert", "<red>Alert Flash", GlowType.FLASH,
-            List.of(NamedTextColor.RED, NamedTextColor.WHITE), 10L));
-
-        map.put("strobe", new GlowEffect("strobe", "<white>Strobe Flash", GlowType.FLASH,
-            List.of(NamedTextColor.WHITE, NamedTextColor.BLACK), 6L));
+        map.put("alert", new GlowEffect("alert", "<red>Alert", GlowType.PHASED, List.of(
+            new GlowPhase(NamedTextColor.RED, 10L),
+            new GlowPhase(NamedTextColor.WHITE, 10L))));
 
         return map;
     }
 
-    private static void addStatic(Map<String, GlowEffect> map, String id, String name, NamedTextColor color) {
-        map.put(id, new GlowEffect(id, name, GlowType.STATIC, List.of(color), 10L));
+    private static void addStatic(final Map<String, GlowEffect> map, final String id, final String name,
+            final NamedTextColor color) {
+        map.put(id, GlowEffect.ofColor(id, name, color));
     }
 }
