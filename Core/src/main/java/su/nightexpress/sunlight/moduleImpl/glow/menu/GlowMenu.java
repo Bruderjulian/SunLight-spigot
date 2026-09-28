@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.glow.menu;
 
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -9,8 +8,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.ui.inventory.item.MenuItem;
 import su.nightexpress.nightcore.ui.inventory.menu.AbstractMenu;
@@ -20,16 +17,16 @@ import su.nightexpress.nightcore.util.bukkit.NightItem;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowEffect;
+import su.nightexpress.sunlight.moduleImpl.glow.GlowEffect.GlowType;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowHandler;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowModule;
+import su.nightexpress.sunlight.moduleImpl.glow.GlowPhase;
 import su.nightexpress.sunlight.moduleImpl.glow.config.GlowLang;
-import su.nightexpress.sunlight.moduleImpl.glow.config.GlowPerms;
 import su.nightexpress.sunlight.user.SunUser;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
@@ -49,7 +46,7 @@ public class GlowMenu extends AbstractMenu {
     private final SunLightPlugin plugin;
     private final GlowModule module;
 
-    public GlowMenu(@NotNull final SunLightPlugin plugin, @NotNull final GlowModule module) {
+    public GlowMenu(final SunLightPlugin plugin, final GlowModule module) {
         super(MenuType.GENERIC_9X5, GlowLang.MENU_TITLE.text());
         this.plugin = plugin;
         this.module = module;
@@ -120,9 +117,9 @@ public class GlowMenu extends AbstractMenu {
             for (int index = fromIndex; index < toIndex; index++) {
                 final GlowEffect effect = effects.get(index);
                 final boolean isSelected = !custom && selected != null && selected.equals(effect.getId());
-                final boolean hasAccess = GlowPerms.hasColorAccess(player, effect.getId());
+                final boolean hasAccess = hasColorAccess(player, effect.getId());
 
-                final NightItem icon = NightItem.fromType(materialOf(effect))
+                final NightItem icon = NightItem.fromType(effect.material())
                         .setDisplayName(effect.getName())
                         .setLore(this.buildLore(effect, hasAccess, isSelected));
 
@@ -182,7 +179,14 @@ public class GlowMenu extends AbstractMenu {
                 .build());
     }
 
-    private void onEffectClick(@NotNull final Player player, @NotNull final GlowEffect effect,
+    private static boolean hasColorAccess(final Player player, final String effectId) {
+        if (player.hasPermission("sunlight.glow.bypass.color"))
+            return true;
+        return player.hasPermission("sunlight.glow.color.*")
+                || player.hasPermission("sunlight.glow.color." + effectId);
+    }
+
+    private void onEffectClick(final Player player, final GlowEffect effect,
             final boolean hasAccess) {
         if (!hasAccess) {
             this.module.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_NO_ACCESS, player,
@@ -195,18 +199,23 @@ public class GlowMenu extends AbstractMenu {
         this.show(this.plugin, player);
     }
 
-    private @NotNull List<String> buildLore(@NotNull final GlowEffect effect, final boolean hasAccess,
+    private List<String> buildLore(final GlowEffect effect, final boolean hasAccess,
             final boolean isSelected) {
         final List<String> lore = new ArrayList<>();
         lore.add(GRAY.wrap("Type: ") + WHITE.wrap(effect.getType().name()));
-        if (effect.getType() == su.nightexpress.sunlight.moduleImpl.glow.GlowType.PHASED) {
+
+        if (effect.getType() == GlowType.PHASED) {
             lore.add(GRAY.wrap("Phases: ") + WHITE.wrap(String.valueOf(effect.phaseCount())));
-            effect.getPhases().forEach(phase -> lore.add(GRAY.wrap(" - ") + WHITE.wrap(
-                    phase.color().toString().toLowerCase() + " (" + phase.durationTicks() + " ticks)")));
+            final StringBuilder builder = new StringBuilder();
+            for (final GlowPhase phase : effect.getPhases()) {
+                builder.append(GRAY.wrap(" - ") + WHITE.wrap(
+                        phase.color().toString().toLowerCase() + " (" + phase.durationTicks() + "t)"));
+            }
+            lore.add(builder.toString());
         } else {
-            lore.add(GRAY.wrap("Color: ") + effect.getColors().stream()
-                    .map(color -> "<" + color.toString() + ">●</" + color.toString() + ">")
-                    .collect(Collectors.joining(" ")));
+            final String baseColorName = effect.getBaseColor().toString();
+            lore.add(GRAY.wrap("Color: ") + "<" + baseColorName.toString() + ">" + baseColorName + "</" + baseColorName
+                    + ">");
         }
         lore.add("");
         if (isSelected) {
@@ -219,66 +228,19 @@ public class GlowMenu extends AbstractMenu {
         return lore;
     }
 
-    private @NotNull String describeSelection(@NotNull final SunUser user, @Nullable final String selected) {
+    private String describeSelection(final SunUser user, final String selected) {
         if (selected == null)
             return "none";
         if (GlowHandler.CUSTOM_ID.equals(selected)) {
             final GlowEffect custom = this.module.handler().getCustomEffect(user);
-            if (custom == null) return "custom";
-            return custom.getType() == su.nightexpress.sunlight.moduleImpl.glow.GlowType.PHASED
-                ? "custom phased (" + custom.phaseCount() + ")"
-                : "custom static";
+            if (custom == null)
+                return "custom";
+            return custom.getType() == GlowType.PHASED
+                    ? "custom phased (" + custom.phaseCount() + ")"
+                    : "custom static";
         }
         final GlowEffect effect = this.module.handler().getEffect(selected);
         return effect == null ? selected : effect.getId();
-    }
-
-    private static @NotNull Material materialOf(@NotNull final GlowEffect effect) {
-        if (!effect.getColors().isEmpty()) {
-            final Material material = materialOf(effect.getColors().getFirst());
-            if (material != null)
-                return material;
-        }
-        return switch (effect.getType()) {
-            case PHASED -> Material.PRISMARINE_SHARD;
-            case STATIC -> Material.WHITE_WOOL;
-        };
-    }
-
-    private static @Nullable Material materialOf(@NotNull final NamedTextColor color) {
-        if (color.equals(NamedTextColor.WHITE))
-            return Material.WHITE_WOOL;
-        if (color.equals(NamedTextColor.GRAY))
-            return Material.GRAY_WOOL;
-        if (color.equals(NamedTextColor.DARK_GRAY))
-            return Material.GRAY_CONCRETE;
-        if (color.equals(NamedTextColor.BLACK))
-            return Material.BLACK_WOOL;
-        if (color.equals(NamedTextColor.RED))
-            return Material.RED_WOOL;
-        if (color.equals(NamedTextColor.DARK_RED))
-            return Material.RED_CONCRETE;
-        if (color.equals(NamedTextColor.GOLD))
-            return Material.ORANGE_WOOL;
-        if (color.equals(NamedTextColor.YELLOW))
-            return Material.YELLOW_WOOL;
-        if (color.equals(NamedTextColor.GREEN))
-            return Material.LIME_WOOL;
-        if (color.equals(NamedTextColor.DARK_GREEN))
-            return Material.GREEN_WOOL;
-        if (color.equals(NamedTextColor.AQUA))
-            return Material.LIGHT_BLUE_WOOL;
-        if (color.equals(NamedTextColor.DARK_AQUA))
-            return Material.CYAN_WOOL;
-        if (color.equals(NamedTextColor.BLUE))
-            return Material.BLUE_WOOL;
-        if (color.equals(NamedTextColor.DARK_BLUE))
-            return Material.BLUE_CONCRETE;
-        if (color.equals(NamedTextColor.LIGHT_PURPLE))
-            return Material.PINK_WOOL;
-        if (color.equals(NamedTextColor.DARK_PURPLE))
-            return Material.PURPLE_WOOL;
-        return null;
     }
 
     @Override

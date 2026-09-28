@@ -29,7 +29,8 @@ public class GlowHandler {
       true,
       true);
   /**
-   * Per-player custom effect, encoded as {@code PHASES:COLOR@DURATION,COLOR@DURATION}.
+   * Per-player custom effect, encoded as
+   * {@code PHASES:COLOR@DURATION,COLOR@DURATION}.
    * Empty means no custom effect; the
    * {@link su.nightexpress.sunlight.moduleImpl.glow.GlowModule#CUSTOM_ID}
    * selection points at this payload.
@@ -107,42 +108,19 @@ public class GlowHandler {
 
   /**
    * Decodes the per-player custom payload ({@code PHASES:COLOR@DURATION,...}).
-   * Legacy {@code TYPE:COLORS:INTERVAL} payloads no longer decode and return null.
+   * Legacy {@code TYPE:COLORS:INTERVAL} payloads no longer decode and return
+   * null.
    */
   public GlowEffect getCustomEffect(final SunUser user) {
     final String raw = user.getPropertyOrDefault(PROPERTY_GLOW_CUSTOM);
-    return decodePhasesEffect(CUSTOM_ID, "Custom", raw);
-  }
-
-  public static GlowEffect decodePhasesEffect(final String id, final String name, final String raw) {
-    if (raw == null || raw.isBlank()) return null;
-    try {
-      final String[] parts = raw.split(":", 2);
-      if (parts.length != 2) return null;
-      final String tag = parts[0].trim().toUpperCase();
-      if (!tag.equals("PHASES") && !tag.equals(GlowType.STATIC.name()) && !tag.equals(GlowType.PHASED.name())) {
-        return null; // Legacy payload (e.g. FLASH:...): clean break, treated as absent.
-      }
-      final List<GlowPhase> phases = new ArrayList<>();
-      for (final String token : parts[1].split(",")) {
-        if (token.isBlank()) continue;
-        final GlowPhase phase = GlowPhase.parse(token.trim());
-        if (phase == null) return null;
-        phases.add(phase);
-        if (phases.size() > MAX_PHASES) return null;
-      }
-      if (phases.isEmpty()) return null;
-      final GlowType type = phases.size() > 1 ? GlowType.PHASED : GlowType.STATIC;
-      return new GlowEffect(id, name, type, phases);
-    } catch (final Exception exception) {
-      return null;
-    }
+    return GlowEffect.parse(CUSTOM_ID, "Custom", raw);
   }
 
   public static String encodePhases(final List<GlowPhase> phases) {
-    final StringBuilder builder = new StringBuilder("PHASES:");
+    final StringBuilder builder = new StringBuilder();
     for (int index = 0; index < phases.size(); index++) {
-      if (index > 0) builder.append(',');
+      if (index > 0)
+        builder.append(',');
       builder.append(phases.get(index).encode());
     }
     return builder.toString();
@@ -167,11 +145,15 @@ public class GlowHandler {
     return getEffect(stored);
   }
 
-  /** Current working phase list: custom payload, or the effective effect's phases. */
+  /**
+   * Current working phase list: custom payload, or the effective effect's phases.
+   */
   public List<GlowPhase> getWorkingPhases(final SunUser user) {
     final GlowEffect effective = this.getEffectiveEffect(user);
-    if (effective == null) return List.of();
-    return List.copyOf(effective.getPhases());
+    if (effective == null) {
+      return List.of();
+    }
+    return List.of(effective.getPhases());
   }
 
   private void writeCustomEffect(final SunUser user, final List<GlowPhase> phases) {
@@ -289,7 +271,8 @@ public class GlowHandler {
 
   public boolean addPhase(final SunUser user, final Player player, final GlowPhase phase) {
     final List<GlowPhase> working = new ArrayList<>(this.getWorkingPhases(user));
-    if (working.size() >= MAX_PHASES) return false;
+    if (working.size() >= MAX_PHASES)
+      return false;
     working.add(phase);
     this.setCustomGlow(user, player, working);
     return true;
@@ -297,7 +280,8 @@ public class GlowHandler {
 
   public boolean removePhase(final SunUser user, final Player player, final int index) {
     final List<GlowPhase> working = new ArrayList<>(this.getWorkingPhases(user));
-    if (index < 0 || index >= working.size()) return false;
+    if (index < 0 || index >= working.size())
+      return false;
     working.remove(index);
     if (working.isEmpty()) {
       this.setGlow(user, player, null);
@@ -309,7 +293,8 @@ public class GlowHandler {
 
   public boolean setPhaseDuration(final SunUser user, final Player player, final int index, final long duration) {
     final List<GlowPhase> working = new ArrayList<>(this.getWorkingPhases(user));
-    if (index < 0 || index >= working.size()) return false;
+    if (index < 0 || index >= working.size())
+      return false;
     working.set(index, new GlowPhase(working.get(index).color(), duration));
     this.setCustomGlow(user, player, working);
     return true;
@@ -318,28 +303,34 @@ public class GlowHandler {
   // --- Presets (per-player) ---
 
   public static String normalizePresetName(final String raw) {
-    if (raw == null) return null;
+    if (raw == null)
+      return null;
     final String name = Utils.lowercase(raw.trim());
-    if (name.isBlank() || name.length() > MAX_PRESET_NAME_LENGTH) return null;
-    if (!name.matches("[a-z0-9_\\-]+")) return null;
+    if (name.isBlank() || name.length() > MAX_PRESET_NAME_LENGTH)
+      return null;
+    if (!name.matches("[a-z0-9_\\-]+"))
+      return null;
     return name;
   }
 
   public Map<String, List<GlowPhase>> getPresets(final SunUser user) {
     final Map<String, List<GlowPhase>> map = new LinkedHashMap<>();
     final String raw = user.getPropertyOrDefault(PROPERTY_GLOW_PRESETS);
-    if (raw == null || raw.isBlank()) return map;
+    if (raw == null || raw.isBlank())
+      return map;
     for (final String entry : raw.split(";")) {
-      if (entry.isBlank()) continue;
+      if (entry.isBlank())
+        continue;
       final int eq = entry.indexOf('=');
-      if (eq <= 0) continue;
+      if (eq <= 0)
+        continue;
       final String name = normalizePresetName(entry.substring(0, eq));
-      if (name == null) continue;
+      if (name == null)
+        continue;
       final List<GlowPhase> phases = new ArrayList<>();
       boolean bad = false;
       for (final String token : entry.substring(eq + 1).split(",")) {
-        if (token.isBlank()) continue;
-        final GlowPhase phase = GlowPhase.parse(token.trim());
+        final GlowPhase phase = GlowPhase.parse(token);
         if (phase == null) {
           bad = true;
           break;
@@ -350,7 +341,8 @@ public class GlowHandler {
           break;
         }
       }
-      if (bad || phases.isEmpty()) continue;
+      if (bad || phases.isEmpty())
+        continue;
       map.put(name, List.copyOf(phases));
     }
     return map;
@@ -363,26 +355,33 @@ public class GlowHandler {
     }
     final StringBuilder builder = new StringBuilder();
     presets.forEach((name, phases) -> {
-      if (!builder.isEmpty()) builder.append(';');
+      if (!builder.isEmpty())
+        builder.append(';');
       builder.append(name).append('=');
       for (int i = 0; i < phases.size(); i++) {
-        if (i > 0) builder.append(',');
+        if (i > 0)
+          builder.append(',');
         builder.append(phases.get(i).encode());
       }
     });
     user.setProperty(PROPERTY_GLOW_PRESETS, builder.toString());
   }
 
-  /** Saves the current working phases under the given preset name. Returns false on invalid name/limit. */
+  /**
+   * Saves the current working phases under the given preset name. Returns false
+   * on invalid name/limit.
+   */
   public boolean savePreset(final SunUser user, final String rawName) {
     return this.savePreset(user, rawName, this.getWorkingPhases(user));
   }
 
   public boolean savePreset(final SunUser user, final String rawName, final List<GlowPhase> phases) {
     final String name = normalizePresetName(rawName);
-    if (name == null || phases == null || phases.isEmpty() || phases.size() > MAX_PHASES) return false;
+    if (name == null || phases == null || phases.isEmpty() || phases.size() > MAX_PHASES)
+      return false;
     final Map<String, List<GlowPhase>> presets = new LinkedHashMap<>(this.getPresets(user));
-    if (!presets.containsKey(name) && presets.size() >= MAX_PRESETS) return false;
+    if (!presets.containsKey(name) && presets.size() >= MAX_PRESETS)
+      return false;
     presets.put(name, List.copyOf(phases));
     this.writePresets(user, presets);
     return true;
@@ -390,22 +389,26 @@ public class GlowHandler {
 
   public List<GlowPhase> loadPreset(final SunUser user, final String rawName) {
     final String name = normalizePresetName(rawName);
-    if (name == null) return null;
+    if (name == null)
+      return null;
     return this.getPresets(user).get(name);
   }
 
   public boolean applyPreset(final SunUser user, final Player player, final String rawName) {
     final List<GlowPhase> phases = this.loadPreset(user, rawName);
-    if (phases == null) return false;
+    if (phases == null)
+      return false;
     this.setCustomGlow(user, player, phases);
     return true;
   }
 
   public boolean deletePreset(final SunUser user, final String rawName) {
     final String name = normalizePresetName(rawName);
-    if (name == null) return false;
+    if (name == null)
+      return false;
     final Map<String, List<GlowPhase>> presets = new LinkedHashMap<>(this.getPresets(user));
-    if (presets.remove(name) == null) return false;
+    if (presets.remove(name) == null)
+      return false;
     this.writePresets(user, presets);
     return true;
   }
@@ -421,9 +424,7 @@ public class GlowHandler {
 
   public NamedTextColor getBaseColor(final SunUser user) {
     final GlowEffect effect = this.getEffectiveEffect(user);
-    if (effect == null || effect.getPhases().isEmpty())
-      return NamedTextColor.WHITE;
-    return effect.getPhases().getFirst().color();
+    return effect == null ? NamedTextColor.WHITE : effect.getBaseColor();
   }
 
   public void applyGlow(final SunUser user, final Player player) {

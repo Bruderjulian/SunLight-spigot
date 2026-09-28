@@ -15,7 +15,6 @@ import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.glow.command.GlowCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.glow.config.GlowLang;
-import su.nightexpress.sunlight.moduleImpl.glow.config.GlowPerms;
 import su.nightexpress.sunlight.moduleImpl.glow.menu.GlowMenu;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 
@@ -66,7 +65,6 @@ public class GlowModule extends Module implements GlowProvider {
 
     @Override
     protected void registerPermissions(final PermissionTree root) {
-        root.merge(GlowPerms.MODULE);
     }
 
     @Override

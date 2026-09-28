@@ -17,7 +17,6 @@ import su.nightexpress.sunlight.moduleImpl.glow.GlowHandler;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowModule;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowPhase;
 import su.nightexpress.sunlight.moduleImpl.glow.config.GlowLang;
-import su.nightexpress.sunlight.moduleImpl.glow.config.GlowPerms;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
@@ -54,13 +53,13 @@ public class GlowCommandProvider extends CommandProvider {
         this.registerLiteral("color", true, new String[] { "" },
                 builder -> builder
                         .description(GlowLang.COMMAND_GLOW_COLOR_DESC)
-                        .permission(GlowPerms.COMMAND_GLOW_COLOR)
+                        .permission("sunlight.glow.command.glow.color")
                         .withArguments(
                                 Arguments.string(CommandArguments.NAME)
                                         .localized(CoreLang.COMMAND_ARGUMENT_NAME_NAME)
                                         .suggestions((context, arguments) -> this.colorSuggestions()),
                                 Arguments.playerName(CommandArguments.PLAYER)
-                                        .permission(GlowPerms.COMMAND_GLOW_COLOR_OTHERS).optional())
+                                        .permission("sunlight.glow.command.glow.color.others").optional())
                         .withFlags(CommandArguments.FLAG_SILENT)
                         .executes(this::setGlow));
 
@@ -70,23 +69,23 @@ public class GlowCommandProvider extends CommandProvider {
         this.registerLiteral("clear", true, new String[] { "unglow" },
                 builder -> builder
                         .description(GlowLang.COMMAND_GLOW_CLEAR_DESC)
-                        .permission(GlowPerms.COMMAND_GLOW_CLEAR)
+                        .permission("sunlight.glow.command.glow.clear")
                         .withArguments(Arguments.playerName(CommandArguments.PLAYER)
-                                .permission(GlowPerms.COMMAND_GLOW_CLEAR_OTHERS).optional())
+                                .permission("sunlight.glow.command.glow.clear.others").optional())
                         .withFlags(CommandArguments.FLAG_SILENT)
                         .executes(this::clearGlow));
 
         this.registerLiteral("list", true, new String[] { "glowlist" },
                 builder -> builder
                         .description(GlowLang.COMMAND_GLOW_LIST_DESC)
-                        .permission(GlowPerms.COMMAND_GLOW_LIST)
+                        .permission("sunlight.glow.command.glow.list")
                         .executes(this::listGlows));
 
         this.registerLiteral("phase", true, new String[] { "" },
                 builder -> builder
                         .playerOnly()
                         .description(GlowLang.COMMAND_GLOW_PHASE_DESC)
-                        .permission(GlowPerms.COMMAND_GLOW_PHASE)
+                        .permission("sunlight.glow.command.glow.phase")
                         .withArguments(
                                 Arguments.string("action")
                                         .suggestions((context, arguments) -> PHASE_ACTIONS),
@@ -99,7 +98,7 @@ public class GlowCommandProvider extends CommandProvider {
                 builder -> builder
                         .playerOnly()
                         .description(GlowLang.COMMAND_GLOW_PRESET_DESC)
-                        .permission(GlowPerms.COMMAND_GLOW_PRESET)
+                        .permission("sunlight.glow.command.glow.preset")
                         .withArguments(
                                 Arguments.string("action")
                                         .suggestions((context, arguments) -> PRESET_ACTIONS),
@@ -110,18 +109,18 @@ public class GlowCommandProvider extends CommandProvider {
         this.registerLiteral("on", true, new String[] { "glow-on" },
                 builder -> builder
                         .description(GlowLang.COMMAND_GLOW_ON_DESC)
-                        .permission(GlowPerms.COMMAND_GLOW_ON)
+                        .permission("sunlight.glow.command.glow.on")
                         .withArguments(Arguments.playerName(CommandArguments.PLAYER)
-                                .permission(GlowPerms.COMMAND_GLOW_ON_OTHERS).optional())
+                                .permission("sunlight.glow.command.glow.on.others").optional())
                         .withFlags(CommandArguments.FLAG_SILENT)
                         .executes(this::glowOn));
 
         this.registerLiteral("off", true, new String[] { "glow-off" },
                 builder -> builder
                         .description(GlowLang.COMMAND_GLOW_OFF_DESC)
-                        .permission(GlowPerms.COMMAND_GLOW_OFF)
+                        .permission("sunlight.glow.command.glow.off")
                         .withArguments(Arguments.playerName(CommandArguments.PLAYER)
-                                .permission(GlowPerms.COMMAND_GLOW_OFF_OTHERS).optional())
+                                .permission("sunlight.glow.command.glow.off.others").optional())
                         .withFlags(CommandArguments.FLAG_SILENT)
                         .executes(this::glowOff));
 
@@ -136,19 +135,19 @@ public class GlowCommandProvider extends CommandProvider {
                         "set", "set",
                         "clear", "clear"),
                 builder -> builder.description(GlowLang.COMMAND_GLOW_ROOT_DESC)
-                        .permission(GlowPerms.COMMAND_GLOW_ROOT)
+                        .permission("sunlight.glow.command.glow.root")
                         .executes(this::openMenu));
     }
 
     private void buildSet(final LiteralNodeBuilder builder) {
         builder.description(GlowLang.COMMAND_GLOW_SET_DESC)
-                .permission(GlowPerms.COMMAND_GLOW_SET)
+                .permission("sunlight.glow.command.glow.set")
                 .withArguments(
                         Arguments.string(CommandArguments.NAME)
                                 .localized(CoreLang.COMMAND_ARGUMENT_NAME_NAME)
                                 .suggestions((context, arguments) -> this.colorSuggestions()),
                         Arguments.playerName(CommandArguments.PLAYER)
-                                .permission(GlowPerms.COMMAND_GLOW_SET_OTHERS).optional())
+                                .permission("sunlight.glow.command.glow.set.others").optional())
                 .withFlags(CommandArguments.FLAG_SILENT)
                 .executes(this::setGlow);
     }
@@ -189,9 +188,9 @@ public class GlowCommandProvider extends CommandProvider {
 
         final String accessId = effect == null ? Utils.lowercase(singleColor.toString()) : effect.getId();
         final String accessName = effect == null ? singleColor.toString().toLowerCase() : effect.getName();
-        if (!context.hasPermission(GlowPerms.BYPASS_COLOR)
-                && !context.hasPermission(GlowPerms.colorNode(accessId))
-                && !context.hasPermission(GlowPerms.COLOR.childrenNode("*"))) {
+        if (!context.hasPermission("sunlight.glow.bypass.color")
+                && !context.hasPermission("sunlight.glow.color." + accessId)
+                && !context.hasPermission("sunlight.glow.color.*")) {
             this.module.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_NO_ACCESS, context.getSender(),
                     replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, () -> accessName));
             return false;
@@ -291,13 +290,13 @@ public class GlowCommandProvider extends CommandProvider {
     }
 
     private boolean checkPhaseAccess(final CommandContext context, final List<GlowPhase> phases) {
-        if (context.hasPermission(GlowPerms.BYPASS_COLOR)
-                || context.hasPermission(GlowPerms.COLOR.childrenNode("*"))) {
+        if (context.hasPermission("sunlight.glow.bypass.color")
+                || context.hasPermission("sunlight.glow.color.*")) {
             return true;
         }
         for (final GlowPhase phase : phases) {
             final String id = Utils.lowercase(phase.color().toString());
-            if (!context.hasPermission(GlowPerms.colorNode(id))) {
+            if (!context.hasPermission("sunlight.glow.color." + id)) {
                 final String bad = phase.color().toString().toLowerCase();
                 this.module.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_NO_ACCESS, context.getSender(),
                         replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, () -> bad));

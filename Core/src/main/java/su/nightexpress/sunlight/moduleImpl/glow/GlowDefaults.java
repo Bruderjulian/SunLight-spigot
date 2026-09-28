@@ -1,9 +1,7 @@
 package su.nightexpress.sunlight.moduleImpl.glow;
 
 import net.kyori.adventure.text.format.NamedTextColor;
-
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GlowDefaults {
@@ -29,35 +27,34 @@ public class GlowDefaults {
         addStatic(map, "purple", "<dark_purple>Purple", NamedTextColor.DARK_PURPLE);
 
         map.put("rainbow", new GlowEffect("rainbow", "<red>R<gold>a<yellow>i<green>n<aqua>b<blue>o<light_purple>w",
-            GlowType.PHASED, List.of(
                 new GlowPhase(NamedTextColor.RED, 10L),
                 new GlowPhase(NamedTextColor.GOLD, 10L),
                 new GlowPhase(NamedTextColor.YELLOW, 10L),
                 new GlowPhase(NamedTextColor.GREEN, 10L),
                 new GlowPhase(NamedTextColor.AQUA, 10L),
                 new GlowPhase(NamedTextColor.BLUE, 10L),
-                new GlowPhase(NamedTextColor.LIGHT_PURPLE, 10L))));
+                new GlowPhase(NamedTextColor.LIGHT_PURPLE, 10L)));
 
-        map.put("sunset", new GlowEffect("sunset", "<red>Sunset", GlowType.PHASED, List.of(
-            new GlowPhase(NamedTextColor.RED, 20L),
-            new GlowPhase(NamedTextColor.GOLD, 20L),
-            new GlowPhase(NamedTextColor.YELLOW, 20L))));
+        map.put("sunset", new GlowEffect("sunset", "<red>Sunset",
+                new GlowPhase(NamedTextColor.RED, 20L),
+                new GlowPhase(NamedTextColor.GOLD, 20L),
+                new GlowPhase(NamedTextColor.YELLOW, 20L)));
 
-        map.put("ocean", new GlowEffect("ocean", "<aqua>Ocean", GlowType.PHASED, List.of(
-            new GlowPhase(NamedTextColor.DARK_BLUE, 20L),
-            new GlowPhase(NamedTextColor.BLUE, 20L),
-            new GlowPhase(NamedTextColor.AQUA, 20L),
-            new GlowPhase(NamedTextColor.GREEN, 20L))));
+        map.put("ocean", new GlowEffect("ocean", "<aqua>Ocean",
+                new GlowPhase(NamedTextColor.DARK_BLUE, 20L),
+                new GlowPhase(NamedTextColor.BLUE, 20L),
+                new GlowPhase(NamedTextColor.AQUA, 20L),
+                new GlowPhase(NamedTextColor.GREEN, 20L)));
 
-        map.put("candy", new GlowEffect("candy", "<light_purple>Candy", GlowType.PHASED, List.of(
-            new GlowPhase(NamedTextColor.LIGHT_PURPLE, 15L),
-            new GlowPhase(NamedTextColor.DARK_PURPLE, 15L),
-            new GlowPhase(NamedTextColor.AQUA, 15L),
-            new GlowPhase(NamedTextColor.DARK_AQUA, 15L))));
+        map.put("candy", new GlowEffect("candy", "<light_purple>Candy",
+                new GlowPhase(NamedTextColor.LIGHT_PURPLE, 15L),
+                new GlowPhase(NamedTextColor.DARK_PURPLE, 15L),
+                new GlowPhase(NamedTextColor.AQUA, 15L),
+                new GlowPhase(NamedTextColor.DARK_AQUA, 15L)));
 
-        map.put("alert", new GlowEffect("alert", "<red>Alert", GlowType.PHASED, List.of(
-            new GlowPhase(NamedTextColor.RED, 10L),
-            new GlowPhase(NamedTextColor.WHITE, 10L))));
+        map.put("alert", new GlowEffect("alert", "<red>Alert",
+                new GlowPhase(NamedTextColor.RED, 10L),
+                new GlowPhase(NamedTextColor.WHITE, 10L)));
 
         return map;
     }
