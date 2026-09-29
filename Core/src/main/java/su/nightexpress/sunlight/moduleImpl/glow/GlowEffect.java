@@ -15,11 +15,10 @@ public class GlowEffect implements Writeable {
     private final String id;
     private final String name;
     private final GlowType type;
-    private final GlowPhase[] phases;
-    private final int len;
+    private GlowPhase[] phases;
+    private int len;
 
     public static enum GlowType {
-
         STATIC,
         PHASED;
     }
@@ -28,7 +27,7 @@ public class GlowEffect implements Writeable {
         this.id = Utils.lowercase(id);
         this.name = name;
         if (phases == null || phases.isEmpty()) {
-            this.phases = new GlowPhase[] { new GlowPhase(NamedTextColor.WHITE, GlowPhase.DEFAULT_DURATION) };
+            this.phases = new GlowPhase[] { new GlowPhase(NamedTextColor.WHITE, GlowPhase.INFINITE_DURATION) };
             this.type = GlowType.STATIC;
             this.len = 1;
         } else if (phases.size() == 1) {
@@ -46,7 +45,7 @@ public class GlowEffect implements Writeable {
         this.id = Utils.lowercase(id);
         this.name = name;
         if (phases == null || phases.length == 0) {
-            this.phases = new GlowPhase[] { new GlowPhase(NamedTextColor.WHITE, GlowPhase.DEFAULT_DURATION) };
+            this.phases = new GlowPhase[] { new GlowPhase(NamedTextColor.WHITE, GlowPhase.INFINITE_DURATION) };
             this.type = GlowType.STATIC;
             this.len = 1;
         } else if (phases.length == 1) {
@@ -65,14 +64,17 @@ public class GlowEffect implements Writeable {
         this.name = name;
         this.type = GlowType.STATIC;
 
-        phase = phase == null ? new GlowPhase(NamedTextColor.WHITE, GlowPhase.DEFAULT_DURATION) : phase;
+        phase = phase == null ? new GlowPhase(NamedTextColor.WHITE, GlowPhase.INFINITE_DURATION) : phase;
         this.phases = new GlowPhase[] { phase };
         this.len = 1;
     }
 
-    /** Backwards-compatible factory for single-color effects. */
-    public static GlowEffect ofColor(final String id, final String name, final NamedTextColor color) {
-        return new GlowEffect(id, name, new GlowPhase(color, GlowPhase.DEFAULT_DURATION));
+    public GlowEffect(final String id, final String name, final NamedTextColor color) {
+        this.id = Utils.lowercase(id);
+        this.name = name;
+        this.type = GlowType.STATIC;
+        this.phases = new GlowPhase[] { new GlowPhase(color, GlowPhase.INFINITE_DURATION) };
+        this.len = 1;
     }
 
     public static GlowEffect read(final FileConfig config, final String path) {
@@ -98,14 +100,37 @@ public class GlowEffect implements Writeable {
             return null;
         }
         final List<GlowPhase> phases = new ArrayList<>();
-        for (final String token : raw.split(",")) {
-            if (phases.size() > GlowHandler.MAX_PHASES) {
-                continue;
-            }
+        for (final String token : raw.split(",", GlowHandler.MAX_PHASES)) {
             final GlowPhase phase = GlowPhase.parse(token);
             if (phase != null) {
                 phases.add(phase);
             }
+        }
+        return new GlowEffect(id, name, phases);
+    }
+
+    public static GlowEffect parse(final String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return null;
+        }
+        final String[] parts = raw.trim().split(":", 3);
+        if (parts.length != 3) {
+            return null;
+        }
+        final String id = parts[0] == null || parts[0].isEmpty() ? null : parts[0].trim();
+        if (id == null) {
+            return null;
+        }
+        final String name = parts[1] == null || parts[1].isEmpty() ? id : parts[1].trim();
+        final List<GlowPhase> phases = new ArrayList<>();
+        for (final String phasePart : parts[2].split(",", GlowHandler.MAX_PHASES)) {
+            final GlowPhase phase = GlowPhase.parse(phasePart);
+            if (phase != null) {
+                phases.add(phase);
+            }
+        }
+        if (phases.isEmpty()) {
+            return null;
         }
         return new GlowEffect(id, name, phases);
     }
@@ -118,6 +143,20 @@ public class GlowEffect implements Writeable {
         }
         config.set(path + ".Name", this.name);
         config.set(path + ".Phases", list);
+    }
+
+    public String encode() {
+        final StringBuilder builder = new StringBuilder(id);
+        builder.append(":");
+        builder.append(name);
+        builder.append(":");
+        for (int index = 0; index < len; index++) {
+            if (index > 0) {
+                builder.append(',');
+            }
+            builder.append(phases[index].encode());
+        }
+        return builder.toString();
     }
 
     public static NamedTextColor parseColor(final String raw) {
@@ -171,5 +210,40 @@ public class GlowEffect implements Writeable {
 
     public int phaseCount() {
         return len;
+    }
+
+    public boolean addPhase(final GlowPhase phase) {
+        if (phase == null) {
+            return false;
+        }
+        if (len >= GlowHandler.MAX_PHASES) {
+            return false;
+        }
+        this.len = len + 2;
+        final GlowPhase[] newArray = new GlowPhase[len];
+        System.arraycopy(phases, 0, newArray, 0, len);
+        newArray[phases.length] = phase;
+        phases = newArray;
+        return true;
+    }
+
+    public boolean removePhase(final int index) {
+        if (index < 0 || index >= phases.length) {
+            return false;
+        }
+        final int newSize = len - 1;
+        if (newSize > index) {
+            System.arraycopy(phases, index + 1, phases, index, newSize - index);
+        }
+        phases[len = newSize] = null;
+        return true;
+    }
+
+    public boolean setPhaseDuration(final int index, final long duration) {
+        if (index < 0 || index >= len) {
+            return false;
+        }
+        phases[index] = new GlowPhase(phases[index].color(), duration);
+        return true;
     }
 }

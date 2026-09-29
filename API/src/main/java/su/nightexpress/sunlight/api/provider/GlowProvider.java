@@ -1,22 +1,17 @@
 package su.nightexpress.sunlight.api.provider;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import net.kyori.adventure.text.format.NamedTextColor;
 
 public interface GlowProvider {
 
-    boolean hasGlow(@NotNull Player player);
+    boolean isGlowEnabled(Player player);
 
-    @Nullable String getGlow(@NotNull Player player);
+    String getEffectId(Player player);
 
-    /**
-     * The colour name the player's active glow frame renders as, e.g. {@code gold}.
-     * The nametags module appends it as the final colour token of the nameplate.
-     */
-    @Nullable String getGlowColor(@NotNull Player player);
+    void setEffect(Player player, NamedTextColor color);
 
-    void setGlow(@NotNull Player player, @Nullable String effectId);
+    void clearGlow(Player player);
 
-    void clearGlow(@NotNull Player player);
 }

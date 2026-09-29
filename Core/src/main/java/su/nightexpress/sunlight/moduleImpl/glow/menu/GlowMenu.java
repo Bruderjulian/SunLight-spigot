@@ -22,7 +22,6 @@ import su.nightexpress.sunlight.moduleImpl.glow.GlowHandler;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowModule;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowPhase;
 import su.nightexpress.sunlight.moduleImpl.glow.config.GlowLang;
-import su.nightexpress.sunlight.user.SunUser;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -100,10 +99,9 @@ public class GlowMenu extends AbstractMenu {
         final Player player = context.getPlayer();
         final MenuViewer viewer = context.getViewer();
 
-        final SunUser user = this.module.userManager().getOrFetch(player);
-        final String selected = this.module.handler().getStoredGlow(user);
-        final boolean enabled = this.module.handler().isGlowEnabled(user);
-        final boolean custom = this.module.handler().isCustomGlow(user);
+        final String selected = this.module.handler().getStoredGlow(player);
+        final boolean enabled = this.module.handler().isGlowEnabled(player);
+        final boolean custom = this.module.handler().isCustomGlow(player);
 
         final List<GlowEffect> effects = this.module.handler().getEffects().values().stream()
                 .sorted(Comparator.comparing(GlowEffect::getId))
@@ -135,14 +133,14 @@ public class GlowMenu extends AbstractMenu {
         final NightItem disableIcon = NightItem.fromType(Material.MILK_BUCKET)
                 .setDisplayName(GRAY.wrap("Disable glow"))
                 .setLore(hasSelection
-                        ? List.of(GRAY.wrap("Currently: ") + WHITE.wrap(this.describeSelection(user, selected)),
+                        ? List.of(GRAY.wrap("Currently: ") + WHITE.wrap(this.describeSelection(player, selected)),
                                 "",
                                 GOLD.wrap("→ " + UNDERLINED.wrap("Click to remove your glow.")))
                         : List.of(GRAY.wrap("You have no glow selected.")));
         list.add(MenuItem.builder()
                 .defaultState(disableIcon, actionContext -> {
                     final Player clicker = actionContext.getPlayer();
-                    this.module.setGlow(clicker, null);
+                    this.module.handler().setEffect(clicker, null);
                     this.module.sendPrefixed(GlowLang.COMMAND_GLOW_CLEAR_DONE, clicker);
                     this.show(this.plugin, clicker);
                 })
@@ -157,13 +155,12 @@ public class GlowMenu extends AbstractMenu {
         list.add(MenuItem.builder()
                 .defaultState(toggleIcon, actionContext -> {
                     final Player clicker = actionContext.getPlayer();
-                    final SunUser clickerUser = this.module.userManager().getOrFetch(clicker);
-                    final boolean next = !this.module.handler().isGlowEnabled(clickerUser);
-                    if (next && this.module.handler().getStoredGlow(clickerUser) == null) {
+                    final boolean next = !this.module.handler().isGlowEnabled(clicker);
+                    if (next && this.module.handler().getStoredGlow(clicker) == null) {
                         this.module.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_NO_SELECTION, clicker);
                         return;
                     }
-                    this.module.handler().setGlowEnabled(clickerUser, clicker, next);
+                    this.module.handler().setGlowEnabled(clicker, next);
                     this.module.sendPrefixed(next ? GlowLang.COMMAND_GLOW_ON_DONE : GlowLang.COMMAND_GLOW_OFF_DONE,
                             clicker);
                     this.show(this.plugin, clicker);
@@ -193,7 +190,7 @@ public class GlowMenu extends AbstractMenu {
                     replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, effect::getName));
             return;
         }
-        this.module.setGlow(player, effect.getId());
+        this.module.handler().setEffect(player, effect);
         this.module.sendPrefixed(GlowLang.COMMAND_GLOW_MENU_SELECTED, player,
                 replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, effect::getName));
         this.show(this.plugin, player);
@@ -228,19 +225,12 @@ public class GlowMenu extends AbstractMenu {
         return lore;
     }
 
-    private String describeSelection(final SunUser user, final String selected) {
-        if (selected == null)
-            return "none";
-        if (GlowHandler.CUSTOM_ID.equals(selected)) {
-            final GlowEffect custom = this.module.handler().getCustomEffect(user);
-            if (custom == null)
-                return "custom";
-            return custom.getType() == GlowType.PHASED
-                    ? "custom phased (" + custom.phaseCount() + ")"
-                    : "custom static";
+    private String describeSelection(final Player player, final String selected) {
+        if (selected == null) {
+            return "None";
         }
         final GlowEffect effect = this.module.handler().getEffect(selected);
-        return effect == null ? selected : effect.getId();
+        return effect == null ? selected : effect.getName();
     }
 
     @Override

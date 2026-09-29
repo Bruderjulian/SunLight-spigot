@@ -23,8 +23,7 @@ public class GlowListener extends AbstractListener<SunLightPlugin> {
         if (!this.module.settings().isRestoreOnJoin()) {
             return;
         }
-        this.plugin.runTask(() -> this.module.handler().applyGlow(module.userManager().getOrFetch(
-                event.getPlayer()), event.getPlayer()));
+        this.plugin.runTask(() -> this.module.handler().applyGlow(event.getPlayer()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -34,13 +33,11 @@ public class GlowListener extends AbstractListener<SunLightPlugin> {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onRespawn(final PlayerRespawnEvent event) {
-        this.plugin.runTask(() -> this.module.handler().applyGlow(module.userManager().getOrFetch(
-                event.getPlayer()), event.getPlayer()));
+        this.plugin.runTask(() -> this.module.handler().applyGlow(event.getPlayer()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onWorldChange(final PlayerChangedWorldEvent event) {
-        this.plugin.runTask(() -> this.module.handler().applyGlow(module.userManager().getOrFetch(
-                event.getPlayer()), event.getPlayer()));
+        this.plugin.runTask(() -> this.module.handler().applyGlow(event.getPlayer()));
     }
 }

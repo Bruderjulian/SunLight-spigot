@@ -6,6 +6,7 @@ import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigType;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
 
+import java.util.List;
 import java.util.Map;
 
 public class GlowSettings extends AbstractConfig {
@@ -42,8 +43,11 @@ public class GlowSettings extends AbstractConfig {
             "",
             "Glow colors are sent as client-side (packet) teams and never touch the server scoreboard.");
 
+    private List<String> effectKeys;
+
     public void load(final FileConfig config) {
         super.load(config);
+        effectKeys = this.effects.get().keySet().stream().sorted().toList();
     }
 
     public long getUpdateInterval() {
@@ -56,5 +60,9 @@ public class GlowSettings extends AbstractConfig {
 
     public Map<String, GlowEffect> getEffects() {
         return this.effects.get();
+    }
+
+    public List<String> getEffectsKeys() {
+        return effectKeys;
     }
 }

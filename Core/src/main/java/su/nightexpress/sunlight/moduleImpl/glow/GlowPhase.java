@@ -13,12 +13,15 @@ public record GlowPhase(NamedTextColor color, long durationTicks) {
     public static final long MIN_DURATION = 1L;
     public static final long MAX_DURATION = 1200L;
     public static final long DEFAULT_DURATION = 20L;
+    public static final long INFINITE_DURATION = -1L;
 
     public GlowPhase {
         if (color == null) {
             throw new IllegalArgumentException("color must not be null");
         }
-        durationTicks = Math.clamp(durationTicks, MIN_DURATION, MAX_DURATION);
+        if (durationTicks != -1) {
+            durationTicks = Math.clamp(durationTicks, MIN_DURATION, MAX_DURATION);
+        }
     }
 
     /**

@@ -1,8 +1,8 @@
 package su.nightexpress.sunlight.moduleImpl.glow;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import net.kyori.adventure.text.format.NamedTextColor;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.bukkit.NightTask;
@@ -46,7 +46,6 @@ public class GlowModule extends Module implements GlowProvider {
         this.plugin.injectLang(GlowLang.class);
         UserPropertyRegistry.register(GlowHandler.PROPERTY_GLOW);
         UserPropertyRegistry.register(GlowHandler.PROPERTY_GLOW_ENABLED);
-        UserPropertyRegistry.register(GlowHandler.PROPERTY_GLOW_CUSTOM);
         UserPropertyRegistry.register(GlowHandler.PROPERTY_GLOW_PRESETS);
 
         this.addListener(new GlowListener(this.plugin, this));
@@ -74,9 +73,9 @@ public class GlowModule extends Module implements GlowProvider {
 
     @Override
     public void registerPlaceholders(final PlaceholderRegistry registry) {
-        registry.register("glow_state", (player, payload) -> CoreLang.STATE_YES_NO.get(this.hasGlow(player)));
+        registry.register("glow_state", (player, payload) -> CoreLang.STATE_YES_NO.get(this.isGlowEnabled(player)));
         registry.register("glow_color", (player, payload) -> {
-            final GlowEffect effect = handler.getEffectiveEffect(userManager.getOrFetch(player));
+            final GlowEffect effect = handler.getEffectiveEffect(player);
             return effect == null ? "" : effect.getName();
         });
     }
@@ -93,7 +92,7 @@ public class GlowModule extends Module implements GlowProvider {
         this.addTask(NightTask.create(plugin, runnable, interval));
     }
 
-    public void openGlowMenu(@NotNull final Player player) {
+    public void openGlowMenu(final Player player) {
         if (this.menu == null) {
             this.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_MENU, player);
             return;
@@ -102,30 +101,23 @@ public class GlowModule extends Module implements GlowProvider {
     }
 
     @Override
-    public boolean hasGlow(@NotNull final Player player) {
-        return handler.hasGlow(userManager.getOrFetch(player));
+    public boolean isGlowEnabled(final Player player) {
+        return handler.isGlowEnabled(player);
     }
 
     @Override
-    public @Nullable String getGlow(@NotNull final Player player) {
-        return handler.getStoredGlow(userManager.getOrFetch(player));
-
+    public void setEffect(final Player player, final NamedTextColor color) {
+        handler.setSingleColorGlow(player, color);
     }
 
     @Override
-    public @Nullable String getGlowColor(@NotNull final Player player) {
-        return handler.getGlowColor(player);
-
+    public void clearGlow(final Player player) {
+        handler.setEffect(player, null);
     }
 
     @Override
-    public void setGlow(@NotNull final Player player, @Nullable final String effectId) {
-        handler.setGlow(userManager.getOrFetch(player), effectId);
-
+    public String getEffectId(Player player) {
+        return handler.getEffectiveEffectId(player);
     }
 
-    @Override
-    public void clearGlow(@NotNull final Player player) {
-        handler.setGlow(userManager.getOrFetch(player), player, null);
-    }
 }

@@ -217,7 +217,8 @@ public abstract class CommandProvider implements LangContainer {
 
     protected void registerRoot(String name, boolean enabled, String[] aliases, Map<String, String> childrenAliases,
             Consumer<HubNodeBuilder> consumer) {
-        this.defaultRoot.put(Utils.lowercase(name), new HubDefinition(enabled, aliases, StringUtil.capitalizeUnderscored(name), childrenAliases));
+        this.defaultRoot.put(Utils.lowercase(name),
+                new HubDefinition(enabled, aliases, StringUtil.capitalizeUnderscored(name), childrenAliases));
         this.rootBuilder.put(Utils.lowercase(name), consumer);
     }
 
