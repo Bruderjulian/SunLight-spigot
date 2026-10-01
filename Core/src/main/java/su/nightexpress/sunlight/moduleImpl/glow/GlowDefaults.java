@@ -1,13 +1,19 @@
 package su.nightexpress.sunlight.moduleImpl.glow;
 
 import net.kyori.adventure.text.format.NamedTextColor;
-import java.util.LinkedHashMap;
+
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GlowDefaults {
+        public static final List<String> VANILLA_COLORS = List.of(
+                        "white", "gray", "dark_gray", "black", "red", "dark_red", "gold", "yellow",
+                        "green", "dark_green", "aqua", "dark_aqua", "blue", "dark_blue",
+                        "light_purple", "dark_purple");
 
         public static Map<String, GlowEffect> getDefaultEffects() {
-                final Map<String, GlowEffect> map = new LinkedHashMap<>();
+                final Map<String, GlowEffect> map = new HashMap<>();
 
                 addStatic(map, "white", "<white>White", NamedTextColor.WHITE);
                 addStatic(map, "gray", "<gray>Gray", NamedTextColor.GRAY);

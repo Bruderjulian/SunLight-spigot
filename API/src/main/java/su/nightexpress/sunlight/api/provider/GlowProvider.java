@@ -10,6 +10,13 @@ public interface GlowProvider {
 
     String getEffectId(Player player);
 
+    /**
+     * The colour of the phase currently shown, as a vanilla colour name.
+     *
+     * @return null when the player has no active glow.
+     */
+    String getGlowColor(Player player);
+
     void setEffect(Player player, NamedTextColor color);
 
     void clearGlow(Player player);

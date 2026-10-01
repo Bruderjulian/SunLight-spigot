@@ -5,6 +5,9 @@ import java.util.Optional;
 
 import org.bukkit.command.CommandSender;
 
+import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPIPaperConfig;
+
 import su.nightexpress.nightcore.NightCorePlugin;
 import su.nightexpress.nightcore.NightPlugin;
 import su.nightexpress.nightcore.commands.Commands;
@@ -27,8 +30,8 @@ import su.nightexpress.sunlight.api.provider.ReportsProvider;
 import su.nightexpress.sunlight.api.provider.SocialsProvider;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.command.CommandRegistry;
+import su.nightexpress.sunlight.command.api.CommandApiRegistry;
 import su.nightexpress.sunlight.config.Config;
-import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.config.Perms;
@@ -79,6 +82,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
     private static SunlightAPI api;
 
     private CommandRegistry commandRegistry;
+    private CommandApiRegistry commandApiRegistry;
     private ModuleManager moduleManager;
 
     private DataHandler dataHandler;
@@ -113,9 +117,23 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         return true;
     }
 
+    /**
+     * CommandAPI must be loaded before any of its classes are touched, so its
+     * bootstrap has to run in the plugin's {@code onLoad()} rather than in
+     * {@link #onStartup()}.
+     */
+    @Override
+    public void onLoad() {
+        CommandAPI.onLoad(new CommandAPIPaperConfig(this).silentLogs(true));
+        super.onLoad();
+    }
+
     @Override
     protected void onStartup() {
+        CommandAPI.onEnable();
+
         this.commandRegistry = new CommandRegistry(this);
+        this.commandApiRegistry = new CommandApiRegistry(this);
         this.moduleManager = new ModuleManager(this);
     }
 
@@ -136,6 +154,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         moduleManager.loadAll();
 
         this.commandRegistry.setup();
+        this.commandApiRegistry.setup();
         this.registerCommands();
         this.registerPermissions(Perms.ROOT);
 
@@ -160,6 +179,8 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
             this.dataHandler.shutdown();
         if (this.commandRegistry != null)
             this.commandRegistry.shutdown();
+        if (this.commandApiRegistry != null)
+            this.commandApiRegistry.shutdown();
     }
 
     @Override
@@ -314,6 +335,10 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
     public CommandRegistry commandRegistry() {
         return this.commandRegistry;
+    }
+
+    public CommandApiRegistry commandApiRegistry() {
+        return this.commandApiRegistry;
     }
 
     public TeleportManager teleportManager() {

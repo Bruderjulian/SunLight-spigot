@@ -99,9 +99,11 @@ public class GlowMenu extends AbstractMenu {
         final Player player = context.getPlayer();
         final MenuViewer viewer = context.getViewer();
 
-        final String selected = this.module.handler().getStoredGlow(player);
+        final GlowEffect selectedEffect = this.module.handler().getEffectiveEffect(player);
+        final String selected = selectedEffect == null ? null : selectedEffect.getId();
         final boolean enabled = this.module.handler().isGlowEnabled(player);
-        final boolean custom = this.module.handler().isCustomGlow(player);
+        final boolean custom = selectedEffect != null && !this.module.handler().getEffects()
+                .containsKey(selectedEffect.getId());
 
         final List<GlowEffect> effects = this.module.handler().getEffects().values().stream()
                 .sorted(Comparator.comparing(GlowEffect::getId))
@@ -156,7 +158,7 @@ public class GlowMenu extends AbstractMenu {
                 .defaultState(toggleIcon, actionContext -> {
                     final Player clicker = actionContext.getPlayer();
                     final boolean next = !this.module.handler().isGlowEnabled(clicker);
-                    if (next && this.module.handler().getStoredGlow(clicker) == null) {
+                    if (next && this.module.handler().getEffectiveEffect(clicker) == null) {
                         this.module.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_NO_SELECTION, clicker);
                         return;
                     }
@@ -204,7 +206,8 @@ public class GlowMenu extends AbstractMenu {
         if (effect.getType() == GlowType.PHASED) {
             lore.add(GRAY.wrap("Phases: ") + WHITE.wrap(String.valueOf(effect.phaseCount())));
             final StringBuilder builder = new StringBuilder();
-            for (final GlowPhase phase : effect.getPhases()) {
+            for (int index = 0; index < effect.phaseCount(); index++) {
+                final GlowPhase phase = effect.getPhase(index);
                 builder.append(GRAY.wrap(" - ") + WHITE.wrap(
                         phase.color().toString().toLowerCase() + " (" + phase.durationTicks() + "t)"));
             }

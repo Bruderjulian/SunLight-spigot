@@ -7,6 +7,7 @@ dependencies {
     implementation project(':NMS')
     implementation project(":MC_1_21_11")
     implementation project(":nms-26-1")
+    implementation("dev.jorel:commandapi-paper-shade:12.1.0")
 }
 
 // Configure the shadowJar task to bundle the necessary dependencies.
@@ -16,12 +17,11 @@ shadowJar {
     archiveClassifier.set("")
     destinationDirectory = file("$rootDir/target")
 
-    dependencies {
-        include(project(':API'))
-        include(project(':NMS'))
-        include(project(':MC_1_21_11'))
-        include(project(':nms-26-1'))
-    }
+    relocate("dev.jorel.commandapi", "su.nightexpress.sunlight.libs.commandapi")
+
+    // The shade artifact is itself a fat jar, so its service entries must be merged
+    // rather than overwritten for the relocated platform to resolve.
+    mergeServiceFiles()
 }
 
 processResources {

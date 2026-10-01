@@ -99,6 +99,24 @@ public class GlowHandler {
     return module.userManager().getOrFetch(player).getPropertyOrDefault(PROPERTY_GLOW_ENABLED);
   }
 
+  /**
+   * Colour of the phase that is currently shown, i.e. the phase the animation sits
+   * on rather than the effect's first phase.
+   *
+   * @return null when the player has no active glow.
+   */
+  public NamedTextColor getCurrentColor(final Player player) {
+    if (!this.isGlowEnabled(player)) {
+      return null;
+    }
+    final GlowEffect effect = this.getEffectiveEffect(player);
+    if (effect == null) {
+      return null;
+    }
+    final GlowState state = this.states.get(player.getUniqueId());
+    return state == null ? effect.getBaseColor() : effect.getPhase(state.phaseIndex).color();
+  }
+
   /** Stored selection id, or null when nothing is selected. */
   public String getEffectiveEffectId(final Player player) {
     final GlowEffect effect = this.getEffectiveEffect(player);

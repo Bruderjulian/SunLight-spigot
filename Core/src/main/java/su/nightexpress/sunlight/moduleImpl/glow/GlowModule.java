@@ -68,7 +68,7 @@ public class GlowModule extends Module implements GlowProvider {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("glow", new GlowCommandProvider(this.plugin, this, this.userManager), this);
+        this.commandApiRegistry.addProvider(this, new GlowCommandProvider(this.plugin, this));
     }
 
     @Override
@@ -118,6 +118,12 @@ public class GlowModule extends Module implements GlowProvider {
     @Override
     public String getEffectId(Player player) {
         return handler.getEffectiveEffectId(player);
+    }
+
+    @Override
+    public String getGlowColor(final Player player) {
+        final NamedTextColor color = handler.getCurrentColor(player);
+        return color == null ? null : color.toString();
     }
 
 }

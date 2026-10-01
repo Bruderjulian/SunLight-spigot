@@ -219,10 +219,10 @@ public class GlowEffect implements Writeable {
         if (len >= GlowHandler.MAX_PHASES) {
             return false;
         }
-        this.len = len + 2;
+        this.len = len + 1;
         final GlowPhase[] newArray = new GlowPhase[len];
-        System.arraycopy(phases, 0, newArray, 0, len);
-        newArray[phases.length] = phase;
+        System.arraycopy(phases, 0, newArray, 0, len - 1);
+        newArray[len - 1] = phase;
         phases = newArray;
         return true;
     }
