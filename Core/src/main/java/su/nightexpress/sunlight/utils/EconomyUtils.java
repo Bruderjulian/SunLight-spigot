@@ -28,6 +28,10 @@ public class EconomyUtils {
         return module != null && player.hasPermission(moduleBypassNode(module, "bypass.cost"));
     }
 
+    public static boolean hasBypass(Player player) {
+        return player.hasPermission(Perms.BYPASS_COST);
+    }
+
     public static boolean hasCooldownBypass(Player player, Permission bypassPermission) {
         if (player.hasPermission(Perms.BYPASS_COOLDOWN))
             return true;
@@ -40,6 +44,10 @@ public class EconomyUtils {
             return true;
 
         return module != null && player.hasPermission(moduleBypassNode(module, "bypass.cooldown"));
+    }
+    
+    public static boolean hasCooldownBypass(Player player) {
+        return player.hasPermission(Perms.BYPASS_COOLDOWN);
     }
 
     private static String moduleBypassNode(Module module, String child) {

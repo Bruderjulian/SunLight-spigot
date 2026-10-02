@@ -1,8 +1,7 @@
-package su.nightexpress.sunlight.command.api;
+package su.nightexpress.sunlight.command;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -10,7 +9,6 @@ import java.util.function.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
 import dev.jorel.commandapi.SuggestionInfo;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
@@ -22,22 +20,40 @@ import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.sunlight.module.Module;
 
-public final class CommandApiArguments {
+public final class CommandArgumentConstants {
 
     public static final String PLAYER = "player";
     public static final String NAME = "name";
     public static final String ACTION = "action";
     public static final String DATA = "data";
     public static final String PRESET = "preset";
-    public static final String TAIL = "tail";
+    public static final String AMOUNT = "amount";
+    public static final String TIME = "time";
+    public static final String VALUE = "value";
+    public static final String WORLD = "world";
+    public static final String TYPE = "type";
+    public static final String MODE = "mode";
+    public static final String STATE = "state";
+    public static final String ADDRESS = "address";
+    public static final String ITEM = "item";
+    public static final String RADIUS = "radius";
+    public static final String LEVEL = "level";
+    public static final String ENCHANT = "enchant";
+    public static final String TEXT = "text";
+    public static final String INDEX = "index";
 
-    private static final Set<String> SILENT_TOKENS = Set.of("-s", "--silent");
+    public static final String TARGET = "target";
+    public static final String INET_ADDRESS = "address";
+    public static final String POSITION = "position";
+    public static final String X = "x";
+    public static final String Y = "y";
+    public static final String Z = "z";
 
-    private CommandApiArguments() {
-    }
-
-    public static Argument<String> string(final String name) {
-        return new StringArgument(name);
+    public static final String FLAG_SILENT = "-s";
+    public static final String FLAG_SILENT_LONG = "--silent";
+    public static final String FLAG_FORCE = "-f";
+    
+    private CommandArgumentConstants() {
     }
 
     public static Argument<String> string(final String name,
@@ -54,13 +70,23 @@ public final class CommandApiArguments {
         return Bukkit.getOnlinePlayers().stream().map(Player::getName).sorted().toList();
     }
 
+    /**
+     * The optional {@code [player] [-s]} part of a command, as typed after the
+     * required
+     * arguments.
+     */
     public static Argument<String> targetArgument() {
-        return CommandApiArguments.greedy("target", info -> CommandApiArguments.onlinePlayerNames());
+        return targetArgument(info -> onlinePlayerNames());
+    }
+
+    public static Argument<String> targetArgument(
+            final Function<SuggestionInfo<CommandSender>, Collection<String>> suggestions) {
+        return greedy("target", suggestions);
     }
 
     public static Target target(final CommandArguments arguments) {
         final Object rawObj = arguments.get("target");
-        if (rawObj == null || !(rawObj instanceof final String raw) || raw == null || raw.isBlank()) {
+        if (rawObj == null || !(rawObj instanceof final String raw) || raw.isBlank()) {
             return new Target(null, false);
         }
 
@@ -70,7 +96,8 @@ public final class CommandApiArguments {
             if (token.isBlank()) {
                 continue;
             }
-            if (SILENT_TOKENS.contains(Utils.lowercase(token))) {
+            final String lower = Utils.lowercase(token);
+            if (lower.equals(FLAG_SILENT) || lower.equals(FLAG_SILENT_LONG)) {
                 silent = true;
                 continue;
             }
@@ -83,13 +110,6 @@ public final class CommandApiArguments {
         return new Target(playerName, silent);
     }
 
-    /**
-     * The optional target/silent part of a command, as typed after the required
-     * arguments.
-     *
-     * @param playerName The target player name, or null to target the sender.
-     * @param silent     Whether output to the target should be suppressed.
-     */
     public record Target(String playerName, boolean silent) {
 
         public boolean hasTarget() {
@@ -131,7 +151,8 @@ public final class CommandApiArguments {
                 }
 
                 return module.userManager().loadTargetPlayer(user).thenComposeAsync(targetUser -> {
-                    if (targetUser == null || !(!(sender instanceof Player player) || player.canSee(targetUser))) {
+                    if (targetUser == null
+                            || !(!(sender instanceof final Player player) || player.canSee(targetUser))) {
                         module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
                         return CompletableFuture.completedFuture(null);
                     }

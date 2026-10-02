@@ -15,7 +15,6 @@ import su.nightexpress.nightcore.ui.dialog.wrap.DialogRegistry;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandRegistry;
-import su.nightexpress.sunlight.command.api.CommandApiRegistry;
 import su.nightexpress.sunlight.config.Config;
 import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.config.Perms;
@@ -33,7 +32,7 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
     protected final DataHandler dataHandler;
     protected final UserManager userManager;
     protected final CommandRegistry commandRegistry;
-    protected final CommandApiRegistry commandApiRegistry;
+    protected final su.nightexpress.sunlight.command.CommandRegistry commandApiRegistry;
     protected final DialogRegistry dialogRegistry;
 
     private final String logPrefix;
@@ -62,7 +61,6 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
         FileConfig config = this.getConfig();
 
         this.loadModule(config);
-        this.registerCommands();
         this.registerPermissions(Perms.ROOT);
 
         config.saveChanges();
@@ -82,8 +80,6 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
     protected abstract void unloadModule();
 
     protected abstract void registerPermissions(PermissionTree root);
-
-    protected abstract void registerCommands();
 
     public abstract void registerPlaceholders(PlaceholderRegistry registry);
 

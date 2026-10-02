@@ -56,10 +56,6 @@ public class ExtrasModule extends Module {
     }
 
     @Override
-    protected void registerCommands() {
-    }
-
-    @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
         // TODO
         /*

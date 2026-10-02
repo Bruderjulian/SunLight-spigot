@@ -19,9 +19,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.api.CommandApiArguments;
-import su.nightexpress.sunlight.command.api.CommandApiProvider;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowEffect;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowHandler;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowModule;
@@ -38,7 +37,7 @@ import su.nightexpress.sunlight.utils.Utils;
  * this
  * class only declares the tree and implements the behaviour.
  */
-public class GlowCommandProvider extends CommandApiProvider {
+public class GlowCommandProvider extends CommandProvider<GlowModule> {
 
     private static final String PERM_ROOT = "sunlight.glow.command.glow.root";
     private static final String PERM_COLOR = "sunlight.glow.command.glow.color";
@@ -49,47 +48,44 @@ public class GlowCommandProvider extends CommandApiProvider {
     private static final String PERM_ON = "sunlight.glow.command.glow.on";
     private static final String PERM_OFF = "sunlight.glow.command.glow.off";
 
-    private final GlowModule module;
-
-    public GlowCommandProvider(final SunLightPlugin plugin, final GlowModule module) {
-        super(plugin);
-        this.module = module;
+    public GlowCommandProvider(final GlowModule module) {
+        super(module);
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerNode("color", true, new String[] { "" }, command -> command
+    public void setup() {
+        this.register("color", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_COLOR_DESC.text())
                 .withPermission(PERM_COLOR)
-                .withArguments(CommandApiArguments.string(CommandApiArguments.NAME,
+                .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                         info -> this.module.settings().getEffectsKeys()))
-                .withOptionalArguments(CommandApiArguments.targetArgument())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::setGlow));
 
-        this.registerNode("clear", true, new String[] { "unglow" }, command -> command
+        this.register("clear", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_CLEAR_DESC.text())
                 .withPermission(PERM_CLEAR)
-                .withOptionalArguments(CommandApiArguments.targetArgument())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::clearGlow));
 
-        this.registerNode("list", true, new String[] { "glowlist" }, command -> command
+        this.register("list", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_LIST_DESC.text())
                 .withPermission(PERM_LIST)
                 .executes(this::listGlows));
 
-        this.registerNode("on", true, new String[] { "glow-on" }, command -> command
+        this.register("on", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_ON_DESC.text())
                 .withPermission(PERM_ON)
-                .withOptionalArguments(CommandApiArguments.targetArgument())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::glowOn));
 
-        this.registerNode("off", true, new String[] { "glow-off" }, command -> command
+        this.register("off", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_OFF_DESC.text())
                 .withPermission(PERM_OFF)
-                .withOptionalArguments(CommandApiArguments.targetArgument())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::glowOff));
 
-        this.registerNode("phase", true, new String[] { "" }, command -> command
+        this.register("phase", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_PHASE_DESC.text())
                 .withAliases()
                 .withPermission(PERM_PHASE)
@@ -110,20 +106,20 @@ public class GlowCommandProvider extends CommandApiProvider {
                     return 1;
                 }));
 
-        this.registerNode("preset", true, new String[] { "" }, command -> command
+        this.register("preset", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_PRESET_DESC.text())
                 .withPermission(PERM_PRESET)
                 .withRequirement(sender -> sender instanceof Player)
                 .withSubcommand(new CommandAPICommand("load")
-                        .withArguments(CommandApiArguments.string(CommandApiArguments.PRESET,
+                        .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PRESET,
                                 info -> this.presetSuggestions((Player) info.sender())))
                         .executes(this::presetLoad))
                 .withSubcommand(new CommandAPICommand("save")
-                        .withOptionalArguments(CommandApiArguments.string(CommandApiArguments.PRESET,
+                        .withOptionalArguments(CommandArgumentConstants.string(CommandArgumentConstants.PRESET,
                                 info -> this.presetSuggestions((Player) info.sender())))
                         .executes(this::presetSave))
                 .withSubcommand(new CommandAPICommand("delete")
-                        .withArguments(CommandApiArguments.string(CommandApiArguments.PRESET,
+                        .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PRESET,
                                 info -> this.presetSuggestions((Player) info.sender())))
                         .executes(this::presetDelete))
                 .withSubcommand(new CommandAPICommand("list").executes(this::presetList))
@@ -132,27 +128,18 @@ public class GlowCommandProvider extends CommandApiProvider {
                     return 1;
                 }));
 
-        this.registerRoot("glow", true, new String[] { "" }, Map.of(
-                "color", "color",
-                "set", "set",
-                "clear", "clear",
-                "list", "list",
-                "phase", "phase",
-                "preset", "preset",
-                "on", "on",
-                "off", "off"),
-                command -> command
-                        .withFullDescription(GlowLang.COMMAND_GLOW_ROOT_DESC.text())
-                        .withPermission(PERM_ROOT)
-                        .executes((sender, arguments) -> {
-                            if (!(sender instanceof final Player player)) {
-                                this.module.sendPrefixed(
-                                        CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
-                                return 1;
-                            }
-                            this.module.openGlowMenu(player);
-                            return 1;
-                        }));
+        this.registerRoot("glow", command -> command
+                .withFullDescription(GlowLang.COMMAND_GLOW_ROOT_DESC.text())
+                .withPermission(PERM_ROOT)
+                .executes((sender, arguments) -> {
+                    if (!(sender instanceof final Player player)) {
+                        this.module.sendPrefixed(
+                                CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
+                        return 1;
+                    }
+                    this.module.openGlowMenu(player);
+                    return 1;
+                }));
     }
 
     private List<String> presetSuggestions(final Player player) {
@@ -162,7 +149,7 @@ public class GlowCommandProvider extends CommandApiProvider {
     // --- set / color ---
 
     private int setGlow(final CommandSender sender, final CommandArguments arguments) {
-        final String effectId = Utils.lowercase(arguments.getUnchecked(CommandApiArguments.NAME));
+        final String effectId = Utils.lowercase(arguments.getUnchecked(CommandArgumentConstants.NAME));
         final GlowEffect effect = this.module.handler().getEffect(effectId);
         final NamedTextColor singleColor = effect == null ? GlowEffect.parseColor(effectId) : null;
 
@@ -182,7 +169,7 @@ public class GlowCommandProvider extends CommandApiProvider {
 
         final GlowEffect effect2 = effect;
         final NamedTextColor color = singleColor;
-        final CommandApiArguments.Target target = CommandApiArguments.target(arguments);
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
         if (target == null) {
             this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
             return 0;
@@ -212,7 +199,7 @@ public class GlowCommandProvider extends CommandApiProvider {
     // --- clear ---
 
     private int clearGlow(final CommandSender sender, final CommandArguments arguments) {
-        final CommandApiArguments.Target target = CommandApiArguments.target(arguments);
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
         if (target == null) {
             this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
             return 0;
@@ -255,7 +242,7 @@ public class GlowCommandProvider extends CommandApiProvider {
     // --- on / off ---
 
     private int glowOn(final CommandSender sender, final CommandArguments arguments) {
-        final CommandApiArguments.Target target = CommandApiArguments.target(arguments);
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
         if (target == null) {
             this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
             return 0;
@@ -283,7 +270,7 @@ public class GlowCommandProvider extends CommandApiProvider {
     }
 
     private int glowOff(final CommandSender sender, final CommandArguments arguments) {
-        final CommandApiArguments.Target target = CommandApiArguments.target(arguments);
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
         if (target == null) {
             this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
             return 0;
@@ -504,7 +491,7 @@ public class GlowCommandProvider extends CommandApiProvider {
             module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
             return 0;
         }
-        final Object nameArg = arguments.get(CommandApiArguments.PRESET);
+        final Object nameArg = arguments.get(CommandArgumentConstants.PRESET);
         if (nameArg == null || !(nameArg instanceof final String name) || name.isBlank()) {
             this.module.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_PRESET_USAGE, sender);
             return 0;
@@ -540,7 +527,7 @@ public class GlowCommandProvider extends CommandApiProvider {
             module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
             return 0;
         }
-        final Object nameArg = arguments.get(CommandApiArguments.PRESET);
+        final Object nameArg = arguments.get(CommandArgumentConstants.PRESET);
         if (nameArg == null || !(nameArg instanceof final String name) || name.isBlank()) {
             this.module.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_PRESET_USAGE, sender);
             return 0;
@@ -568,7 +555,7 @@ public class GlowCommandProvider extends CommandApiProvider {
             module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
             return 0;
         }
-        final Object nameArg = arguments.get(CommandApiArguments.PRESET);
+        final Object nameArg = arguments.get(CommandArgumentConstants.PRESET);
         if (nameArg == null || !(nameArg instanceof final String name) || name.isBlank()) {
             this.module.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_PRESET_USAGE, sender);
             return 0;

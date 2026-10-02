@@ -30,7 +30,6 @@ import su.nightexpress.sunlight.api.provider.ReportsProvider;
 import su.nightexpress.sunlight.api.provider.SocialsProvider;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.command.CommandRegistry;
-import su.nightexpress.sunlight.command.api.CommandApiRegistry;
 import su.nightexpress.sunlight.config.Config;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.config.PermissionTree;
@@ -75,6 +74,8 @@ import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
 
+import static su.nightexpress.nightcore.util.Placeholders.GENERIC_DESCRIPTION;
+import static su.nightexpress.nightcore.util.Placeholders.GENERIC_ENTRY;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
 public class SunLightPlugin extends NightPlugin implements SunlightAPI {
@@ -82,7 +83,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
     private static SunlightAPI api;
 
     private CommandRegistry commandRegistry;
-    private CommandApiRegistry commandApiRegistry;
+    private su.nightexpress.sunlight.command.CommandRegistry commandApiRegistry;
     private ModuleManager moduleManager;
 
     private DataHandler dataHandler;
@@ -133,7 +134,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         CommandAPI.onEnable();
 
         this.commandRegistry = new CommandRegistry(this);
-        this.commandApiRegistry = new CommandApiRegistry(this);
+        this.commandApiRegistry = new su.nightexpress.sunlight.command.CommandRegistry(this);
         this.moduleManager = new ModuleManager(this);
     }
 
@@ -337,7 +338,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         return this.commandRegistry;
     }
 
-    public CommandApiRegistry commandApiRegistry() {
+    public su.nightexpress.sunlight.command.CommandRegistry commandApiRegistry() {
         return this.commandApiRegistry;
     }
 

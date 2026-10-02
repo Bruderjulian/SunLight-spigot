@@ -54,6 +54,8 @@ public class GlowModule extends Module implements GlowProvider {
         this.menu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "glow.yml"));
 
         handler.init();
+        this.commandApiRegistry.addProvider(new GlowCommandProvider(this));
+
     }
 
     @Override
@@ -64,11 +66,6 @@ public class GlowModule extends Module implements GlowProvider {
 
     @Override
     protected void registerPermissions(final PermissionTree root) {
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandApiRegistry.addProvider(this, new GlowCommandProvider(this.plugin, this));
     }
 
     @Override
