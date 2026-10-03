@@ -67,7 +67,7 @@ public class VanishModule extends Module implements VanishProvider {
 
     @Override
     protected void registerCommands() {
-        this.commandRegistry.addProvider("vanish", new VanishCommand(this.plugin, this, this.userManager), this);
+        this.commandApiRegistry.addProvider("vanish", new VanishCommand(this));
     }
 
     @Override

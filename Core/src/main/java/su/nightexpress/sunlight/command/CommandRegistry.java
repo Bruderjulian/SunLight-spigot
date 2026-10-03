@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -21,6 +20,7 @@ import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.CommandAPIExecutor;
 import dev.jorel.commandapi.commandsenders.AbstractCommandSender;
+import dev.jorel.commandapi.commandsenders.BukkitCommandSender;
 import dev.jorel.commandapi.executors.ExecutionInfo;
 
 import su.nightexpress.nightcore.config.FileConfig;
@@ -40,13 +40,14 @@ import su.nightexpress.nightcore.util.CommandUtil;
 /**
  * Registry for the CommandAPI-based command system.
  * <p>
- * This is the successor of the legacy {@code CommandRegistry}: providers
- * declare the
- * same nodes, read the same {@code commands/<id>.yml} layout and get the same
- * cost
- * and cooldown semantics around their executors. It runs next to the legacy
- * registry
- * so modules can be migrated one at a time.
+ * Providers declare standalone nodes via
+ * {@code register(id, aliases, roots, ...)} and hub roots via
+ * {@code registerRoot(id, aliases, ...)}. A node listed under {@code roots}
+ * is additionally attached as a subcommand (named by its node id) to each of
+ * those roots, mirroring the legacy literal + hub layout. The
+ * {@code commands/<provider>.yml} file keeps per-node {@code enabled} /
+ * {@code aliases} / {@code cooldown} / {@code cost} entries plus the same
+ * cost and cooldown semantics around executors.
  */
 public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
@@ -85,26 +86,16 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
    * @param id       The config namespace: the {@code commands/<id>.yml} file.
    * @param provider The provider.
    */
-  public void addProvider(final String id, final CommandProvider<?> provider) {
+  public void addProvider(final CommandProvider<?> provider) {
     if (provider == null) {
       throw new IllegalArgumentException("Module's Command Provider cant be null");
     }
-    if (id == null || id.isBlank()) {
-      throw new IllegalArgumentException("Command Provider id cant be empty");
-    }
-
-    final String key = Utils.lowercase(id);
     for (final CommandProvider<?> entry : this.providers) {
-      if (entry.id.equals(key)) {
-        throw new IllegalStateException("Command Provider '" + key + "' has already been registered");
+      if (provider.id.equals(entry.getId())) {
+        throw new IllegalStateException("Command Provider '" + provider.id + "' has already been registered");
       }
     }
-
     this.providers.add(provider);
-  }
-
-  public void addProvider(final CommandProvider<?> provider) {
-    this.addProvider(provider.getId(), provider);
   }
 
   public List<CommandProvider<?>> getProviders() {
@@ -113,80 +104,109 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
   private void registerCommands() {
     for (final CommandProvider<?> provider : providers) {
+      final String providerId = provider.getId();
       final FileConfig config = FileConfig.load(this.plugin.getDataFolder() + "/commands/",
-          FileConfig.withExtension(provider.id));
+          FileConfig.withExtension(providerId));
 
       this.plugin.injectLang(provider);
       provider.setup();
 
-      if (provider.getCommandBuilders().isEmpty()) {
-        return;
-      }
-      provider.getCommandBuilders().forEach((id, builder) -> {
-        this.commands.put(id, buildCommand(provider, provider.id, config, builder, id));
+      // Hub roots first, with their attached subcommands.
+      provider.getRootCommandBuilders().forEach((rootId, builder) -> {
+        final CommandAPICommand root = buildCommand(provider, rootId, config, builder);
+        if (root == null) {
+          return;
+        }
+        provider.getSubCommandBuilders().forEach((subId, subBuilder) -> {
+          final CommandAPICommand sub = buildCommand(provider, subId, config, subBuilder);
+          if (sub != null) {
+            root.withSubcommand(sub);
+          }
+        });
+        this.registerCommand(root);
+
+        provider.getSubRoots().forEach((delegateId, subRootId) -> {
+          final CommandAPICommand sub = buildRedirectCommand(subRootId, delegateId);
+          if (sub != null) {
+            this.registerCommand(root);
+          }
+        });
       });
+
       config.saveChanges();
     }
   }
 
-  private CommandAPICommand buildCommand(final CommandProvider<?> provider, final String cmdKey,
-      final FileConfig config,
-      final Consumer<CommandAPICommand> builder,
-      final String path) {
-    boolean enabled = true;
-    String[] aliases = null;
-    int cooldown = 0;
-    double cost = 0;
-    Set<String> subcommands = null;
-
-    if (!config.contains(path)) {
-      config.set(path + ".enabled", true);
-      config.setStringArray(path + ".aliases", EMPTY);
-      config.set(path + ".cooldown", 0);
-      config.set(path + ".cost", 0);
-      config.set(path + ".subcommands", EMPTY);
-    } else {
-      enabled = config.getBoolean(path + ".enabled", true);
-      aliases = readAliases(config, path + ".aliases");
-      cooldown = config.getInt(path + ".cooldown", 0);
-      cost = config.getDouble(path + ".cost", 0);
-      subcommands = config.getSection(path + ".subcommands");
+  private CommandAPICommand buildCommand(final CommandProvider<?> provider, final String nodeId,
+      final FileConfig config, final Consumer<CommandAPICommand> builder) {
+    if (!config.contains(nodeId)) {
+      config.set(nodeId + ".enabled", true);
+      config.setStringArray(nodeId + ".aliases", EMPTY);
+      config.set(nodeId + ".cooldown", 0);
+      config.set(nodeId + ".cost", 0);
     }
-
-    if (!enabled) {
+    if (!config.getBoolean(nodeId + ".enabled", true)) {
       return null;
     }
-    final CommandAPICommand command = new CommandAPICommand(cmdKey);
-    builder.accept(command);
+    final String[] aliases = readAliases(config, nodeId + ".aliases");
+    config.setStringArray(nodeId + ".aliases", aliases);
 
-    if (subcommands != null && subcommands.size() > 0) {
-      for (final String key : subcommands) {
-        final Consumer<CommandAPICommand> subBuilder = provider.getSubCommandBuilders().get(key);
-        if (subBuilder == null) {
-          continue;
-        }
-        command.withSubcommand(buildCommand(provider, key, config, subBuilder, path + ".subcommands." + key));
-      }
+    final CommandAPICommand command = new CommandAPICommand(aliases.length == 0 ? nodeId : aliases[0]);
+    builder.accept(command);
+    if (aliases.length > 1) {
+      command.withAliases(Arrays.copyOfRange(aliases, 1, aliases.length));
     }
 
+    guard(provider, nodeId, command, config.getInt(nodeId + ".cooldown", 0),
+        config.getDouble(nodeId + ".cost", 0));
+    return command;
+  }
+
+  @SuppressWarnings("unchecked")
+  private CommandAPICommand buildRedirectCommand(final String subRootId, final String delegateId) {
+    return new CommandAPICommand(subRootId)
+        .executes((info) -> {
+          final CommandAPICommand command = commands.get(delegateId);
+          if (command == null) {
+            return FAILURE;
+          }
+          try {
+            ((CommandAPIExecutor<CommandSender, BukkitCommandSender<CommandSender>>) (Object) command.getExecutor())
+                .execute((ExecutionInfo<CommandSender, BukkitCommandSender<CommandSender>>) (Object) info);
+          } catch (final CommandSyntaxException e) {
+            return FAILURE;
+          }
+          return SUCCESS;
+        });
+  }
+
+  private void guard(final CommandProvider<?> provider, final String nodeId,
+      final CommandAPICommand command, final int cooldown, final double cost) {
     final CommandAPIExecutor<CommandSender, AbstractCommandSender<? extends CommandSender>> original = command
         .getExecutor();
     if (original == null || !original.hasAnyExecutors()) {
-      return command;
+      return;
     }
-    command.setExecutor(new GuardedExecutor(original, this.settings, provider, cmdKey, cooldown, cost));
+    command.setExecutor(new GuardedExecutor(original, this.settings, provider, nodeId, cooldown, cost));
+  }
 
-    aliases = handleAliases(aliases);
-    if (aliases != null) {
-      command.withAliases(aliases);
+  private void registerCommand(final CommandAPICommand command) {
+    final String name = command.getName();
+    if (command.getAliases() != null) {
+      for (final String alias : command.getAliases()) {
+        this.unregisterConflict(alias, true);
+        if (this.settings.isConflictUnregisterEnabled()) {
+          this.unregisterConflict(alias, false);
+        }
+      }
     }
-    this.unregisterConflict(cmdKey, true);
+    this.unregisterConflict(name, true);
     if (this.settings.isConflictUnregisterEnabled()) {
-      this.unregisterConflict(cmdKey, false);
+      this.unregisterConflict(name, false);
     }
-    CommandAPI.unregister(cmdKey, true);
+    CommandAPI.unregister(name, true);
     command.register("sunlight");
-    return command;
+    this.commands.put(name, command);
   }
 
   private String[] readAliases(final FileConfig config, final String path) {
@@ -194,21 +214,20 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
     final Stream<String> aliases;
     if (raw instanceof final List<?> list) {
-      aliases = list.stream()
-          .map(entry -> entry == null ? "" : entry.toString().trim())
-          .filter(entry -> !entry.isEmpty());
+      aliases = list.stream().map(entry -> entry == null ? "" : entry.toString());
     } else if (raw instanceof final String string) {
       String cleaned = string.trim();
       if (cleaned.startsWith("[") && cleaned.endsWith("]") && cleaned.length() >= 2) {
         cleaned = cleaned.substring(1, cleaned.length() - 1);
       }
-      aliases = Arrays.stream(cleaned.split(","))
-          .map(String::trim)
-          .filter(entry -> !entry.isBlank() && !isListArtifact(entry));
+      aliases = Arrays.stream(cleaned.split(","));
     } else {
-      return null;
+      return EMPTY;
     }
-    return aliases.toArray(String[]::new);
+    return aliases.filter(alias -> alias != null && !alias.isBlank())
+        .map(String::trim)
+        .filter(alias -> !isListArtifact(alias))
+        .toArray(String[]::new);
   }
 
   private static boolean isListArtifact(final String alias) {
@@ -228,7 +247,8 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     private GuardedExecutor(
         final CommandAPIExecutor<CommandSender, AbstractCommandSender<? extends CommandSender>> delegate,
         final CommandSettings settings,
-        final CommandProvider<?> provider, final String nodeId, final int cooldown, final double cost) {
+        final CommandProvider<?> provider, final String nodeId, final int cooldown,
+        final double cost) {
       this.delegate = delegate;
       this.settings = settings;
       this.key = new CommandKey(provider.id, nodeId);
@@ -241,7 +261,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     public int execute(final ExecutionInfo<CommandSender, AbstractCommandSender<? extends CommandSender>> info)
         throws CommandSyntaxException {
       final Player player = info.sender() instanceof final Player p ? p : null;
-      if (this.check(info, player)) {
+      if (!this.check(info, player)) {
         return FAILURE;
       }
 
@@ -254,6 +274,9 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
       return SUCCESS;
     }
 
+    /**
+     * @return {@code true} when the command may run.
+     */
     private boolean check(final ExecutionInfo<CommandSender, AbstractCommandSender<? extends CommandSender>> info,
         final Player player) {
       if (player == null) {
@@ -309,24 +332,6 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
             .setCommandCooldown(this.key, TimeUtil.createFutureTimestamp(this.cooldown));
       }
     }
-  }
-
-  private String[] handleAliases(String[] aliases) {
-    if (aliases == null || aliases.length == 0) {
-      return null;
-    }
-    aliases = Arrays.stream(aliases).filter(alias -> alias == null || alias.isEmpty()).map(alias -> alias.trim())
-        .filter(alias -> alias.isEmpty()).toArray(String[]::new);
-    if (aliases.length == 0) {
-      return null;
-    }
-    for (String alias : aliases) {
-      this.unregisterConflict(alias, true);
-      if (this.settings.isConflictUnregisterEnabled()) {
-        this.unregisterConflict(alias, false);
-      }
-    }
-    return aliases;
   }
 
   /**
