@@ -1,83 +1,39 @@
 package su.nightexpress.sunlight.moduleImpl.extras.chestsort;
 
-import org.bukkit.entity.Player;
+import java.util.List;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
-import su.nightexpress.nightcore.core.CoreLang;
-import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import org.bukkit.command.CommandSender;
+
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
-import su.nightexpress.sunlight.command.mode.ToggleMode;
+import su.nightexpress.sunlight.moduleImpl.extras.ExtrasModule;
 import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasLang;
 import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasPerms;
-import su.nightexpress.sunlight.user.SunUser;
 
-import java.util.Map;
+public class SortCommand extends CommandProvider<ExtrasModule> {
 
-public class SortCommand extends CommandProvider {
-
-    private static final String COMMAND_OFF = "off";
-    private static final String COMMAND_ON = "on";
-    private static final String COMMAND_TOGGLE = "toggle";
-
-    private final SortManager manager;
-
-    public SortCommand(SunLightPlugin plugin, SortManager manager) {
-        super(plugin);
-        this.manager = manager;
+    public SortCommand(final ExtrasModule module) {
+        super(module, "chestsort");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("chestsort", true, new String[] { "chestsort" }, builder -> builder
-                .description(ExtrasLang.COMMAND_CHEST_SORT_DESC)
-                .permission(ExtrasPerms.COMMAND_CHEST_SORT)
-                .withArguments(Arguments.playerName(CommandArguments.PLAYER)
-                        .permission(ExtrasPerms.COMMAND_CHEST_SORT_OTHERS).optional())
-                .withFlags(CommandArguments.FLAG_SILENT)
-                .executes((context, arguments) -> this.toggleSorting(context, arguments, ToggleMode.TOGGLE)));
+    public void setup() {
+        this.register("chestsort", List.of(), builder -> builder
+                .withFullDescription(ExtrasLang.COMMAND_CHEST_SORT_DESC.text())
+                .withPermission(ExtrasPerms.COMMAND_CHEST_SORT.getName())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                .executes((sender, arguments) -> {
+                    return this.toggleSorting(sender, arguments);
+                }));
 
-        this.registerRoot("mode", true, new String[] { "sortmode" },
-                Map.of(
-                        COMMAND_OFF, "off",
-                        COMMAND_ON, "on",
-                        COMMAND_TOGGLE, "toggle"),
-                builder -> builder.description("TODO").permission("TODO") // TODO
-        );
+        this.registerRoot("mode", builder -> builder
+                .withFullDescription("TODO")
+                .withPermission("TODO")); // TODO
     }
 
-    private boolean toggleSorting(CommandContext context, ParsedArguments arguments, ToggleMode mode) {
+    private int toggleSorting(final CommandSender sender, final CommandArguments arguments) {
         // TODO
-        /*
-         * Player target = this.getTargetOrSender(context, arguments,
-         * CommandArguments.PLAYER, true);
-         * if (target == null) return false;
-         * 
-         * SunUser user = plugin.userManager().getOrFetch(target);
-         * boolean state = mode.apply(SortManager.isChestSortEnabled(user));
-         * 
-         * user.setProperty(SortManager.SETTING_CHEST_SORT, state);
-         * //this.plugin.userManager().save(user);
-         * user.markDirty();
-         * 
-         * if (context.getSender() != target) {
-         * context.send(ExtrasLang.COMMAND_CHEST_SORT_TARGET, replacer -> replacer
-         * .replace(SLPlaceholders.forPlayer(target))
-         * .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
-         * );
-         * }
-         * 
-         * if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-         * ExtrasLang.COMMAND_CHEST_SORT_NOTIFY.message().send(target, replacer ->
-         * replacer
-         * .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
-         * );
-         * }
-         */
-
-        return true;
+        return 1;
     }
 }

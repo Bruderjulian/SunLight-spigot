@@ -1,35 +1,31 @@
 package su.nightexpress.sunlight.moduleImpl.kits.command;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.Commands;
-import su.nightexpress.nightcore.commands.builder.ArgumentNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
-import su.nightexpress.nightcore.commands.exceptions.CommandSyntaxException;
+import dev.jorel.commandapi.arguments.Argument;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.IntegerArgument;
+import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
-import su.nightexpress.sunlight.utils.TimeUtil;
-import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.kits.KitsModule;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsLang;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsPerms;
 import su.nightexpress.sunlight.moduleImpl.kits.model.Kit;
-import su.nightexpress.sunlight.user.UserManager;
+import su.nightexpress.sunlight.utils.TimeUtil;
+import su.nightexpress.sunlight.utils.Utils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
-public class KitsCommandProvider extends CommandProvider {
+public class KitsCommandProvider extends CommandProvider<KitsModule> {
 
     private static final String ARG_KIT = "kit";
 
@@ -41,167 +37,186 @@ public class KitsCommandProvider extends CommandProvider {
     private static final String COMMAND_SET_COOLDOWN = "set_cooldown";
     private static final String COMMAND_PREVIEW = "preview";
 
-    private final KitsModule module;
-    private final UserManager userManager;
-
-    public KitsCommandProvider(SunLightPlugin plugin, KitsModule module, UserManager userManager) {
-        super(plugin);
-        this.module = module;
-        this.userManager = userManager;
+    public KitsCommandProvider(final KitsModule module) {
+        super(module, "kits-commons");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral(COMMAND_EDITOR, true, new String[] { "editkit" }, builder -> builder
-                .playerOnly()
-                .description(KitsLang.COMMAND_KITS_EDITOR_DESC)
-                .permission(KitsPerms.COMMAND_EDIT_KIT)
+    public void setup() {
+        this.register(COMMAND_EDITOR, List.of(), builder -> builder
+                .withFullDescription(KitsLang.COMMAND_KITS_EDITOR_DESC.text())
+                .withPermission(KitsPerms.COMMAND_EDIT_KIT.getName())
+                .withRequirement(sender -> sender instanceof Player)
                 .executes(this::openEditor));
 
-        this.registerLiteral(COMMAND_GET, true, new String[] { "kit" }, builder -> builder
-                .playerOnly()
-                .description(KitsLang.COMMAND_KITS_GET_DESC)
-                .permission(KitsPerms.COMMAND_KIT_GET)
+        this.register(COMMAND_GET, List.of(), builder -> builder
+                .withFullDescription(KitsLang.COMMAND_KITS_GET_DESC.text())
+                .withPermission(KitsPerms.COMMAND_KIT_GET.getName())
+                .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.kitArgument())
-                .withFlags(CommandArguments.FLAG_SILENT)
                 .executes(this::getKit));
 
-        this.registerLiteral(COMMAND_GIVE, true, new String[] { "givekit" }, builder -> builder
-                .description(KitsLang.COMMAND_KITS_GIVE_DESC)
-                .permission(KitsPerms.COMMAND_KIT_GIVE)
-                .withArguments(
-                        this.kitArgument(),
-                        Arguments.playerName(CommandArguments.PLAYER))
-                .withFlags(CommandArguments.FLAG_SILENT)
+        this.register(COMMAND_GIVE, List.of(), builder -> builder
+                .withFullDescription(KitsLang.COMMAND_KITS_GIVE_DESC.text())
+                .withPermission(KitsPerms.COMMAND_KIT_GIVE.getName())
+                .withArguments(this.kitArgument(), CommandArgumentConstants.targetArgument())
                 .executes(this::giveKit));
 
-        this.registerLiteral(COMMAND_LIST, true, new String[] { "kitlist" }, builder -> builder
-                .description(KitsLang.COMMAND_KITS_LIST_DESC)
-                .permission(KitsPerms.COMMAND_KIT_LIST)
-                .withArguments(Arguments.player(CommandArguments.PLAYER).optional()
-                        .permission(KitsPerms.COMMAND_KIT_LIST_OTHERS))
+        this.register(COMMAND_LIST, List.of(), builder -> builder
+                .withFullDescription(KitsLang.COMMAND_KITS_LIST_DESC.text())
+                .withPermission(KitsPerms.COMMAND_KIT_LIST.getName())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::listKits));
 
-        this.registerLiteral(COMMAND_PREVIEW, true, new String[] { "viewkit" }, builder -> builder
-                .description(KitsLang.COMMAND_KITS_PREVIEW_DESC)
-                .permission(KitsPerms.COMMAND_PREVIEW_KIT)
-                .withArguments(
-                        this.kitArgument(),
-                        Arguments.player(CommandArguments.PLAYER).optional()
-                                .permission(KitsPerms.COMMAND_PREVIEW_KIT_OTHERS))
+        this.register(COMMAND_PREVIEW, List.of(), builder -> builder
+                .withFullDescription(KitsLang.COMMAND_KITS_PREVIEW_DESC.text())
+                .withPermission(KitsPerms.COMMAND_PREVIEW_KIT.getName())
+                .withArguments(this.kitArgument())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::previewKit));
 
-        this.registerLiteral(COMMAND_RESET_COOLDOWN, false, new String[] { "resetkitcooldown" }, builder -> builder
-                .description(KitsLang.COMMAND_KITS_RESET_COOLDOWN_DESC)
-                .permission(KitsPerms.COMMAND_RESET_KIT_COOLDOWN)
-                .withArguments(
-                        this.kitArgument(),
-                        Arguments.playerName(CommandArguments.PLAYER))
-                .withFlags(CommandArguments.FLAG_SILENT)
+        this.register(COMMAND_RESET_COOLDOWN, List.of(), builder -> builder
+                .withFullDescription(KitsLang.COMMAND_KITS_RESET_COOLDOWN_DESC.text())
+                .withPermission(KitsPerms.COMMAND_RESET_KIT_COOLDOWN.getName())
+                .withArguments(this.kitArgument(), CommandArgumentConstants.targetArgument())
                 .executes(this::resetCooldown));
 
-        this.registerLiteral(COMMAND_SET_COOLDOWN, false, new String[] { "setkitcooldown" }, builder -> builder
-                .description(KitsLang.COMMAND_KITS_SET_COOLDOWN_DESC)
-                .permission(KitsPerms.COMMAND_SET_KIT_COOLDOWN)
+        this.register(COMMAND_SET_COOLDOWN, List.of(), builder -> builder
+                .withFullDescription(KitsLang.COMMAND_KITS_SET_COOLDOWN_DESC.text())
+                .withPermission(KitsPerms.COMMAND_SET_KIT_COOLDOWN.getName())
                 .withArguments(
                         this.kitArgument(),
-                        Arguments.integer(CommandArguments.TIME, 1)
-                                .localized(KitsLang.COMMAND_ARGUMENT_NAME_TIME)
-                                .suggestions((reader, context) -> List.of("300", "3600", "86400")),
-                        Arguments.playerName(CommandArguments.PLAYER))
-                .withFlags(CommandArguments.FLAG_SILENT)
+                        new IntegerArgument(CommandArgumentConstants.TIME, 1)
+                                .replaceSuggestions(ArgumentSuggestions
+                                        .stringCollection(info -> List.of("300", "3600", "86400"))),
+                        CommandArgumentConstants.targetArgument())
                 .executes(this::setCooldown));
 
-        this.registerRoot("kits", true, new String[] { "kits" },
-                map -> {
-                    map.put(COMMAND_EDITOR, "editor");
-                    map.put(COMMAND_GET, "get");
-                    map.put(COMMAND_GIVE, "give");
-                    map.put(COMMAND_LIST, "list");
-                    map.put(COMMAND_RESET_COOLDOWN, "resetcooldown");
-                    map.put(COMMAND_SET_COOLDOWN, "setcooldown");
-                    map.put(COMMAND_PREVIEW, "preview");
-                },
-                builder -> builder.description(KitsLang.COMMAND_KITS_ROOT_DESC)
-                        .permission(KitsPerms.COMMAND_KITS_ROOT));
+        this.registerRoot("kits", builder -> builder
+                .withFullDescription(KitsLang.COMMAND_KITS_ROOT_DESC.text())
+                .withPermission(KitsPerms.COMMAND_KITS_ROOT.getName()));
     }
 
-    private ArgumentNodeBuilder<Kit> kitArgument() {
-        return Commands
-                .argument(ARG_KIT,
-                        (context, string) -> Optional.ofNullable(this.module.getKitById(string))
-                                .orElseThrow(() -> CommandSyntaxException.custom(KitsLang.COMMAND_SYNTAX_INVALID_KIT)))
-                .suggestions(
-                        (reader, context) -> context.getPlayer() != null ? this.module.getKitIds(context.getPlayer())
-                                : this.module.getKitIds())
-                .localized(CoreLang.COMMAND_ARGUMENT_NAME_NAME);
+    private Argument<String> kitArgument() {
+        return CommandArgumentConstants.string(ARG_KIT,
+                info -> info.sender() instanceof final Player player ? this.module.getKitIds(player)
+                        : this.module.getKitIds());
     }
 
-    private boolean openEditor(CommandContext context, ParsedArguments arguments) {
-        Player player = context.getPlayerOrThrow();
+    private Kit resolveKit(final CommandSender sender, final CommandArguments arguments) {
+        final Object kitObj = arguments.get(ARG_KIT);
+        if (!(kitObj instanceof final String kitId)) {
+            return null;
+        }
+
+        final Kit kit = this.module.getKitById(kitId);
+        if (kit == null) {
+            this.module.sendPrefixed(KitsLang.COMMAND_SYNTAX_INVALID_KIT, sender);
+        }
+        return kit;
+    }
+
+    private int openEditor(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            return 0;
+        }
         this.module.openEditor(player);
-        return true;
+        return 1;
     }
 
-    private boolean getKit(CommandContext context, ParsedArguments arguments) {
-        Kit kit = arguments.get(ARG_KIT, Kit.class);
-        Player player = context.getPlayerOrThrow();
+    private int getKit(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            return 0;
+        }
 
-        return this.module.giveKit(kit, player, false, false);
+        final Kit kit = this.resolveKit(sender, arguments);
+        if (kit == null) {
+            return 0;
+        }
+
+        return this.module.giveKit(kit, player, false, false) ? 1 : 0;
     }
 
-    private boolean giveKit(CommandContext context, ParsedArguments arguments) {
-        Kit kit = arguments.get(ARG_KIT, Kit.class);
+    private int giveKit(final CommandSender sender, final CommandArguments arguments) {
+        final Kit kit = this.resolveKit(sender, arguments);
+        if (kit == null) {
+            return 0;
+        }
 
-        this.loadPlayerAndRunInMainThread(context, arguments, this.module, this.userManager, target -> {
-            boolean force = context.getSender() != target;
-            boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null || !target.hasTarget()) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-            this.module.giveKit(kit, target, force, silent);
+        return this.loadPlayerAndRunInMainThread(sender, target.playerName(), recipient -> {
+            final boolean force = sender != recipient;
 
-            this.module.sendPrefixed(KitsLang.KIT_GIVE_FEEDBACK, context.getSender(), builder -> builder
+            this.module.giveKit(kit, recipient, force, target.silent());
+
+            this.module.sendPrefixed(KitsLang.KIT_GIVE_FEEDBACK, sender, builder -> builder
                     .with(kit.placeholders())
-                    .with(CommonPlaceholders.PLAYER.resolver(target)));
-        });
-
-        return true;
+                    .with(CommonPlaceholders.PLAYER.resolver(recipient)));
+        }) ? 1 : 0;
     }
 
-    private boolean listKits(CommandContext context, ParsedArguments arguments) {
-        return this.runForOnlinePlayerOrSender(context, arguments, this.module, target -> {
-            this.module.openKitsMenu(target);
+    private int listKits(final CommandSender sender, final CommandArguments arguments) {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-            if (context.getSender() != target) {
-                this.module.sendPrefixed(KitsLang.KIT_BROWSER_OPEN_FEEDBACK, context.getSender(), builder -> builder
-                        .with(CommonPlaceholders.PLAYER.resolver(target)));
-            }
+        return target.runAs(this.module, sender, KitsPerms.COMMAND_KIT_LIST_OTHERS.getName(),
+                (user, targetPlayer) -> {
+                    this.module.openKitsMenu(targetPlayer);
 
-            return true;
-        });
+                    if (sender != targetPlayer) {
+                        this.module.sendPrefixed(KitsLang.KIT_BROWSER_OPEN_FEEDBACK, sender, builder -> builder
+                                .with(CommonPlaceholders.PLAYER.resolver(targetPlayer)));
+                    }
+                });
     }
 
-    private boolean previewKit(CommandContext context, ParsedArguments arguments) {
-        Kit kit = arguments.get(ARG_KIT, Kit.class);
+    private int previewKit(final CommandSender sender, final CommandArguments arguments) {
+        final Kit kit = this.resolveKit(sender, arguments);
+        if (kit == null) {
+            return 0;
+        }
 
-        return this.runForOnlinePlayerOrSender(context, arguments, this.module, target -> {
-            this.module.previewKit(target, kit);
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-            if (context.getSender() != target) {
-                this.module.sendPrefixed(KitsLang.KIT_PREVIEW_FEEDBACK, context.getSender(), builder -> builder
-                        .with(kit.placeholders())
-                        .with(CommonPlaceholders.PLAYER.resolver(target)));
-            }
-            return true;
-        });
+        return target.runAs(this.module, sender, KitsPerms.COMMAND_PREVIEW_KIT_OTHERS.getName(),
+                (user, targetPlayer) -> {
+                    this.module.previewKit(targetPlayer, kit);
+
+                    if (sender != targetPlayer) {
+                        this.module.sendPrefixed(KitsLang.KIT_PREVIEW_FEEDBACK, sender, builder -> builder
+                                .with(kit.placeholders())
+                                .with(CommonPlaceholders.PLAYER.resolver(targetPlayer)));
+                    }
+                });
     }
 
-    private boolean resetCooldown(CommandContext context, ParsedArguments arguments) {
-        Kit kit = arguments.get(ARG_KIT, Kit.class);
-        String playerName = arguments.getString(CommandArguments.PLAYER);
+    private int resetCooldown(final CommandSender sender, final CommandArguments arguments) {
+        final Kit kit = this.resolveKit(sender, arguments);
+        if (kit == null) {
+            return 0;
+        }
 
-        this.userManager.loadTargetProfile(playerName).thenCompose(profile -> {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null || !target.hasTarget()) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
+
+        this.module.userManager().loadTargetProfile(target.playerName()).thenCompose(profile -> {
             if (profile == null) {
-                context.errorBadPlayer();
+                this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
                 return CompletableFuture.completedFuture(null);
             }
 
@@ -209,32 +224,42 @@ public class KitsCommandProvider extends CommandProvider {
                 kitData.setCooldownDate(0L);
                 kitData.markDirty();
 
-                this.module.sendPrefixed(KitsLang.KIT_RESET_COOLDOWN_FEEDBACK, context.getSender(), replacer -> replacer
+                this.module.sendPrefixed(KitsLang.KIT_RESET_COOLDOWN_FEEDBACK, sender, replacer -> replacer
                         .with(kit.placeholders())
                         .with(CommonPlaceholders.PLAYER_NAME, profile::name));
 
-                Player target = Utils.getPlayer(profile.id());
-                if (target != null && !context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                    this.module.sendPrefixed(KitsLang.KIT_RESET_COOLDOWN_NOTIFY, target, replacer -> replacer
+                Player targetPlayer = Utils.getPlayer(profile.id());
+                if (targetPlayer != null && !target.silent()) {
+                    this.module.sendPrefixed(KitsLang.KIT_RESET_COOLDOWN_NOTIFY, targetPlayer, replacer -> replacer
                             .with(kit.placeholders()));
                 }
             }).whenComplete(Utils::printStacktrace);
         });
 
-        return true;
+        return 1;
     }
 
-    private boolean setCooldown(CommandContext context, ParsedArguments arguments) {
-        Kit kit = arguments.get(ARG_KIT, Kit.class);
-        String playerName = arguments.getString(CommandArguments.PLAYER);
+    private int setCooldown(final CommandSender sender, final CommandArguments arguments) {
+        final Kit kit = this.resolveKit(sender, arguments);
+        if (kit == null) {
+            return 0;
+        }
 
-        int amount = arguments.getInt(CommandArguments.TIME);
-        if (amount == 0)
-            return false;
+        final Object amountObj = arguments.get(CommandArgumentConstants.TIME);
+        final Integer amount = amountObj instanceof final Integer value ? value : null;
+        if (amount == null) {
+            return 0;
+        }
 
-        this.userManager.loadTargetProfile(playerName).thenCompose(profile -> {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null || !target.hasTarget()) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
+
+        this.module.userManager().loadTargetProfile(target.playerName()).thenCompose(profile -> {
             if (profile == null) {
-                context.errorBadPlayer();
+                this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
                 return CompletableFuture.completedFuture(null);
             }
 
@@ -242,15 +267,15 @@ public class KitsCommandProvider extends CommandProvider {
                 kitData.setCooldownDate(TimeUtil.createFutureTimestamp(amount));
                 kitData.markDirty();
 
-                this.module.sendPrefixed(KitsLang.KIT_SET_COOLDOWN_FEEDBACK, context.getSender(), replacer -> replacer
+                this.module.sendPrefixed(KitsLang.KIT_SET_COOLDOWN_FEEDBACK, sender, replacer -> replacer
                         .with(kit.placeholders())
                         .with(CommonPlaceholders.PLAYER_NAME, profile::name)
                         .with(SLPlaceholders.GENERIC_AMOUNT, () -> TimeFormats
                                 .formatAmount(TimeUnit.SECONDS.toMillis(amount), TimeFormatType.LITERAL)));
 
-                Player target = Utils.getPlayer(profile.id());
-                if (target != null && !context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                    this.module.sendPrefixed(KitsLang.KIT_SET_COOLDOWN_NOTIFY, target, replacer -> replacer
+                Player targetPlayer = Utils.getPlayer(profile.id());
+                if (targetPlayer != null && !target.silent()) {
+                    this.module.sendPrefixed(KitsLang.KIT_SET_COOLDOWN_NOTIFY, targetPlayer, replacer -> replacer
                             .with(kit.placeholders())
                             .with(SLPlaceholders.GENERIC_AMOUNT, () -> TimeFormats
                                     .formatAmount(TimeUnit.SECONDS.toMillis(amount), TimeFormatType.LITERAL)));
@@ -258,6 +283,6 @@ public class KitsCommandProvider extends CommandProvider {
             });
         }).whenComplete(Utils::printStacktrace);
 
-        return true;
+        return 1;
     }
 }

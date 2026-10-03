@@ -68,7 +68,6 @@ public class AfkModule extends Module implements AfkProvider {
         this.plugin.injectLang(AfkLang.class);
         UserPropertyRegistry.register(AFK_TOTAL_TIME);
         UserPropertyRegistry.register(AFK_COUNT);
-        this.registerCommands();
 
         this.addListener(new AfkListener(this.plugin, this));
 
@@ -80,6 +79,7 @@ public class AfkModule extends Module implements AfkProvider {
         this.addTask(this::tickTrackers, 1);
 
         Utils.onlinePlayers().forEach(this::track);
+        this.commandApiRegistry.addProvider(new AfkCommandProvider(this));
     }
 
     @Override
@@ -97,11 +97,6 @@ public class AfkModule extends Module implements AfkProvider {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(AfkPerms.ROOT);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("afk", new AfkCommandProvider(this.plugin, this), this);
     }
 
     @Override

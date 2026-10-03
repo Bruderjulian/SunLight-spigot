@@ -1,15 +1,16 @@
 package su.nightexpress.sunlight.moduleImpl.reports.command;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.Commands;
-import su.nightexpress.nightcore.commands.builder.ArgumentNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
-import su.nightexpress.nightcore.commands.exceptions.CommandSyntaxException;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+
+import dev.jorel.commandapi.arguments.Argument;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.reports.ReportsModule;
 import su.nightexpress.sunlight.moduleImpl.reports.config.ReportsLang;
@@ -19,10 +20,7 @@ import su.nightexpress.sunlight.moduleImpl.reports.model.ReportFilter;
 import su.nightexpress.sunlight.moduleImpl.reports.model.ReportStatus;
 import su.nightexpress.sunlight.utils.Utils;
 
-import java.util.Optional;
-import java.util.UUID;
-
-public class ReportsStaffCommandProvider extends CommandProvider {
+public class ReportsStaffCommandProvider extends CommandProvider<ReportsModule> {
 
     private static final String ARG_REPORT_ID = "report_id";
     private static final String ARG_NOTE = "note";
@@ -40,136 +38,132 @@ public class ReportsStaffCommandProvider extends CommandProvider {
     private static final String COMMAND_STATS = "stats";
     private static final String COMMAND_CASE = "case";
 
-    private final ReportsModule module;
-
-    public ReportsStaffCommandProvider(SunLightPlugin plugin, ReportsModule module) {
-        super(plugin);
-        this.module = module;
+    public ReportsStaffCommandProvider(final ReportsModule module) {
+        super(module, "reports-staff");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral(COMMAND_LIST, true, new String[] { "l", "gui" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_LIST_DESC)
-                .permission(ReportsPerms.COMMAND_REPORTS)
-                .withArguments(Arguments.string(ARG_FILTER)
-                        .optional()
-                        .localized(ReportsLang.COMMAND_ARGUMENT_NAME_FILTER)
-                        .suggestions((reader, context) -> Utils.getEnumNames(ReportFilter.class)))
+    public void setup() {
+        this.register(COMMAND_LIST, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_LIST_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORTS.getName())
+                .withRequirement(sender -> sender instanceof Player)
+                .withOptionalArguments(CommandArgumentConstants.string(ARG_FILTER,
+                        info -> Utils.getEnumNames(ReportFilter.class)))
                 .executes(this::list));
 
-        this.registerLiteral(COMMAND_VIEW, true, new String[] { "v" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_VIEW_DESC)
-                .permission(ReportsPerms.COMMAND_REPORTS)
+        this.register(COMMAND_VIEW, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_VIEW_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORTS.getName())
+                .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
                 .executes(this::view));
 
-        this.registerLiteral(COMMAND_CLAIM, true, new String[] { "reportclaim" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_CLAIM_DESC)
-                .permission(ReportsPerms.COMMAND_REPORT_CLAIM)
+        this.register(COMMAND_CLAIM, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_CLAIM_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORT_CLAIM.getName())
+                .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
-                .executes((context, arguments) -> this.withReport(context, arguments, this.module::claim)));
+                .executes((sender, arguments) -> {
+                    return this.withReport(sender, arguments, this.module::claim);
+                }));
 
-        this.registerLiteral(COMMAND_RELEASE, true, new String[] { "reportrelease" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_RELEASE_DESC)
-                .permission(ReportsPerms.COMMAND_REPORT_CLAIM)
+        this.register(COMMAND_RELEASE, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_RELEASE_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORT_CLAIM.getName())
+                .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
-                .executes((context, arguments) -> this.withReport(context, arguments, this.module::release)));
+                .executes((sender, arguments) -> {
+                    return this.withReport(sender, arguments, this.module::release);
+                }));
 
-        this.registerLiteral(COMMAND_RESOLVE, true, new String[] { "reportresolve" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_RESOLVE_DESC)
-                .permission(ReportsPerms.COMMAND_REPORT_RESOLVE)
-                .withArguments(this.reportArgument(), this.noteArgument())
-                .executes((context, arguments) -> this.conclude(context, arguments, ReportStatus.RESOLVED)));
+        this.register(COMMAND_RESOLVE, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_RESOLVE_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORT_RESOLVE.getName())
+                .withRequirement(sender -> sender instanceof Player)
+                .withArguments(this.reportArgument())
+                .withOptionalArguments(CommandArgumentConstants.greedy(ARG_NOTE, info -> List.of()))
+                .executes((sender, arguments) -> {
+                    return this.conclude(sender, arguments, ReportStatus.RESOLVED);
+                }));
 
-        this.registerLiteral(COMMAND_DENY, true, new String[] { "reportdeny" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_DENY_DESC)
-                .permission(ReportsPerms.COMMAND_REPORT_DENY)
-                .withArguments(this.reportArgument(), this.noteArgument())
-                .executes((context, arguments) -> this.conclude(context, arguments, ReportStatus.DENIED)));
+        this.register(COMMAND_DENY, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_DENY_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORT_DENY.getName())
+                .withRequirement(sender -> sender instanceof Player)
+                .withArguments(this.reportArgument())
+                .withOptionalArguments(CommandArgumentConstants.greedy(ARG_NOTE, info -> List.of()))
+                .executes((sender, arguments) -> {
+                    return this.conclude(sender, arguments, ReportStatus.DENIED);
+                }));
 
-        this.registerLiteral(COMMAND_NOTE, true, new String[] { "reportnote" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_NOTE_DESC)
-                .permission(ReportsPerms.COMMAND_REPORT_NOTE)
-                .withArguments(this.reportArgument(),
-                        Arguments.greedyString(ARG_NOTE).localized(ReportsLang.COMMAND_ARGUMENT_NAME_NOTE))
+        this.register(COMMAND_NOTE, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_NOTE_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORT_NOTE.getName())
+                .withRequirement(sender -> sender instanceof Player)
+                .withArguments(this.reportArgument(), new GreedyStringArgument(ARG_NOTE))
                 .executes(this::note));
 
-        this.registerLiteral(COMMAND_TELEPORT, true, new String[] { "tp" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_TELEPORT_DESC)
-                .permission(ReportsPerms.COMMAND_REPORT_TELEPORT)
+        this.register(COMMAND_TELEPORT, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_TELEPORT_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORT_TELEPORT.getName())
+                .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
                 .executes(this::teleport));
 
-        this.registerLiteral(COMMAND_DELETE, true, new String[] { "reportdelete" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_DELETE_DESC)
-                .permission(ReportsPerms.COMMAND_REPORT_DELETE)
+        this.register(COMMAND_DELETE, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_DELETE_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORT_DELETE.getName())
+                .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
-                .executes((context, arguments) -> this.withReport(context, arguments, this.module::deleteReport)));
+                .executes((sender, arguments) -> {
+                    return this.withReport(sender, arguments, this.module::deleteReport);
+                }));
 
-        this.registerLiteral(COMMAND_STATS, true, new String[] { "reportstats" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_STATS_DESC)
-                .permission(ReportsPerms.COMMAND_REPORTS_STATS)
+        this.register(COMMAND_STATS, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_STATS_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORTS_STATS.getName())
+                .withRequirement(sender -> sender instanceof Player)
                 .executes(this::stats));
 
-        this.registerLiteral(COMMAND_CASE, true, new String[] { "reportcase" }, builder -> builder
-                .playerOnly()
-                .description(ReportsLang.COMMAND_CASE_DESC)
-                .permission(ReportsPerms.COMMAND_REPORTS)
-                .withArguments(Arguments.playerName(CommandArguments.NAME))
+        this.register(COMMAND_CASE, List.of(), builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_CASE_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORTS.getName())
+                .withRequirement(sender -> sender instanceof Player)
+                .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
+                        info -> CommandArgumentConstants.onlinePlayerNames()))
                 .executes(this::openCase));
 
-        this.registerRoot("reports", true, new String[] { "report" },
-                map -> {
-                    map.put(COMMAND_LIST, "list");
-                    map.put(COMMAND_VIEW, "view");
-                    map.put(COMMAND_CLAIM, "claim");
-                    map.put(COMMAND_RELEASE, "release");
-                    map.put(COMMAND_RESOLVE, "resolve");
-                    map.put(COMMAND_DENY, "deny");
-                    map.put(COMMAND_NOTE, "note");
-                    map.put(COMMAND_TELEPORT, "teleport");
-                    map.put(COMMAND_DELETE, "delete");
-                    map.put(COMMAND_STATS, "stats");
-                    map.put(COMMAND_CASE, "case");
-                },
-                builder -> builder.description(ReportsLang.COMMAND_REPORTS_ROOT_DESC)
-                        .permission(ReportsPerms.COMMAND_REPORTS));
+        this.registerRoot("reports", builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_REPORTS_ROOT_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORTS.getName()));
     }
 
-    private boolean stats(CommandContext context, ParsedArguments arguments) {
-        return this.module.openStats(context.getPlayerOrThrow());
+    private int stats(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            return 0;
+        }
+        return this.module.openStats(player) ? 1 : 0;
     }
 
-    private boolean openCase(CommandContext context, ParsedArguments arguments) {
-        return this.module.openCaseFor(context.getPlayerOrThrow(), arguments.getString(CommandArguments.NAME));
+    private int openCase(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            return 0;
+        }
+
+        final Object nameObj = arguments.get(CommandArgumentConstants.NAME);
+        if (!(nameObj instanceof final String name)) {
+            return 0;
+        }
+
+        return this.module.openCaseFor(player, name) ? 1 : 0;
     }
 
-    private ArgumentNodeBuilder<Report> reportArgument() {
-        return Commands.argument(ARG_REPORT_ID,
-                        (context, string) -> parse(string)
-                                .map(id -> this.module.getRepository().getReport(id))
-                                .orElseThrow(() -> CommandSyntaxException.custom(ReportsLang.ERROR_INVALID_REPORT_ID)))
-                .localized(ReportsLang.COMMAND_ARGUMENT_NAME_REPORT_ID)
-                .suggestions((reader, context) -> this.module.getRepository().getReports().stream()
-                        .map(report -> report.getId().toString())
-                        .toList());
-    }
-
-    private ArgumentNodeBuilder<String> noteArgument() {
-        return Arguments.greedyString(ARG_NOTE)
-                .optional()
-                .localized(ReportsLang.COMMAND_ARGUMENT_NAME_NOTE);
+    private Argument<String> reportArgument() {
+        return CommandArgumentConstants.string(ARG_REPORT_ID, info -> this.module.getRepository().getReports()
+                .stream()
+                .map(report -> report.getId().toString())
+                .toList());
     }
 
     private static Optional<UUID> parse(String string) {
@@ -180,46 +174,95 @@ public class ReportsStaffCommandProvider extends CommandProvider {
         }
     }
 
-    private boolean list(CommandContext context, ParsedArguments arguments) {
-        Player player = context.getPlayerOrThrow();
+    private Report getReport(final CommandSender sender, final CommandArguments arguments) {
+        final Object idObj = arguments.get(ARG_REPORT_ID);
+        if (!(idObj instanceof final String id)) {
+            return null;
+        }
+
+        final Report report = parse(id).map(reportId -> this.module.getRepository().getReport(reportId)).orElse(null);
+        if (report == null) {
+            this.module.sendPrefixed(ReportsLang.ERROR_INVALID_REPORT_ID, sender);
+        }
+        return report;
+    }
+
+    private int list(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            return 0;
+        }
 
         ReportFilter filter = ReportFilter.OPEN;
-        if (arguments.contains(ARG_FILTER)) {
-            ReportFilter parsed = ReportFilter.fromString(arguments.getString(ARG_FILTER));
-            if (parsed != null)
+        final Object filterObj = arguments.get(ARG_FILTER);
+        if (filterObj instanceof final String raw) {
+            final ReportFilter parsed = ReportFilter.fromString(raw);
+            if (parsed != null) {
                 filter = parsed;
+            }
         }
-        return this.module.openMenu(player, filter);
+        return this.module.openMenu(player, filter) ? 1 : 0;
     }
 
-    private boolean view(CommandContext context, ParsedArguments arguments) {
-        Player player = context.getPlayerOrThrow();
-        return this.module.openView(player, arguments.get(ARG_REPORT_ID, Report.class));
+    private int view(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            return 0;
+        }
+
+        final Report report = this.getReport(sender, arguments);
+        if (report == null) {
+            return 0;
+        }
+        return this.module.openView(player, report) ? 1 : 0;
     }
 
-    private boolean conclude(CommandContext context, ParsedArguments arguments, ReportStatus status) {
-        Report report = arguments.get(ARG_REPORT_ID, Report.class);
-        String note = arguments.contains(ARG_NOTE) ? arguments.getString(ARG_NOTE) : null;
+    private int conclude(final CommandSender sender, final CommandArguments arguments, final ReportStatus status) {
+        final Report report = this.getReport(sender, arguments);
+        if (report == null) {
+            return 0;
+        }
 
-        return this.module.conclude(report, status, context.getSender(), note);
+        final Object noteObj = arguments.get(ARG_NOTE);
+        final String note = noteObj instanceof final String value ? value : null;
+
+        return this.module.conclude(report, status, sender, note) ? 1 : 0;
     }
 
-    private boolean note(CommandContext context, ParsedArguments arguments) {
-        Report report = arguments.get(ARG_REPORT_ID, Report.class);
-        return this.module.addNote(report, context.getSender(), arguments.getString(ARG_NOTE));
+    private int note(final CommandSender sender, final CommandArguments arguments) {
+        final Report report = this.getReport(sender, arguments);
+        if (report == null) {
+            return 0;
+        }
+
+        final Object noteObj = arguments.get(ARG_NOTE);
+        if (!(noteObj instanceof final String text)) {
+            return 0;
+        }
+
+        return this.module.addNote(report, sender, text) ? 1 : 0;
     }
 
-    private boolean teleport(CommandContext context, ParsedArguments arguments) {
-        Report report = arguments.get(ARG_REPORT_ID, Report.class);
-        return this.module.teleportToTarget(context.getPlayerOrThrow(), report);
+    private int teleport(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            return 0;
+        }
+
+        final Report report = this.getReport(sender, arguments);
+        if (report == null) {
+            return 0;
+        }
+
+        return this.module.teleportToTarget(player, report) ? 1 : 0;
     }
 
     private interface ReportAction {
         boolean apply(Report report, CommandSender sender);
     }
 
-    private boolean withReport(CommandContext context, ParsedArguments arguments, ReportAction action) {
-        Report report = arguments.get(ARG_REPORT_ID, Report.class);
-        return action.apply(report, context.getSender());
+    private int withReport(final CommandSender sender, final CommandArguments arguments, final ReportAction action) {
+        final Report report = this.getReport(sender, arguments);
+        if (report == null) {
+            return 0;
+        }
+        return action.apply(report, sender) ? 1 : 0;
     }
 }

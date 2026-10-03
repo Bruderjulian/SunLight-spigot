@@ -87,6 +87,8 @@ public class KitsModule extends Module {
 
         this.addAsyncTask(this::saveData, this.settings.getDataSaveInterval());
         this.addAsyncTask(this::saveKits, this.settings.getKitSaveInterval());
+
+        this.commandApiRegistry.addProvider(new KitsCommandProvider(this));
     }
 
     @Override
@@ -103,12 +105,6 @@ public class KitsModule extends Module {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(KitsPerms.ROOT);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("kits-commons", new KitsCommandProvider(this.plugin, this, this.userManager),
-                this);
     }
 
     @Override

@@ -86,6 +86,8 @@ public class WarpsModule extends Module {
         this.updateWarpCommands();
 
         this.addAsyncTask(this::saveDirtyWarps, this.getSettings().getSaveInterval());
+
+        this.commandApiRegistry.addProvider(new WarpsCommandProvider(this));
     }
 
     @Override
@@ -97,11 +99,6 @@ public class WarpsModule extends Module {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(WarpsPerms.MODULE);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("warps", new WarpsCommandProvider(this.plugin, this, this.userManager), this);
     }
 
     @Override

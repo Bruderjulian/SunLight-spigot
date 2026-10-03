@@ -1,14 +1,16 @@
 package su.nightexpress.sunlight.moduleImpl.homes.command;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.user.UserInfo;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.homes.HomeDefaults;
 import su.nightexpress.sunlight.moduleImpl.homes.HomePlaceholders;
@@ -17,93 +19,74 @@ import su.nightexpress.sunlight.moduleImpl.homes.config.HomesLang;
 import su.nightexpress.sunlight.moduleImpl.homes.config.HomesPerms;
 import su.nightexpress.sunlight.moduleImpl.homes.impl.Home;
 import su.nightexpress.sunlight.user.SunUser;
-import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.UUID;
-
-public class HomeAdminCommandProvider extends CommandProvider {
+public class HomeAdminCommandProvider extends CommandProvider<HomesModule> {
 
     private static final String COMMAND_CREATE = "create";
     private static final String COMMAND_DELETE = "delete";
 
-    private final HomesModule module;
-    private final UserManager userManager;
-
-    public HomeAdminCommandProvider(SunLightPlugin plugin, HomesModule module, UserManager userManager) {
-        super(plugin);
-        this.module = module;
-        this.userManager = userManager;
+    public HomeAdminCommandProvider(final HomesModule module) {
+        super(module, "homes-admin");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral(COMMAND_DELETE, false, new String[] { "delplayerhome" }, builder -> builder
-                .description(HomesLang.COMMAND_ADMIN_DELETE_HOME_DESC)
-                .permission(HomesPerms.COMMAND_HOMES_DELETE_OTHERS)
+    public void setup() {
+        this.register(COMMAND_DELETE, List.of(), command -> command
+                .withFullDescription(HomesLang.COMMAND_ADMIN_DELETE_HOME_DESC.text())
+                .withPermission(HomesPerms.COMMAND_HOMES_DELETE_OTHERS.getName())
                 .withArguments(
-                        Arguments.playerName(CommandArguments.PLAYER),
-                        Arguments.string(CommandArguments.NAME).localized(HomesLang.COMMAND_ARGUMENT_NAME_HOME)
-                                .suggestions((
-                                        reader,
-                                        context) -> {
-                                    String playerName = context.getArguments().getString(CommandArguments.PLAYER);
-                                    UUID playerId = this.userManager.getRepository().getAssociatedId(playerName);
-                                    if (playerId == null)
-                                        return Collections.emptyList();
-
-                                    return this.module.getUserRepository(playerId).getAll().stream().map(Home::getId)
-                                            .toList();
-                                }))
+                        CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
+                                info -> CommandArgumentConstants.onlinePlayerNames()),
+                        CommandArgumentConstants.string(CommandArgumentConstants.NAME,
+                                info -> this.allHomeIdSuggestions()))
                 .executes(this::deleteHome));
 
-        this.registerLiteral(COMMAND_CREATE, false, new String[] { "setplayerhome" }, builder -> builder
-                .playerOnly()
-                .description(HomesLang.COMMAND_ADMIN_CREATE_HOME_DESC)
-                .permission(HomesPerms.COMMAND_HOMES_SET_OTHERS)
-                .withArguments(
-                        Arguments.playerName(CommandArguments.PLAYER),
-                        Arguments.string(CommandArguments.NAME).optional()
-                                .localized(HomesLang.COMMAND_ARGUMENT_NAME_HOME)
-                                .suggestions((reader, context) -> {
-                                    String playerName = context.getArguments().getString(CommandArguments.PLAYER);
-                                    UUID playerId = this.userManager.getRepository().getAssociatedId(playerName);
-                                    if (playerId == null)
-                                        return Collections.emptyList();
-
-                                    return this.module.getUserRepository(playerId).getAll().stream().map(Home::getId)
-                                            .toList();
-                                }))
+        this.register(COMMAND_CREATE, List.of(), command -> command
+                .withFullDescription(HomesLang.COMMAND_ADMIN_CREATE_HOME_DESC.text())
+                .withPermission(HomesPerms.COMMAND_HOMES_SET_OTHERS.getName())
+                .withRequirement(sender -> sender instanceof Player)
+                .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
+                        info -> CommandArgumentConstants.onlinePlayerNames()))
+                .withOptionalArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
+                        info -> this.allHomeIdSuggestions()))
                 .executes(this::createHome));
 
-        this.registerRoot("homesadmin", true, new String[] { "homes-admin" },
-                Map.of(
-                        COMMAND_CREATE, "create",
-                        COMMAND_DELETE, "delete"),
-                builder -> builder.description(HomesLang.COMMAND_ADMIN_ROOT_DESC).permission(
-                        HomesPerms.COMMAND_HOMES_ADMIN_ROOT));
+        this.registerRoot("homesadmin", command -> command
+                .withFullDescription(HomesLang.COMMAND_ADMIN_ROOT_DESC.text())
+                .withPermission(HomesPerms.COMMAND_HOMES_ADMIN_ROOT.getName()));
     }
 
-    private boolean createHome(CommandContext context, ParsedArguments arguments) {
-        Player player = context.getPlayerOrThrow();
-        String userName = arguments.getString(CommandArguments.PLAYER);
-        String homeId = arguments.getString(CommandArguments.NAME, HomeDefaults.DEFAULT_HOME_ID); // TODO Favorite
+    private List<String> allHomeIdSuggestions() {
+        return this.module.getRepository().getAll().stream().map(Home::getId).distinct().toList();
+    }
 
-        UUID playerId = this.userManager.getRepository().getAssociatedId(userName);
+    private int createHome(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
+            return 0;
+        }
+        final Object userObj = arguments.get(CommandArgumentConstants.PLAYER);
+        if (!(userObj instanceof final String userName)) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
+        final Object homeObj = arguments.get(CommandArgumentConstants.NAME);
+        final String homeId = homeObj instanceof final String value ? value : HomeDefaults.DEFAULT_HOME_ID;
+
+        final UUID playerId = this.module.userManager().getRepository().getAssociatedId(userName);
         if (playerId == null) {
-            context.errorBadPlayer();
-            return false;
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
         }
 
-        Home home = this.module.getHome(playerId, homeId);
+        final Home home = this.module.getHome(playerId, homeId);
         if (home == null) {
             this.module.createHome(homeId, new UserInfo(playerId, userName), player.getLocation());
             this.module.sendPrefixed(HomesLang.ADMIN_HOME_CREATE_FEEDBACK, player, builder -> builder
                     .with(HomePlaceholders.HOME_ID, () -> homeId)
                     .with(CommonPlaceholders.PLAYER_NAME, () -> userName));
-            return true;
+            return 1;
         }
 
         home.updateLocation(player.getLocation());
@@ -113,23 +96,31 @@ public class HomeAdminCommandProvider extends CommandProvider {
                 .with(HomePlaceholders.HOME_ID, () -> homeId)
                 .with(CommonPlaceholders.PLAYER_NAME, () -> userName));
 
-        return true;
+        return 1;
     }
 
-    private boolean deleteHome(CommandContext context, ParsedArguments arguments) {
-        String userName = arguments.getString(CommandArguments.PLAYER);
-        String homeId = arguments.getString(CommandArguments.NAME); // TODO Favorite
+    private int deleteHome(final CommandSender sender, final CommandArguments arguments) {
+        final Object userObj = arguments.get(CommandArgumentConstants.PLAYER);
+        if (!(userObj instanceof final String userName)) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
+        final Object homeObj = arguments.get(CommandArgumentConstants.NAME);
+        if (!(homeObj instanceof final String homeId)) {
+            this.module.sendPrefixed(HomesLang.COMMAND_SYNTAX_INVALID_HOME, sender);
+            return 0;
+        }
 
-        this.userManager.loadByNameAsync(userName).thenAccept(userOptional -> {
-            SunUser user = userOptional.orElse(null);
+        this.module.userManager().loadByNameAsync(userName).thenAccept(userOptional -> {
+            final SunUser user = userOptional.orElse(null);
             if (user == null) {
-                context.errorBadPlayer();
+                this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
                 return;
             }
 
-            Home home = this.module.getHome(user.getId(), homeId);
+            final Home home = this.module.getHome(user.getId(), homeId);
             if (home == null) {
-                this.module.sendPrefixed(HomesLang.ADMIN_HOME_DELETE_ERROR_NO_HOME, context.getSender(),
+                this.module.sendPrefixed(HomesLang.ADMIN_HOME_DELETE_ERROR_NO_HOME, sender,
                         builder -> builder
                                 .with(HomePlaceholders.HOME_ID, () -> homeId));
                 return;
@@ -137,11 +128,11 @@ public class HomeAdminCommandProvider extends CommandProvider {
 
             this.module.deleteHome(home);
 
-            this.module.sendPrefixed(HomesLang.ADMIN_HOME_DELETE_FEEDBACK, context.getSender(), replacer -> replacer
+            this.module.sendPrefixed(HomesLang.ADMIN_HOME_DELETE_FEEDBACK, sender, replacer -> replacer
                     .with(home.placeholders())
                     .with(CommonPlaceholders.PLAYER_NAME, user::getName));
         }).whenComplete(Utils::printStacktrace);
 
-        return true;
+        return 1;
     }
 }

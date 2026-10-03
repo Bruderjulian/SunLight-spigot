@@ -68,6 +68,8 @@ public class SpawnsModule extends Module {
         this.addListener(new SpawnListener(this.plugin, this));
 
         this.addAsyncTask(this::saveSpawns, 60); // TODO Config
+
+        this.commandApiRegistry.addProvider(new SpawnCommands(this));
     }
 
     @Override
@@ -79,11 +81,6 @@ public class SpawnsModule extends Module {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(SpawnsPerms.MODULE);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("spawn", new SpawnCommands(this.plugin, this, this.userManager), this);
     }
 
     @Override

@@ -31,6 +31,7 @@ public class PhantomsModule extends Module {
         UserPropertyRegistry.register(PhantomsProperties.ANTI_PHANTOM);
 
         this.addListener(new PhantomsListener(this.plugin, this));
+        this.commandApiRegistry.addProvider(new PhantomsCommandProvider(this));
         this.addAsyncTask(this::resetRestTime, 600); // TODO Config
     }
 
@@ -42,11 +43,6 @@ public class PhantomsModule extends Module {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(PhantomsPerms.ROOT);
-    }
-
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("nophantom", new PhantomsCommandProvider(this.plugin, this, this.userManager),
-                this);
     }
 
     @Override

@@ -1,56 +1,56 @@
 package su.nightexpress.sunlight.moduleImpl.backlocation.command;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import java.util.List;
+
+import org.bukkit.command.CommandSender;
+
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.backlocation.BackLocationModule;
 import su.nightexpress.sunlight.moduleImpl.backlocation.config.BackLocationLang;
 import su.nightexpress.sunlight.moduleImpl.backlocation.config.BackLocationPerms;
 import su.nightexpress.sunlight.moduleImpl.backlocation.data.LocationType;
-import su.nightexpress.sunlight.user.UserManager;
 
-public class DeathBackCommandProvider extends CommandProvider {
+public class DeathBackCommandProvider extends CommandProvider<BackLocationModule> {
 
-    private final BackLocationModule module;
-    private final UserManager userManager;
-
-    public DeathBackCommandProvider(SunLightPlugin plugin, BackLocationModule module, UserManager userManager) {
-        super(plugin);
-        this.module = module;
-        this.userManager = userManager;
+    public DeathBackCommandProvider(final BackLocationModule module) {
+        super(module, "deathback");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("deathback", true, new String[] { "deathback", "dback" }, builder -> builder
-                .description(BackLocationLang.COMMAND_DEATH_BACK_DESC)
-                .permission(BackLocationPerms.COMMAND_DEATHBACK)
-                .withArguments(Arguments.playerName(CommandArguments.PLAYER).optional()
-                        .permission(BackLocationPerms.COMMAND_DEATHBACK_OTHERS))
-                .withFlags(CommandArguments.FLAG_SILENT)
+    public void setup() {
+        this.register("deathback", List.of(), command -> command
+                .withFullDescription(BackLocationLang.COMMAND_DEATH_BACK_DESC.text())
+                .withPermission(BackLocationPerms.COMMAND_DEATHBACK.getName())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::moveToDeathLocation));
     }
 
-    private boolean moveToDeathLocation(CommandContext context, ParsedArguments arguments) {
-        return this.loadPlayerOrSenderAndRunInMainThread(context, arguments, this.module, this.userManager, target -> {
+    private int moveToDeathLocation(final CommandSender sender, final CommandArguments arguments) {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-            boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);
-            if (!this.module.teleportToLocation(target, LocationType.DEATH, silent)) {
-                if (context.getSender() != target) {
-                    this.module.sendPrefixed(BackLocationLang.DEATH_ERROR_NOTHING_FEEDBACK, context.getSender(),
-                            builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(target)));
-                }
-                return;
-            }
+        return target.runAs(this.module, sender, BackLocationPerms.COMMAND_DEATHBACK_OTHERS.getName(),
+                (user, targetPlayer) -> {
+                    final boolean silent = target.silent();
+                    if (!this.module.teleportToLocation(targetPlayer, LocationType.DEATH, silent)) {
+                        if (sender != targetPlayer) {
+                            this.module.sendPrefixed(BackLocationLang.DEATH_ERROR_NOTHING_FEEDBACK, sender,
+                                    builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(targetPlayer)));
+                        }
+                        return;
+                    }
 
-            if (context.getSender() != target) {
-                this.module.sendPrefixed(BackLocationLang.DEATH_TELEPORT_FEEDBACK, context.getSender(),
-                        builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(target)));
-            }
-        });
+                    if (sender != targetPlayer) {
+                        this.module.sendPrefixed(BackLocationLang.DEATH_TELEPORT_FEEDBACK, sender,
+                                builder -> builder.andThen(SLPlaceholders.forPlayerWithPAPI(targetPlayer)));
+                    }
+                });
     }
 }

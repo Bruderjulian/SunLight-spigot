@@ -109,6 +109,8 @@ public class NametagsModule extends Module implements NametagsProvider {
             this.nameplates.recomputeAll();
             this.logRenderBackend();
         });
+
+        this.commandApiRegistry.addProvider(new NametagsCommandProvider(this));
     }
 
     /**
@@ -164,12 +166,6 @@ public class NametagsModule extends Module implements NametagsProvider {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(NametagsPerms.MODULE);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("nametags",
-                new NametagsCommandProvider(this.plugin, this, this.userManager), this);
     }
 
     /**

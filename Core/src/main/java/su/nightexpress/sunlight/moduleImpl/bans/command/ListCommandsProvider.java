@@ -1,45 +1,43 @@
 package su.nightexpress.sunlight.moduleImpl.bans.command;
 
+import java.util.List;
+
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.locale.entry.TextLocale;
-import su.nightexpress.sunlight.SunLightPlugin;
+import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.bans.BansModule;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PunishmentType;
 
-public class ListCommandsProvider extends CommandProvider {
+public class ListCommandsProvider extends CommandProvider<BansModule> {
 
     public static final String NODE_BAN = "banlist";
     public static final String NODE_MUTE = "mutelist";
     public static final String NODE_WARN = "warnlist";
 
-    private final BansModule module;
-
-    public ListCommandsProvider(SunLightPlugin plugin, BansModule module) {
-        super(plugin);
-        this.module = module;
+    public ListCommandsProvider(BansModule module) {
+        super(module, "bans-list");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("banlist", true, new String[] { "banlist" },
+    public void setup() {
+        this.register("banlist", List.of(),
                 builder -> this.build(builder, PunishmentType.BAN));
-        this.registerLiteral("mutelist", true, new String[] { "mutelist" },
+        this.register("mutelist", List.of(),
                 builder -> this.build(builder, PunishmentType.MUTE));
-        this.registerLiteral("warnlist", true, new String[] { "warnlist" },
+        this.register("warnlist", List.of(),
                 builder -> this.build(builder, PunishmentType.WARN));
     }
 
-    private void build(LiteralNodeBuilder builder, PunishmentType type) {
-        TextLocale description = switch (type) {
-            case BAN -> BansLang.COMMAND_BAN_LIST_DESC;
-            case MUTE -> BansLang.COMMAND_MUTE_LIST_DESC;
-            case WARN -> BansLang.COMMAND_WARN_LIST_DESC;
+    private void build(dev.jorel.commandapi.CommandAPICommand builder, PunishmentType type) {
+        String description = switch (type) {
+            case BAN -> BansLang.COMMAND_BAN_LIST_DESC.text();
+            case MUTE -> BansLang.COMMAND_MUTE_LIST_DESC.text();
+            case WARN -> BansLang.COMMAND_WARN_LIST_DESC.text();
         };
 
         Permission permission = switch (type) {
@@ -49,14 +47,18 @@ public class ListCommandsProvider extends CommandProvider {
         };
 
         builder
-                .playerOnly()
-                .description(description)
-                .permission(permission)
-                .executes((context, arguments) -> this.showMenu(context, type));
+                .withFullDescription(description)
+                .withPermission(permission.getName())
+                .withRequirement(sender -> sender instanceof Player)
+                .executes((sender, arguments) -> {
+                    return this.showMenu(sender, arguments, type);
+                });
     }
 
-    private boolean showMenu(CommandContext context, PunishmentType type) {
-        this.module.openPunishments(context.getPlayerOrThrow(), type);
-        return true;
+    private int showMenu(CommandSender sender, CommandArguments arguments, PunishmentType type) {
+        if (!(sender instanceof Player player)) {
+            return 0;
+        }
+        return this.module.openPunishments(player, type) ? 1 : 0;
     }
 }

@@ -1,58 +1,50 @@
 package su.nightexpress.sunlight.moduleImpl.texts.command;
 
-import su.nightexpress.nightcore.commands.Commands;
-import su.nightexpress.nightcore.commands.builder.ArgumentNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
-import su.nightexpress.nightcore.commands.exceptions.CommandSyntaxException;
+import java.util.List;
+
+import org.bukkit.command.CommandSender;
+
+import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsLang;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsModule;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsPerms;
 import su.nightexpress.sunlight.moduleImpl.texts.text.Text;
 
-import java.util.Optional;
+public class TextCommandProvider extends CommandProvider<TextsModule> {
 
-public class TextCommandProvider extends CommandProvider {
-
-    private final TextsModule module;
-
-    public TextCommandProvider(SunLightPlugin plugin, TextsModule module) {
-        super(plugin);
-        this.module = module;
+    public TextCommandProvider(final TextsModule module) {
+        super(module, "texts-text");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("customtext", true, new String[] { "customtext", "ctext" }, builder -> builder
-                .description(TextsLang.COMMAND_TEXT_DESC)
-                .permission(TextsPerms.COMMAND_TEXT)
-                .withArguments(textArgument(this.module))
+    public void setup() {
+        this.register("customtext", List.of(), command -> command
+                .withFullDescription(TextsLang.COMMAND_TEXT_DESC.text())
+                .withPermission(TextsPerms.COMMAND_TEXT.getName())
+                .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
+                        info -> this.module.getCustomTexts().stream()
+                                .filter(text -> text.hasPermission(info.sender()))
+                                .map(Text::getId)
+                                .toList()))
                 .executes(this::showText));
     }
 
-    private static ArgumentNodeBuilder<Text> textArgument(TextsModule module) {
-        return Commands
-                .argument(CommandArguments.NAME,
-                        (context, str) -> Optional.ofNullable(module.getTextById(str)).orElseThrow(
-                                () -> CommandSyntaxException.custom(TextsLang.COMMAND_SYNTAX_INVALID_TEXT)))
-                .localized(CoreLang.COMMAND_ARGUMENT_NAME_NAME)
-                .suggestions((reader, context) -> module.getCustomTexts().stream()
-                        .filter(text -> text.hasPermission(context.getSender())).map(Text::getId).toList());
-    }
-
-    private boolean showText(CommandContext context, ParsedArguments arguments) {
-        Text text = arguments.get(CommandArguments.NAME, Text.class);
-        if (!text.hasPermission(context.getSender())) {
-            this.module.sendPrefixed(CoreLang.ERROR_NO_PERMISSION, context.getSender());
-            return false;
+    private int showText(final CommandSender sender, final CommandArguments arguments) {
+        final String name = arguments.getUnchecked(CommandArgumentConstants.NAME);
+        final Text text = name == null ? null : this.module.getTextById(name);
+        if (text == null) {
+            this.module.sendPrefixed(TextsLang.COMMAND_SYNTAX_INVALID_TEXT, sender);
+            return 0;
+        }
+        if (!text.hasPermission(sender)) {
+            this.module.sendPrefixed(CoreLang.ERROR_NO_PERMISSION, sender);
+            return 0;
         }
 
-        this.module.showText(context.getSender(), text);
-
-        return true;
+        this.module.showText(sender, text);
+        return 1;
     }
 }

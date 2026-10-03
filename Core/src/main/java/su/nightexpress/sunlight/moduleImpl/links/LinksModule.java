@@ -118,6 +118,9 @@ public class LinksModule extends Module implements LinksProvider {
         this.iconMenu = new LinkIconSelectionMenu(this.plugin, this);
 
         this.addAsyncTask(this::saveDirtyLinks, 300);
+
+        this.commandApiRegistry.addProvider(new LinksCommandProvider(this));
+        this.commandApiRegistry.addProvider(new LinksAdminCommandProvider(this));
     }
 
     @Override
@@ -136,12 +139,6 @@ public class LinksModule extends Module implements LinksProvider {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(LinksPerms.MODULE);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("links-common", new LinksCommandProvider(this.plugin, this), this);
-        this.commandRegistry.addProvider("links-admin", new LinksAdminCommandProvider(this.plugin, this), this);
     }
 
     @Override

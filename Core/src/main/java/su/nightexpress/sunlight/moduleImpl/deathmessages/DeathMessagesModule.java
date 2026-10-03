@@ -59,11 +59,6 @@ public class DeathMessagesModule extends Module {
     }
 
     @Override
-    protected void registerCommands() {
-
-    }
-
-    @Override
     protected void registerPermissions(PermissionTree root) {
 
     }

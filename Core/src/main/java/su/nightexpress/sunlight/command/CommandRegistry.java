@@ -3,8 +3,11 @@ package su.nightexpress.sunlight.command;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -20,7 +23,6 @@ import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.CommandAPIExecutor;
 import dev.jorel.commandapi.commandsenders.AbstractCommandSender;
-import dev.jorel.commandapi.commandsenders.BukkitCommandSender;
 import dev.jorel.commandapi.executors.ExecutionInfo;
 
 import su.nightexpress.nightcore.config.FileConfig;
@@ -111,28 +113,46 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
       this.plugin.injectLang(provider);
       provider.setup();
 
-      // Hub roots first, with their attached subcommands.
+      final Map<String, String> subRoots = provider.getSubRoots() == null ? Map.of() : provider.getSubRoots();
+
+      // Hub roots first, with the subcommands that declared them as their root.
+      final Map<String, CommandAPICommand> roots = new LinkedHashMap<>();
+      final Set<String> attached = new HashSet<>();
       provider.getRootCommandBuilders().forEach((rootId, builder) -> {
         final CommandAPICommand root = buildCommand(provider, rootId, config, builder);
         if (root == null) {
           return;
         }
-        provider.getSubCommandBuilders().forEach((subId, subBuilder) -> {
-          final CommandAPICommand sub = buildCommand(provider, subId, config, subBuilder);
-          if (sub != null) {
-            root.withSubcommand(sub);
-          }
-        });
-        this.registerCommand(root);
+        roots.put(rootId, root);
 
-        provider.getSubRoots().forEach((delegateId, subRootId) -> {
-          final CommandAPICommand sub = buildRedirectCommand(subRootId, delegateId);
-          if (sub != null) {
-            this.registerCommand(root);
+        subRoots.forEach((nodeId, nodeRootId) -> {
+          if (!nodeRootId.equals(rootId)) {
+            return;
+          }
+          final Consumer<CommandAPICommand> nodeBuilder = provider.getSubCommandBuilders().get(nodeId);
+          if (nodeBuilder == null) {
+            return;
+          }
+          final CommandAPICommand node = buildCommand(provider, nodeId, config, nodeBuilder);
+          if (node != null) {
+            root.withSubcommand(node);
+            attached.add(nodeId);
           }
         });
       });
 
+      // Everything that is not a child of a root is a command of its own.
+      provider.getSubCommandBuilders().forEach((nodeId, builder) -> {
+        if (attached.contains(nodeId)) {
+          return;
+        }
+        final CommandAPICommand node = buildCommand(provider, nodeId, config, builder);
+        if (node != null) {
+          this.registerCommand(node);
+        }
+      });
+
+      roots.values().forEach(this::registerCommand);
       config.saveChanges();
     }
   }
@@ -160,24 +180,6 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     guard(provider, nodeId, command, config.getInt(nodeId + ".cooldown", 0),
         config.getDouble(nodeId + ".cost", 0));
     return command;
-  }
-
-  @SuppressWarnings("unchecked")
-  private CommandAPICommand buildRedirectCommand(final String subRootId, final String delegateId) {
-    return new CommandAPICommand(subRootId)
-        .executes((info) -> {
-          final CommandAPICommand command = commands.get(delegateId);
-          if (command == null) {
-            return FAILURE;
-          }
-          try {
-            ((CommandAPIExecutor<CommandSender, BukkitCommandSender<CommandSender>>) (Object) command.getExecutor())
-                .execute((ExecutionInfo<CommandSender, BukkitCommandSender<CommandSender>>) (Object) info);
-          } catch (final CommandSyntaxException e) {
-            return FAILURE;
-          }
-          return SUCCESS;
-        });
   }
 
   private void guard(final CommandProvider<?> provider, final String nodeId,

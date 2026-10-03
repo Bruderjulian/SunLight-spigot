@@ -1,18 +1,21 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.jorel.commandapi.executors.CommandArguments;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.permissions.Permission;
-
 import su.nightexpress.nightcore.bridge.wrap.NightProfile;
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
@@ -21,22 +24,20 @@ import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.bridge.Software;
 import su.nightexpress.nightcore.util.profile.CachedProfile;
 import su.nightexpress.nightcore.util.profile.PlayerProfiles;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
-import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.utils.Utils;
 
 import java.util.Base64;
-import java.util.Optional;
-import java.util.regex.Pattern;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.PLAYER_NAME;
 
-public class SkullCommandProvider extends CommandProvider {
+public class SkullCommandProvider extends CommandProvider<EssentialModule> {
+
+    private static final String COMMAND_SKULL = "skull";
 
     private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("skull");
     private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("skull.others");
@@ -66,44 +67,47 @@ public class SkullCommandProvider extends CommandProvider {
     private static final Pattern URL_VALUE_PATTERN = Pattern.compile("^[0-9a-fA-F]{64}$");
     private static final Pattern BASE_64_PATTERN = Pattern.compile("^[A-Za-z0-9+/=]{180}$");
 
-    private final EssentialModule module;
-
-    public SkullCommandProvider(SunLightPlugin plugin, EssentialModule module) {
-        super(plugin);
-        this.module = module;
+    public SkullCommandProvider(final EssentialModule module) {
+        super(module, "skull");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("skull", true, new String[] { "skull", "playerhead", "customhead" }, builder -> builder
-                .playerOnly()
-                .description(DESCRIPTION)
-                .permission(PERMISSION)
-                .withArguments(Arguments.string(CommandArguments.VALUE).localized(Lang.COMMAND_ARGUMENT_NAME_OWNER)
-                        .permission(PERMISSION_OTHERS).optional())
-                .executes(this::createSkull));
+    public void setup() {
+        this.register(COMMAND_SKULL, List.of(), command -> command
+                .withRequirement(sender -> sender instanceof Player)
+                .withFullDescription(DESCRIPTION.text())
+                .withPermission(PERMISSION.getName())
+                .withOptionalArguments(CommandArgumentConstants.string(CommandArgumentConstants.VALUE,
+                        info -> CommandArgumentConstants.onlinePlayerNames()))
+                .executes((sender, arguments) -> {
+                    return this.createSkull(sender, arguments);
+                }));
     }
 
-    private boolean createSkull(CommandContext context, ParsedArguments arguments) {
-        Player player = context.getPlayerOrThrow();
+    private int createSkull(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
+            return 0;
+        }
 
-        NightProfile profile;
-        MessageLocale locale;
+        final NightProfile profile;
+        final MessageLocale locale;
 
-        if (arguments.contains(CommandArguments.VALUE)) {
+        final Object valueArg = arguments.get(CommandArgumentConstants.VALUE);
+        if (valueArg instanceof final String raw && !raw.isBlank()) {
 
-            String input = arguments.getString(CommandArguments.VALUE);
+            String input = raw;
 
             if (BASE_64_PATTERN.matcher(input).matches()) {
-                if (!player.hasPermission(PERMISSION_CUSTOM)) {
-                    context.errorBadPlayer();
-                    return false;
+                if (!player.hasPermission(PERMISSION_CUSTOM.getName())) {
+                    this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+                    return 0;
                 }
 
-                String decoded = new String(Base64.getDecoder().decode(input));
-                JsonObject jsonObject = JsonParser.parseString(decoded).getAsJsonObject();
+                final String decoded = new String(Base64.getDecoder().decode(input));
+                final JsonObject jsonObject = JsonParser.parseString(decoded).getAsJsonObject();
 
-                String url = Optional.ofNullable(jsonObject)
+                final String url = Optional.ofNullable(jsonObject)
                         .flatMap(obj -> Optional.ofNullable(obj.getAsJsonObject("textures")))
                         .flatMap(textures -> Optional.ofNullable(textures.getAsJsonObject("SKIN")))
                         .flatMap(skin -> Optional.ofNullable(skin.get("url")))
@@ -111,17 +115,17 @@ public class SkullCommandProvider extends CommandProvider {
                         .orElse(null);
 
                 if (url == null) {
-                    context.send(MESSAGE_INVALID_SKULL_DATA);
-                    return false;
+                    MESSAGE_INVALID_SKULL_DATA.message().send(sender);
+                    return 0;
                 }
 
                 input = url.substring(url.lastIndexOf("/") + 1);
             }
 
             if (URL_VALUE_PATTERN.matcher(input).matches()) {
-                if (!player.hasPermission(PERMISSION_CUSTOM)) {
-                    context.errorBadPlayer();
-                    return false;
+                if (!player.hasPermission(PERMISSION_CUSTOM.getName())) {
+                    this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+                    return 0;
                 }
 
                 profile = Optional.ofNullable(PlayerProfiles.createProfileBySkinURL(input))
@@ -131,26 +135,29 @@ public class SkullCommandProvider extends CommandProvider {
                 profile = Software.get().createProfile(null, input);
                 locale = MESSAGE_GET_OTHERS_NOTIFY;
             } else {
-                context.send(MESSAGE_INVALID_SKULL_DATA);
-                return false;
+                MESSAGE_INVALID_SKULL_DATA.message().send(sender);
+                return 0;
             }
         } else {
             profile = PlayerProfiles.getProfile(player).query();
             locale = MESSAGE_GET_OWN_NOTIFY;
         }
 
-        if (profile == null)
-            return false;
+        if (profile == null) {
+            return 0;
+        }
 
-        profile.update().thenAcceptAsync(updated -> {
-            ItemStack itemStack = new ItemStack(Material.PLAYER_HEAD);
-            ItemUtil.editMeta(itemStack, SkullMeta.class, profile::apply);
+        final NightProfile finalProfile = profile;
+        final MessageLocale finalLocale = locale;
+        finalProfile.update().thenAcceptAsync(updated -> {
+            final ItemStack itemStack = new ItemStack(Material.PLAYER_HEAD);
+            ItemUtil.editMeta(itemStack, SkullMeta.class, finalProfile::apply);
             Players.addItem(player, itemStack);
-            this.module.sendPrefixed(locale, player,
+            this.module.sendPrefixed(finalLocale, player,
                     builder -> builder.with(PLAYER_NAME, () -> String.valueOf(updated.getName())));
 
-        }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
+        }, this.module.plugin()::runTask).whenComplete(Utils::printStacktrace);
 
-        return true;
+        return 1;
     }
 }

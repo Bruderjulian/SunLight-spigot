@@ -40,6 +40,7 @@ public class VanishModule extends Module implements VanishProvider {
         UserPropertyRegistry.register(VANISH);
 
         this.addListener(new VanishListener(this.plugin, this));
+        this.commandApiRegistry.addProvider(new VanishCommand(this));
 
         if (VanishConfig.BAR_INDICATOR_ENABLED.get()) {
             String title = VanishConfig.BAR_INDICATOR_VANISHED_TITLE.get();
@@ -63,11 +64,6 @@ public class VanishModule extends Module implements VanishProvider {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(VanishPerms.MODULE);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandApiRegistry.addProvider("vanish", new VanishCommand(this));
     }
 
     @Override

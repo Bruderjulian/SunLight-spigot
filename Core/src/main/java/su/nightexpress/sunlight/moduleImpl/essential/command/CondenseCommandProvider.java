@@ -1,35 +1,36 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.ItemUtil;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
-public class CondenseCommandProvider extends CommandProvider {
+public class CondenseCommandProvider extends CommandProvider<EssentialModule> {
 
     private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("condense");
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Condense.Desc")
@@ -49,66 +50,74 @@ public class CondenseCommandProvider extends CommandProvider {
             GRAY.wrap("Converted " + SOFT_YELLOW.wrap("x" + GENERIC_TOTAL + " " + GENERIC_SOURCE) + " to "
                     + SOFT_YELLOW.wrap("x" + GENERIC_AMOUNT + " " + GENERIC_RESULT) + "."));
 
-    private final EssentialModule module;
-
-    public CondenseCommandProvider(SunLightPlugin plugin, EssentialModule module) {
-        super(plugin);
-        this.module = module;
+    public CondenseCommandProvider(final EssentialModule module) {
+        super(module, "condense");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("condense", true, new String[] { "condense" }, builder -> builder
-                .description(DESCRIPTION)
-                .permission(PERMISSION)
-                .playerOnly()
-                .executes(this::execute));
+    public void setup() {
+        this.register("condense", List.of(), command -> command
+                .withFullDescription(DESCRIPTION.text())
+                .withPermission(PERMISSION.getName())
+                .withRequirement(sender -> sender instanceof Player)
+                .executes((sender, arguments) -> {
+                    return this.condense(sender, arguments);
+                }));
     }
 
-    private boolean execute(CommandContext context, ParsedArguments arguments) {
-        Player player = context.getPlayerOrThrow();
+    private int condense(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
+            return 0;
+        }
 
         boolean done = false;
-        Set<Material> userItems = new HashSet<>();
+        final Set<Material> userItems = new HashSet<>();
 
         // Put materials to set to avoid duplicates and 'double' converts
-        for (ItemStack userItem : player.getInventory().getContents()) {
-            if (userItem == null || userItem.getType().isAir())
+        for (final ItemStack userItem : player.getInventory().getContents()) {
+            if (userItem == null || userItem.getType().isAir()) {
                 continue;
+            }
             userItems.add(userItem.getType());
         }
 
-        for (Material userMaterial : userItems) {
-            ItemStack userItem = new ItemStack(userMaterial);
+        for (final Material userMaterial : userItems) {
+            final ItemStack userItem = new ItemStack(userMaterial);
             int amountPerCraft = 0;
 
             ItemStack recipeResult = null;
 
-            Iterator<Recipe> iter = plugin.getServer().recipeIterator();
+            final Iterator<Recipe> iter = this.module.plugin().getServer().recipeIterator();
 
             Label_Recipe: while (iter.hasNext()) {
-                Recipe recipe = iter.next();
-                if (!(recipe instanceof ShapedRecipe shapedRecipe))
+                final Recipe recipe = iter.next();
+                if (!(recipe instanceof final ShapedRecipe shapedRecipe)) {
                     continue;
+                }
 
-                Collection<ItemStack> recipeItems = shapedRecipe.getIngredientMap().values();
+                final Collection<ItemStack> recipeItems = shapedRecipe.getIngredientMap().values();
 
                 // Only 'cuboid' crafts.
-                String[] shape = shapedRecipe.getShape();
-                if (shape.length < 2)
+                final String[] shape = shapedRecipe.getShape();
+                if (shape.length < 2) {
                     continue;
-                for (String line : shape) {
-                    if (line.length() != shape.length)
+                }
+                for (final String line : shape) {
+                    if (line.length() != shape.length) {
                         continue Label_Recipe;
+                    }
                 }
 
                 // Check for same ingredients
                 int amountPerRecipe = 0;
-                for (ItemStack srcItem : recipeItems) {
-                    if (srcItem == null || srcItem.getType().isAir())
+                for (final ItemStack srcItem : recipeItems) {
+                    if (srcItem == null || srcItem.getType().isAir()) {
                         continue;
-                    if (!srcItem.isSimilar(userItem))
+                    }
+                    if (!srcItem.isSimilar(userItem)) {
                         continue Label_Recipe;
+                    }
 
                     amountPerRecipe += srcItem.getAmount();
                 }
@@ -125,14 +134,14 @@ public class CondenseCommandProvider extends CommandProvider {
                 continue;
             }
 
-            int amountUserHas = Players.countItem(player, userItem);
-            int amountCraftCan = (int) ((double) amountUserHas / (double) amountPerCraft);
-            int amountCraftMin = recipeResult.getAmount();
+            final int amountUserHas = Players.countItem(player, userItem);
+            final int amountCraftCan = (int) ((double) amountUserHas / (double) amountPerCraft);
+            final int amountCraftMin = recipeResult.getAmount();
 
             if (amountCraftCan < amountCraftMin) {
-                int finalAmountPerCraft = amountPerCraft;
-                ItemStack finalRecipeResult = recipeResult;
-                this.module.sendPrefixed(MESSAGE_NOT_ENOUGH, context.getSender(), builder -> builder
+                final int finalAmountPerCraft = amountPerCraft;
+                final ItemStack finalRecipeResult = recipeResult;
+                this.module.sendPrefixed(MESSAGE_NOT_ENOUGH, sender, builder -> builder
                         .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(finalAmountPerCraft))
                         .with(SLPlaceholders.GENERIC_SOURCE, () -> ItemUtil.getItemName(userItem))
                         .with(SLPlaceholders.GENERIC_RESULT, () -> ItemUtil.getItemName(finalRecipeResult)));
@@ -144,20 +153,20 @@ public class CondenseCommandProvider extends CommandProvider {
                 Players.addItem(player, recipeResult);
             }
 
-            ItemStack finalRecipeResult1 = recipeResult;
-            int finalAmountPerCraft1 = amountPerCraft;
-            this.module.sendPrefixed(MESSAGE_DONE, context.getSender(), builder -> builder
+            final ItemStack doneRecipeResult = recipeResult;
+            final int totalAmountPerCraft = amountPerCraft;
+            this.module.sendPrefixed(MESSAGE_DONE, sender, builder -> builder
                     .with(SLPlaceholders.GENERIC_SOURCE, () -> ItemUtil.getItemName(userItem))
-                    .with(SLPlaceholders.GENERIC_RESULT, () -> ItemUtil.getItemName(finalRecipeResult1))
-                    .with(SLPlaceholders.GENERIC_TOTAL, () -> String.valueOf(amountCraftCan * finalAmountPerCraft1))
+                    .with(SLPlaceholders.GENERIC_RESULT, () -> ItemUtil.getItemName(doneRecipeResult))
+                    .with(SLPlaceholders.GENERIC_TOTAL, () -> String.valueOf(amountCraftCan * totalAmountPerCraft))
                     .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(amountCraftMin * amountCraftCan)));
             done = true;
         }
 
         if (!done) {
-            this.module.sendPrefixed(MESSAGE_NOTHING, context.getSender());
+            this.module.sendPrefixed(MESSAGE_NOTHING, sender);
         }
 
-        return true;
+        return 1;
     }
 }

@@ -89,6 +89,15 @@ public class BansModule extends Module {
         this.plugin.addChatHandler(EventPriority.LOWEST, this.chatHandler);
 
         this.addAsyncTask(this::savePunishments, this.settings.dataSaveInterval.get());
+
+        this.commandApiRegistry.addProvider(new PunishmentCommandsProvider(this));
+        this.commandApiRegistry.addProvider(new PardonCommandsProvider(this));
+        this.commandApiRegistry.addProvider(new HistoryCommandsProvider(this));
+        this.commandApiRegistry.addProvider(new ListCommandsProvider(this));
+
+        if (this.settings.isAltCheckerEnabled()) {
+            this.commandApiRegistry.addProvider(new AltsCommandProvider(this));
+        }
     }
 
     @Override
@@ -101,22 +110,6 @@ public class BansModule extends Module {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(BansPerms.ROOT);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("bans-punish",
-                new PunishmentCommandsProvider(this.plugin, this, this.userManager), this);
-        this.commandRegistry.addProvider("bans-pardon",
-                new PardonCommandsProvider(this.plugin, this, this.userManager), this);
-        this.commandRegistry.addProvider("bans-history",
-                new HistoryCommandsProvider(this.plugin, this, this.userManager), this);
-        this.commandRegistry.addProvider("bans-list", new ListCommandsProvider(this.plugin, this), this);
-
-        if (this.settings.isAltCheckerEnabled()) {
-            this.commandRegistry.addProvider("bans-alts", new AltsCommandProvider(this.plugin, this, this.userManager),
-                    this);
-        }
     }
 
     @Override

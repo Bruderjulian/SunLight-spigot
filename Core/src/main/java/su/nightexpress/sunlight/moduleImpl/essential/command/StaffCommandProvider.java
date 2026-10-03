@@ -1,32 +1,33 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.placeholder.Replacer;
-import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
-import su.nightexpress.sunlight.moduleImpl.essential.EssentialSettings;
 import su.nightexpress.sunlight.utils.Utils;
-
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.BR;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.GRAY;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
-public class StaffCommandProvider extends CommandProvider {
+public class StaffCommandProvider extends CommandProvider<EssentialModule> {
+
+    private static final String COMMAND_STAFF = "staff";
 
     private static final Permission STAFF = EssentialPerms.COMMAND.permission("staff");
 
@@ -35,58 +36,56 @@ public class StaffCommandProvider extends CommandProvider {
     private static final MessageLocale MESSAGE_NO_STAFF_ONLINE = LangEntry.builder("Command.Staff.Empty").chatMessage(
             GRAY.wrap("There is no staff online."));
 
-    private final EssentialModule module;
-    private final EssentialSettings settings;
-
-    public StaffCommandProvider(SunLightPlugin plugin, EssentialModule module, EssentialSettings settings) {
-        super(plugin);
-        this.module = module;
-        this.settings = settings;
+    public StaffCommandProvider(final EssentialModule module) {
+        super(module, "staff");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("staff", true, new String[] { "staff" }, builder -> builder
-                .description(DESCRIPTION)
-                .permission(STAFF)
-                .executes(this::showStaff));
+    public void setup() {
+        this.register(COMMAND_STAFF, List.of(), command -> command
+                .withFullDescription(DESCRIPTION.text())
+                .withPermission(STAFF.getName())
+                .executes((sender, arguments) -> {
+                    return this.showStaff(sender, arguments);
+                }));
     }
 
-    private String formatEntry(Player player) {
-        return forPlayerWithPAPI(player).apply(this.settings.staffEntryFormat.get());
+    private String formatEntry(final Player player) {
+        return forPlayerWithPAPI(player).apply(this.module.settings().staffEntryFormat.get());
     }
 
-    private boolean showStaff(CommandContext context, ParsedArguments arguments) {
-        Player executor = context.getPlayer();
-        Set<Player> staffs = new HashSet<>();
+    private int showStaff(final CommandSender sender, final CommandArguments arguments) {
+        final Player executor = sender instanceof final Player player ? player : null;
+        final Set<Player> staffs = new HashSet<>();
 
         Utils.onlinePlayers().forEach(other -> {
-            if (executor != null && !executor.canSee(other))
+            if (executor != null && !executor.canSee(other)) {
                 return;
+            }
 
-            Set<String> playerRanks = Players.getInheritanceGroups(other);
-            if (playerRanks.stream().anyMatch(this.settings.staffRanks.get()::contains)) {
+            final Set<String> playerRanks = Players.getInheritanceGroups(other);
+            if (playerRanks.stream().anyMatch(this.module.settings().staffRanks.get()::contains)) {
                 staffs.add(other);
             }
         });
 
         if (staffs.isEmpty()) {
-            this.module.sendPrefixed(MESSAGE_NO_STAFF_ONLINE, context.getSender());
-            return false;
+            this.module.sendPrefixed(MESSAGE_NO_STAFF_ONLINE, sender);
+            return 0;
         }
 
-        String entries = staffs.stream()
+        final String entries = staffs.stream()
                 .sorted(Comparator.comparing(Player::getName))
                 .map(this::formatEntry)
                 .collect(Collectors.joining(BR));
 
-        String text = String.join("\n", Replacer.create()
+        final String text = String.join("\n", Replacer.create()
                 .replace(GENERIC_ENTRY, entries)
                 .replace(GENERIC_AMOUNT, () -> String.valueOf(staffs.size()))
-                .apply(this.settings.staffFormat.get()));
+                .apply(this.module.settings().staffFormat.get()));
 
-        Players.sendMessage(context.getSender(), text);
+        Players.sendMessage(sender, text);
 
-        return true;
+        return 1;
     }
 }

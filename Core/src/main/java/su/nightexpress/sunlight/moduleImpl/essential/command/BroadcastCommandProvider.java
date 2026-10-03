@@ -1,57 +1,59 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
+import java.util.List;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
+import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.bridge.wrapper.NightComponent;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
-import su.nightexpress.sunlight.config.Lang;
+import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 import su.nightexpress.sunlight.utils.Utils;
 
-import java.util.List;
-
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.BR;
 
-public class BroadcastCommandProvider extends CommandProvider {
+public class BroadcastCommandProvider extends CommandProvider<EssentialModule> {
 
     private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("broadcast");
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Broadcast.Desc")
             .text("Broadcast a message.");
 
-    private final String format;
-
-    public BroadcastCommandProvider(SunLightPlugin plugin, List<String> format) {
-        super(plugin);
-        this.format = String.join(BR, format);
+    public BroadcastCommandProvider(final EssentialModule module) {
+        super(module, "broadcast");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("broadcast", true, new String[] { "broadcast", "bc" }, builder -> builder
-                .description(DESCRIPTION)
-                .permission(PERMISSION)
-                .withArguments(
-                        Arguments.greedyString(CommandArguments.TEXT).localized(Lang.COMMAND_ARGUMENT_NAME_TEXT.text()))
-                .executes(this::broadcast));
+    public void setup() {
+        this.register("broadcast", List.of(), command -> command
+                .withFullDescription(DESCRIPTION.text())
+                .withPermission(PERMISSION.getName())
+                .withArguments(new GreedyStringArgument(CommandArgumentConstants.TEXT))
+                .executes((sender, arguments) -> {
+                    return this.broadcast(sender, arguments);
+                }));
     }
 
-    private boolean broadcast(CommandContext context, ParsedArguments arguments) {
-        String text = arguments.getString(CommandArguments.TEXT);
-        String message = this.format.replace(SLPlaceholders.GENERIC_MESSAGE, text);
-        NightComponent component = NightMessage.parse(message);
+    private int broadcast(final CommandSender sender, final CommandArguments arguments) {
+        final Object textArg = arguments.get(CommandArgumentConstants.TEXT);
+        if (!(textArg instanceof final String text)) {
+            return 0;
+        }
+
+        final String format = String.join(BR, this.module.settings().broadcastFormat.get());
+        final String message = format.replace(SLPlaceholders.GENERIC_MESSAGE, text);
+        final NightComponent component = NightMessage.parse(message);
 
         Utils.onlinePlayers().forEach(player -> Players.sendMessage(player, component));
-        Players.sendMessage(plugin.getServer().getConsoleSender(), component);
-        return true;
+        Players.sendMessage(this.module.plugin().getServer().getConsoleSender(), component);
+        return 1;
     }
 }

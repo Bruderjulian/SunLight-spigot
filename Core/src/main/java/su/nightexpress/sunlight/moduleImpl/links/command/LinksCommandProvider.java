@@ -1,144 +1,133 @@
 package su.nightexpress.sunlight.moduleImpl.links.command;
 
+import java.util.List;
+
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import su.nightexpress.nightcore.commands.Commands;
-import su.nightexpress.nightcore.commands.builder.ArgumentNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
-import su.nightexpress.nightcore.commands.exceptions.CommandSyntaxException;
-import su.nightexpress.sunlight.SunLightPlugin;
+
+import dev.jorel.commandapi.arguments.Argument;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.links.Link;
 import su.nightexpress.sunlight.moduleImpl.links.LinksModule;
 import su.nightexpress.sunlight.moduleImpl.links.config.LinksLang;
 import su.nightexpress.sunlight.moduleImpl.links.config.LinksPerms;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+public class LinksCommandProvider extends CommandProvider<LinksModule> {
 
-public class LinksCommandProvider extends CommandProvider {
+    private static final String ARG_LINK = "link";
+    private static final String COMMAND_ALL = "all";
+    private static final String COMMAND_GET = "get";
+    private static final String COMMAND_STATS = "stats";
+    private static final String COMMAND_PREFIX = "link_";
 
-    private static final String ARG_LINK        = "link";
-    private static final String COMMAND_ALL     = "all";
-    private static final String COMMAND_GET     = "get";
-    private static final String COMMAND_STATS   = "stats";
-    private static final String COMMAND_PREFIX  = "link_";
-
-    private final LinksModule module;
-
-    public LinksCommandProvider(SunLightPlugin plugin, LinksModule module) {
-        super(plugin);
-        this.module = module;
+    public LinksCommandProvider(final LinksModule module) {
+        super(module, "links-common");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral(COMMAND_ALL, true, new String[] { "alllinks", "linklist" }, builder -> builder
-                .description(LinksLang.COMMAND_LINKS_ALL_DESC)
-                .permission(LinksPerms.COMMAND_LINKS_ALL)
+    public void setup() {
+        this.register(COMMAND_ALL, List.of(), builder -> builder
+                .withFullDescription(LinksLang.COMMAND_LINKS_ALL_DESC.text())
+                .withPermission(LinksPerms.COMMAND_LINKS_ALL.getName())
                 .executes(this::showAllLinks));
 
         // Reached by ID, so it also works for links created after startup, which have no command of
         // their own yet.
-        this.registerLiteral(COMMAND_GET, true, new String[] { "getlink" }, builder -> builder
-                .description(LinksLang.COMMAND_LINKS_GET_DESC)
-                .permission(LinksPerms.COMMAND_LINK)
+        this.register(COMMAND_GET, List.of(), builder -> builder
+                .withFullDescription(LinksLang.COMMAND_LINKS_GET_DESC.text())
+                .withPermission(LinksPerms.COMMAND_LINK.getName())
                 .withArguments(this.linkArgument())
                 .executes(this::getLink));
 
-        this.registerLiteral(COMMAND_STATS, true, new String[] { "linkstats" }, builder -> builder
-                .description(LinksLang.COMMAND_LINKS_STATS_DESC)
-                .permission(LinksPerms.COMMAND_LINKS_STATS)
+        this.register(COMMAND_STATS, List.of(), builder -> builder
+                .withFullDescription(LinksLang.COMMAND_LINKS_STATS_DESC.text())
+                .withPermission(LinksPerms.COMMAND_LINKS_STATS.getName())
                 .executes(this::showStats));
 
         // One node per link that existed when the module was loaded. Bukkit cannot register a command
         // after startup, so a link created later gets its own command on the next reload.
-        // Always registered: the link's enabled state is enforced at execution time by hasAccess(),
-        // so toggling a link never desyncs from the command config. No framework permission either:
-        // access is 'generic OR per-link OR custom', which a single permission node cannot express,
-        // so openLink() enforces it manually and stays the single gate for every path.
-        this.module.getLinks().forEach((id, link) -> this.registerLiteral(COMMAND_PREFIX + id, true,
-                new String[] { id }, builder -> builder
-                        .description(LinksLang.COMMAND_LINKS_LINK_DESC)
-                        .executes((context, arguments) -> this.openLink(context, link.getId()))));
+        // Always registered: the link's enabled state is enforced at execution time by the access
+        // checks, so toggling a link never desyncs from the command config. No framework permission
+        // either: access is 'generic OR per-link OR custom', which a single permission node cannot
+        // express, so openLink() enforces it manually and stays the single gate for every path.
+        this.module.getLinks().keySet().forEach(id -> this.register(COMMAND_PREFIX + id, List.of(), builder -> builder
+                .withFullDescription(LinksLang.COMMAND_LINKS_LINK_DESC.text())
+                .executes((sender, arguments) -> {
+                    return this.openLink(sender, id);
+                })));
 
-        // 'all' and 'get' are always children, so the hub is never childless and '/links' always resolves.
-        Map<String, String> childrens = new LinkedHashMap<>();
-        childrens.put(COMMAND_ALL, "all");
-        childrens.put(COMMAND_GET, "get");
-        childrens.put(COMMAND_STATS, "stats");
-        this.module.getLinkIds().forEach(id -> childrens.put(COMMAND_PREFIX + id, id));
-
-        this.registerRoot("links", true, new String[] { "links", "serverlinks" }, childrens,
-                builder -> builder
-                        .description(LinksLang.COMMAND_LINKS_ROOT_DESC)
-                        .permission(LinksPerms.COMMAND_LINKS_ROOT)
-                        .executes(this::showAllLinks));
+        this.registerRoot("links", builder -> builder
+                .withFullDescription(LinksLang.COMMAND_LINKS_ROOT_DESC.text())
+                .withPermission(LinksPerms.COMMAND_LINKS_ROOT.getName())
+                .executes(this::showAllLinks));
     }
 
-    private ArgumentNodeBuilder<Link> linkArgument() {
-        return Commands.argument(ARG_LINK, (context, string) -> Optional.ofNullable(this.module.getLink(string))
-                        .filter(link -> link.canSee(context.getSender()))
-                        .orElseThrow(() -> CommandSyntaxException
-                                .dynamic(LinksLang.COMMAND_SYNTAX_INVALID_LINK, string)))
-                .localized(LinksLang.COMMAND_ARGUMENT_LINK)
-                .suggestions((reader, context) -> this.module.getVisibleLinks(context.getSender())
-                        .stream()
-                        .map(Link::getId)
-                        .toList());
+    private Argument<String> linkArgument() {
+        return CommandArgumentConstants.string(ARG_LINK, info -> this.module
+                .getVisibleLinks(info.sender())
+                .stream()
+                .map(Link::getId)
+                .toList());
     }
 
-    private boolean showAllLinks(CommandContext context, ParsedArguments arguments) {
-        CommandSender sender = context.getSender();
-        if (context.isPlayer()) {
-            this.module.openLinks(context.getPlayerOrThrow());
+    private int showAllLinks(final CommandSender sender, final CommandArguments arguments) {
+        if (sender instanceof final Player player) {
+            this.module.openLinks(player);
         } else {
             this.module.sendLinkList(sender);
         }
 
-        return true;
+        return 1;
     }
 
-    private boolean getLink(CommandContext context, ParsedArguments arguments) {
-        return this.openLink(context, arguments.get(ARG_LINK, Link.class).getId());
+    private int getLink(final CommandSender sender, final CommandArguments arguments) {
+        final Object linkObj = arguments.get(ARG_LINK);
+        if (!(linkObj instanceof final String id)) {
+            this.module.sendPrefixed(LinksLang.COMMAND_SYNTAX_INVALID_LINK, sender,
+                    replacer -> replacer.with(SLPlaceholders.GENERIC_INPUT, () -> ""));
+            return 0;
+        }
+
+        return this.openLink(sender, id);
     }
 
-    private boolean showStats(CommandContext context, ParsedArguments arguments) {
-        this.module.sendStats(context.getSender(), 10);
-        return true;
+    private int showStats(final CommandSender sender, final CommandArguments arguments) {
+        this.module.sendStats(sender, 10);
+        return 1;
     }
 
-    private boolean openLink(CommandContext context, String id) {
+    private int openLink(final CommandSender sender, final String id) {
         // Resolved by ID rather than using the link captured at registration time, so the command
         // cannot act on a stale object after a delete or a reload.
-        Link link = this.module.getLink(id);
+        final Link link = this.module.getLink(id);
         if (link == null) {
-            context.printUsage();
-            return false;
+            this.module.sendPrefixed(LinksLang.COMMAND_SYNTAX_INVALID_LINK, sender,
+                    replacer -> replacer.with(SLPlaceholders.GENERIC_INPUT, () -> id));
+            return 0;
         }
 
         // Duplicates the checks inside activateLink() on purpose: the console branch below never
         // reaches activateLink(), so removing these would let console bypass use permissions.
-        if (!link.canSee(context.getSender())) {
-            this.module.sendPrefixed(LinksLang.ERROR_NO_PERMISSION, context.getSender());
-            return false;
+        if (!link.canSee(sender)) {
+            this.module.sendPrefixed(LinksLang.ERROR_NO_PERMISSION, sender);
+            return 0;
         }
 
-        if (!link.canUse(context.getSender())) {
-            this.module.sendPrefixed(LinksLang.ERROR_NO_USE_PERMISSION, context.getSender());
-            return false;
+        if (!link.canUse(sender)) {
+            this.module.sendPrefixed(LinksLang.ERROR_NO_USE_PERMISSION, sender);
+            return 0;
         }
 
-        Player player = context.getPlayer();
-        if (player == null) {
+        if (!(sender instanceof final Player player)) {
             // The console has no menu to click, so only the link itself is shown.
-            this.module.sendLink(context.getSender(), link);
-            return true;
+            this.module.sendLink(sender, link);
+            return 1;
         }
 
         this.module.activateLink(player, link);
-        return true;
+        return 1;
     }
 }

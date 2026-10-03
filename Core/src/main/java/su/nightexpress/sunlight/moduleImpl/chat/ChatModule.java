@@ -111,6 +111,32 @@ public class ChatModule extends Module {
         this.plugin.getServer().getOnlinePlayers().forEach(this::autoJoinChannels);
 
         this.addListener(new ChatListener(this.plugin, this));
+
+        this.commandApiRegistry.addProvider(new ClearChatCommandProvider(this));
+
+        if (this.settings.isChannelsEnabled()) {
+            this.commandApiRegistry.addProvider(new ChannelCommandsProvider(this));
+        }
+
+        if (this.settings.isConversationsEnabled()) {
+            this.commandApiRegistry.addProvider(new ConversationCommandProvider(this));
+        }
+
+        if (this.settings.isMailEnabled()) {
+            this.commandApiRegistry.addProvider(new MailCommandProvider(this));
+        }
+
+        if (this.settings.isMentionsEnabled()) {
+            this.commandApiRegistry.addProvider(new MentionsCommandProvider(this));
+        }
+
+        if (this.settings.isRoleplayCommandEnabled()) {
+            this.commandApiRegistry.addProvider(new RoleplayCommands(this));
+        }
+
+        if (this.settings.isSpyEnabled()) {
+            this.commandApiRegistry.addProvider(new SpyCommandProvider(this));
+        }
     }
 
     @Override
@@ -148,39 +174,6 @@ public class ChatModule extends Module {
         });
 
         root.merge(ChatPerms.ROOT);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("chat-clearchat", new ClearChatCommandProvider(this.plugin, this), this);
-
-        if (this.settings.isChannelsEnabled()) {
-            this.commandRegistry.addProvider("chat-channel", new ChannelCommandsProvider(this.plugin, this), this);
-        }
-
-        if (this.settings.isConversationsEnabled()) {
-            this.commandRegistry.addProvider("chat-conversations",
-                    new ConversationCommandProvider(this.plugin, this, this.userManager), this);
-        }
-
-        if (this.settings.isMailEnabled()) {
-            this.commandRegistry.addProvider("chat-mail",
-                    new MailCommandProvider(this.plugin, this, this.userManager), this);
-        }
-
-        if (this.settings.isMentionsEnabled()) {
-            this.commandRegistry.addProvider("chat-mentions",
-                    new MentionsCommandProvider(this.plugin, this, this.userManager), this);
-        }
-
-        if (this.settings.isRoleplayCommandEnabled()) {
-            this.commandRegistry.addProvider("chat-roleplay", new RoleplayCommands(this.plugin, this), this);
-        }
-
-        if (this.settings.isSpyEnabled()) {
-            this.commandRegistry.addProvider("chat-spy", new SpyCommandProvider(this.plugin, this, this.userManager),
-                    this);
-        }
     }
 
     @Override

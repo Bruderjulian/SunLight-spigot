@@ -1,85 +1,81 @@
 package su.nightexpress.sunlight.moduleImpl.chat.command;
 
+import java.util.List;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import su.nightexpress.nightcore.commands.Commands;
-import su.nightexpress.nightcore.commands.argument.ArgumentType;
-import su.nightexpress.nightcore.commands.builder.ArgumentNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
-import su.nightexpress.nightcore.commands.exceptions.CommandSyntaxException;
-import su.nightexpress.sunlight.SunLightPlugin;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.channel.ChatChannel;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatPerms;
 
-import java.util.Map;
-import java.util.Optional;
-
-public class ChannelCommandsProvider extends CommandProvider {
+public class ChannelCommandsProvider extends CommandProvider<ChatModule> {
 
         private static final String ARG_CHANNEL = "channel";
 
         private static final String COMMAND_JOIN = "join";
         private static final String COMMAND_LEAVE = "leave";
 
-        private final ChatModule module;
-        private final ArgumentType<ChatChannel> channelArgumentType;
-
-        public ChannelCommandsProvider(SunLightPlugin plugin, ChatModule module) {
-                super(plugin);
-                this.module = module;
-                this.channelArgumentType = (context, string) -> Optional
-                                .ofNullable(module.getChannelRepository().getById(string))
-                                .orElseThrow(() -> CommandSyntaxException
-                                                .custom(ChatLang.COMMAND_SYNTAX_INVALID_CHANNEL));
+        public ChannelCommandsProvider(ChatModule module) {
+                super(module, "chat-channel");
         }
 
         @Override
-        public void registerDefaults() {
-                this.registerLiteral(COMMAND_JOIN, false, new String[] { "joinchannel" }, builder -> builder
-                                .playerOnly()
-                                .description(ChatLang.COMMAND_CHANNEL_JOIN_DESC)
-                                .permission(ChatPerms.COMMAND_CHANNEL_JOIN)
-                                .withArguments(this.channelArgument())
+        public void setup() {
+                this.register(COMMAND_JOIN, List.of(), command -> command
+                                .withFullDescription(ChatLang.COMMAND_CHANNEL_JOIN_DESC.text())
+                                .withPermission(ChatPerms.COMMAND_CHANNEL_JOIN.getName())
+                                .withRequirement(sender -> sender instanceof Player)
+                                .withArguments(CommandArgumentConstants.string(ARG_CHANNEL,
+                                                info -> this.module.getChannelRepository().getChannels().stream()
+                                                                .map(ChatChannel::getId).sorted().toList()))
                                 .executes(this::joinChannel));
 
-                this.registerLiteral(COMMAND_LEAVE, false, new String[] { "leavechannel" }, builder -> builder
-                                .playerOnly()
-                                .description(ChatLang.COMMAND_CHANNEL_LEAVE_DESC)
-                                .permission(ChatPerms.COMMAND_CHANNEL_LEAVE)
-                                .withArguments(this.channelArgument())
+                this.register(COMMAND_LEAVE, List.of(), command -> command
+                                .withFullDescription(ChatLang.COMMAND_CHANNEL_LEAVE_DESC.text())
+                                .withPermission(ChatPerms.COMMAND_CHANNEL_LEAVE.getName())
+                                .withRequirement(sender -> sender instanceof Player)
+                                .withArguments(CommandArgumentConstants.string(ARG_CHANNEL,
+                                                info -> this.module.getChannelRepository().getChannels().stream()
+                                                                .map(ChatChannel::getId).sorted().toList()))
                                 .executes(this::leaveChannel));
 
-                this.registerRoot("channel", true, new String[] { "channel" },
-                                Map.of(
-                                                COMMAND_JOIN, "join",
-                                                COMMAND_LEAVE, "leave"),
-                                builder -> builder.description(ChatLang.COMMAND_CHANNEL_ROOT_DESC)
-                                                .permission(ChatPerms.COMMAND_CHANNEL_ROOT));
+                this.registerRoot("channel", command -> command
+                                .withFullDescription(ChatLang.COMMAND_CHANNEL_ROOT_DESC.text())
+                                .withPermission(ChatPerms.COMMAND_CHANNEL_ROOT.getName()));
         }
 
-        private ArgumentNodeBuilder<ChatChannel> channelArgument() {
-                return Commands.argument(ARG_CHANNEL, this.channelArgumentType)
-                                .localized(ChatLang.COMMAND_ARGUMENT_NAME_CHANNEL)
-                                .suggestions((reader, context) -> this.module
-                                                .getChannelsAllowedToListen(context.getPlayerOrThrow())
-                                                .stream().map(ChatChannel::getId).toList());
+        private int joinChannel(CommandSender sender, CommandArguments arguments) {
+                if (!(sender instanceof Player player)) {
+                        return 0;
+                }
+                final String channelId = (String) arguments.get(ARG_CHANNEL);
+                final ChatChannel channel = channelId == null ? null
+                                : this.module.getChannelRepository().getById(channelId);
+                if (channel == null) {
+                        this.module.sendPrefixed(ChatLang.COMMAND_SYNTAX_INVALID_CHANNEL, sender);
+                        return 0;
+                }
+
+                return this.module.joinChannel(player, channel) ? 1 : 0;
         }
 
-        private boolean joinChannel(CommandContext context, ParsedArguments arguments) {
-                Player player = context.getPlayerOrThrow();
-                ChatChannel channel = arguments.get(ARG_CHANNEL, ChatChannel.class);
+        private int leaveChannel(CommandSender sender, CommandArguments arguments) {
+                if (!(sender instanceof Player player)) {
+                        return 0;
+                }
+                final String channelId = (String) arguments.get(ARG_CHANNEL);
+                final ChatChannel channel = channelId == null ? null
+                                : this.module.getChannelRepository().getById(channelId);
+                if (channel == null) {
+                        this.module.sendPrefixed(ChatLang.COMMAND_SYNTAX_INVALID_CHANNEL, sender);
+                        return 0;
+                }
 
-                return this.module.joinChannel(player, channel);
-        }
-
-        private boolean leaveChannel(CommandContext context, ParsedArguments arguments) {
-                Player player = context.getPlayerOrThrow();
-                ChatChannel channel = arguments.get(ARG_CHANNEL, ChatChannel.class);
-
-                return this.module.leaveChannel(player, channel);
+                return this.module.leaveChannel(player, channel) ? 1 : 0;
         }
 }

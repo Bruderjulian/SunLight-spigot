@@ -51,7 +51,13 @@ public class BackLocationModule extends Module {
     protected void loadModule(FileConfig config) {
         this.settings.load(config);
         this.plugin.injectLang(BackLocationLang.class);
-        this.registerCommands();
+
+        if (this.settings.cacheTeleports.get()) {
+            this.commandApiRegistry.addProvider(new BackCommandProvider(this));
+        }
+        if (this.settings.cacheDeaths.get()) {
+            this.commandApiRegistry.addProvider(new DeathBackCommandProvider(this));
+        }
 
         this.addListener(new BackLocationListener(this.plugin, this));
     }
@@ -70,17 +76,6 @@ public class BackLocationModule extends Module {
 
     public String getPermissionNamespace() {
         return "backlocation";
-    }
-
-    protected void registerCommands() {
-        if (this.settings.cacheTeleports.get()) {
-            this.commandRegistry.addProvider("back", new BackCommandProvider(this.plugin, this, this.userManager),
-                    this);
-        }
-        if (this.settings.cacheDeaths.get()) {
-            this.commandRegistry.addProvider("deathback",
-                    new DeathBackCommandProvider(this.plugin, this, this.userManager), this);
-        }
     }
 
     @Override

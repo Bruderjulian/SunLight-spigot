@@ -103,6 +103,9 @@ public class HomesModule extends Module {
         this.addListener(new HomeListener(this.plugin, this));
 
         this.addAsyncTask(this::saveHomes, this.settings.getDataSaveInterval());
+
+        this.commandApiRegistry.addProvider(new HomeCommonCommandProvider(this));
+        this.commandApiRegistry.addProvider(new HomeAdminCommandProvider(this));
     }
 
     @Override
@@ -118,15 +121,6 @@ public class HomesModule extends Module {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(HomesPerms.ROOT);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("homes-common",
-                new HomeCommonCommandProvider(this.plugin, this, this.userManager), this);
-
-        this.commandRegistry.addProvider("homes-admin",
-                new HomeAdminCommandProvider(this.plugin, this, this.userManager), this);
     }
 
     @Override

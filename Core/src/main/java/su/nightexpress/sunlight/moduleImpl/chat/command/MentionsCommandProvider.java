@@ -1,95 +1,86 @@
 package su.nightexpress.sunlight.moduleImpl.chat.command;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import java.util.List;
+
+import org.bukkit.command.CommandSender;
+
+import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
-import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatProperties;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatPerms;
-import su.nightexpress.sunlight.user.UserManager;
 
-import java.util.Map;
-
-public class MentionsCommandProvider extends CommandProvider {
+public class MentionsCommandProvider extends CommandProvider<ChatModule> {
 
     private static final String COMMAND_OFF = "off";
     private static final String COMMAND_ON = "on";
     private static final String COMMAND_TOGGLE = "toggle";
 
-    private final ChatModule module;
-    private final UserManager userManager;
-
-    public MentionsCommandProvider(SunLightPlugin plugin, ChatModule module, UserManager userManager) {
-        super(plugin);
-        this.module = module;
-        this.userManager = userManager;
+    public MentionsCommandProvider(ChatModule module) {
+        super(module, "chat-mentions");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral(COMMAND_TOGGLE, true, new String[] { "mentions-toggle" }, builder -> {
-            this.buildToggleCommand(builder, ChatLang.COMMAND_MENTIONS_TOGGLE_DESC, ToggleMode.TOGGLE);
+    public void setup() {
+        this.register(COMMAND_TOGGLE, List.of(), command -> {
+            this.buildToggleCommand(command, ChatLang.COMMAND_MENTIONS_TOGGLE_DESC.text(), ToggleMode.TOGGLE);
         });
 
-        this.registerLiteral(COMMAND_ON, true, new String[] { "mentions-on" }, builder -> {
-            this.buildToggleCommand(builder, ChatLang.COMMAND_MENTIONS_ON_DESC, ToggleMode.ON);
+        this.register(COMMAND_ON, List.of(), command -> {
+            this.buildToggleCommand(command, ChatLang.COMMAND_MENTIONS_ON_DESC.text(), ToggleMode.ON);
         });
 
-        this.registerLiteral(COMMAND_OFF, true, new String[] { "mentions-off" }, builder -> {
-            this.buildToggleCommand(builder, ChatLang.COMMAND_MENTIONS_OFF_DESC, ToggleMode.OFF);
+        this.register(COMMAND_OFF, List.of(), command -> {
+            this.buildToggleCommand(command, ChatLang.COMMAND_MENTIONS_OFF_DESC.text(), ToggleMode.OFF);
         });
 
-        this.registerRoot("mentions", true, new String[] { "mentions" },
-                Map.of(
-                        COMMAND_OFF, "off",
-                        COMMAND_ON, "on",
-                        COMMAND_TOGGLE, "toggle"),
-                builder -> builder.description(ChatLang.COMMAND_MENTIONS_ROOT_DESC).permission(
-                        ChatPerms.COMMAND_MENTIONS_ROOT));
+        this.registerRoot("mentions", command -> command
+                .withFullDescription(ChatLang.COMMAND_MENTIONS_ROOT_DESC.text())
+                .withPermission(ChatPerms.COMMAND_MENTIONS_ROOT.getName()));
     }
 
-    private void buildToggleCommand(LiteralNodeBuilder builder, TextLocale description,
+    private void buildToggleCommand(dev.jorel.commandapi.CommandAPICommand builder, String description,
             ToggleMode mode) {
         builder
-                .description(description)
-                .permission(ChatPerms.COMMAND_MENTIONS_TOGGLE)
-                .withArguments(Arguments.playerName(CommandArguments.PLAYER).permission(
-                        ChatPerms.COMMAND_MENTIONS_TOGGLE_OTHERS)
-                        .optional())
-                .withFlags(CommandArguments.FLAG_SILENT)
-                .executes((context, arguments) -> this.toggleMentions(context, arguments, mode));
+                .withFullDescription(description)
+                .withPermission(ChatPerms.COMMAND_MENTIONS_TOGGLE.getName())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                .executes((sender, arguments) -> {
+                    return this.toggleMentions(sender, arguments, mode);
+                });
     }
 
-    private boolean toggleMentions(CommandContext context, ParsedArguments arguments,
+    private int toggleMentions(CommandSender sender, CommandArguments arguments,
             ToggleMode mode) {
-        return this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager, (
-                user,
-                target) -> {
-            boolean state = mode.apply(user.getPropertyOrDefault(ChatProperties.MENTIONS));
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-            user.setProperty(ChatProperties.MENTIONS, state);
-            user.markDirty();
+        return target.runAs(this.module, sender,
+                ChatPerms.COMMAND_MENTIONS_TOGGLE_OTHERS.getName(), (user, targetPlayer) -> {
+                    boolean state = mode.apply(user.getPropertyOrDefault(ChatProperties.MENTIONS));
 
-            if (context.getSender() != target) {
-                this.module.sendPrefixed(ChatLang.MENTIONS_TOGGLE_FEEDBACK, context.getSender(), builder -> builder
-                        .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state))
-                        .with(CommonPlaceholders.PLAYER.resolver(target)));
-            }
+                    user.setProperty(ChatProperties.MENTIONS, state);
+                    user.markDirty();
 
-            if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                this.module.sendPrefixed(ChatLang.MENTIONS_TOGGLE_NOTIFY, target, builder -> builder
-                        .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state)));
-            }
-        });
+                    if (sender != targetPlayer) {
+                        this.module.sendPrefixed(ChatLang.MENTIONS_TOGGLE_FEEDBACK, sender, builder -> builder
+                                .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state))
+                                .with(CommonPlaceholders.PLAYER.resolver(targetPlayer)));
+                    }
+
+                    if (!target.silent()) {
+                        this.module.sendPrefixed(ChatLang.MENTIONS_TOGGLE_NOTIFY, targetPlayer, builder -> builder
+                                .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state)));
+                    }
+                });
     }
 }

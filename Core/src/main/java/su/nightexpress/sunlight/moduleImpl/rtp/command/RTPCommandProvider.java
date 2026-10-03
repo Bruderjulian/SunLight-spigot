@@ -1,50 +1,54 @@
 package su.nightexpress.sunlight.moduleImpl.rtp.command;
 
-import org.bukkit.Bukkit;
+import java.util.List;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.command.CommandSender;
+
+import dev.jorel.commandapi.arguments.WorldArgument;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.rtp.RTPModule;
 import su.nightexpress.sunlight.moduleImpl.rtp.config.RTPLang;
 import su.nightexpress.sunlight.moduleImpl.rtp.config.RTPPerms;
 
-public class RTPCommandProvider extends CommandProvider {
+public class RTPCommandProvider extends CommandProvider<RTPModule> {
 
-    private final RTPModule module;
-
-    public RTPCommandProvider(final SunLightPlugin plugin, final RTPModule module) {
-        super(plugin);
-        this.module = module;
+    public RTPCommandProvider(final RTPModule module) {
+        super(module, "rtp");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("rtp", true, new String[] { "rtp", "wild" }, builder -> builder
-                .description(RTPLang.COMMAND_RTP_DESC)
-                .permission(RTPPerms.COMMAND_RTP)
-                .withArguments(Arguments.world("world").optional())
-                .withArguments(Arguments.playerName("player")
-                        .permission(RTPPerms.COMMAND_RTP_OTHERS)
-                        .optional())
+    public void setup() {
+        this.register("rtp", List.of(), command -> command
+                .withFullDescription(RTPLang.COMMAND_RTP_DESC.text())
+                .withPermission(RTPPerms.COMMAND_RTP.getName())
+                .withOptionalArguments(new WorldArgument(CommandArgumentConstants.WORLD))
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::execute));
     }
 
-    private boolean execute(final CommandContext context, final ParsedArguments arguments) {
-        return this.runForOnlinePlayer(context, arguments, this.module, target -> {
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                final boolean result = this.module.getEngine().teleportToRandomPlace(target,
-                        arguments.getWorld("world"));
+    private int execute(final CommandSender sender, final CommandArguments arguments) {
+        final World world = (World) arguments.get(CommandArgumentConstants.WORLD);
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-                if (result && context.getSender() != target) {
-                    this.module.sendPrefixed(RTPLang.COMMAND_RTP_OTHERS_SUCCESS, context.getSender(),
-                            builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
+        return target.runAs(this.module, sender, RTPPerms.COMMAND_RTP_OTHERS.getName(), (user, targetPlayer) -> {
+            Bukkit.getScheduler().runTaskAsynchronously(this.module.plugin(), () -> {
+                final boolean result = this.module.getEngine().teleportToRandomPlace(targetPlayer, world);
+
+                if (result && sender != targetPlayer) {
+                    this.module.sendPrefixed(RTPLang.COMMAND_RTP_OTHERS_SUCCESS, sender,
+                            builder -> builder.with(CommonPlaceholders.PLAYER.resolver(targetPlayer)));
                 }
             });
-            return true;
         });
     }
 }

@@ -1,103 +1,104 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
+import java.util.List;
+import java.util.stream.IntStream;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.IntegerArgument;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
-import su.nightexpress.sunlight.user.UserManager;
-
-import java.util.stream.IntStream;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_AMOUNT;
 import static su.nightexpress.sunlight.SLPlaceholders.PLAYER_DISPLAY_NAME;
 
-public class FlySpeedCommandProvider extends CommandProvider {
+public class FlySpeedCommandProvider extends CommandProvider<EssentialModule> {
 
-        private static final float DEF_SPEED = 0.1F;
-        private static final float MAX_SPEED = 1.0F;
-        private static final int SPEEDS_AMOUNT = 10;
+    private static final float DEF_SPEED = 0.1F;
+    private static final float MAX_SPEED = 1.0F;
+    private static final int SPEEDS_AMOUNT = 10;
 
-        // TODO Per speed permission
+    // TODO Per speed permission
 
-        private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("flyspeed");
-        private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("flyspeed.others");
+    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("flyspeed");
+    private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("flyspeed.others");
 
-        private static final TextLocale DESCRIPTION = LangEntry.builder("Command.FlySpeed.Desc")
-                        .text("Change fly speed.");
+    private static final TextLocale DESCRIPTION = LangEntry.builder("Command.FlySpeed.Desc")
+            .text("Change fly speed.");
 
-        private static final MessageLocale MESSAGE_SET_NOTIFY = LangEntry.builder("Command.FlySpeed.Done.Notify")
-                        .chatMessage(
-                                        GRAY.wrap("Your fly speed has been set to " + SOFT_YELLOW.wrap(GENERIC_AMOUNT)
-                                                        + "."));
+    private static final MessageLocale MESSAGE_SET_NOTIFY = LangEntry.builder("Command.FlySpeed.Done.Notify")
+            .chatMessage(
+                    GRAY.wrap("Your fly speed has been set to " + SOFT_YELLOW.wrap(GENERIC_AMOUNT)
+                            + "."));
 
-        private static final MessageLocale MESSAGE_SET_FEEDBACK = LangEntry.builder("Command.FlySpeed.Done.Target")
-                        .chatMessage(
-                                        GRAY.wrap("You have set " + WHITE.wrap(PLAYER_DISPLAY_NAME) + "'s fly speed to "
-                                                        + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + "."));
+    private static final MessageLocale MESSAGE_SET_FEEDBACK = LangEntry
+            .builder("Command.FlySpeed.Done.Target")
+            .chatMessage(
+                    GRAY.wrap("You have set " + WHITE.wrap(PLAYER_DISPLAY_NAME) + "'s fly speed to "
+                            + SOFT_YELLOW.wrap(GENERIC_AMOUNT) + "."));
 
-        private final EssentialModule module;
-        private final UserManager userManager;
+    public FlySpeedCommandProvider(final EssentialModule module) {
+        super(module, "flyspeed");
+    }
 
-        public FlySpeedCommandProvider(SunLightPlugin plugin, EssentialModule module, UserManager userManager) {
-                super(plugin);
-                this.module = module;
-                this.userManager = userManager;
+    @Override
+    public void setup() {
+        this.register("flyspeed", List.of(), command -> command
+                .withFullDescription(DESCRIPTION.text())
+                .withPermission(PERMISSION.getName())
+                .withArguments(new IntegerArgument(CommandArgumentConstants.VALUE)
+                        .replaceSuggestions(ArgumentSuggestions.stringCollection(info -> IntStream
+                                .range(1, SPEEDS_AMOUNT + 1).boxed()
+                                .map(String::valueOf).toList())))
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                .executes((sender, arguments) -> {
+                    return this.setFlySpeed(sender, arguments);
+                }));
+    }
+
+    private int setFlySpeed(final CommandSender sender, final CommandArguments arguments) {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
         }
 
-        @Override
-        public void registerDefaults() {
-                this.registerLiteral("flyspeed", true, new String[] { "flyspeed" }, builder -> builder
-                                .description(DESCRIPTION)
-                                .permission(PERMISSION)
-                                .withArguments(
-                                                Arguments.integer(CommandArguments.VALUE, 1)
-                                                                .suggestions((reader, context) -> IntStream
-                                                                                .range(1, SPEEDS_AMOUNT + 1).boxed()
-                                                                                .map(String::valueOf).toList()),
-                                                Arguments.playerName(CommandArguments.PLAYER)
-                                                                .permission(PERMISSION_OTHERS).optional())
-                                .withFlags(CommandArguments.FLAG_SILENT)
-                                .executes(this::setFlySpeed));
+        final Object valueArg = arguments.get(CommandArgumentConstants.VALUE);
+        if (!(valueArg instanceof final Integer value)) {
+            return 0;
         }
 
-        private boolean setFlySpeed(CommandContext context, ParsedArguments arguments) {
-                return this.loadPlayerOrSenderAndRunInMainThread(context, arguments, this.module, this.userManager,
-                                target -> {
-                                        int speed = Math.clamp(arguments.getInt(CommandArguments.VALUE), 1,
-                                                        SPEEDS_AMOUNT);
+        final int speed = Math.clamp(value, 1, SPEEDS_AMOUNT);
 
-                                        float realSpeed = DEF_SPEED
-                                                        + (MAX_SPEED - DEF_SPEED) * (speed - 1) / (SPEEDS_AMOUNT - 1);
+        return target.runAs(this.module, sender, PERMISSION_OTHERS.getName(), (user, player) -> {
+            final float realSpeed = DEF_SPEED
+                    + (MAX_SPEED - DEF_SPEED) * (speed - 1) / (SPEEDS_AMOUNT - 1);
 
-                                        target.setFlySpeed(realSpeed);
+            player.setFlySpeed(realSpeed);
 
-                                        if (context.getSender() != target) {
-                                                this.module.sendPrefixed(MESSAGE_SET_FEEDBACK, context.getSender(),
-                                                                builder -> builder
-                                                                                .with(CommonPlaceholders.PLAYER
-                                                                                                .resolver(target))
-                                                                                .with(SLPlaceholders.GENERIC_AMOUNT,
-                                                                                                () -> String.valueOf(
-                                                                                                                speed)));
-                                        }
+            if (sender != player) {
+                this.module.sendPrefixed(MESSAGE_SET_FEEDBACK, sender,
+                        builder -> builder
+                                .with(CommonPlaceholders.PLAYER.resolver(player))
+                                .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(speed)));
+            }
 
-                                        if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                                                this.module.sendPrefixed(MESSAGE_SET_NOTIFY, target, builder -> builder
-                                                                .with(SLPlaceholders.GENERIC_AMOUNT,
-                                                                                () -> String.valueOf(speed)));
-                                        }
-                                });
-        }
+            if (!target.silent()) {
+                this.module.sendPrefixed(MESSAGE_SET_NOTIFY, player, builder -> builder
+                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(speed)));
+            }
+        });
+    }
 }

@@ -28,6 +28,12 @@ public class InventoriesModule extends Module {
         config.initializeOptions(InventoriesSettings.class);
 
         this.dialogRegistry.register(InventoryDialogKeys.CLEAR, InventoryClearDialog::new);
+
+        if (this.internals != null) {
+            this.commandApiRegistry.addProvider(new ContainerCommandProvider(this));
+        }
+        this.commandApiRegistry.addProvider(new EnderchestCommandsProvider(this));
+        this.commandApiRegistry.addProvider(new InventoryCommandProvider(this));
     }
 
     @Override
@@ -41,21 +47,12 @@ public class InventoriesModule extends Module {
     }
 
     @Override
-    protected void registerCommands() {
-        if (this.internals != null) {
-            this.commandRegistry.addProvider("container",
-                    new ContainerCommandProvider(this.plugin, this, this.internals), this);
-        }
-
-        this.commandRegistry.addProvider("enderchest",
-                new EnderchestCommandsProvider(this.plugin, this, this.userManager, this.internals), this);
-        this.commandRegistry.addProvider("inventory",
-                new InventoryCommandProvider(this.plugin, this, this.userManager, this.internals), this);
-    }
-
-    @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
 
+    }
+
+    public SunNMS getInternals() {
+        return this.internals;
     }
 
     public boolean isClearConfirmationRequired() {

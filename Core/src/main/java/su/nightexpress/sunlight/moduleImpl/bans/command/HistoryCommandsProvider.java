@@ -1,50 +1,43 @@
 package su.nightexpress.sunlight.moduleImpl.bans.command;
 
+import java.util.List;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
-import su.nightexpress.nightcore.locale.entry.TextLocale;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.bans.BansModule;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PlayerPunishment;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PunishmentType;
-import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
 
-public class HistoryCommandsProvider extends CommandProvider {
+public class HistoryCommandsProvider extends CommandProvider<BansModule> {
 
-    private final BansModule module;
-    private final UserManager userManager;
-
-    public HistoryCommandsProvider(SunLightPlugin plugin, BansModule module, UserManager userManager) {
-        super(plugin);
-        this.module = module;
-        this.userManager = userManager;
+    public HistoryCommandsProvider(BansModule module) {
+        super(module, "bans-history");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("banhistory", true, new String[] { "banhistory" },
+    public void setup() {
+        this.register("banhistory", List.of(),
                 builder -> this.builder(builder, PunishmentType.BAN));
-        this.registerLiteral("mutehistory", true, new String[] { "mutehistory" },
+        this.register("mutehistory", List.of(),
                 builder -> this.builder(builder, PunishmentType.MUTE));
-        this.registerLiteral("warnhistory", true, new String[] { "warnhistory" },
+        this.register("warnhistory", List.of(),
                 builder -> this.builder(builder, PunishmentType.WARN));
     }
 
-    private void builder(LiteralNodeBuilder builder, PunishmentType type) {
-        TextLocale description = switch (type) {
-            case BAN -> BansLang.COMMAND_BAN_HISTORY_DESC;
-            case MUTE -> BansLang.COMMAND_MUTE_HISTORY_DESC;
-            case WARN -> BansLang.COMMAND_WARN_HISTORY_DESC;
+    private void builder(dev.jorel.commandapi.CommandAPICommand builder, PunishmentType type) {
+        String description = switch (type) {
+            case BAN -> BansLang.COMMAND_BAN_HISTORY_DESC.text();
+            case MUTE -> BansLang.COMMAND_MUTE_HISTORY_DESC.text();
+            case WARN -> BansLang.COMMAND_WARN_HISTORY_DESC.text();
         };
 
         Permission permission = switch (type) {
@@ -54,29 +47,36 @@ public class HistoryCommandsProvider extends CommandProvider {
         };
 
         builder
-                .playerOnly()
-                .description(description)
-                .permission(permission)
-                .withArguments(
-                        Arguments.playerName(CommandArguments.PLAYER)
-                                .suggestions((reader, tabContext) -> this.module.getPlayerPunishments(type).stream()
-                                        .map(PlayerPunishment::getPlayerName).toList()))
-                .executes((context, arguments) -> this.showHistory(context, arguments, type));
+                .withFullDescription(description)
+                .withPermission(permission.getName())
+                .withRequirement(sender -> sender instanceof Player)
+                .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
+                        info -> this.module.getPlayerPunishments(type).stream()
+                                .map(PlayerPunishment::getPlayerName).toList()))
+                .executes((sender, arguments) -> {
+                    return this.showHistory(sender, arguments, type);
+                });
     }
 
-    private boolean showHistory(CommandContext context, ParsedArguments arguments, PunishmentType type) {
-        Player viewer = context.getPlayerOrThrow();
-        String targetName = arguments.getString(CommandArguments.PLAYER);
+    private int showHistory(CommandSender sender, CommandArguments arguments, PunishmentType type) {
+        if (!(sender instanceof Player viewer)) {
+            return 0;
+        }
+        final String targetName = (String) arguments.get(CommandArgumentConstants.PLAYER);
+        if (targetName == null || targetName.isBlank()) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-        this.userManager.loadTargetProfile(targetName).thenAcceptAsync(profile -> {
+        this.module.userManager().loadTargetProfile(targetName).thenAcceptAsync(profile -> {
             if (profile == null) {
-                context.errorBadPlayer();
+                this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
                 return;
             }
 
             this.module.openHistory(viewer, profile, type);
-        }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
+        }, this.module.plugin()::runTask).whenComplete(Utils::printStacktrace);
 
-        return true;
+        return 1;
     }
 }

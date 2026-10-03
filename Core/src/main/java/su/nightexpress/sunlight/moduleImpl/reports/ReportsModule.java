@@ -134,8 +134,8 @@ public class ReportsModule extends Module implements ReportsProvider {
             this.addListener(new ReportsPunishListener(this));
         }
 
-        this.commandRegistry.addProvider("reports-submit", new ReportsSubmitCommandProvider(this.plugin, this), this);
-        this.commandRegistry.addProvider("reports-staff", new ReportsStaffCommandProvider(this.plugin, this), this);
+        this.commandApiRegistry.addProvider(new ReportsSubmitCommandProvider(this));
+        this.commandApiRegistry.addProvider(new ReportsStaffCommandProvider(this));
     }
 
     @Override
@@ -154,10 +154,6 @@ public class ReportsModule extends Module implements ReportsProvider {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(ReportsPerms.ROOT);
-    }
-
-    @Override
-    protected void registerCommands() {
     }
 
     @Override

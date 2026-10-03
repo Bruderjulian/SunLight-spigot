@@ -1,44 +1,43 @@
 package su.nightexpress.sunlight.moduleImpl.chat.command;
 
+import java.util.List;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
+import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
-import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatLang;
 import su.nightexpress.sunlight.moduleImpl.chat.core.ChatPerms;
 
-public class RoleplayCommands extends CommandProvider {
+public class RoleplayCommands extends CommandProvider<ChatModule> {
 
-    private final ChatModule module;
-
-    public RoleplayCommands(SunLightPlugin plugin, ChatModule module) {
-        super(plugin);
-        this.module = module;
+    public RoleplayCommands(ChatModule module) {
+        super(module, "chat-roleplay");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("me", true, new String[] { "me" }, builder -> builder
-                .playerOnly()
-                .description(ChatLang.COMMAND_ME_DESC)
-                .permission(ChatPerms.COMMAND_ME)
-                .withArguments(Arguments.greedyString(CommandArguments.TEXT).localized(Lang.COMMAND_ARGUMENT_NAME_TEXT))
+    public void setup() {
+        this.register("me", List.of(), command -> command
+                .withFullDescription(ChatLang.COMMAND_ME_DESC.text())
+                .withPermission(ChatPerms.COMMAND_ME.getName())
+                .withRequirement(sender -> sender instanceof Player)
+                .withArguments(new GreedyStringArgument(CommandArgumentConstants.TEXT))
                 .executes(this::showAction));
     }
 
-    private boolean showAction(CommandContext context, ParsedArguments arguments) {
-        Player player = context.getPlayerOrThrow();
-        String text = arguments.getString(CommandArguments.TEXT);
+    private int showAction(CommandSender sender, CommandArguments arguments) {
+        if (!(sender instanceof Player player)) {
+            return 0;
+        }
+        final String text = (String) arguments.get(CommandArgumentConstants.TEXT);
         String format = this.module.getSettings().getRoleplayMeFormat();
 
         String formatted = PlaceholderContext.builder()
@@ -47,7 +46,7 @@ public class RoleplayCommands extends CommandProvider {
                 .build()
                 .apply(format);
 
-        this.plugin.getServer().getOnlinePlayers().forEach(other -> Players.sendMessage(other, formatted));
-        return true;
+        this.module.plugin().getServer().getOnlinePlayers().forEach(other -> Players.sendMessage(other, formatted));
+        return 1;
     }
 }

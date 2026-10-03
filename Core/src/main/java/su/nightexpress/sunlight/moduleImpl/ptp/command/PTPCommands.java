@@ -1,17 +1,18 @@
 package su.nightexpress.sunlight.moduleImpl.ptp.command;
 
+import java.util.List;
+import java.util.Objects;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
 import su.nightexpress.sunlight.moduleImpl.ptp.PTPModule;
@@ -20,12 +21,9 @@ import su.nightexpress.sunlight.moduleImpl.ptp.config.PTPLang;
 import su.nightexpress.sunlight.moduleImpl.ptp.config.PTPPerms;
 import su.nightexpress.sunlight.moduleImpl.ptp.request.TeleportMode;
 import su.nightexpress.sunlight.moduleImpl.ptp.request.TeleportRequest;
-import su.nightexpress.sunlight.user.UserManager;
+import su.nightexpress.sunlight.utils.Utils;
 
-import java.util.Collections;
-import java.util.Objects;
-
-public class PTPCommands extends CommandProvider {
+public class PTPCommands extends CommandProvider<PTPModule> {
 
     private static final String COMMAND_OFF = "off";
     private static final String COMMAND_ON = "on";
@@ -39,136 +37,146 @@ public class PTPCommands extends CommandProvider {
     public static final String ACCEPT_NAME = "tpyes";
     public static final String DECLINE_NAME = "tpno";
 
-    private final PTPModule module;
-    private final UserManager userManager;
-
-    public PTPCommands(SunLightPlugin plugin, PTPModule module, UserManager userManager) {
-        super(plugin);
-        this.module = module;
-        this.userManager = userManager;
+    public PTPCommands(final PTPModule module) {
+        super(module, "ptp");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral(COMMAND_ACCEPT, true, new String[] { ACCEPT_NAME }, builder -> {
-            builder.description(PTPLang.COMMAND_ACCEPT_DESC);
-            builder.permission(PTPPerms.COMMAND_ACCEPT);
-            this.builderAccept(builder, true);
+    public void setup() {
+        this.register(COMMAND_ACCEPT, List.of(), command -> {
+            command.withFullDescription(PTPLang.COMMAND_ACCEPT_DESC.text())
+                    .withPermission(PTPPerms.COMMAND_ACCEPT.getName())
+                    .withRequirement(sender -> sender instanceof Player)
+                    .withOptionalArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
+                            info -> this.requestSuggestions(info.sender())))
+                    .executes((sender, arguments) -> {
+                        return this.acceptOrDecline(sender, arguments, true);
+                    });
         });
 
-        this.registerLiteral(COMMAND_DECLINE, true, new String[] { DECLINE_NAME }, builder -> {
-            builder.description(PTPLang.COMMAND_DECLINE_DESC);
-            builder.permission(PTPPerms.COMMAND_DECLINE);
-            this.builderAccept(builder, false);
+        this.register(COMMAND_DECLINE, List.of(), command -> {
+            command.withFullDescription(PTPLang.COMMAND_DECLINE_DESC.text())
+                    .withPermission(PTPPerms.COMMAND_DECLINE.getName())
+                    .withRequirement(sender -> sender instanceof Player)
+                    .withOptionalArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
+                            info -> this.requestSuggestions(info.sender())))
+                    .executes((sender, arguments) -> {
+                        return this.acceptOrDecline(sender, arguments, false);
+                    });
         });
 
-        this.registerLiteral(COMMAND_REQUEST, true, new String[] { "tpa", "call" }, builder -> {
-            builder.description(PTPLang.COMMAND_REQUEST_DESC);
-            builder.permission(PTPPerms.COMMAND_REQUEST);
-            this.buildRequest(builder, TeleportMode.REQUEST);
+        this.register(COMMAND_REQUEST, List.of(), command -> {
+            command.withFullDescription(PTPLang.COMMAND_REQUEST_DESC.text())
+                    .withPermission(PTPPerms.COMMAND_REQUEST.getName())
+                    .withRequirement(sender -> sender instanceof Player)
+                    .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
+                            info -> CommandArgumentConstants.onlinePlayerNames()))
+                    .executes((sender, arguments) -> {
+                        return this.sendRequest(sender, arguments, TeleportMode.REQUEST);
+                    });
         });
 
-        this.registerLiteral(COMMAND_INVITE, true, new String[] { "tpahere", "tpi" }, builder -> {
-            builder.description(PTPLang.COMMAND_INVITE_DESC);
-            builder.permission(PTPPerms.COMMAND_INVITE);
-            this.buildRequest(builder, TeleportMode.INVITE);
+        this.register(COMMAND_INVITE, List.of(), command -> {
+            command.withFullDescription(PTPLang.COMMAND_INVITE_DESC.text())
+                    .withPermission(PTPPerms.COMMAND_INVITE.getName())
+                    .withRequirement(sender -> sender instanceof Player)
+                    .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
+                            info -> CommandArgumentConstants.onlinePlayerNames()))
+                    .executes((sender, arguments) -> {
+                        return this.sendRequest(sender, arguments, TeleportMode.INVITE);
+                    });
         });
 
-        this.registerLiteral(COMMAND_TOGGLE, true, new String[] { "tptoggle" }, builder -> this.buildRequests(builder,
-                ToggleMode.TOGGLE));
-        this.registerLiteral(COMMAND_ON, true, new String[] { "tptoggle-on" }, builder -> this.buildRequests(builder,
-                ToggleMode.ON));
-        this.registerLiteral(COMMAND_OFF, true, new String[] { "tptoggle-off" }, builder -> this.buildRequests(builder,
-                ToggleMode.OFF));
+        this.register(COMMAND_TOGGLE, List.of(), command -> this.buildRequests(command, ToggleMode.TOGGLE));
+        this.register(COMMAND_ON, List.of(), command -> this.buildRequests(command, ToggleMode.ON));
+        this.register(COMMAND_OFF, List.of(), command -> this.buildRequests(command, ToggleMode.OFF));
 
-        this.registerRoot("ptp", true, new String[] { "ptp" },
-                map -> {
-                    map.put(COMMAND_REQUEST, "request");
-                    map.put(COMMAND_INVITE, "invite");
-                    map.put(COMMAND_ACCEPT, "accept");
-                    map.put(COMMAND_DECLINE, "decline");
-                    map.put(COMMAND_TOGGLE, "toggle");
-                },
-                builder -> builder.description(PTPLang.COMMAND_PTP_DESC).permission(PTPPerms.COMMAND_ROOT));
+        this.registerRoot("ptp", command -> command
+                .withFullDescription(PTPLang.COMMAND_PTP_DESC.text())
+                .withPermission(PTPPerms.COMMAND_ROOT.getName()));
     }
 
-    private void builderAccept(LiteralNodeBuilder builder, boolean accept) {
-        builder
-                .playerOnly()
-                .withArguments(Arguments.playerName(CommandArguments.PLAYER)
-                        .optional()
-                        .suggestions((reader, context) -> {
-                            if (!(context.getSender() instanceof Player player))
-                                return Collections.emptyList();
-
-                            return this.module.getRequests(player).stream().map(TeleportRequest::getSender).filter(
-                                    Objects::nonNull).map(Player::getName).toList();
-                        }))
-                .executes((context, arguments) -> this.acceptOrDecline(context, arguments, accept));
+    private List<String> requestSuggestions(final CommandSender sender) {
+        if (!(sender instanceof final Player player)) {
+            return List.of();
+        }
+        return this.module.getRequests(player).stream().map(TeleportRequest::getSender).filter(
+                Objects::nonNull).map(Player::getName).toList();
     }
 
-    private void buildRequest(LiteralNodeBuilder builder, TeleportMode mode) {
-        builder
-                .playerOnly()
-                .withArguments(Arguments.player(CommandArguments.PLAYER))
-                .executes((context, arguments) -> this.sendRequest(context, arguments, mode));
-    }
-
-    private void buildRequests(LiteralNodeBuilder builder, ToggleMode mode) {
-        TextLocale description = switch (mode) {
+    private void buildRequests(final CommandAPICommand command, final ToggleMode mode) {
+        final TextLocale description = switch (mode) {
             case TOGGLE -> PTPLang.COMMAND_REQUESTS_TOGGLE_DESC;
             case ON -> PTPLang.COMMAND_REQUESTS_ON_DESC;
             case OFF -> PTPLang.COMMAND_REQUESTS_OFF_DESC;
         };
 
-        builder
-                .description(description)
-                .permission(PTPPerms.COMMAND_REQUESTS)
-                .withArguments(
-                        Arguments.playerName(CommandArguments.PLAYER).permission(PTPPerms.COMMAND_REQUESTS_OTHERS)
-                                .optional())
-                .withFlags(CommandArguments.FLAG_SILENT)
-                .executes((context, arguments) -> this.toggleRequests(context, arguments, mode));
+        command.withFullDescription(description.text())
+                .withPermission(PTPPerms.COMMAND_REQUESTS.getName())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                .executes((sender, arguments) -> {
+                        return this.toggleRequests(sender, arguments, mode);
+                    });
     }
 
-    private boolean acceptOrDecline(CommandContext context, ParsedArguments arguments,
-            boolean accept) {
-        Player player = context.getPlayerOrThrow();
-        String from = arguments.contains(CommandArguments.PLAYER) ? arguments.getString(CommandArguments.PLAYER) : null;
+    private int acceptOrDecline(final CommandSender sender, final CommandArguments arguments,
+            final boolean accept) {
+        if (!(sender instanceof final Player player)) {
+            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
+            return 0;
+        }
+        final Object fromObj = arguments.get(CommandArgumentConstants.PLAYER);
+        final String from = fromObj instanceof final String value ? value : null;
 
-        return accept ? this.module.accept(player, from) : this.module.decline(player, from);
+        return (accept ? this.module.accept(player, from) : this.module.decline(player, from)) ? 1 : 0;
     }
 
-    private boolean sendRequest(CommandContext context, ParsedArguments arguments,
-            TeleportMode mode) {
-        Player player = context.getPlayerOrThrow();
-
-        Player target = arguments.getPlayer(CommandArguments.PLAYER);
-        if (player == target) {
-            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_NOT_YOURSELF, context.getSender()); // TODO Custom
-            return false;
+    private int sendRequest(final CommandSender sender, final CommandArguments arguments,
+            final TeleportMode mode) {
+        if (!(sender instanceof final Player player)) {
+            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
+            return 0;
         }
 
-        return module.sendRequest(player, target, mode);
+        final Object targetObj = arguments.get(CommandArgumentConstants.PLAYER);
+        if (!(targetObj instanceof final String targetName)) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
+        final Player target = Utils.getPlayer(targetName);
+        if (target == null || !this.canSee(sender, target)) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
+        if (player == target) {
+            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_NOT_YOURSELF, sender);
+            return 0;
+        }
+
+        return this.module.sendRequest(player, target, mode) ? 1 : 0;
     }
 
-    private boolean toggleRequests(CommandContext context, ParsedArguments arguments,
-            ToggleMode mode) {
-        return this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager, (
-                user,
-                target) -> {
-            boolean state = mode.apply(user.getPropertyOrDefault(PTPProperties.TELEPORT_REQUESTS));
+    private int toggleRequests(final CommandSender sender, final CommandArguments arguments,
+            final ToggleMode mode) {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
+
+        return target.runAs(this.module, sender, PTPPerms.COMMAND_REQUESTS_OTHERS.getName(), (user, targetPlayer) -> {
+            final boolean state = mode.apply(user.getPropertyOrDefault(PTPProperties.TELEPORT_REQUESTS));
             user.setProperty(PTPProperties.TELEPORT_REQUESTS, state);
             user.markDirty();
 
-            if (context.getSender() != target) {
-                this.module.sendPrefixed(PTPLang.REQUESTS_TOGGLE_FEEDBACK, context.getSender(), replacer -> replacer
-                        .with(CommonPlaceholders.PLAYER.resolver(target))
+            if (sender != targetPlayer) {
+                this.module.sendPrefixed(PTPLang.REQUESTS_TOGGLE_FEEDBACK, sender, replacer -> replacer
+                        .with(CommonPlaceholders.PLAYER.resolver(targetPlayer))
                         .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state)));
             }
 
-            if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                this.module.sendPrefixed(PTPLang.REQUESTS_TOGGLE_NOTIFY, target, replacer -> replacer
+            if (!target.silent()) {
+                this.module.sendPrefixed(PTPLang.REQUESTS_TOGGLE_NOTIFY, targetPlayer, replacer -> replacer
                         .with(SLPlaceholders.GENERIC_STATE, () -> CoreLang.STATE_ENABLED_DISALBED.get(state)));
             }
         });

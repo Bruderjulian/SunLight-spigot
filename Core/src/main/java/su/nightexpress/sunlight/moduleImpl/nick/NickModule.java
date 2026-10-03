@@ -60,6 +60,8 @@ public class NickModule extends Module implements NickProvider {
 
         // Re-apply nicknames to players that are already online (e.g. after a plugin reload).
         Players.getOnline().forEach(this::applyNickname);
+
+        this.commandApiRegistry.addProvider(new NickCommandProvider(this));
     }
 
     @Override
@@ -71,11 +73,6 @@ public class NickModule extends Module implements NickProvider {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(NickPerms.MODULE);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("nickname", new NickCommandProvider(this.plugin, this, this.userManager), this);
     }
 
     @Override

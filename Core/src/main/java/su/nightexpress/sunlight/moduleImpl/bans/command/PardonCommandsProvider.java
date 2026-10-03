@@ -1,14 +1,14 @@
 package su.nightexpress.sunlight.moduleImpl.bans.command;
 
+import java.net.InetAddress;
+import java.util.List;
+
+import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
-import su.nightexpress.nightcore.locale.entry.TextLocale;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.bans.BansModule;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
@@ -16,52 +16,42 @@ import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.InetPunishment;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PlayerPunishment;
 import su.nightexpress.sunlight.moduleImpl.bans.punishment.PunishmentType;
-import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
 
-import java.net.InetAddress;
+public class PardonCommandsProvider extends CommandProvider<BansModule> {
 
-public class PardonCommandsProvider extends CommandProvider {
-
-    private final BansModule module;
-    private final UserManager userManager;
-
-    public PardonCommandsProvider(SunLightPlugin plugin, BansModule module, UserManager userManager) {
-        super(plugin);
-        this.module = module;
-        this.userManager = userManager;
+    public PardonCommandsProvider(BansModule module) {
+        super(module, "bans-pardon");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("unban", true, new String[] { "unban" },
+    public void setup() {
+        this.register("unban", List.of(),
                 builder -> this.builderPlayer(builder, PunishmentType.BAN));
-        this.registerLiteral("unmute", true, new String[] { "unmute" },
+        this.register("unmute", List.of(),
                 builder -> this.builderPlayer(builder, PunishmentType.MUTE));
-        this.registerLiteral("unwarn", true, new String[] { "unwarn" },
+        this.register("unwarn", List.of(),
                 builder -> this.builderPlayer(builder, PunishmentType.WARN));
 
-        this.registerLiteral("unbanip", true, new String[] { "unbanip" }, this::builderInet);
+        this.register("unbanip", List.of(), this::builderInet);
     }
 
-    private void builderInet(LiteralNodeBuilder builder) {
+    private void builderInet(dev.jorel.commandapi.CommandAPICommand builder) {
         builder
-                .description(BansLang.COMMAND_UNBAN_IP_DESC)
-                .permission(BansPerms.COMMAND_UNBAN_IP)
-                .withArguments(
-                        Arguments.playerName(CommandArguments.INET_ADDRESS)
-                                .suggestions((reader, tabContext) -> this.module
-                                        .getPunishmentRepository(PunishmentType.BAN).getActiveInetPunishments().stream()
-                                        .map(InetPunishment::getRawAddress).toList()))
-                .withFlags(CommandArguments.FLAG_SILENT)
+                .withFullDescription(BansLang.COMMAND_UNBAN_IP_DESC.text())
+                .withPermission(BansPerms.COMMAND_UNBAN_IP.getName())
+                .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.INET_ADDRESS,
+                        info -> this.module.getPunishmentRepository(PunishmentType.BAN).getActiveInetPunishments()
+                                .stream().map(InetPunishment::getRawAddress).toList()))
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::pardonInet);
     }
 
-    private void builderPlayer(LiteralNodeBuilder builder, PunishmentType type) {
-        TextLocale description = switch (type) {
-            case BAN -> BansLang.COMMAND_UNBAN_DESC;
-            case MUTE -> BansLang.COMMAND_UNMUTE_DESC;
-            case WARN -> BansLang.COMMAND_UNWARN_DESC;
+    private void builderPlayer(dev.jorel.commandapi.CommandAPICommand builder, PunishmentType type) {
+        String description = switch (type) {
+            case BAN -> BansLang.COMMAND_UNBAN_DESC.text();
+            case MUTE -> BansLang.COMMAND_UNMUTE_DESC.text();
+            case WARN -> BansLang.COMMAND_UNWARN_DESC.text();
         };
 
         Permission permission = switch (type) {
@@ -71,37 +61,57 @@ public class PardonCommandsProvider extends CommandProvider {
         };
 
         builder
-                .description(description)
-                .permission(permission)
-                .withArguments(
-                        Arguments.playerName(CommandArguments.PLAYER)
-                                .suggestions((reader, tabContext) -> this.module.getPunishmentRepository(type)
-                                        .getActivePlayerPunishments().stream().map(PlayerPunishment::getPlayerName)
-                                        .toList()))
-                .withFlags(CommandArguments.FLAG_SILENT)
-                .executes((context, arguments) -> this.pardonPlayer(context, arguments, type));
+                .withFullDescription(description)
+                .withPermission(permission.getName())
+                .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
+                        info -> this.module.getPunishmentRepository(type).getActivePlayerPunishments().stream()
+                                .map(PlayerPunishment::getPlayerName).toList()))
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                .executes((sender, arguments) -> {
+                    return this.pardonPlayer(sender, arguments, type);
+                });
     }
 
-    private boolean pardonInet(CommandContext context, ParsedArguments arguments) {
-        InetAddress address = arguments.get(CommandArguments.INET_ADDRESS, InetAddress.class);
-        boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);
+    private int pardonInet(CommandSender sender, CommandArguments arguments) {
+        final String addressRaw = (String) arguments.get(CommandArgumentConstants.INET_ADDRESS);
+        InetAddress address = null;
+        if (addressRaw != null && !addressRaw.isBlank()) {
+            try {
+                address = InetAddress.getByName(addressRaw.trim());
+            } catch (Exception exception) {
+                address = null;
+            }
+        }
+        if (address == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-        return this.module.pardonInet(address, context.getSender(), silent);
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        final boolean silent = target != null && target.silent();
+
+        return this.module.pardonInet(address, sender, silent) ? 1 : 0;
     }
 
-    private boolean pardonPlayer(CommandContext context, ParsedArguments arguments, PunishmentType type) {
-        String targetName = arguments.getString(CommandArguments.PLAYER);
-        boolean silent = context.hasFlag(CommandArguments.FLAG_SILENT);
+    private int pardonPlayer(CommandSender sender, CommandArguments arguments, PunishmentType type) {
+        final String targetName = (String) arguments.get(CommandArgumentConstants.PLAYER);
+        if (targetName == null || targetName.isBlank()) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-        this.userManager.loadTargetProfile(targetName).thenAcceptAsync(profile -> {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        final boolean silent = target != null && target.silent();
+
+        this.module.userManager().loadTargetProfile(targetName).thenAcceptAsync(profile -> {
             if (profile == null) {
-                context.errorBadPlayer();
+                this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
                 return;
             }
 
-            this.module.pardonPlayer(profile, context.getSender(), type, silent);
-        }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
+            this.module.pardonPlayer(profile, sender, type, silent);
+        }, this.module.plugin()::runTask).whenComplete(Utils::printStacktrace);
 
-        return true;
+        return 1;
     }
 }

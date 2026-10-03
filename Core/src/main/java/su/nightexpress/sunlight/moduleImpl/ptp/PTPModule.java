@@ -49,6 +49,8 @@ public class PTPModule extends Module {
         UserPropertyRegistry.register(PTPProperties.TELEPORT_REQUESTS);
 
         this.addListener(new PTPListener(this.plugin, this));
+
+        this.commandApiRegistry.addProvider(new PTPCommands(this));
     }
 
     @Override
@@ -59,10 +61,6 @@ public class PTPModule extends Module {
     @Override
     protected void registerPermissions(PermissionTree root) {
         root.merge(PTPPerms.MODULE);
-    }
-
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("ptp", new PTPCommands(this.plugin, this, this.userManager), this);
     }
 
     @Override

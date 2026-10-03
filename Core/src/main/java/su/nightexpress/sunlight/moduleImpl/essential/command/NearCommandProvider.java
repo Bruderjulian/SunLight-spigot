@@ -1,42 +1,40 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
-
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
-import su.nightexpress.nightcore.locale.LangEntry;
-import su.nightexpress.nightcore.locale.entry.MessageLocale;
-import su.nightexpress.nightcore.locale.entry.TextLocale;
-import su.nightexpress.nightcore.util.NumberUtil;
-import su.nightexpress.nightcore.util.LowerCase;
-import su.nightexpress.nightcore.util.Players;
-import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
-import su.nightexpress.nightcore.util.placeholder.Replacer;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
-import su.nightexpress.sunlight.command.CommandProvider;
-import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
-import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
-import su.nightexpress.sunlight.moduleImpl.essential.EssentialSettings;
-import su.nightexpress.sunlight.user.UserManager;
-import su.nightexpress.sunlight.utils.Direction;
-import su.nightexpress.sunlight.utils.Utils;
-import su.nightexpress.sunlight.SLUtils;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permission;
+
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
+import su.nightexpress.nightcore.locale.LangEntry;
+import su.nightexpress.nightcore.locale.entry.MessageLocale;
+import su.nightexpress.nightcore.locale.entry.TextLocale;
+import su.nightexpress.nightcore.util.NumberUtil;
+import su.nightexpress.nightcore.util.Players;
+import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
+import su.nightexpress.nightcore.util.placeholder.Replacer;
+import su.nightexpress.sunlight.SLUtils;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
+import su.nightexpress.sunlight.command.CommandProvider;
+import su.nightexpress.sunlight.config.Lang;
+import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
+import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
+import su.nightexpress.sunlight.utils.Direction;
+import su.nightexpress.sunlight.utils.Utils;
+
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
-public class NearCommandProvider extends CommandProvider {
+public class NearCommandProvider extends CommandProvider<EssentialModule> {
+
+    private static final String COMMAND_NEAR = "near";
 
     private static final Permission PERMISSION_COMMAND = EssentialPerms.COMMAND.permission("near");
     private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("near.others");
@@ -53,107 +51,115 @@ public class NearCommandProvider extends CommandProvider {
                     GRAY.wrap("There are no players around " + WHITE.wrap(PLAYER_DISPLAY_NAME) + " in a " + ORANGE.wrap(
                             GENERIC_RADIUS) + " block radius."));
 
-    private final EssentialModule module;
-    private final EssentialSettings settings;
-    private final UserManager userManager;
-
-    public NearCommandProvider(SunLightPlugin plugin, EssentialModule module, EssentialSettings settings,
-            UserManager userManager) {
-        super(plugin);
-        this.module = module;
-        this.settings = settings;
-        this.userManager = userManager;
+    public NearCommandProvider(final EssentialModule module) {
+        super(module, "near");
     }
 
     private record NearbyPlayer(Player player, int distance, Direction direction) {
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("near", true, new String[] { "near" }, builder -> builder
-                .playerOnly()
-                .description(DESCRIPTION)
-                .permission(PERMISSION_COMMAND)
-                .withArguments(Arguments.playerName(CommandArguments.PLAYER).optional().permission(PERMISSION_OTHERS))
-                .executes(this::showNearbyPlayers));
+    public void setup() {
+        this.register(COMMAND_NEAR, List.of(), command -> command
+                .withRequirement(sender -> sender instanceof Player)
+                .withFullDescription(DESCRIPTION.text())
+                .withPermission(PERMISSION_COMMAND.getName())
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                .executes((sender, arguments) -> {
+                    return this.showNearbyPlayers(sender, arguments);
+                }));
     }
 
-    private String formatEntry(NearbyPlayer nearby) {
+    private String formatEntry(final NearbyPlayer nearby) {
         return Replacer.create()
                 .replace(forPlayerWithPAPI(nearby.player()))
                 .replace(GENERIC_DISTANCE, () -> NumberUtil.format(nearby.distance()))
                 .replace(GENERIC_DIRECTION, () -> this.getDirectionText(nearby.direction()))
-                .apply(this.settings.nearEntryFormat.get());
+                .apply(this.module.settings().nearEntryFormat.get());
     }
 
-    private String getDirectionText(Direction direction) {
-        if (this.settings.nearUseArrows.get()) {
-            String arrow = this.settings.nearDirectionArrows.get().get(Utils.lowercase(direction.name()));
-            if (arrow != null)
+    private String getDirectionText(final Direction direction) {
+        if (this.module.settings().nearUseArrows.get()) {
+            final String arrow = this.module.settings().nearDirectionArrows.get()
+                    .get(Utils.lowercase(direction.name()));
+            if (arrow != null) {
                 return arrow;
+            }
         }
         return Lang.DIRECTION.getLocalized(direction);
     }
 
-    private boolean showNearbyPlayers(CommandContext context, ParsedArguments arguments) {
-        return this.loadPlayerOrSenderAndRunInMainThread(context, arguments, this.module, this.userManager, source -> {
-            Player executor = context.getPlayer();
-            List<NearbyPlayer> nearbyPlayers = new ArrayList<>();
+    private int showNearbyPlayers(final CommandSender sender, final CommandArguments arguments) {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-            World sourceWorld = source.getWorld();
-            Location sourceLocation = source.getLocation();
+        return target.runAs(this.module, sender, PERMISSION_OTHERS.getName(), (user, source) -> {
+            final Player executor = sender instanceof final Player player ? player : null;
+            final List<NearbyPlayer> nearbyPlayers = new ArrayList<>();
 
-            int radius = this.settings.nearRadius.get();
-            int distanceLookup = radius * radius;
-            boolean isOthers = context.getSender() != source;
+            final World sourceWorld = source.getWorld();
+            final Location sourceLocation = source.getLocation();
+
+            final int radius = this.module.settings().nearRadius.get();
+            final int distanceLookup = radius * radius;
+            final boolean isOthers = sender != source;
 
             Utils.onlinePlayers().forEach(other -> {
-                if (other == source)
+                if (other == source) {
                     return;
-                if (other.getWorld() != sourceWorld)
+                }
+                if (other.getWorld() != sourceWorld) {
                     return;
-                if (other.hasPermission(PERMISSION_EXCLUDE))
+                }
+                if (other.hasPermission(PERMISSION_EXCLUDE.getName())) {
                     return;
-                if (executor != null && !executor.canSee(other))
+                }
+                if (executor != null && !executor.canSee(other)) {
                     return;
+                }
 
-                Location location = other.getLocation();
-                if (location == null)
+                final Location location = other.getLocation();
+                if (location == null) {
                     return;
+                }
 
-                int delta = (int) location.distanceSquared(sourceLocation);
-                if (delta > distanceLookup)
+                final int delta = (int) location.distanceSquared(sourceLocation);
+                if (delta > distanceLookup) {
                     return;
+                }
 
-                Direction direction = SLUtils.getDirection(sourceLocation, location);
+                final Direction direction = SLUtils.getDirection(sourceLocation, location);
 
-                int distance = (int) Math.sqrt(delta);
+                final int distance = (int) Math.sqrt(delta);
 
                 nearbyPlayers.add(new NearbyPlayer(other, distance, direction));
             });
 
             if (nearbyPlayers.isEmpty()) {
-                this.module.sendPrefixed(isOthers ? MESSAGE_NOTHING_FEEDBACK : MESSAGE_NOTHING_NOTIFY, context
-                        .getSender(),
+                this.module.sendPrefixed(isOthers ? MESSAGE_NOTHING_FEEDBACK : MESSAGE_NOTHING_NOTIFY, sender,
                         replacer -> replacer
                                 .with(GENERIC_RADIUS, () -> String.valueOf(radius))
                                 .with(CommonPlaceholders.PLAYER.resolver(source)));
                 return;
             }
 
-            String entries = nearbyPlayers.stream()
+            final String entries = nearbyPlayers.stream()
                     .sorted(Comparator.comparingDouble(NearbyPlayer::distance))
                     .map(this::formatEntry)
                     .collect(Collectors.joining(BR));
 
-            String text = String.join("\n", Replacer.create()
+            final String text = String.join("\n", Replacer.create()
                     .replace(GENERIC_AMOUNT, () -> String.valueOf(nearbyPlayers.size()))
                     .replace(GENERIC_RADIUS, () -> String.valueOf(radius))
                     .replace(GENERIC_ENTRY, entries)
                     .replace(forPlayerWithPAPI(source))
-                    .apply(isOthers ? this.settings.nearFormatOthers.get() : this.settings.nearFormatNormal.get()));
+                    .apply(isOthers ? this.module.settings().nearFormatOthers.get()
+                            : this.module.settings().nearFormatNormal.get()));
 
-            Players.sendMessage(context.getSender(), text);
+            Players.sendMessage(sender, text);
         });
     }
 }

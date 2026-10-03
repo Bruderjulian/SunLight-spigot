@@ -5,7 +5,7 @@ import java.util.List;
 import org.bukkit.command.CommandSender;
 
 import dev.jorel.commandapi.executors.CommandArguments;
-import su.nightexpress.nightcore.core.CoreLang;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
@@ -20,16 +20,18 @@ public class VanishCommand extends CommandProvider<VanishModule> {
     private static final String COMMAND_TOGGLE = "toggle";
 
     public VanishCommand(final VanishModule module) {
-        super(module);
+        super(module, "vanish");
     }
 
     @Override
     public void setup() {
-        this.register(COMMAND_TOGGLE, new String[] { "vanish" }, List.of(), command -> command
+        this.register(COMMAND_TOGGLE, List.of(), command -> command
                 .withFullDescription(VanishLang.COMMAND_VANISH_DESC.text())
                 .withPermission(VanishPerms.COMMAND_VANISH.getName())
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes((sender, arguments) -> this.toggleVanish(sender, arguments, ToggleMode.TOGGLE)));
+                .executes((sender, arguments) -> {
+                    return this.toggleVanish(sender, arguments, ToggleMode.TOGGLE);
+                }));
     }
 
     private int toggleVanish(final CommandSender sender, final CommandArguments arguments, final ToggleMode mode) {
@@ -50,13 +52,13 @@ public class VanishCommand extends CommandProvider<VanishModule> {
 
             if (sender != targetPlayer) {
                 VanishLang.COMMAND_VANISH_TARGET.message().send(sender, replacer -> replacer
-                        .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
+                        .replace(SLPlaceholders.GENERIC_STATE, CoreLang.STATE_ENABLED_DISALBED.get(state))
                         .replace(SLPlaceholders.forPlayer(targetPlayer)));
             }
 
             if (!target.silent()) {
                 VanishLang.COMMAND_VANISH_NOTIFY.message().send(targetPlayer, replacer -> replacer
-                        .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state)));
+                        .replace(SLPlaceholders.GENERIC_STATE, CoreLang.STATE_ENABLED_DISALBED.get(state)));
             }
         });
     }

@@ -59,11 +59,6 @@ public class SocialsModule extends Module implements SocialsProvider {
     }
 
     @Override
-    protected void registerCommands() {
-        // Every player-facing link command moved to the Links module, which owns that data now.
-    }
-
-    @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
         // Kept so scoreboards and menus using the old 'socials_<id>' placeholders keep resolving after
         // the link data moved to the Links module. Resolved by ID on every evaluation so a Links

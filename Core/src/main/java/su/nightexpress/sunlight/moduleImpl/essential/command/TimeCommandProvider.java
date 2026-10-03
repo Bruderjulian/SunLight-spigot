@@ -1,169 +1,189 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
+import java.time.LocalTime;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
+
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.IntegerArgument;
+import dev.jorel.commandapi.arguments.WorldArgument;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.BukkitThing;
 import su.nightexpress.nightcore.util.NumberUtil;
 import su.nightexpress.nightcore.util.Players;
-import su.nightexpress.sunlight.utils.TimeUtil;
-import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.placeholder.Replacer;
+import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLUtils;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
-import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
-import su.nightexpress.sunlight.moduleImpl.essential.EssentialSettings;
 import su.nightexpress.sunlight.moduleImpl.essential.object.TimeAlias;
-
-import java.time.LocalTime;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.IntStream;
+import su.nightexpress.sunlight.utils.TimeUtil;
+import su.nightexpress.sunlight.utils.Utils;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.*;
 
-public class TimeCommandProvider extends CommandProvider {
-        public static final long MODIFIER = 1000L;
-        public static final long MAX_TICKS = 24L * MODIFIER;
-        public static final long MIN_TICKS = 0L;
+public class TimeCommandProvider extends CommandProvider<EssentialModule> {
+    public static final long MODIFIER = 1000L;
+    public static final long MAX_TICKS = 24L * MODIFIER;
+    public static final long MIN_TICKS = 0L;
 
-        private static final Permission PERMISSION_ROOT = EssentialPerms.COMMAND.permission("time.root");
-        private static final Permission PERMISSION_SHOW = EssentialPerms.COMMAND.permission("time.show");
-        private static final Permission PERMISSION_SET = EssentialPerms.COMMAND.permission("time.set");
+    private static final String COMMAND_SHOW = "show";
+    private static final String COMMAND_SET = "set";
 
-        private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Time.Root.Desc")
-                        .text("World time commands.");
-        private static final TextLocale DESCRIPTION_SHOW = LangEntry.builder("Command.Time.Show.Desc")
-                        .text("Display current world time.");
-        private static final TextLocale DESCRIPTION_SET_TIME = LangEntry.builder("Command.Time.SetTime.Desc")
-                        .text("Set world's time to %s ticks.");
-        private static final TextLocale DESCRIPTION_SET_TICKS = LangEntry.builder("Command.Time.SetTicks.Desc")
-                        .text("Change time in a world.");
+    private static final Permission PERMISSION_ROOT = EssentialPerms.COMMAND.permission("time.root");
+    private static final Permission PERMISSION_SHOW = EssentialPerms.COMMAND.permission("time.show");
+    private static final Permission PERMISSION_SET = EssentialPerms.COMMAND.permission("time.set");
 
-        private static final MessageLocale MESSAGE_SET_FEEDBACK = LangEntry.builder("Command.Time.Set.Done")
-                        .chatMessage(
-                                        GRAY.wrap("You have set " + WHITE.wrap(GENERIC_WORLD) + "'s time to "
-                                                        + SOFT_YELLOW.wrap(GENERIC_TIME)
-                                                        + " (" + WHITE.wrap(GENERIC_TOTAL + " ticks") + ")" + "."));
+    private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Time.Root.Desc")
+            .text("World time commands.");
+    private static final TextLocale DESCRIPTION_SHOW = LangEntry.builder("Command.Time.Show.Desc")
+            .text("Display current world time.");
+    private static final TextLocale DESCRIPTION_SET_TIME = LangEntry.builder("Command.Time.SetTime.Desc")
+            .text("Set world's time to %s ticks.");
+    private static final TextLocale DESCRIPTION_SET_TICKS = LangEntry.builder("Command.Time.SetTicks.Desc")
+            .text("Change time in a world.");
 
-        private static final String COMMAND_SHOW = "show";
-        private static final String COMMAND_SET = "set";
+    private static final MessageLocale MESSAGE_SET_FEEDBACK = LangEntry.builder("Command.Time.Set.Done")
+            .chatMessage(
+                    GRAY.wrap("You have set " + WHITE.wrap(GENERIC_WORLD) + "'s time to "
+                            + SOFT_YELLOW.wrap(GENERIC_TIME)
+                            + " (" + WHITE.wrap(GENERIC_TOTAL + " ticks") + ")" + "."));
 
-        private final EssentialModule module;
-        private final EssentialSettings settings;
-        private final Set<TimeAlias> timeAliases;
+    private final Set<TimeAlias> timeAliases;
 
-        public TimeCommandProvider(SunLightPlugin plugin, EssentialModule module, EssentialSettings settings) {
-                super(plugin);
-                this.module = module;
-                this.settings = settings;
-                this.timeAliases = new LinkedHashSet<>();
+    public TimeCommandProvider(final EssentialModule module) {
+        super(module, "time");
+        this.timeAliases = new LinkedHashSet<>();
 
-                this.settings.timeAliases.get().forEach((name, gameTime) -> {
-                        this.timeAliases.add(new TimeAlias(Utils.lowercase(name), gameTime));
-                });
+        this.module.settings().timeAliases.get().forEach((name, gameTime) -> {
+            this.timeAliases.add(new TimeAlias(Utils.lowercase(name), gameTime));
+        });
+    }
+
+    @Override
+    public void setup() {
+        this.timeAliases.forEach(timeAlias -> {
+            this.register(timeAlias.name(), List.of(), command -> command
+                    .withFullDescription(DESCRIPTION_SET_TIME.text().formatted(
+                            String.valueOf(timeAlias.gameTime())))
+                    .withPermission(PERMISSION_SET.getName())
+                    .withOptionalArguments(new WorldArgument(CommandArgumentConstants.WORLD))
+                    .executes((sender, arguments) -> {
+                        return this.setWorldTime(sender, arguments, timeAlias.gameTime());
+                    }));
+        });
+
+        this.register(COMMAND_SHOW, List.of(), command -> command
+                .withFullDescription(DESCRIPTION_SHOW.text())
+                .withPermission(PERMISSION_SHOW.getName())
+                .withOptionalArguments(new WorldArgument(CommandArgumentConstants.WORLD))
+                .executes((sender, arguments) -> {
+                    return this.displayWorldTime(sender, arguments);
+                }));
+
+        this.register(COMMAND_SET, List.of(), command -> command
+                .withFullDescription(DESCRIPTION_SET_TICKS.text())
+                .withPermission(PERMISSION_SET.getName())
+                .withArguments(new IntegerArgument(CommandArgumentConstants.TIME, (int) MIN_TICKS, (int) MAX_TICKS)
+                        .replaceSuggestions(ArgumentSuggestions.stringCollection(
+                                info -> IntStream.range(0, 25)
+                                        .boxed()
+                                        .map(hour -> hour * MODIFIER)
+                                        .map(String::valueOf).toList())))
+                .withOptionalArguments(new WorldArgument(CommandArgumentConstants.WORLD))
+                .executes((sender, arguments) -> {
+                    final Object timeArg = arguments.get(CommandArgumentConstants.TIME);
+                    if (!(timeArg instanceof final Integer ticks)) {
+                        return 0;
+                    }
+                    return this.setWorldTime(sender, arguments, ticks);
+                }));
+
+        this.registerRoot("time", command -> command
+                .withFullDescription(DESCRIPTION_ROOT.text())
+                .withPermission(PERMISSION_ROOT.getName()));
+    }
+
+    private int setWorldTime(final CommandSender sender, final CommandArguments arguments, final long ticks) {
+        final World world = this.getWorld(sender, arguments);
+        if (world == null) {
+            return 0;
         }
 
-        @Override
-        public void registerDefaults() {
-                Map<String, String> rootChildrens = new LinkedHashMap<>();
-                rootChildrens.put(COMMAND_SHOW, "show");
+        final long worldTime = clampTicks(ticks);
+        world.setTime(worldTime);
+        final LocalTime localTime = getTimeOfTicks(world.getTime());
 
-                this.timeAliases.forEach(timeAlias -> {
-                        this.registerLiteral(timeAlias.name(), true, new String[] { timeAlias.name() },
-                                        builder -> builder
-                                                        .description(DESCRIPTION_SET_TIME.text().formatted(
-                                                                        String.valueOf(timeAlias.gameTime())))
-                                                        .permission(PERMISSION_SET)
-                                                        .withArguments(Arguments.world(CommandArguments.WORLD)
-                                                                        .optional())
-                                                        .executes((context, arguments) -> this.setWorldTime(context,
-                                                                        arguments, timeAlias.gameTime())));
-                        rootChildrens.put(timeAlias.name(), timeAlias.name());
-                });
+        this.module.sendPrefixed(MESSAGE_SET_FEEDBACK, sender, replacer -> replacer
+                .with(GENERIC_WORLD, () -> BukkitThing.getValue(world))
+                .with(GENERIC_TIME, () -> SLUtils.formatTime(localTime))
+                .with(GENERIC_TOTAL, () -> NumberUtil.format(worldTime)));
+        return 1;
+    }
 
-                this.registerLiteral(COMMAND_SHOW, true, new String[] { "worldtime" }, builder -> builder
-                                .description(DESCRIPTION_SHOW.text())
-                                .permission(PERMISSION_SHOW)
-                                .withArguments(Arguments.world(CommandArguments.WORLD).optional())
-                                .executes(this::displayWorldTime));
-
-                this.registerLiteral(COMMAND_SET, true, new String[] { "setworldtime" }, builder -> builder
-                                .description(DESCRIPTION_SET_TICKS)
-                                .permission(PERMISSION_SET)
-                                .withArguments(
-                                                Arguments.integer(CommandArguments.TIME, (int) MIN_TICKS,
-                                                                (int) MAX_TICKS)
-                                                                .localized(Lang.COMMAND_ARGUMENT_NAME_TIME)
-                                                                .suggestions((reader, context) -> IntStream.range(0, 25)
-                                                                                .boxed()
-                                                                                .map(hour -> hour * MODIFIER)
-                                                                                .map(String::valueOf).toList()),
-                                                Arguments.world(CommandArguments.WORLD).optional())
-                                .executes((context, arguments) -> this.setWorldTime(context, arguments,
-                                                arguments.getInt(CommandArguments.TIME))));
-
-                this.registerRoot("Time", true, new String[] { "time" }, rootChildrens, builder -> builder
-                                .description(DESCRIPTION_ROOT)
-                                .permission(PERMISSION_ROOT));
+    private int displayWorldTime(final CommandSender sender, final CommandArguments arguments) {
+        final World world = this.getWorld(sender, arguments);
+        if (world == null) {
+            return 0;
         }
 
-        private boolean setWorldTime(CommandContext context, ParsedArguments arguments, long ticks) {
-                World world = this.getWorld(context, arguments, CommandArguments.WORLD);
-                if (world == null)
-                        return false;
+        final long worldTicks = world.getTime();
+        final Replacer replacer = Replacer.create()
+                .replace(GENERIC_WORLD, BukkitThing.getValue(world))
+                .replace(GENERIC_TIME, SLUtils.formatTime(getTimeOfTicks(worldTicks)))
+                .replace(GENERIC_TICKS, NumberUtil.format(worldTicks))
+                .replace(GENERIC_GLOBAL, SLUtils.formatTime(TimeUtil.getCurrentTime()));
 
-                long worldTime = clampTicks(ticks);
-                world.setTime(worldTime);
-                LocalTime localTime = getTimeOfTicks(world.getTime());
+        final String text = String.join("\n",
+                replacer.apply(this.module.settings().timeDisplayFormat.get()));
+        Players.sendMessage(sender, text);
+        return 1;
+    }
 
-                this.module.sendPrefixed(MESSAGE_SET_FEEDBACK, context.getSender(), replacer -> replacer
-                                .with(GENERIC_WORLD, () -> BukkitThing.getValue(world))
-                                .with(GENERIC_TIME, () -> SLUtils.formatTime(localTime))
-                                .with(GENERIC_TOTAL, () -> NumberUtil.format(worldTime)));
-                return true;
+    /**
+     * Resolves the {@code world} argument, falling back to the sender's world.
+     *
+     * @return {@code null} when the sender is not a player and no world was given.
+     */
+    private World getWorld(final CommandSender sender, final CommandArguments arguments) {
+        final Object worldArg = arguments.get(CommandArgumentConstants.WORLD);
+        if (worldArg instanceof final World world) {
+            return world;
         }
 
-        private boolean displayWorldTime(CommandContext context, ParsedArguments arguments) {
-                World world = this.getWorld(context, arguments, CommandArguments.WORLD);
-                if (world == null)
-                        return false;
-
-                long worldTicks = world.getTime();
-                Replacer replacer = Replacer.create()
-                                .replace(GENERIC_WORLD, BukkitThing.getValue(world))
-                                .replace(GENERIC_TIME, SLUtils.formatTime(getTimeOfTicks(worldTicks)))
-                                .replace(GENERIC_TICKS, NumberUtil.format(worldTicks))
-                                .replace(GENERIC_GLOBAL, SLUtils.formatTime(TimeUtil.getCurrentTime()));
-
-                String text = String.join("\n", replacer.apply(this.settings.timeDisplayFormat.get()));
-                Players.sendMessage(context.getSender(), text);
-                return true;
+        if (sender instanceof final Player player) {
+            return player.getWorld();
         }
 
-        public static long clampTicks(long ticks) {
-                return Math.clamp(ticks, MIN_TICKS, MAX_TICKS);
-        }
+        CoreLang.COMMAND_EXECUTION_MISSING_ARGUMENTS.withPrefix(this.module.plugin().getPrefix()).send(sender,
+                replacer -> replacer.replace(CommonPlaceholders.GENERIC_COMMAND, "/" + this.getId()));
+        return null;
+    }
 
-        public static LocalTime getTimeOfTicks(long ticks) {
-                double point = ticks * 3.6;
+    public static long clampTicks(long ticks) {
+        return Math.clamp(ticks, MIN_TICKS, MAX_TICKS);
+    }
 
-                int hours = (int) (point / 60D / 60D);
-                int minutes = (int) ((point / 60D) % 60);
-                int seconds = (int) (point % 60);
-                return LocalTime.of(hours, minutes, seconds).plusHours(6);
-        }
+    public static LocalTime getTimeOfTicks(long ticks) {
+        final double point = ticks * 3.6;
+
+        final int hours = (int) (point / 60D / 60D);
+        final int minutes = (int) ((point / 60D) % 60);
+        final int seconds = (int) (point % 60);
+        return LocalTime.of(hours, minutes, seconds).plusHours(6);
+    }
 }

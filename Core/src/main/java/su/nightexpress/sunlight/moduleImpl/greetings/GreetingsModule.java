@@ -55,11 +55,6 @@ public class GreetingsModule extends Module {
 
     }
 
-    @Override
-    protected void registerCommands() {
-
-    }
-
     public void handleJoinEvent(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 

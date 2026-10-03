@@ -35,19 +35,7 @@ public class TextsModule extends Module {
         this.plugin.injectLang(TextsLang.class);
 
         this.loadTexts();
-    }
-
-    @Override
-    protected void unloadModule() {
-        this.textCommands.forEach(NightCommand::unregister);
-        this.textCommands.clear();
-
-        this.textByIdMap.clear();
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("texts-text", new TextCommandProvider(this.plugin, this), this);
+        this.commandApiRegistry.addProvider(new TextCommandProvider(this));
 
         this.textByIdMap.values().forEach(text -> {
             NightCommand command = NightCommand.literal(this.plugin, text.getId(), builder -> builder
@@ -61,6 +49,14 @@ public class TextsModule extends Module {
                 this.textCommands.add(command);
             }
         });
+    }
+
+    @Override
+    protected void unloadModule() {
+        this.textCommands.forEach(NightCommand::unregister);
+        this.textCommands.clear();
+
+        this.textByIdMap.clear();
     }
 
     @Override
