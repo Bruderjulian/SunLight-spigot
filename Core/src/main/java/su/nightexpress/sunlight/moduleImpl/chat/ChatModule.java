@@ -112,30 +112,30 @@ public class ChatModule extends Module {
 
         this.addListener(new ChatListener(this.plugin, this));
 
-        this.commandApiRegistry.addProvider(new ClearChatCommandProvider(this));
+        this.commandRegistry.addProvider(new ClearChatCommandProvider(this));
 
         if (this.settings.isChannelsEnabled()) {
-            this.commandApiRegistry.addProvider(new ChannelCommandsProvider(this));
+            this.commandRegistry.addProvider(new ChannelCommandsProvider(this));
         }
 
         if (this.settings.isConversationsEnabled()) {
-            this.commandApiRegistry.addProvider(new ConversationCommandProvider(this));
+            this.commandRegistry.addProvider(new ConversationCommandProvider(this));
         }
 
         if (this.settings.isMailEnabled()) {
-            this.commandApiRegistry.addProvider(new MailCommandProvider(this));
+            this.commandRegistry.addProvider(new MailCommandProvider(this));
         }
 
         if (this.settings.isMentionsEnabled()) {
-            this.commandApiRegistry.addProvider(new MentionsCommandProvider(this));
+            this.commandRegistry.addProvider(new MentionsCommandProvider(this));
         }
 
         if (this.settings.isRoleplayCommandEnabled()) {
-            this.commandApiRegistry.addProvider(new RoleplayCommands(this));
+            this.commandRegistry.addProvider(new RoleplayCommands(this));
         }
 
         if (this.settings.isSpyEnabled()) {
-            this.commandApiRegistry.addProvider(new SpyCommandProvider(this));
+            this.commandRegistry.addProvider(new SpyCommandProvider(this));
         }
     }
 

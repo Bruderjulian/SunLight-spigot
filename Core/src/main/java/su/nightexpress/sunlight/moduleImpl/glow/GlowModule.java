@@ -54,7 +54,7 @@ public class GlowModule extends Module implements GlowProvider {
         this.menu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "glow.yml"));
 
         handler.init();
-        this.commandApiRegistry.addProvider(new GlowCommandProvider(this));
+        this.commandRegistry.addProvider(new GlowCommandProvider(this));
 
     }
 

@@ -32,7 +32,6 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
     protected final DataHandler dataHandler;
     protected final UserManager userManager;
     protected final CommandRegistry commandRegistry;
-    protected final su.nightexpress.sunlight.command.CommandRegistry commandApiRegistry;
     protected final DialogRegistry dialogRegistry;
 
     private final String logPrefix;
@@ -46,7 +45,6 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
         this.dataHandler = plugin.dataHandler();
         this.userManager = plugin.userManager();
         this.commandRegistry = plugin.commandRegistry();
-        this.commandApiRegistry = plugin.commandApiRegistry();
         this.dialogRegistry = plugin.dialogRegistry();
 
         this.logPrefix = "[" + this.definition.name() + "] ";

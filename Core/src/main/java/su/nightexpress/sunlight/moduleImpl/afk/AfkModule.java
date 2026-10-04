@@ -79,7 +79,7 @@ public class AfkModule extends Module implements AfkProvider {
         this.addTask(this::tickTrackers, 1);
 
         Utils.onlinePlayers().forEach(this::track);
-        this.commandApiRegistry.addProvider(new AfkCommandProvider(this));
+        this.commandRegistry.addProvider(new AfkCommandProvider(this));
     }
 
     @Override

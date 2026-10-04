@@ -90,13 +90,13 @@ public class BansModule extends Module {
 
         this.addAsyncTask(this::savePunishments, this.settings.dataSaveInterval.get());
 
-        this.commandApiRegistry.addProvider(new PunishmentCommandsProvider(this));
-        this.commandApiRegistry.addProvider(new PardonCommandsProvider(this));
-        this.commandApiRegistry.addProvider(new HistoryCommandsProvider(this));
-        this.commandApiRegistry.addProvider(new ListCommandsProvider(this));
+        this.commandRegistry.addProvider(new PunishmentCommandsProvider(this));
+        this.commandRegistry.addProvider(new PardonCommandsProvider(this));
+        this.commandRegistry.addProvider(new HistoryCommandsProvider(this));
+        this.commandRegistry.addProvider(new ListCommandsProvider(this));
 
         if (this.settings.isAltCheckerEnabled()) {
-            this.commandApiRegistry.addProvider(new AltsCommandProvider(this));
+            this.commandRegistry.addProvider(new AltsCommandProvider(this));
         }
     }
 

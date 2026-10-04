@@ -30,10 +30,10 @@ public class InventoriesModule extends Module {
         this.dialogRegistry.register(InventoryDialogKeys.CLEAR, InventoryClearDialog::new);
 
         if (this.internals != null) {
-            this.commandApiRegistry.addProvider(new ContainerCommandProvider(this));
+            this.commandRegistry.addProvider(new ContainerCommandProvider(this));
         }
-        this.commandApiRegistry.addProvider(new EnderchestCommandsProvider(this));
-        this.commandApiRegistry.addProvider(new InventoryCommandProvider(this));
+        this.commandRegistry.addProvider(new EnderchestCommandsProvider(this));
+        this.commandRegistry.addProvider(new InventoryCommandProvider(this));
     }
 
     @Override

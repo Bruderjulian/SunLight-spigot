@@ -88,7 +88,7 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         this.rootBuilders.put(Utils.lowercase(id.trim()), consumer);
     }
 
-    public void setUsage(String usage) {
+    public void setUsage(final String usage) {
         this.usage = usage;
     }
 
@@ -112,8 +112,8 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         return this.subRoots;
     }
 
-    protected boolean runForOnlinePlayerOrSender(final CommandSender sender, CommandArguments arguments,
-            Function<Player, Boolean> consumer) {
+    protected boolean runForOnlinePlayerOrSender(final CommandSender sender, final CommandArguments arguments,
+            final Function<Player, Boolean> consumer) {
         if (arguments.getOptional(CommandArgumentConstants.PLAYER).isEmpty() && !(sender instanceof Player)) {
             CoreLang.COMMAND_EXECUTION_MISSING_ARGUMENTS.withPrefix(module.plugin().getPrefix()).send(sender,
                     replacer -> replacer
@@ -124,10 +124,10 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         return this.runForOnlinePlayer(sender, arguments, consumer);
     }
 
-    protected boolean runForOnlinePlayer(final CommandSender sender, CommandArguments arguments,
-            Function<Player, Boolean> consumer) {
-        String playerName = arguments.getOrDefaultUnchecked(CommandArgumentConstants.PLAYER, sender.getName());
-        Player target = Utils.getPlayer(playerName);
+    protected boolean runForOnlinePlayer(final CommandSender sender, final CommandArguments arguments,
+            final Function<Player, Boolean> consumer) {
+        final String playerName = arguments.getOrDefaultUnchecked(CommandArgumentConstants.PLAYER, sender.getName());
+        final Player target = Utils.getPlayer(playerName);
 
         if (target == null || !this.canSee(sender, target)) {
             module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
@@ -138,8 +138,8 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
     }
 
     protected boolean loadPlayerOrSenderWithDataAndRunInMainThread(final CommandSender sender,
-            CommandArguments arguments,
-            BiConsumer<SunUser, Player> consumer) {
+            final CommandArguments arguments,
+            final BiConsumer<SunUser, Player> consumer) {
         if (arguments.getOptional(CommandArgumentConstants.PLAYER).isEmpty() && !(sender instanceof Player)) {
             CoreLang.COMMAND_EXECUTION_MISSING_ARGUMENTS.withPrefix(module.plugin().getPrefix()).send(sender,
                     replacer -> replacer
@@ -150,13 +150,13 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         return this.loadPlayerWithDataAndRunInMainThread(sender, arguments, consumer);
     }
 
-    protected boolean loadPlayerWithDataAndRunInMainThread(final CommandSender sender, CommandArguments arguments,
-            BiConsumer<SunUser, Player> consumer) {
+    protected boolean loadPlayerWithDataAndRunInMainThread(final CommandSender sender, final CommandArguments arguments,
+            final BiConsumer<SunUser, Player> consumer) {
 
-        String playerName = arguments.getOrDefaultUnchecked(CommandArgumentConstants.PLAYER, sender.getName());
+        final String playerName = arguments.getOrDefaultUnchecked(CommandArgumentConstants.PLAYER, sender.getName());
 
         module.userManager().loadByNameAsync(playerName).thenCompose(userOptional -> {
-            SunUser user = userOptional.orElse(null);
+            final SunUser user = userOptional.orElse(null);
             if (user == null) {
                 module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
                 return CompletableFuture.completedFuture(null);
@@ -180,8 +180,8 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         return true;
     }
 
-    protected boolean loadPlayerOrSenderAndRunInMainThread(final CommandSender sender, CommandArguments arguments,
-            Consumer<Player> consumer) {
+    protected boolean loadPlayerOrSenderAndRunInMainThread(final CommandSender sender, final CommandArguments arguments,
+            final Consumer<Player> consumer) {
         if (arguments.getOptional(CommandArgumentConstants.PLAYER).isEmpty() && !(sender instanceof Player)) {
             CoreLang.COMMAND_EXECUTION_MISSING_ARGUMENTS.withPrefix(module.plugin().getPrefix()).send(sender,
                     replacer -> replacer
@@ -192,15 +192,15 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         return this.loadPlayerAndRunInMainThread(sender, arguments, consumer);
     }
 
-    protected boolean loadPlayerAndRunInMainThread(final CommandSender sender, CommandArguments arguments,
-            Consumer<Player> consumer) {
-        String playerName = arguments.getOrDefaultUnchecked(CommandArgumentConstants.PLAYER, sender.getName());
+    protected boolean loadPlayerAndRunInMainThread(final CommandSender sender, final CommandArguments arguments,
+            final Consumer<Player> consumer) {
+        final String playerName = arguments.getOrDefaultUnchecked(CommandArgumentConstants.PLAYER, sender.getName());
 
         return this.loadPlayerAndRunInMainThread(sender, playerName, consumer);
     }
 
-    protected boolean loadPlayerAndRunInMainThread(final CommandSender sender, String playerName,
-            Consumer<Player> consumer) {
+    protected boolean loadPlayerAndRunInMainThread(final CommandSender sender, final String playerName,
+            final Consumer<Player> consumer) {
         module.userManager().loadTargetPlayer(playerName).thenComposeAsync(target -> {
             if (target == null || !this.canSee(sender, target)) {
                 module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
@@ -218,11 +218,11 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         return true;
     }
 
-    protected boolean IsPlayer(final CommandSender sender, Player target) {
+    protected boolean IsPlayer(final CommandSender sender, final Player target) {
         return sender instanceof Player;
     }
 
-    protected boolean canSee(final CommandSender sender, Player target) {
-        return !(sender instanceof Player player) || player.canSee(target);
+    protected boolean canSee(final CommandSender sender, final Player target) {
+        return !(sender instanceof final Player player) || player.canSee(target);
     }
 }

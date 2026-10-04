@@ -8,8 +8,8 @@ public record CommandKey(String providerId, String nodeId) {
         return this.providerId + DELIMITER + this.nodeId;
     }
 
-    public static CommandKey fromKeyString(String string) {
-        String[] parts = string.split(DELIMITER, 2);
+    public static CommandKey fromKeyString(final String string) {
+        final String[] parts = string.split(DELIMITER, 2);
 
         if (parts.length < 2) {
             throw new IllegalArgumentException("Invalid key format: '%s'".formatted(string));

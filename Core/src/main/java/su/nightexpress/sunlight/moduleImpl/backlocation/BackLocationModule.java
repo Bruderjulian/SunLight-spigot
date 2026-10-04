@@ -53,10 +53,10 @@ public class BackLocationModule extends Module {
         this.plugin.injectLang(BackLocationLang.class);
 
         if (this.settings.cacheTeleports.get()) {
-            this.commandApiRegistry.addProvider(new BackCommandProvider(this));
+            this.commandRegistry.addProvider(new BackCommandProvider(this));
         }
         if (this.settings.cacheDeaths.get()) {
-            this.commandApiRegistry.addProvider(new DeathBackCommandProvider(this));
+            this.commandRegistry.addProvider(new DeathBackCommandProvider(this));
         }
 
         this.addListener(new BackLocationListener(this.plugin, this));

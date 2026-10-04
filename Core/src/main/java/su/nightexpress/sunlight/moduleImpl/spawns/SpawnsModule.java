@@ -69,7 +69,7 @@ public class SpawnsModule extends Module {
 
         this.addAsyncTask(this::saveSpawns, 60); // TODO Config
 
-        this.commandApiRegistry.addProvider(new SpawnCommands(this));
+        this.commandRegistry.addProvider(new SpawnCommands(this));
     }
 
     @Override

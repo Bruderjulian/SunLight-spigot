@@ -111,8 +111,10 @@ public class ReportsModule extends Module implements ReportsProvider {
     protected void loadModule(FileConfig config) {
         config.initializeOptions(ReportsConfig.class);
 
-        // Must happen before any SunUser is deserialised: UserColumns drops any key it cannot
-        // find in the registry, so an unregistered property is silently lost on every load.
+        // Must happen before any SunUser is deserialised: UserColumns drops any key it
+        // cannot
+        // find in the registry, so an unregistered property is silently lost on every
+        // load.
         UserPropertyRegistry.register(ReportsProperties.OPT_OUT);
         UserPropertyRegistry.register(ReportsProperties.REWARD_DAY_KEY);
         UserPropertyRegistry.register(ReportsProperties.REWARD_DAY_COUNT);
@@ -134,8 +136,8 @@ public class ReportsModule extends Module implements ReportsProvider {
             this.addListener(new ReportsPunishListener(this));
         }
 
-        this.commandApiRegistry.addProvider(new ReportsSubmitCommandProvider(this));
-        this.commandApiRegistry.addProvider(new ReportsStaffCommandProvider(this));
+        this.commandRegistry.addProvider(new ReportsSubmitCommandProvider(this));
+        this.commandRegistry.addProvider(new ReportsStaffCommandProvider(this));
     }
 
     @Override
@@ -158,10 +160,14 @@ public class ReportsModule extends Module implements ReportsProvider {
 
     @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
-        // These are deliberately prefixed 'count_' rather than named after the metric. The registry
-        // resolves the longest matching key and hands the rest to the handler as a payload, so a
-        // key like 'reports_open' would swallow '%sunlight_reports_open_<uuid>%' and answer with
-        // the global count instead of failing. 'reports_count_open' cannot collide with the
+        // These are deliberately prefixed 'count_' rather than named after the metric.
+        // The registry
+        // resolves the longest matching key and hands the rest to the handler as a
+        // payload, so a
+        // key like 'reports_open' would swallow '%sunlight_reports_open_<uuid>%' and
+        // answer with
+        // the global count instead of failing. 'reports_count_open' cannot collide with
+        // the
         // per-report field keys below.
         registry.register("reports_count_open", (player, payload) -> String.valueOf(this.getOpenReportCount()));
         registry.register("reports_count_open_mine",
@@ -171,7 +177,8 @@ public class ReportsModule extends Module implements ReportsProvider {
         registry.register("reports_count_on_me",
                 (player, payload) -> String.valueOf(this.hasOpenReportAgainst(this.viewerId(player))));
 
-        // Per-report fields, payload = report id. An unknown id yields an empty string rather than
+        // Per-report fields, payload = report id. An unknown id yields an empty string
+        // rather than
         // null so a scoreboard shows a blank instead of a raw placeholder.
         registry.register("reports_status", (player, payload) -> this.field(payload, Report::getStatusText));
         registry.register("reports_category",
@@ -179,7 +186,8 @@ public class ReportsModule extends Module implements ReportsProvider {
         registry.register("reports_reporter", (player, payload) -> this.field(payload, Report::getReporterName));
         registry.register("reports_target", (player, payload) -> this.field(payload, Report::getTargetName));
         registry.register("reports_details", (player, payload) -> this.field(payload, Report::getDetails));
-        registry.register("reports_date", (player, payload) -> this.field(payload, report -> String.valueOf(report.getCreateDate())));
+        registry.register("reports_date",
+                (player, payload) -> this.field(payload, report -> String.valueOf(report.getCreateDate())));
         registry.register("reports_age", (player, payload) -> this.field(payload, Report::getAgeText));
     }
 
@@ -424,7 +432,8 @@ public class ReportsModule extends Module implements ReportsProvider {
             return false;
         }
 
-        Report report = Report.create(sender.getUniqueId(), sender.getName(), targetId, targetName, categoryId, details);
+        Report report = Report.create(sender.getUniqueId(), sender.getName(), targetId, targetName, categoryId,
+                details);
         Player target = this.resolveTarget(report);
         if (target != null) {
             Location location = target.getLocation();
@@ -457,8 +466,10 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     /**
-     * Reports about the same offender land in the same open case so staff work one thing rather
-     * than five rows. A concluded case does not absorb new reports: the situation was addressed,
+     * Reports about the same offender land in the same open case so staff work one
+     * thing rather
+     * than five rows. A concluded case does not absorb new reports: the situation
+     * was addressed,
      * and a later incident is a new one.
      */
     private void attachToCase(Report report, @Nullable UUID targetId, String targetName) {
@@ -467,7 +478,8 @@ public class ReportsModule extends Module implements ReportsProvider {
 
         ReportCase open = this.caseRepository.getOpenCaseByTarget(targetId, targetName);
         if (open == null) {
-            // A fresh case is written once with the right count rather than inserted at zero and
+            // A fresh case is written once with the right count rather than inserted at
+            // zero and
             // immediately updated.
             open = ReportCase.create(targetId, targetName);
             open.setReportCount(1);
@@ -571,7 +583,8 @@ public class ReportsModule extends Module implements ReportsProvider {
             return false;
         }
 
-        // The note lands before the status flips, so a failure here cannot leave a concluded report
+        // The note lands before the status flips, so a failure here cannot leave a
+        // concluded report
         // with a silently missing explanation.
         if (note != null && !note.isBlank()) {
             this.addNoteInternal(report, new ReportNote(report.getId(), this.idOf(staff), staff.getName(),
@@ -599,8 +612,10 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     /**
-     * The punishment path. A report against a player who has just been punished is justified by
-     * definition, so it is closed here instead of waiting for someone to do paperwork — and the
+     * The punishment path. A report against a player who has just been punished is
+     * justified by
+     * definition, so it is closed here instead of waiting for someone to do
+     * paperwork — and the
      * honest reporter is paid without a staff member having to remember to.
      */
     public boolean concludeByPunishment(@NotNull Report report, @NotNull PunishmentType type,
@@ -690,7 +705,8 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     /**
-     * Concluding a case concludes every report still open inside it, which is what runs each
+     * Concluding a case concludes every report still open inside it, which is what
+     * runs each
      * member's own reward path. Reports already individually denied are left alone.
      */
     public boolean concludeCase(@NotNull ReportCase reportCase, @NotNull CaseStatus status,
@@ -769,7 +785,8 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     /**
-     * Closes reports nobody has touched and reminds staff about unattended ones. Runs off-thread,
+     * Closes reports nobody has touched and reminds staff about unattended ones.
+     * Runs off-thread,
      * so anything Bukkit-facing hops back to the main thread.
      */
     private void sweepStaleReports() {
@@ -821,8 +838,10 @@ public class ReportsModule extends Module implements ReportsProvider {
         report.setStatus(ReportStatus.EXPIRED);
         this.commit(report, before);
 
-        // Deliberately not PlayerReportResolvedEvent's reward path: an expired report is a record
-        // that nobody worked it, not a judgement that it was unjustified, and pays nothing.
+        // Deliberately not PlayerReportResolvedEvent's reward path: an expired report
+        // is a record
+        // that nobody worked it, not a judgement that it was unjustified, and pays
+        // nothing.
         this.plugin.getPluginManager().callEvent(new PlayerReportResolvedEvent(report, ReportStatus.EXPIRED, false,
                 false));
     }
@@ -868,11 +887,15 @@ public class ReportsModule extends Module implements ReportsProvider {
     /**
      * Pays the reporter's reward, at most once.
      * <p>
-     * Three guards in order: an in-memory compare-and-set for same-server races, a database
-     * read-back for cross-server races, and a write of {@code rewarded = true} before the commands
-     * are dispatched so a crash between the two loses the reward rather than double-paying.
+     * Three guards in order: an in-memory compare-and-set for same-server races, a
+     * database
+     * read-back for cross-server races, and a write of {@code rewarded = true}
+     * before the commands
+     * are dispatched so a crash between the two loses the reward rather than
+     * double-paying.
      *
-     * @return whether a payout was started. The commands themselves run later, off-thread.
+     * @return whether a payout was started. The commands themselves run later,
+     *         off-thread.
      */
     private boolean payReward(@NotNull Report report) {
         if (!ReportsConfig.REWARDS_ENABLED.get())
@@ -881,8 +904,10 @@ public class ReportsModule extends Module implements ReportsProvider {
             return false;
         if (!this.meetsRewardRequirements(report))
             return false;
-        // Caps are evaluated before the compare-and-set on purpose: withholding a reward must
-        // never leave the claim flag set, or a later valid path could never pay this report.
+        // Caps are evaluated before the compare-and-set on purpose: withholding a
+        // reward must
+        // never leave the claim flag set, or a later valid path could never pay this
+        // report.
         if (!this.meetsRewardCaps(report))
             return false;
         if (!report.tryClaimReward())
@@ -934,7 +959,8 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     /**
-     * Reward accounting is stored rather than derived: a report is created at one moment and
+     * Reward accounting is stored rather than derived: a report is created at one
+     * moment and
      * rewarded at another, so "rewarded today" has no single timestamp on the row.
      */
     private int countRewardsToday(SunUser user) {
@@ -995,7 +1021,8 @@ public class ReportsModule extends Module implements ReportsProvider {
                 .with(SLPlaceholders.GENERIC_TEXT, report::getDetails)
                 .build();
 
-        // Applied per line so a report body containing a line break cannot split one command
+        // Applied per line so a report body containing a line break cannot split one
+        // command
         // into two.
         List<String> resolved = new ArrayList<>(commands);
         resolved.replaceAll(context::apply);
@@ -1087,7 +1114,8 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     /**
-     * Step one. Lists online players, because a menu cannot take free text; the command form
+     * Step one. Lists online players, because a menu cannot take free text; the
+     * command form
      * remains the way to report somebody by name who is not online.
      */
     public boolean openTargetMenu(@NotNull Player player) {
@@ -1215,8 +1243,10 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     /**
-     * A report filed against a player who had not yet joined carries no UUID, so the name is not
-     * a fallback convenience but a second real identity. Unioning both is only correct when they
+     * A report filed against a player who had not yet joined carries no UUID, so
+     * the name is not
+     * a fallback convenience but a second real identity. Unioning both is only
+     * correct when they
      * refer to the same player, which is the caller's contract.
      */
     private List<Report> pendingAgainst(@Nullable UUID playerId, @Nullable String targetName) {
@@ -1241,7 +1271,8 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     @Override
-    public @org.jetbrains.annotations.Nullable ReportHandle getReport(@org.jetbrains.annotations.Nullable UUID reportId) {
+    public @org.jetbrains.annotations.Nullable ReportHandle getReport(
+            @org.jetbrains.annotations.Nullable UUID reportId) {
         if (reportId == null)
             return null;
 
@@ -1273,7 +1304,8 @@ public class ReportsModule extends Module implements ReportsProvider {
     // Statistics
 
     /**
-     * Derived entirely from the in-memory repository, so it is automatically purge-managed and
+     * Derived entirely from the in-memory repository, so it is automatically
+     * purge-managed and
      * needs no table of its own.
      */
     public ReportsStats collectStats() {
@@ -1312,8 +1344,10 @@ public class ReportsModule extends Module implements ReportsProvider {
             }
         }
 
-        // An expired report records that nobody worked it, not that anyone judged it wrong, so it
-        // is excluded from both rates. Including it would make a neglected queue look competent.
+        // An expired report records that nobody worked it, not that anyone judged it
+        // wrong, so it
+        // is excluded from both rates. Including it would make a neglected queue look
+        // competent.
         int resolved = byStatus.getOrDefault(ReportStatus.RESOLVED, 0);
         int denied = byStatus.getOrDefault(ReportStatus.DENIED, 0);
         int concluded = resolved + denied;
@@ -1332,8 +1366,7 @@ public class ReportsModule extends Module implements ReportsProvider {
                 this.countOptedOut(),
                 this.topEntries(reportsByTarget, 10),
                 this.topEntries(rewardsByReporter, 10),
-                this.staffEntries(byStaff, staffNames)
-        );
+                this.staffEntries(byStaff, staffNames));
     }
 
     private static double rate(int part, int whole) {
@@ -1357,7 +1390,7 @@ public class ReportsModule extends Module implements ReportsProvider {
 
     private static List<TopEntry> topEntries(Map<UUID, Integer> counts, int limit) {
         return counts.entrySet().stream()
-                .sorted(Map.Entry.<UUID, Integer> comparingByValue().reversed())
+                .sorted(Map.Entry.<UUID, Integer>comparingByValue().reversed())
                 .limit(limit)
                 .map(entry -> new TopEntry(entry.getKey(), entry.getValue()))
                 .toList();
@@ -1386,8 +1419,10 @@ public class ReportsModule extends Module implements ReportsProvider {
     }
 
     /**
-     * Status and staff are part of the repository's indexes, so a mutation has to move the report
-     * between buckets. This is the pre-mutation stand-in that {@code applyTransition} needs in
+     * Status and staff are part of the repository's indexes, so a mutation has to
+     * move the report
+     * between buckets. This is the pre-mutation stand-in that
+     * {@code applyTransition} needs in
      * order to unindex the old keys.
      */
     private Report snapshot(Report report) {

@@ -7,7 +7,7 @@ dependencies {
     implementation project(':NMS')
     implementation project(":MC_1_21_11")
     implementation project(":nms-26-1")
-    implementation("dev.jorel:commandapi-paper-shade:12.1.0")
+    implementation("dev.jorel:commandapi-paper-shade:12.1.0")  { transitive = false }
 }
 
 // Configure the shadowJar task to bundle the necessary dependencies.

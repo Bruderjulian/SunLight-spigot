@@ -119,7 +119,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
       final Map<String, CommandAPICommand> roots = new LinkedHashMap<>();
       final Set<String> attached = new HashSet<>();
       provider.getRootCommandBuilders().forEach((rootId, builder) -> {
-        final CommandAPICommand root = buildCommand(provider, rootId, config, builder);
+        final CommandAPICommand root = buildRootCommand(provider, rootId, config, builder);
         if (root == null) {
           return;
         }
@@ -146,7 +146,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
         if (attached.contains(nodeId)) {
           return;
         }
-        final CommandAPICommand node = buildCommand(provider, nodeId, config, builder);
+        final CommandAPICommand node = buildRootCommand(provider, nodeId, config, builder);
         if (node != null) {
           this.registerCommand(node);
         }
@@ -157,25 +157,47 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     }
   }
 
-  private CommandAPICommand buildCommand(final CommandProvider<?> provider, final String nodeId,
+  private CommandAPICommand buildRootCommand(final CommandProvider<?> provider, final String nodeId,
       final FileConfig config, final Consumer<CommandAPICommand> builder) {
+    boolean shouldInit = false;
     if (!config.contains(nodeId)) {
       config.set(nodeId + ".enabled", true);
       config.setStringArray(nodeId + ".aliases", EMPTY);
       config.set(nodeId + ".cooldown", 0);
       config.set(nodeId + ".cost", 0);
-    }
-    if (!config.getBoolean(nodeId + ".enabled", true)) {
+      shouldInit = true;
+    } else if (!config.getBoolean(nodeId + ".enabled", true)) {
       return null;
     }
-    final String[] aliases = readAliases(config, nodeId + ".aliases");
-    config.setStringArray(nodeId + ".aliases", aliases);
+    String[] aliases = readAliases(config, nodeId + ".aliases");
 
     final CommandAPICommand command = new CommandAPICommand(aliases.length == 0 ? nodeId : aliases[0]);
     builder.accept(command);
+    if (shouldInit && command.getAliases() != null) {
+      aliases = command.getAliases();
+    }
     if (aliases.length > 1) {
       command.withAliases(Arrays.copyOfRange(aliases, 1, aliases.length));
     }
+    config.setStringArray(nodeId + ".aliases", aliases);
+
+    guard(provider, nodeId, command, config.getInt(nodeId + ".cooldown", 0),
+        config.getDouble(nodeId + ".cost", 0));
+    return command;
+  }
+
+  private CommandAPICommand buildCommand(final CommandProvider<?> provider, final String nodeId,
+      final FileConfig config, final Consumer<CommandAPICommand> builder) {
+    if (!config.contains(nodeId)) {
+      config.set(nodeId + ".enabled", true);
+      config.set(nodeId + ".cooldown", 0);
+      config.set(nodeId + ".cost", 0);
+    } else if (!config.getBoolean(nodeId + ".enabled", true)) {
+      return null;
+    }
+
+    final CommandAPICommand command = new CommandAPICommand(nodeId);
+    builder.accept(command);
 
     guard(provider, nodeId, command, config.getInt(nodeId + ".cooldown", 0),
         config.getDouble(nodeId + ".cost", 0));

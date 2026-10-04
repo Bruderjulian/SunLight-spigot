@@ -47,7 +47,7 @@ public class RTPModule extends Module {
     protected void loadModule(final FileConfig config) {
         this.engine.load();
         this.plugin.injectLang(RTPLang.class);
-        this.commandApiRegistry.addProvider(new RTPCommandProvider(this));
+        this.commandRegistry.addProvider(new RTPCommandProvider(this));
     }
 
     @Override

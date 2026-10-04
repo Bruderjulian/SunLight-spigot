@@ -50,7 +50,7 @@ public class PTPModule extends Module {
 
         this.addListener(new PTPListener(this.plugin, this));
 
-        this.commandApiRegistry.addProvider(new PTPCommands(this));
+        this.commandRegistry.addProvider(new PTPCommands(this));
     }
 
     @Override

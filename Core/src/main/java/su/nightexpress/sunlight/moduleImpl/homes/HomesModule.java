@@ -104,8 +104,8 @@ public class HomesModule extends Module {
 
         this.addAsyncTask(this::saveHomes, this.settings.getDataSaveInterval());
 
-        this.commandApiRegistry.addProvider(new HomeCommonCommandProvider(this));
-        this.commandApiRegistry.addProvider(new HomeAdminCommandProvider(this));
+        this.commandRegistry.addProvider(new HomeCommonCommandProvider(this));
+        this.commandRegistry.addProvider(new HomeAdminCommandProvider(this));
     }
 
     @Override

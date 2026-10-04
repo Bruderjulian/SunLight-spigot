@@ -40,7 +40,7 @@ public class VanishModule extends Module implements VanishProvider {
         UserPropertyRegistry.register(VANISH);
 
         this.addListener(new VanishListener(this.plugin, this));
-        this.commandApiRegistry.addProvider(new VanishCommand(this));
+        this.commandRegistry.addProvider(new VanishCommand(this));
 
         if (VanishConfig.BAR_INDICATOR_ENABLED.get()) {
             String title = VanishConfig.BAR_INDICATOR_VANISHED_TITLE.get();

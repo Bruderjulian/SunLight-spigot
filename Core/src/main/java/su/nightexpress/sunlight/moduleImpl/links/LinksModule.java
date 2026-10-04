@@ -89,15 +89,18 @@ public class LinksModule extends Module implements LinksProvider {
     public LinksModule(ModuleDefinition<LinksModule> definition, SunLightPlugin plugin) {
         super(definition, plugin);
         this.settings = new LinksSettings();
-        // Synchronized: the async click saver iterates off the main thread while commands and menus
-        // mutate the map on it. Compound actions still synchronize on the map explicitly.
+        // Synchronized: the async click saver iterates off the main thread while
+        // commands and menus
+        // mutate the map on it. Compound actions still synchronize on the map
+        // explicitly.
         this.links = Collections.synchronizedMap(new LinkedHashMap<>());
         this.cooldowns = new ConcurrentHashMap<>();
     }
 
     @Override
     protected void loadModule(FileConfig config) {
-        // Held for the module's lifetime: getConfig() hands out a fresh instance on every call, so link
+        // Held for the module's lifetime: getConfig() hands out a fresh instance on
+        // every call, so link
         // edits would otherwise be written to a throwaway copy.
         this.config = config;
 
@@ -119,8 +122,8 @@ public class LinksModule extends Module implements LinksProvider {
 
         this.addAsyncTask(this::saveDirtyLinks, 300);
 
-        this.commandApiRegistry.addProvider(new LinksCommandProvider(this));
-        this.commandApiRegistry.addProvider(new LinksAdminCommandProvider(this));
+        this.commandRegistry.addProvider(new LinksCommandProvider(this));
+        this.commandRegistry.addProvider(new LinksAdminCommandProvider(this));
     }
 
     @Override
@@ -143,8 +146,10 @@ public class LinksModule extends Module implements LinksProvider {
 
     @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
-        // Resolved by ID on every evaluation: the menu and commands mutate the same Link instances,
-        // but a reload or a deletion replaces them, and a captured reference would go stale.
+        // Resolved by ID on every evaluation: the menu and commands mutate the same
+        // Link instances,
+        // but a reload or a deletion replaces them, and a captured reference would go
+        // stale.
         this.links.keySet().forEach(id -> registry.register("links_" + id, (player, payload) -> {
             Link link = this.getLink(id);
             if (link == null) {
@@ -211,10 +216,13 @@ public class LinksModule extends Module implements LinksProvider {
     }
 
     /**
-     * Player-facing links: enabled and actionable. Misconfigured links (no URL and no command) stay
-     * loaded so admins can fix them in the editor, but they are hidden here until repaired.
+     * Player-facing links: enabled and actionable. Misconfigured links (no URL and
+     * no command) stay
+     * loaded so admins can fix them in the editor, but they are hidden here until
+     * repaired.
      * <p>
-     * The tiebreaker is the plain ID, not the display name: displays carry MiniMessage tags, so
+     * The tiebreaker is the plain ID, not the display name: displays carry
+     * MiniMessage tags, so
      * comparing them would sort by formatting codes instead of visible text.
      */
     public @NotNull List<Link> getSortedLinks() {
@@ -256,7 +264,8 @@ public class LinksModule extends Module implements LinksProvider {
     // Editing
 
     /**
-     * @return The created link, or {@code null} when the ID is invalid or already taken.
+     * @return The created link, or {@code null} when the ID is invalid or already
+     *         taken.
      */
     public @Nullable Link createLink(@NotNull String rawId) {
         String id = LinkDefaults.normalizeId(rawId);
@@ -274,7 +283,8 @@ public class LinksModule extends Module implements LinksProvider {
     }
 
     /**
-     * Creates a link and reports the outcome to the sender, including the notice that the new link's
+     * Creates a link and reports the outcome to the sender, including the notice
+     * that the new link's
      * own command only becomes available after a restart.
      */
     public boolean createLinkAndReport(@NotNull Player player, @NotNull String rawId) {
@@ -332,8 +342,10 @@ public class LinksModule extends Module implements LinksProvider {
     }
 
     private void saveDirtyLinks() {
-        // Snapshot under lock: the async saver iterates off the main thread while commands and menus
-        // mutate the map on it. saveLink() also clears the dirty flag, so the snapshot must be taken
+        // Snapshot under lock: the async saver iterates off the main thread while
+        // commands and menus
+        // mutate the map on it. saveLink() also clears the dirty flag, so the snapshot
+        // must be taken
         // before any writes happen.
         List<Link> dirty;
         synchronized (this.links) {
@@ -390,7 +402,8 @@ public class LinksModule extends Module implements LinksProvider {
     }
 
     /**
-     * The single activation path shared by {@code /links <id>}, the per-link command and the menu item,
+     * The single activation path shared by {@code /links <id>}, the per-link
+     * command and the menu item,
      * so all three can never drift apart.
      */
     public void activateLink(@NotNull Player player, @NotNull Link link) {
@@ -409,9 +422,12 @@ public class LinksModule extends Module implements LinksProvider {
             return;
         }
 
-        // Pre-activation state for the event. Reward eligibility is tracked separately via per-user
-        // claims (see claimReward), so even a listener that re-enters activation cannot cause a
-        // double grant: the claim, not this flag, is the single source of truth for rewards.
+        // Pre-activation state for the event. Reward eligibility is tracked separately
+        // via per-user
+        // claims (see claimReward), so even a listener that re-enters activation cannot
+        // cause a
+        // double grant: the claim, not this flag, is the single source of truth for
+        // rewards.
         boolean firstClick = !link.hasSeen(player.getUniqueId());
 
         PlayerLinkActivateEvent event = new PlayerLinkActivateEvent(player, link, firstClick);
@@ -422,8 +438,10 @@ public class LinksModule extends Module implements LinksProvider {
 
         boolean commandsEnabled = this.settings.isExecuteCommandsEnabled();
 
-        // A command-only link with command execution disabled does nothing at all: fail before any
-        // state (cooldown, cost, clicks) is touched, instead of pretending it was activated.
+        // A command-only link with command execution disabled does nothing at all: fail
+        // before any
+        // state (cooldown, cost, clicks) is touched, instead of pretending it was
+        // activated.
         if (!link.hasUrl() && (!commandsEnabled || !link.hasCommand())) {
             this.sendPrefixed(LinksLang.ERROR_NOT_ACTIONABLE, player);
             return;
@@ -452,7 +470,8 @@ public class LinksModule extends Module implements LinksProvider {
             return;
         }
 
-        // Stamped before any command runs so a command that re-enters activation (e.g. dispatching
+        // Stamped before any command runs so a command that re-enters activation (e.g.
+        // dispatching
         // '/links <id>') is blocked instead of recursing.
         if (link.getCooldown() > 0 && this.settings.isCooldownsEnabled()
                 && !EconomyUtils.hasCooldownBypass(player, LinksPerms.BYPASS_COOLDOWN)) {
@@ -467,15 +486,18 @@ public class LinksModule extends Module implements LinksProvider {
             EconomyUtils.withdraw(player, cost);
         }
 
-        // Seen = activation history for the unique-clicks stat. Reward eligibility is per-user and
-        // survives stat resets (see claimReward), so resetting clicks never re-grants rewards.
+        // Seen = activation history for the unique-clicks stat. Reward eligibility is
+        // per-user and
+        // survives stat resets (see claimReward), so resetting clicks never re-grants
+        // rewards.
         link.markSeen(player.getUniqueId());
 
         if (commandsEnabled && link.hasFirstReward() && this.claimReward(player, link)) {
             this.sendPrefixed(LinksLang.FIRST_REWARD_NOTIFY, player, replacer -> replacer.with(link.placeholders()));
         }
 
-        // Clicks are batched to disk by the async saver; a synchronous config write on every click
+        // Clicks are batched to disk by the async saver; a synchronous config write on
+        // every click
         // would stall the main thread.
         link.addClick();
 
@@ -491,7 +513,8 @@ public class LinksModule extends Module implements LinksProvider {
     private boolean claimReward(@NotNull Player player, @NotNull Link link) {
         SunUser user = this.userManager.getOrFetch(player);
 
-        // Copy-on-write: the default instance is shared, so it must never be mutated in place.
+        // Copy-on-write: the default instance is shared, so it must never be mutated in
+        // place.
         Set<String> claimed = new HashSet<>(user.getPropertyOrDefault(LinksProperties.CLAIMED_REWARDS));
         if (!claimed.add(link.getId())) {
             return false;
@@ -503,11 +526,14 @@ public class LinksModule extends Module implements LinksProvider {
     }
 
     public long getCooldownLeftMillis(@NotNull Player player, @NotNull Link link) {
-        if (link.getCooldown() <= 0) return 0L;
+        if (link.getCooldown() <= 0)
+            return 0L;
         Map<String, Long> map = this.cooldowns.get(player.getUniqueId());
-        if (map == null) return 0L;
+        if (map == null)
+            return 0L;
         Long expires = map.get(link.getId());
-        if (expires == null) return 0L;
+        if (expires == null)
+            return 0L;
         long left = expires - System.currentTimeMillis();
         if (left <= 0L) {
             map.remove(link.getId());
@@ -517,7 +543,8 @@ public class LinksModule extends Module implements LinksProvider {
     }
 
     public void setCooldown(@NotNull Player player, @NotNull Link link) {
-        if (link.getCooldown() <= 0) return;
+        if (link.getCooldown() <= 0)
+            return;
         this.cooldowns.computeIfAbsent(player.getUniqueId(), k -> new ConcurrentHashMap<>())
                 .put(link.getId(), System.currentTimeMillis() + link.getCooldown() * 1000L);
     }
@@ -555,20 +582,25 @@ public class LinksModule extends Module implements LinksProvider {
     }
 
     /**
-     * Parses a {@code NAME;volume;pitch} sound string. Lenient by design: volume and pitch fall back
-     * to {@code 1} when absent or malformed, mirroring {@link NightSound#deserialize(String)}.
-     * Custom (resource-pack) sound names are allowed; use {@link #isVanillaSound(String)} when a
+     * Parses a {@code NAME;volume;pitch} sound string. Lenient by design: volume
+     * and pitch fall back
+     * to {@code 1} when absent or malformed, mirroring
+     * {@link NightSound#deserialize(String)}.
+     * Custom (resource-pack) sound names are allowed; use
+     * {@link #isVanillaSound(String)} when a
      * strict vanilla check is needed.
      *
      * @return The sound, or {@code null} when there is no name to play.
      */
     public static @Nullable NightSound parseSound(@NotNull String raw) {
         String input = raw.trim();
-        if (input.isEmpty() || "none".equalsIgnoreCase(input)) return null;
+        if (input.isEmpty() || "none".equalsIgnoreCase(input))
+            return null;
 
         String[] split = input.split(";", -1);
         String name = split[0].trim();
-        if (name.isEmpty()) return null;
+        if (name.isEmpty())
+            return null;
 
         float volume;
         float pitch;
@@ -583,25 +615,32 @@ public class LinksModule extends Module implements LinksProvider {
     }
 
     /**
-     * @return {@code true} when the value is a syntactically valid {@code NAME[;volume[;pitch]]}
-     *         sound. The name itself is not checked against the vanilla registry, so custom
+     * @return {@code true} when the value is a syntactically valid
+     *         {@code NAME[;volume[;pitch]]}
+     *         sound. The name itself is not checked against the vanilla registry,
+     *         so custom
      *         resource-pack sounds pass.
      */
     public static boolean isValidSound(@NotNull String raw) {
-        if (raw.isBlank() || "none".equalsIgnoreCase(raw.trim())) return true;
+        if (raw.isBlank() || "none".equalsIgnoreCase(raw.trim()))
+            return true;
         return parseSound(raw) != null;
     }
 
     /**
-     * @return {@code true} when the name is a vanilla {@link Sound}. In this API version sounds are
-     *         an interface, not an enum, so the check goes through {@link Registry#SOUNDS} with the
+     * @return {@code true} when the name is a vanilla {@link Sound}. In this API
+     *         version sounds are
+     *         an interface, not an enum, so the check goes through
+     *         {@link Registry#SOUNDS} with the
      *         enum-style name ({@code ENTITY_PLAYER_LEVELUP}) mapped to its key
-     *         ({@code entity.player.levelup}). Namespaced or dotted names are treated as custom
+     *         ({@code entity.player.levelup}). Namespaced or dotted names are
+     *         treated as custom
      *         sounds and return {@code false} without implying they are broken.
      */
     public static boolean isVanillaSound(@NotNull String name) {
         String value = name.trim();
-        if (value.isEmpty() || value.contains(":") || value.contains(".")) return false;
+        if (value.isEmpty() || value.contains(":") || value.contains("."))
+            return false;
         NamespacedKey key = NamespacedKey.minecraft(value.toLowerCase(Locale.ROOT).replace('_', '.'));
         return Registry.SOUNDS.get(key) != null;
     }
@@ -611,8 +650,10 @@ public class LinksModule extends Module implements LinksProvider {
     }
 
     public static boolean isValidParticle(@NotNull String raw) {
-        if (raw == null || raw.isBlank() || "none".equalsIgnoreCase(raw.trim())) return true;
-        // Server-side particles are enum-only: unlike sounds, there is no custom namespace.
+        if (raw == null || raw.isBlank() || "none".equalsIgnoreCase(raw.trim()))
+            return true;
+        // Server-side particles are enum-only: unlike sounds, there is no custom
+        // namespace.
         return StringUtil.getEnum(raw.trim().toUpperCase(Locale.ROOT), org.bukkit.Particle.class).isPresent();
     }
 
@@ -640,7 +681,8 @@ public class LinksModule extends Module implements LinksProvider {
                 .with(PLACEHOLDER_PLAYER_UUID, () -> player.getUniqueId().toString())
                 .build();
 
-        // Resolved as single commands so a value containing a line break cannot split one in two.
+        // Resolved as single commands so a value containing a line break cannot split
+        // one in two.
         List<String> commands = new ArrayList<>(rawCommands.size());
         rawCommands.stream()
                 .filter(s -> s != null && !s.isBlank())
@@ -648,7 +690,8 @@ public class LinksModule extends Module implements LinksProvider {
                 .map(String::trim)
                 .filter(s -> !s.isBlank())
                 .forEach(commands::add);
-        if (commands.isEmpty()) return;
+        if (commands.isEmpty())
+            return;
 
         if (link.getExecutor() == LinkExecutor.PLAYER) {
             Players.dispatchCommands(player, commands);

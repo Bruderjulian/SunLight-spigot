@@ -42,35 +42,35 @@ public class EssentialModule extends Module {
         this.settings.load(config);
 
         if (this.settings.isInvulnerabilityEnabled()) {
-            this.commandApiRegistry.addProvider(new InvulnerabilityCommandProvider(this));
+            this.commandRegistry.addProvider(new InvulnerabilityCommandProvider(this));
         }
         if (PermissionBridge.hasProvider()) {
-            this.commandApiRegistry.addProvider(new StaffCommandProvider(this));
+            this.commandRegistry.addProvider(new StaffCommandProvider(this));
         }
 
-        this.commandApiRegistry.addProvider(new BroadcastCommandProvider(this));
-        this.commandApiRegistry.addProvider(new CondenseCommandProvider(this));
-        this.commandApiRegistry.addProvider(new DimensionCommandProvider(this));
-        this.commandApiRegistry.addProvider(new DisposalCommandProvider(this));
-        this.commandApiRegistry.addProvider(new EnchantCommandsProvider(this));
-        this.commandApiRegistry.addProvider(new ExperienceCommandsProvider(this));
-        this.commandApiRegistry.addProvider(new FlyCommandProvider(this));
-        this.commandApiRegistry.addProvider(new FlySpeedCommandProvider(this));
-        this.commandApiRegistry.addProvider(new FoodLevelCommandProvider(this));
-        this.commandApiRegistry.addProvider(new GamemodeCommandProvider(this));
+        this.commandRegistry.addProvider(new BroadcastCommandProvider(this));
+        this.commandRegistry.addProvider(new CondenseCommandProvider(this));
+        this.commandRegistry.addProvider(new DimensionCommandProvider(this));
+        this.commandRegistry.addProvider(new DisposalCommandProvider(this));
+        this.commandRegistry.addProvider(new EnchantCommandsProvider(this));
+        this.commandRegistry.addProvider(new ExperienceCommandsProvider(this));
+        this.commandRegistry.addProvider(new FlyCommandProvider(this));
+        this.commandRegistry.addProvider(new FlySpeedCommandProvider(this));
+        this.commandRegistry.addProvider(new FoodLevelCommandProvider(this));
+        this.commandRegistry.addProvider(new GamemodeCommandProvider(this));
         if (this.settings.isGodEnabled()) {
-            this.commandApiRegistry.addProvider(new GodCommandProvider(this));
+            this.commandRegistry.addProvider(new GodCommandProvider(this));
         }
-        this.commandApiRegistry.addProvider(new HatCommandProvider(this));
-        this.commandApiRegistry.addProvider(new HealthCommandProvider(this));
-        this.commandApiRegistry.addProvider(new NearCommandProvider(this));
-        this.commandApiRegistry.addProvider(new PlayerInfoCommandProvider(this));
-        this.commandApiRegistry.addProvider(new SkullCommandProvider(this));
-        this.commandApiRegistry.addProvider(new SmiteCommandProvider(this));
-        this.commandApiRegistry.addProvider(new SpeedCommandProvider(this));
-        this.commandApiRegistry.addProvider(new SuicideCommandProvider(this));
-        this.commandApiRegistry.addProvider(new TeleportCommandsProvider(this));
-        this.commandApiRegistry.addProvider(new TimeCommandProvider(this));
+        this.commandRegistry.addProvider(new HatCommandProvider(this));
+        this.commandRegistry.addProvider(new HealthCommandProvider(this));
+        this.commandRegistry.addProvider(new NearCommandProvider(this));
+        this.commandRegistry.addProvider(new PlayerInfoCommandProvider(this));
+        this.commandRegistry.addProvider(new SkullCommandProvider(this));
+        this.commandRegistry.addProvider(new SmiteCommandProvider(this));
+        this.commandRegistry.addProvider(new SpeedCommandProvider(this));
+        this.commandRegistry.addProvider(new SuicideCommandProvider(this));
+        this.commandRegistry.addProvider(new TeleportCommandsProvider(this));
+        this.commandRegistry.addProvider(new TimeCommandProvider(this));
 
         if (this.settings.isGodEnabled()) {
             UserPropertyRegistry.register(GOD);
@@ -96,7 +96,8 @@ public class EssentialModule extends Module {
     public void registerPlaceholders(PlaceholderRegistry registry) {
         if (this.settings.isGodEnabled()) {
             registry.register("essential_god_state", (player, payload) -> {
-                return CoreLang.STATE_ENABLED_DISALBED.get(this.userManager.getOrFetch(player).getPropertyOrDefault(GOD));
+                return CoreLang.STATE_ENABLED_DISALBED
+                        .get(this.userManager.getOrFetch(player).getPropertyOrDefault(GOD));
             });
 
             registry.register("essential_god_bool", (player, payload) -> {

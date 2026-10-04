@@ -87,7 +87,7 @@ public class WarpsModule extends Module {
 
         this.addAsyncTask(this::saveDirtyWarps, this.getSettings().getSaveInterval());
 
-        this.commandApiRegistry.addProvider(new WarpsCommandProvider(this));
+        this.commandRegistry.addProvider(new WarpsCommandProvider(this));
     }
 
     @Override

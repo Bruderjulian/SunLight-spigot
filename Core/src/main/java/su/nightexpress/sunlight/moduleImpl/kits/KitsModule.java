@@ -88,7 +88,7 @@ public class KitsModule extends Module {
         this.addAsyncTask(this::saveData, this.settings.getDataSaveInterval());
         this.addAsyncTask(this::saveKits, this.settings.getKitSaveInterval());
 
-        this.commandApiRegistry.addProvider(new KitsCommandProvider(this));
+        this.commandRegistry.addProvider(new KitsCommandProvider(this));
     }
 
     @Override

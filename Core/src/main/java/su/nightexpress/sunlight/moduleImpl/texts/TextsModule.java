@@ -35,7 +35,7 @@ public class TextsModule extends Module {
         this.plugin.injectLang(TextsLang.class);
 
         this.loadTexts();
-        this.commandApiRegistry.addProvider(new TextCommandProvider(this));
+        this.commandRegistry.addProvider(new TextCommandProvider(this));
 
         this.textByIdMap.values().forEach(text -> {
             NightCommand command = NightCommand.literal(this.plugin, text.getId(), builder -> builder

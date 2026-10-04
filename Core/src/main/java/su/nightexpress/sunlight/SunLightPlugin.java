@@ -83,7 +83,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
     private static SunlightAPI api;
 
     private CommandRegistry commandRegistry;
-    private su.nightexpress.sunlight.command.CommandRegistry commandApiRegistry;
     private ModuleManager moduleManager;
 
     private DataHandler dataHandler;
@@ -134,7 +133,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         CommandAPI.onEnable();
 
         this.commandRegistry = new CommandRegistry(this);
-        this.commandApiRegistry = new su.nightexpress.sunlight.command.CommandRegistry(this);
         this.moduleManager = new ModuleManager(this);
     }
 
@@ -155,7 +153,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         moduleManager.loadAll();
 
         this.commandRegistry.setup();
-        this.commandApiRegistry.setup();
         this.registerCommands();
         this.registerPermissions(Perms.ROOT);
 
@@ -180,8 +177,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
             this.dataHandler.shutdown();
         if (this.commandRegistry != null)
             this.commandRegistry.shutdown();
-        if (this.commandApiRegistry != null)
-            this.commandApiRegistry.shutdown();
     }
 
     @Override
@@ -336,10 +331,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
     public CommandRegistry commandRegistry() {
         return this.commandRegistry;
-    }
-
-    public su.nightexpress.sunlight.command.CommandRegistry commandApiRegistry() {
-        return this.commandApiRegistry;
     }
 
     public TeleportManager teleportManager() {

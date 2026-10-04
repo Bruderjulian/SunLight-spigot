@@ -115,7 +115,7 @@ public class PlayerWarpsModule extends Module {
 
         this.addAsyncTask(this::saveDirtyWarps, this.getSettings().getSaveInterval());
 
-        this.commandApiRegistry.addProvider(new PlayerWarpsCommands(this));
+        this.commandRegistry.addProvider(new PlayerWarpsCommands(this));
     }
 
     @Override

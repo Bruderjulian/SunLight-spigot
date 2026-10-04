@@ -31,7 +31,7 @@ public class PhantomsModule extends Module {
         UserPropertyRegistry.register(PhantomsProperties.ANTI_PHANTOM);
 
         this.addListener(new PhantomsListener(this.plugin, this));
-        this.commandApiRegistry.addProvider(new PhantomsCommandProvider(this));
+        this.commandRegistry.addProvider(new PhantomsCommandProvider(this));
         this.addAsyncTask(this::resetRestTime, 600); // TODO Config
     }
 

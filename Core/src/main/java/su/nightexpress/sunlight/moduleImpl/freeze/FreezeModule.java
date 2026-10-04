@@ -33,7 +33,7 @@ public class FreezeModule extends Module implements FreezeProvider {
         UserPropertyRegistry.register(FROZEN);
 
         this.addListener(new FreezeListener(this.plugin, this));
-        this.commandApiRegistry.addProvider(new FreezeCommand(this));
+        this.commandRegistry.addProvider(new FreezeCommand(this));
     }
 
     @Override

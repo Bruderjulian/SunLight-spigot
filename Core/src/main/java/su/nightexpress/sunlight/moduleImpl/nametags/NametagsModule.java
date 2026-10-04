@@ -110,11 +110,12 @@ public class NametagsModule extends Module implements NametagsProvider {
             this.logRenderBackend();
         });
 
-        this.commandApiRegistry.addProvider(new NametagsCommandProvider(this));
+        this.commandRegistry.addProvider(new NametagsCommandProvider(this));
     }
 
     /**
-     * Says where the nameplates end up, because the two supported layouts need different
+     * Says where the nameplates end up, because the two supported layouts need
+     * different
      * setup and the module is otherwise silent about which one it took.
      */
     private void logRenderBackend() {
@@ -134,8 +135,10 @@ public class NametagsModule extends Module implements NametagsProvider {
     }
 
     /**
-     * Rewrites one of TAB's own placeholder identifiers into its PlaceholderAPI form, which is
-     * what TAB-Bridge resolves on the backend. The two agree on the tail because the
+     * Rewrites one of TAB's own placeholder identifiers into its PlaceholderAPI
+     * form, which is
+     * what TAB-Bridge resolves on the backend. The two agree on the tail because
+     * the
      * PlaceholderAPI expansion is named after this plugin.
      */
     private static @NotNull String papi(@NotNull String tabPlaceholder) {
