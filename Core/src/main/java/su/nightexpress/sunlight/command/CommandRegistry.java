@@ -36,19 +36,6 @@ import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.CommandUtil;
 
-/**
- * Registry for the CommandAPI-based command system.
- * <p>
- * Providers declare subcommands via {@code register(id, builder)} and hub roots via
- * {@code registerRoot(id, builder)}, both returning a {@link CommandProvider.Node} that can be
- * decorated with {@code aliases(...)} and {@code under(...)}. A subcommand that names a root via
- * {@code under(...)} is nested under it instead of becoming a command of its own.
- * <p>
- * The {@code commands/<provider>.yml} file keeps per-node {@code enabled} / {@code aliases} /
- * {@code cooldown} / {@code cost} entries plus the same cost and cooldown semantics around
- * executors. Aliases are seeded from the Java declaration on a fresh config and authoritative
- * afterwards.
- */
 public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
   private static final int SUCCESS = 1;
@@ -79,43 +66,35 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
       this.plugin.injectLang(provider);
       provider.setup();
 
-      final Map<String, CommandProvider.Node> nodes = provider.getNodes();
-
-      // Hub roots first, so their subcommands can be attached before anything is registered.
+      // Hub roots first, so their subcommands can be attached before anything is
+      // registered.
       final Map<String, CommandAPICommand> roots = new LinkedHashMap<>();
-      for (final CommandProvider.Node node : nodes.values()) {
-        if (!node.isRoot()) {
-          continue;
-        }
-        final CommandAPICommand root = this.buildStandalone(provider, node, config);
-        if (root != null) {
-          roots.put(node.id(), root);
-        }
-      }
-
-      for (final CommandProvider.Node node : nodes.values()) {
+      for (final CommandProvider.Node node : provider.getNodes()) {
         if (node.isRoot()) {
-          continue;
-        }
-
-        if (node.roots().isEmpty()) {
-          // Never nested, so this node is a command of its own.
-          this.register(this.buildStandalone(provider, node, config));
-          continue;
-        }
-
-        for (final String rootId : node.roots()) {
-          final CommandAPICommand root = roots.get(rootId);
-          if (root == null) {
-            // The root is disabled or unknown; the node stays unavailable rather than
-            // silently leaking out as a global command.
-            this.plugin.warn("Command '%s' of '%s' is attached to the unknown root '%s'."
-                .formatted(node.id(), providerId, rootId));
-            break;
+          final CommandAPICommand root = this.buildStandalone(provider, node, config);
+          if (root != null) {
+            roots.put(node.id(), root);
           }
-          final CommandAPICommand sub = this.buildSubCommand(provider, node, config);
-          if (sub != null) {
-            root.withSubcommand(sub);
+        } else {
+          if (node.roots().isEmpty()) {
+            // Never nested, so this node is a command of its own.
+            this.register(this.buildStandalone(provider, node, config));
+            continue;
+          }
+
+          for (final String rootId : node.roots()) {
+            final CommandAPICommand root = roots.get(rootId);
+            if (root == null) {
+              // The root is disabled or unknown; the node stays unavailable rather than
+              // silently leaking out as a global command.
+              this.plugin.warn("Command '%s' of '%s' is attached to the unknown root '%s'."
+                  .formatted(node.id(), providerId, rootId));
+              break;
+            }
+            final CommandAPICommand sub = this.buildSubCommand(provider, node, config);
+            if (sub != null) {
+              root.withSubcommand(sub);
+            }
           }
         }
       }

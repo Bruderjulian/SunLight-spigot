@@ -1,9 +1,7 @@
 package su.nightexpress.sunlight.command;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -25,7 +23,7 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
     protected final T module;
     protected String id;
 
-    private final Map<String, Node> nodes;
+    private final List<Node> nodes;
 
     public CommandProvider(final T module, final String id) {
         if (id == null || id.isBlank()) {
@@ -33,7 +31,7 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         }
         this.id = Utils.lowercase(id.trim());
         this.module = module;
-        this.nodes = new LinkedHashMap<>();
+        this.nodes = new ArrayList<>();
     }
 
     public abstract void setup();
@@ -41,7 +39,8 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
     /**
      * A command node declared by a provider.
      * <p>
-     * A node is a standalone command by default. {@link #under(String...)} additionally nests it
+     * A node is a standalone command by default. {@link #under(String...)}
+     * additionally nests it
      * under the given roots, where it is reachable under its node id.
      */
     public static final class Node {
@@ -62,30 +61,41 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         }
 
         /**
-         * Declares extra names for this command. The first one replaces the node id as the primary
-         * command name, the rest are registered as additional aliases. Written to a fresh
+         * Declares extra names for this command. The first one replaces the node id as
+         * the primary
+         * command name, the rest are registered as additional aliases. Written to a
+         * fresh
          * {@code commands/<provider>.yml} and overridable there.
          */
         public Node aliases(final String... aliases) {
-            for (final String alias : aliases) {
-                if (alias == null) continue;
-                final String cleaned = Utils.lowercase(alias.trim());
-                if (cleaned.isEmpty() || cleaned.equals(this.id) || this.aliases.contains(cleaned)) continue;
-                this.aliases.add(cleaned);
+            for (String alias : aliases) {
+                if (alias == null || alias.isBlank()) {
+                    continue;
+                }
+                alias = Utils.lowercase(alias.trim());
+                if (alias.equals(this.id) || this.aliases.contains(alias)) {
+                    continue;
+                }
+                this.aliases.add(alias);
             }
             return this;
         }
 
         /**
-         * Also makes this command available as a subcommand of the given roots. The name used under
+         * Also makes this command available as a subcommand of the given roots. The
+         * name used under
          * the root is always the node id; aliases only apply to the standalone command.
          */
         public Node under(final String... roots) {
-            for (final String root : roots) {
-                if (root == null) continue;
-                final String cleaned = Utils.lowercase(root.trim());
-                if (cleaned.isEmpty() || cleaned.equals(this.id) || this.roots.contains(cleaned)) continue;
-                this.roots.add(cleaned);
+            for (String root : roots) {
+                if (root == null || root.isBlank()) {
+                    continue;
+                }
+                root = Utils.lowercase(root.trim());
+                if (root.equals(this.id) || this.roots.contains(root)) {
+                    continue;
+                }
+                this.roots.add(root);
             }
             return this;
         }
@@ -117,10 +127,12 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
     }
 
     /**
-     * Declares a subcommand. It becomes a command of its own unless it is nested under a root with
+     * Declares a subcommand. It becomes a command of its own unless it is nested
+     * under a root with
      * {@link Node#under(String...)}.
      *
-     * @param id      Node id: the config key, the name under each root, and the fallback
+     * @param id      Node id: the config key, the name under each root, and the
+     *                fallback
      *                standalone name when no alias resolves.
      * @param builder Configures the command (arguments, permission, executor).
      */
@@ -129,10 +141,12 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
     }
 
     /**
-     * Declares a hub root. Roots are always registered as commands of their own and collect the
+     * Declares a hub root. Roots are always registered as commands of their own and
+     * collect the
      * subcommands that named them via {@link Node#under(String...)}.
      *
-     * @param id      Node id: the config key and the fallback command name when no alias resolves.
+     * @param id      Node id: the config key and the fallback command name when no
+     *                alias resolves.
      * @param builder Configures the command (arguments, permission, executor).
      */
     protected Node registerRoot(final String id, final Consumer<CommandAPICommand> builder) {
@@ -140,16 +154,16 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
     }
 
     private Node addNode(final String id, final boolean root, final Consumer<CommandAPICommand> builder) {
-        if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("Command Node id cant be empty");
-        }
         if (builder == null) {
             throw new IllegalArgumentException("Command Node '" + id + "' needs a builder");
         }
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("Command Node id cant be empty");
+        }
 
         final String key = Utils.lowercase(id.trim());
-        final Node node = new Node(key, root, builder, new ArrayList<>(), new ArrayList<>());
-        this.nodes.put(key, node);
+        final Node node = new Node(key, root, builder, List.of(), List.of());
+        this.nodes.add(node);
         return node;
     }
 
@@ -157,7 +171,7 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         return this.id;
     }
 
-    public Map<String, Node> getNodes() {
+    public List<Node> getNodes() {
         return this.nodes;
     }
 
