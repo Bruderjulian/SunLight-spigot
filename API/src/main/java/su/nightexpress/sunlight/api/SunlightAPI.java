@@ -6,6 +6,8 @@ import su.nightexpress.sunlight.api.provider.GlowProvider;
 import su.nightexpress.sunlight.api.provider.LinksProvider;
 import su.nightexpress.sunlight.api.provider.NametagsProvider;
 import su.nightexpress.sunlight.api.provider.NickProvider;
+import su.nightexpress.sunlight.api.provider.PlaytimeProvider;
+import su.nightexpress.sunlight.api.provider.ProfilesProvider;
 import su.nightexpress.sunlight.api.provider.ReportsProvider;
 import su.nightexpress.sunlight.api.provider.SocialsProvider;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
@@ -25,6 +27,10 @@ public interface SunlightAPI {
      Optional<? extends NametagsProvider> nametagsProvider();
 
      Optional<? extends NickProvider> nickProvider();
+
+     Optional<? extends PlaytimeProvider> playtimeProvider();
+
+     Optional<? extends ProfilesProvider> profilesProvider();
 
      Optional<? extends ReportsProvider> reportsProvider();
 

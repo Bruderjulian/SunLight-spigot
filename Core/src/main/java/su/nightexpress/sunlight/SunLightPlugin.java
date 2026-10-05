@@ -26,6 +26,8 @@ import su.nightexpress.sunlight.api.provider.GlowProvider;
 import su.nightexpress.sunlight.api.provider.LinksProvider;
 import su.nightexpress.sunlight.api.provider.NametagsProvider;
 import su.nightexpress.sunlight.api.provider.NickProvider;
+import su.nightexpress.sunlight.api.provider.ProfilesProvider;
+import su.nightexpress.sunlight.api.provider.PlaytimeProvider;
 import su.nightexpress.sunlight.api.provider.ReportsProvider;
 import su.nightexpress.sunlight.api.provider.SocialsProvider;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
@@ -55,6 +57,7 @@ import su.nightexpress.sunlight.moduleImpl.nerfphantoms.PhantomsModule;
 import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsModule;
 import su.nightexpress.sunlight.moduleImpl.playtime.PlaytimeModule;
+import su.nightexpress.sunlight.moduleImpl.profiles.ProfilesModule;
 import su.nightexpress.sunlight.moduleImpl.ptp.PTPModule;
 // TEMP
 import su.nightexpress.sunlight.moduleImpl.rtp.RTPModule;
@@ -236,6 +239,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("nick", "Nick", NickModule::new);
         manager.register("playerwarps", "Player Warps", PlayerWarpsModule::new);
         manager.register("playtime", "Playtime", PlaytimeModule::new);
+        manager.register("profiles", "Profiles", ProfilesModule::new);
         manager.register("ptp", "PTP", PTPModule::new);
         manager.register("rtp", "RTP", RTPModule::new);
         manager.register("reports", "Reports", ReportsModule::new);
@@ -372,6 +376,18 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
     public Optional<? extends GlowProvider> glowProvider() {
         return this.moduleManager.getByType(GlowModule.class);
+    }
+
+    @Override
+
+    public Optional<? extends PlaytimeProvider> playtimeProvider() {
+        return this.moduleManager.getByType(PlaytimeModule.class);
+    }
+
+    @Override
+
+    public Optional<? extends ProfilesProvider> profilesProvider() {
+        return this.moduleManager.getByType(ProfilesModule.class);
     }
 
     @Override

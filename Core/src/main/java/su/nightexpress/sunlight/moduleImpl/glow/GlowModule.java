@@ -118,4 +118,12 @@ public class GlowModule extends Module implements GlowProvider {
         return color == null ? null : color.toString();
     }
 
+    /**
+     * Re-applies the player's stored glow effect. Used after profile switches,
+     * which swap the underlying {@code glow*} properties directly.
+     */
+    public void refresh(final Player player) {
+        handler.applyGlow(player);
+    }
+
 }
