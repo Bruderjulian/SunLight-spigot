@@ -2,6 +2,7 @@ package su.nightexpress.sunlight.command;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import dev.jorel.commandapi.SuggestionInfo;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.CustomArgument;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.executors.CommandArguments;
@@ -19,6 +21,7 @@ import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.sunlight.module.Module;
+import su.nightexpress.sunlight.moduleImpl.playtime.model.PlaytimePeriod;
 
 public final class CommandArgumentConstants {
 
@@ -52,7 +55,7 @@ public final class CommandArgumentConstants {
     public static final String FLAG_SILENT = "-s";
     public static final String FLAG_SILENT_LONG = "--silent";
     public static final String FLAG_FORCE = "-f";
-    
+
     private CommandArgumentConstants() {
     }
 
@@ -68,6 +71,18 @@ public final class CommandArgumentConstants {
 
     public static List<String> onlinePlayerNames() {
         return Bukkit.getOnlinePlayers().stream().map(Player::getName).sorted().toList();
+    }
+
+    public static Argument<PlaytimePeriod> periodArgument() {
+        return new CustomArgument<PlaytimePeriod, String>(new StringArgument("period"), info -> {
+            try {
+                return PlaytimePeriod.valueOf(info.currentInput().toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                CoreLang.COMMAND_SYNTAX_GENERIC_ERROR.value().sendWith(info.sender(), replacer -> replacer
+                        .with("argument", () -> info.currentInput()));
+                return null;
+            }
+        }).replaceSuggestions(ArgumentSuggestions.strings(info -> Utils.getEnumNamesArray(PlaytimePeriod.class)));
     }
 
     /**

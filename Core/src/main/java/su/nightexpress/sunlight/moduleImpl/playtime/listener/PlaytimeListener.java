@@ -24,14 +24,22 @@ public class PlaytimeListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        SunUser user = this.module.userManager().getOrFetch(player);
-        this.module.startSession(user);
+        try {
+            SunUser user = this.module.userManager().getOrFetch(player);
+            if (user == null) return;
+            this.module.startSession(user);
+        } catch (Exception ignored) {
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        SunUser user = this.module.userManager().getOrFetch(player);
-        user.setProperty(PlaytimeProperties.LAST_SEEN, System.currentTimeMillis());
+        try {
+            SunUser user = this.module.userManager().getOrFetch(player);
+            if (user == null) return;
+            user.setProperty(PlaytimeProperties.LAST_SEEN, System.currentTimeMillis());
+        } catch (Exception ignored) {
+        }
     }
 }

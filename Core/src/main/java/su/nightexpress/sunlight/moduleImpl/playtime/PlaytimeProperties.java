@@ -27,6 +27,8 @@ public class PlaytimeProperties {
     public static final UserProperty<Long> GOAL_DAY = UserProperty.create("playtime_goal_day", Long.class, 0L, true);
     public static final UserProperty<Long> GOAL_WEEK = UserProperty.create("playtime_goal_week", Long.class, 0L, true);
     public static final UserProperty<Long> GOAL_MONTH = UserProperty.create("playtime_goal_month", Long.class, 0L, true);
+    public static final UserProperty<Long> GOAL_YEAR = UserProperty.create("playtime_goal_year", Long.class, 0L,true);
+    public static final UserProperty<Long> GOAL_ALLTIME = UserProperty.create("playtime_goal_alltime", Long.class, 0L, true);
 
     public static final UserProperty<Long> REWARDED_DAY_KEY = UserProperty.create("playtime_rewarded_day_key", Long.class, 0L, true);
     public static final UserProperty<Long> REWARDED_WEEK_KEY = UserProperty.create("playtime_rewarded_week_key", Long.class, 0L, true);

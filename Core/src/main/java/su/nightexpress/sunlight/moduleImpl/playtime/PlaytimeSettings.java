@@ -31,6 +31,14 @@ public class PlaytimeSettings extends AbstractConfig {
             600L,
             "Sets how often (in game ticks) the /playtop leaderboard cache is rebuilt. [1 second = 20 ticks]");
 
+    private final ConfigProperty<Long> topDbScanInterval = this.addProperty(ConfigTypes.LONG,
+            "Playtime.Top.Database-Scan-Interval",
+            12000L,
+            "Sets how often (in game ticks) the leaderboard scans the whole database.",
+            "Live players refresh every Refresh-Interval above; offline players are merged in",
+            "at most this often, and only when the leaderboard was actually requested.",
+            "[1 second = 20 ticks, 12000 = 10 minutes]");
+
     private final ConfigProperty<Integer> goalMinMinutes = this.addProperty(ConfigTypes.INT,
             "Playtime.Goals.Override.Min-Minutes",
             1,
@@ -124,6 +132,10 @@ public class PlaytimeSettings extends AbstractConfig {
 
     public long getTopRefreshInterval() {
         return Math.max(20L, this.topRefreshInterval.get());
+    }
+
+    public long getTopDbScanInterval() {
+        return Math.max(600L, this.topDbScanInterval.get());
     }
 
     public long getDailyGoalMs() {
