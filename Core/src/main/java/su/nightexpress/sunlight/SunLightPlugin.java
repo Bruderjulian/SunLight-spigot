@@ -54,6 +54,7 @@ import su.nightexpress.sunlight.moduleImpl.nametags.NametagsModule;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.PhantomsModule;
 import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
 import su.nightexpress.sunlight.moduleImpl.playerwarps.PlayerWarpsModule;
+import su.nightexpress.sunlight.moduleImpl.playtime.PlaytimeModule;
 import su.nightexpress.sunlight.moduleImpl.ptp.PTPModule;
 // TEMP
 import su.nightexpress.sunlight.moduleImpl.rtp.RTPModule;
@@ -234,6 +235,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
                 LoadCondition::tabOrBridge);
         manager.register("nick", "Nick", NickModule::new);
         manager.register("playerwarps", "Player Warps", PlayerWarpsModule::new);
+        manager.register("playtime", "Playtime", PlaytimeModule::new);
         manager.register("ptp", "PTP", PTPModule::new);
         manager.register("rtp", "RTP", RTPModule::new);
         manager.register("reports", "Reports", ReportsModule::new);

@@ -213,8 +213,14 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     if (this.settings.isConflictUnregisterEnabled()) {
       this.unregisterConflict(name, false);
     }
-    CommandAPI.unregister(name, true);
-    command.register("sunlight");
+    try {
+      CommandAPI.unregister(name, true);
+      command.register("sunlight");
+    } catch (final Exception e) {
+      this.plugin.warn("Failed to register command '/%s': %s".formatted(name, e.getMessage()));
+      e.printStackTrace();
+      return;
+    }
 
     final CommandAPICommand previous = this.commands.put(name, command);
     if (previous != null) {
@@ -269,6 +275,11 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
       this.provider = provider;
       this.cooldown = cooldown;
       this.cost = cost;
+    }
+
+    @Override
+    public boolean hasAnyExecutors() {
+      return true;
     }
 
     @Override
