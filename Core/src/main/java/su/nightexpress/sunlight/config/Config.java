@@ -20,4 +20,9 @@ public class Config extends AbstractConfig {
             "Console",
             "Sets name for the console command sender.",
             "Used in some messages when you send private messages, execute bans, and other actions from console.");
+
+    public static final ConfigValue<String> COMBAT_HOOK = ConfigValue.create("Combat.Hook",
+            "auto",
+            "Sets the shared combat-tag source used by all modules: 'auto', 'pvpmanager', 'combatlogx' or 'none'.",
+            "'auto' uses PvPManager when present, otherwise CombatLogX.");
 }

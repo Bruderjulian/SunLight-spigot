@@ -15,6 +15,9 @@ public class HookId {
     public static final String ULTIMATE_TEAMS = "UltimateTeams";
     public static final String LUCKPERMS = "LuckPerms";
 
+    public static final String PVP_MANAGER = "PvPManager";
+    public static final String COMBAT_LOG_X = "CombatLogX";
+
     public static boolean hasDiscordSRV() {
         return Utils.isInstalled(DISCORD_SRV);
     }
@@ -46,5 +49,13 @@ public class HookId {
 
     public static boolean hasLuckPerms() {
         return Utils.isLoaded(LUCKPERMS);
+    }
+
+    public static boolean hasPvPManager() {
+        return Utils.isLoaded(PVP_MANAGER);
+    }
+
+    public static boolean hasCombatLogX() {
+        return Utils.isLoaded(COMBAT_LOG_X);
     }
 }

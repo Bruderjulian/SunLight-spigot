@@ -583,10 +583,20 @@ public class ChatModule extends Module {
 
         Player online = Utils.getPlayer(recipient.id());
         if (online != null) {
-            this.sendPrivateMessage(sender, online, message);
-            return;
+            // Instant delivery as a private message. When it can not be
+            // delivered (opt-out, cancelled), fall back to stored mail so the
+            // message is never silently lost.
+            if (this.sendPrivateMessage(sender, online, message)) {
+                this.sendPrefixed(ChatLang.MAIL_SEND_SUCCESS, sender,
+                        builder -> builder.with(SLPlaceholders.GENERIC_NAME, recipient::name));
+                return;
+            }
         }
 
+        this.storeMail(sender, recipient, message);
+    }
+
+    private void storeMail(Player sender, UserInfo recipient, String message) {
         CompletableFuture.supplyAsync(() -> {
             List<MailData> inbox = this.mailDataManager.getMails(recipient.id());
             int max = this.settings.getMailMaxInbox();

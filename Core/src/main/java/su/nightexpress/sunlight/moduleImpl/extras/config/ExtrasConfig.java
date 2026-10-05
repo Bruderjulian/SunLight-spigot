@@ -4,13 +4,8 @@ import org.bukkit.Material;
 import su.nightexpress.nightcore.config.ConfigValue;
 import su.nightexpress.nightcore.util.*;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.moduleImpl.extras.chestsort.SortRule;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ExtrasConfig {
 
@@ -58,47 +53,6 @@ public class ExtrasConfig {
         true,
         "Sets whether or not Physic Explosions feature is enabled.",
         "This will make blocks flying away on explosions.");
-
-    public static final ConfigValue<Boolean> CHAIRS_ENABLED = ConfigValue.create("Chairs.Enabled",
-        true,
-        "Sets whether or not Chairs feature is enabled.");
-
-    public static final ConfigValue<Boolean> CHAIRS_ALLOW_STAIRS = ConfigValue.create("Chairs.Allow_Stairs",
-        true,
-        "Sets whether or not Stair blocks can be used as chairs."
-    );
-
-    public static final ConfigValue<Boolean> CHAIRS_ALLOW_SLABS = ConfigValue.create("Chairs.Allow_Slabs",
-        true,
-        "Sets whether or not Slab blocks can be used as chairs."
-    );
-
-    public static final ConfigValue<Boolean> CHAIRS_ALLOW_CARPETS = ConfigValue.create("Chairs.Allow_Carpets",
-        true,
-        "Sets whether or not Carpet blocks can be used as chairs."
-    );
-
-    public static final ConfigValue<Set<Material>> CHAIRS_CUSTOM_BLOCKS = ConfigValue.forSet("Chairs.Allowed_Blocks",
-        BukkitThing::getMaterial,
-        (cfg, path, set) -> cfg.set(path, set.stream().map(BukkitThing::toString).toList()),
-        () -> Lists.newSet(Material.PLAYER_HEAD, Material.PUMPKIN, Material.MELON),
-        "Here you can add your own chairs blocks."
-    );
-
-    public static final ConfigValue<Boolean> CHEST_SORT_ENABLED = ConfigValue.create("ChestSort.Enabled",
-        true,
-        "Sets whether or not Chest Sort feature is enabled.");
-
-    public static final ConfigValue<List<SortRule>> CHEST_SORT_RULES = ConfigValue.create("ChestSort.Rules",
-        (cfg, path, def) -> {
-            return cfg.getStringList(path).stream().map(str -> StringUtil.getEnum(str, SortRule.class).orElse(null))
-                .filter(Objects::nonNull).collect(Collectors.toCollection(ArrayList::new));
-        },
-        (cfg, path, list) -> cfg.set(path, list.stream().map(Enum::name).toList()),
-        () -> Lists.newList(SortRule.values()),
-        "List of sorting order & rules.",
-        "Available values: " + StringUtil.inlineEnum(SortRule.class, ", ")
-    );
 
     public static final ConfigValue<Boolean> ANTI_FARM_ENDERMITE_MINECART = ConfigValue.create("AntiFarm.Endermite_Minecart",
         false,
