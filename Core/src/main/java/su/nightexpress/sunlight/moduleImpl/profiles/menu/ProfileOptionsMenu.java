@@ -123,13 +123,13 @@ public class ProfileOptionsMenu extends AbstractMenu {
         infoLore.add(GRAY.wrap("Status: " + WHITE.wrap(active ? "active" : "inactive")));
         infoIcon.setDisplayName(YELLOW.wrap(profile.getName())).setLore(infoLore);
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(infoIcon, ctx -> {})
             .slots(SLOT_INFO)
             .build());
 
         if (!active) {
-            list.add(MenuItem.builder()
+            list.add(MenuItem.button()
                 .defaultState(NightItem.fromType(Material.LIME_DYE)
                         .setDisplayName(GREEN.wrap("Switch"))
                         .setLore(List.of(GRAY.wrap("Play on this profile."))),
@@ -147,7 +147,7 @@ public class ProfileOptionsMenu extends AbstractMenu {
 
         if (this.module.getSettings().isRenameAllowed()
             && context.getPlayer().hasPermission(ProfilesPerms.COMMAND_RENAME)) {
-            list.add(MenuItem.builder()
+            list.add(MenuItem.button()
                 .defaultState(NightItem.fromType(Material.NAME_TAG)
                         .setDisplayName(YELLOW.wrap("Rename"))
                         .setLore(List.of(GRAY.wrap("Change the profile name."))),
@@ -157,7 +157,7 @@ public class ProfileOptionsMenu extends AbstractMenu {
                 .build());
         }
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.PAINTING)
                     .setDisplayName(YELLOW.wrap("Icon"))
                     .setLore(List.of(GRAY.wrap("Change the menu icon."))),
@@ -166,7 +166,7 @@ public class ProfileOptionsMenu extends AbstractMenu {
             .slots(SLOT_ICON)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.WRITABLE_BOOK)
                     .setDisplayName(YELLOW.wrap("Description"))
                     .setLore(List.of(GRAY.wrap("Change the menu description."))),
@@ -175,7 +175,7 @@ public class ProfileOptionsMenu extends AbstractMenu {
             .slots(SLOT_DESCRIBE)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.RED_DYE)
                     .setDisplayName(RED.wrap("Delete"))
                     .setLore(List.of(
@@ -185,7 +185,7 @@ public class ProfileOptionsMenu extends AbstractMenu {
             .slots(SLOT_DELETE)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.ARROW)
                     .setDisplayName(GRAY.wrap("Back"))
                     .setLore(List.of(GRAY.wrap("Back to your profiles."))),

@@ -122,7 +122,7 @@ public class AdminProfileMenu extends AbstractMenu {
             player -> this.openListField(player, profile, "profile_worlds", NametagsLang.MENU_FIELD_WORLDS.text(),
                 new ArrayList<>(profile.getWorlds()), values -> profile.setWorlds(new ArrayList<>(values)))));
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.COMPARATOR)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_PRIORITY.text()))
                     .setLore(List.of(
@@ -135,7 +135,7 @@ public class AdminProfileMenu extends AbstractMenu {
             .slots(SLOT_PRIORITY)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.PLAYER_HEAD)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_RANK.text()))
                     .setLore(List.of(
@@ -146,7 +146,7 @@ public class AdminProfileMenu extends AbstractMenu {
             .slots(SLOT_RANK)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.PAPER)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_TAG.text()))
                     .setLore(List.of(
@@ -177,7 +177,7 @@ public class AdminProfileMenu extends AbstractMenu {
 
     private @NotNull MenuItem textItem(int slot, @NotNull Material icon, @NotNull String value,
             @NotNull String description, @NotNull Consumer<Player> action) {
-        return MenuItem.builder()
+        return MenuItem.button()
             .defaultState(NightItem.fromType(icon)
                     .setDisplayName(WHITE.wrap(value.isBlank() ? NametagsLang.MENU_VALUE_NONE.text() : value))
                     .setLore(List.of(description, "", GRAY.wrap(NametagsLang.MENU_CLICK_EDIT.text()))),

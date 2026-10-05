@@ -102,13 +102,13 @@ public class ProfileConfirmMenu extends AbstractMenu {
             return;
         }
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(this.head(player, from == null ? "?" : from.getName(), GRAY.wrap("Current profile")),
                 ctx -> {})
             .slots(SLOT_FROM)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(this.head(player, to.getName(), GREEN.wrap("Switch to this profile")),
                 ctx -> {})
             .slots(SLOT_TO)
@@ -133,7 +133,7 @@ public class ProfileConfirmMenu extends AbstractMenu {
         confirmLore.add("");
         confirmLore.add(GREEN.wrap("→ " + UNDERLINED.wrap("Click to confirm")));
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.LIME_DYE)
                     .setDisplayName(GREEN.wrap("Confirm Switch"))
                     .setLore(confirmLore),
@@ -144,7 +144,7 @@ public class ProfileConfirmMenu extends AbstractMenu {
             .slots(SLOT_CONFIRM)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.RED_DYE)
                     .setDisplayName(RED.wrap("Cancel"))
                     .setLore(List.of(GRAY.wrap("Stay on your current profile."))),

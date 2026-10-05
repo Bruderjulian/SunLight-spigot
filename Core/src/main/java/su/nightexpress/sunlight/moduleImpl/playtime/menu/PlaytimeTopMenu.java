@@ -113,7 +113,7 @@ public class PlaytimeTopMenu extends AbstractMenu {
                 list.add(this.entryItem(entry, index + 1, viewer.getUniqueId(), FIRST_SLOT + index - fromIndex));
             }
         } else {
-            list.add(MenuItem.builder()
+            list.add(MenuItem.button()
                 .defaultState(NightItem.fromType(Material.BARRIER)
                     .setDisplayName(GRAY.wrap("No entries yet"))
                     .setLore(List.of(GRAY.wrap("Play for a while and come back!")))
@@ -122,7 +122,7 @@ public class PlaytimeTopMenu extends AbstractMenu {
                 .build());
         }
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BOOK)
                 .setDisplayName(GOLD.wrap(PlaytimeLang.MENU_BUTTON_STATS.text()))
                 .setLore(List.of(GRAY.wrap("Back to your statistics."), "", GOLD.wrap("→ " + UNDERLINED.wrap("Click to open."))))
@@ -134,7 +134,7 @@ public class PlaytimeTopMenu extends AbstractMenu {
             .slots(40)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BARRIER)
                 .setDisplayName(GRAY.wrap(PlaytimeLang.MENU_BUTTON_CLOSE.text()))
                 .hideAllComponents(),
@@ -151,7 +151,7 @@ public class PlaytimeTopMenu extends AbstractMenu {
         lore.add("");
         lore.add(selected ? GREEN.wrap("Currently selected.") : GOLD.wrap("→ " + UNDERLINED.wrap("Click to select.")));
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(icon)
                 .setDisplayName((selected ? GOLD : GRAY).wrap(label))
                 .setLore(lore)
@@ -186,7 +186,7 @@ public class PlaytimeTopMenu extends AbstractMenu {
             icon.setSkullOwner(Bukkit.getOfflinePlayer(entry.id()));
         } catch (Exception ignored) {
         }
-        return MenuItem.builder().defaultState(icon).slots(slot).build();
+        return MenuItem.button().defaultState(icon).slots(slot).build();
     }
 
     private String periodLabel(PlaytimePeriod period) {

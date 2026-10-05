@@ -70,8 +70,8 @@ public class ProfileListMenu extends AbstractMenu {
     public void defineDefaultLayout() {
         this.addBackgroundItem(Material.GRAY_STAINED_GLASS_PANE, IntStream.range(0, 36).toArray());
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, 37, 38, 39, 42, 43);
-        this.addNextPageItem(Material.ARROW, SLOT_NEXT);
-        this.addPreviousPageItem(Material.ARROW, SLOT_PREV);
+        this.addNextPageButton(SLOT_NEXT);
+        this.addPreviousPageButton(SLOT_PREV);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class ProfileListMenu extends AbstractMenu {
             for (int index = fromIndex; index < toIndex; index++) {
                 PlayerProfile profile = profiles.get(index);
                 boolean active = profile.getId().equals(activeId);
-                list.add(MenuItem.builder()
+                list.add(MenuItem.button()
                     .defaultState(this.profileIcon(player, profile, manager, active),
                         ctx -> this.onClickProfile(ctx.getPlayer(), profile, ctx.getEvent().getClick() == ClickType.RIGHT))
                     .slots(index - fromIndex)
@@ -120,7 +120,7 @@ public class ProfileListMenu extends AbstractMenu {
             }
         }
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.EMERALD)
                     .setDisplayName(GREEN.wrap("New Profile"))
                     .setLore(List.of(
@@ -135,7 +135,7 @@ public class ProfileListMenu extends AbstractMenu {
             .slots(SLOT_CREATE)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BARRIER)
                     .setDisplayName(RED.wrap("Close"))
                     .setLore(List.of(GRAY.wrap("Close this menu."))),

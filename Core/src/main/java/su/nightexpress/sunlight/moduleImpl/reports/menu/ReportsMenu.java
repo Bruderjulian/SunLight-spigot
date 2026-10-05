@@ -77,8 +77,8 @@ public class ReportsMenu extends AbstractObjectMenu<ReportsMenu.Data> {
 
     @Override
     public void defineDefaultLayout() {
-        this.addNextPageItem(Material.ARROW, 41);
-        this.addPreviousPageItem(Material.ARROW, 39);
+        this.addNextPageButton(41);
+        this.addPreviousPageButton(39);
 
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(0, 9).toArray());
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(36, 45).toArray());

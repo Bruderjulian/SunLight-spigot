@@ -126,7 +126,7 @@ public class AdminRankMenu extends AbstractMenu {
             player -> this.openField(player, rank, "rank_icon", NametagsLang.MENU_FIELD_ICON.text(),
                 rank.getIconMaterial(), RankDefinition::setIconMaterial)));
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.COMPARATOR)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_PRIORITY.text()))
                     .setLore(List.of(
@@ -144,7 +144,7 @@ public class AdminRankMenu extends AbstractMenu {
             player -> this.openListField(player, rank, "rank_groups", NametagsLang.MENU_FIELD_GROUPS.text(),
                 new ArrayList<>(rank.getRanks()), values -> rank.setRanks(new LinkedHashSet<>(values)))));
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.NAME_TAG)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_DEFAULT.text()))
                     .setLore(List.of(
@@ -164,7 +164,7 @@ public class AdminRankMenu extends AbstractMenu {
 
     private @NotNull MenuItem textItem(int slot, @NotNull Material icon, @NotNull String value,
             @NotNull String description, @NotNull Consumer<Player> action) {
-        return MenuItem.builder()
+        return MenuItem.button()
             .defaultState(NightItem.fromType(icon)
                     .setDisplayName(WHITE.wrap(value.isBlank() ? NametagsLang.MENU_VALUE_NONE.text() : value))
                     .setLore(List.of(description, "", GRAY.wrap(NametagsLang.MENU_CLICK_EDIT.text()))),

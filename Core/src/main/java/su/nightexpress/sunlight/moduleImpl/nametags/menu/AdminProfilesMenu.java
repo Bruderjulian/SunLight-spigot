@@ -63,8 +63,8 @@ public class AdminProfilesMenu extends AbstractMenu {
     @Override
     public void defineDefaultLayout() {
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, 36, 37, 38, 39, 42, 43, 44);
-        this.addNextPageItem(Material.ARROW, 39);
-        this.addPreviousPageItem(Material.ARROW, 36);
+        this.addNextPageButton(39);
+        this.addPreviousPageButton(36);
     }
 
     @Override
@@ -116,7 +116,7 @@ public class AdminProfilesMenu extends AbstractMenu {
             lore.add("");
             lore.add(GRAY.wrap(NametagsLang.MENU_RIGHT_CLICK_DELETE.text()));
 
-            list.add(MenuItem.builder()
+            list.add(MenuItem.button()
                 .defaultState(NightItem.fromType(icon == null ? Material.NAME_TAG : icon)
                         .setDisplayName(profile.getDisplay())
                         .setLore(lore),
@@ -126,7 +126,7 @@ public class AdminProfilesMenu extends AbstractMenu {
                 .build());
         }
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.LIME_DYE)
                     .setDisplayName(GREEN.wrap(NametagsLang.MENU_CREATE_PROFILE.text()))
                     .setLore(List.of(GRAY.wrap(NametagsLang.MENU_CREATE_PROFILE_HINT.text()))),
@@ -134,7 +134,7 @@ public class AdminProfilesMenu extends AbstractMenu {
             .slots(SLOT_CREATE)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BARRIER)
                     .setDisplayName(RED.wrap(NametagsLang.MENU_CLOSE.text()))
                     .setLore(List.of(GRAY.wrap(NametagsLang.MENU_CLICK_CLOSE.text()))),

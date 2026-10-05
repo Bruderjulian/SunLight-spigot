@@ -85,7 +85,7 @@ public class AdminMainMenu extends AbstractMenu {
 
     @Override
     public void onPrepare(ViewerContext context, InventoryView view, Inventory inventory, List<MenuItem> list) {
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.NAME_TAG)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_HUB_TAGS.text()))
                     .setLore(List.of(
@@ -97,7 +97,7 @@ public class AdminMainMenu extends AbstractMenu {
             .slots(SLOT_TAGS)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.PLAYER_HEAD)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_HUB_RANKS.text()))
                     .setLore(List.of(
@@ -109,7 +109,7 @@ public class AdminMainMenu extends AbstractMenu {
             .slots(SLOT_RANKS)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BOOK)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_HUB_PROFILES.text()))
                     .setLore(List.of(
@@ -121,7 +121,7 @@ public class AdminMainMenu extends AbstractMenu {
             .slots(SLOT_PROFILES)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BARRIER)
                     .setDisplayName(RED.wrap(NametagsLang.MENU_CLOSE.text()))
                     .setLore(List.of(GRAY.wrap(NametagsLang.MENU_CLICK_CLOSE.text()))),

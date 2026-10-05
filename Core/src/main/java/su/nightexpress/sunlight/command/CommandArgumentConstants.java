@@ -46,6 +46,7 @@ public final class CommandArgumentConstants {
     public static final String INDEX = "index";
 
     public static final String TARGET = "target";
+    public static final String DESTINATION = "destination";
     public static final String INET_ADDRESS = "address";
     public static final String POSITION = "position";
     public static final String X = "x";

@@ -123,7 +123,7 @@ public class GlowMenu extends AbstractMenu {
                         .setDisplayName(effect.getName())
                         .setLore(this.buildLore(effect, hasAccess, isSelected));
 
-                list.add(MenuItem.builder()
+                list.add(MenuItem.button()
                         .defaultState(icon,
                                 actionContext -> this.onEffectClick(actionContext.getPlayer(), effect, hasAccess))
                         .slots(FIRST_SLOT + index - fromIndex)
@@ -139,7 +139,7 @@ public class GlowMenu extends AbstractMenu {
                                 "",
                                 GOLD.wrap("→ " + UNDERLINED.wrap("Click to remove your glow.")))
                         : List.of(GRAY.wrap("You have no glow selected.")));
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
                 .defaultState(disableIcon, actionContext -> {
                     final Player clicker = actionContext.getPlayer();
                     this.module.handler().setEffect(clicker, null);
@@ -154,7 +154,7 @@ public class GlowMenu extends AbstractMenu {
                 .setLore(hasSelection
                         ? List.of(GRAY.wrap("Click to turn your glow " + (enabled ? "off." : "on.")))
                         : List.of(SOFT_RED.wrap("Select a color first.")));
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
                 .defaultState(toggleIcon, actionContext -> {
                     final Player clicker = actionContext.getPlayer();
                     final boolean next = !this.module.handler().isGlowEnabled(clicker);
@@ -172,7 +172,7 @@ public class GlowMenu extends AbstractMenu {
 
         final NightItem closeIcon = NightItem.fromType(Material.BARRIER)
                 .setDisplayName(GRAY.wrap("Close"));
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
                 .defaultState(closeIcon, actionContext -> actionContext.getViewer().closeMenu())
                 .slots(SLOT_CLOSE)
                 .build());

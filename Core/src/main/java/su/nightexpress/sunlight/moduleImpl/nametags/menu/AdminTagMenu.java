@@ -130,7 +130,7 @@ public class AdminTagMenu extends AbstractMenu {
             player -> this.openField(player, tag, "permission", NametagsLang.MENU_FIELD_PERMISSION.text(),
                 tag.getPermission(), TagDefinition::setPermission)));
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BOOK)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_ACCESS_MODE.text()))
                     .setLore(List.of(
@@ -140,7 +140,7 @@ public class AdminTagMenu extends AbstractMenu {
             .slots(SLOT_ACCESS)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.PLAYER_HEAD)
                     .setDisplayName(GOLD.wrap(NametagsLang.MENU_FIELD_PRICE.text()))
                     .setLore(List.of(
@@ -154,7 +154,7 @@ public class AdminTagMenu extends AbstractMenu {
             .slots(SLOT_PRICE)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.CLOCK)
                     .setDisplayName(LIGHT_PURPLE.wrap(NametagsLang.MENU_FIELD_PERIOD.text()))
                     .setLore(List.of(
@@ -166,7 +166,7 @@ public class AdminTagMenu extends AbstractMenu {
             .slots(SLOT_PERIOD)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.EMERALD)
                     .setDisplayName(WHITE.wrap(NametagsLang.MENU_FIELD_PRICE_MODE.text()))
                     .setLore(List.of(
@@ -180,7 +180,7 @@ public class AdminTagMenu extends AbstractMenu {
             .slots(SLOT_PRICE_MODE)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BLAZE_POWDER)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_GLOW.text()))
                     .setLore(List.of(
@@ -191,7 +191,7 @@ public class AdminTagMenu extends AbstractMenu {
             .slots(SLOT_GLOW)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.COMPARATOR)
                     .setDisplayName(YELLOW.wrap(NametagsLang.MENU_FIELD_SORT.text()))
                     .setLore(List.of(
@@ -207,7 +207,7 @@ public class AdminTagMenu extends AbstractMenu {
 
     private @NotNull MenuItem textItem(int slot, @NotNull Material icon, @NotNull String value,
             @NotNull String description, @NotNull java.util.function.Consumer<Player> action) {
-        return MenuItem.builder()
+        return MenuItem.button()
             .defaultState(NightItem.fromType(icon)
                     .setDisplayName(WHITE.wrap(value.isBlank() ? NametagsLang.MENU_VALUE_NONE.text() : value))
                     .setLore(List.of(description, "", GRAY.wrap(NametagsLang.MENU_CLICK_EDIT.text()))),

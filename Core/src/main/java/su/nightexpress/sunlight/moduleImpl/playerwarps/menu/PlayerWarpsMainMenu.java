@@ -125,8 +125,8 @@ public class PlayerWarpsMainMenu extends AbstractMenu implements LangContainer {
                 this.addBackgroundItem(Material.GRAY_STAINED_GLASS_PANE, IntStream.range(19, 26).toArray());
                 this.addBackgroundItem(Material.GRAY_STAINED_GLASS_PANE, IntStream.range(28, 35).toArray());
 
-                this.addDefaultButton("view_own", MenuItem.builder()
-                                .defaultState(ItemState.defaultBuilder()
+                this.addDefaultButton("view_own", MenuItem.button()
+                                .defaultState(ItemState.builder()
                                                 .icon(NightItem.fromType(Material.PLAYER_HEAD)
                                                                 .setDisplayName(GREEN.and(BOLD).wrap("View Own Warps"))
                                                                 .setLore(Lists.newList(
@@ -153,8 +153,8 @@ public class PlayerWarpsMainMenu extends AbstractMenu implements LangContainer {
                                 .slots(45)
                                 .build());
 
-                this.addDefaultButton("view_all", MenuItem.builder()
-                                .defaultState(ItemState.defaultBuilder()
+                this.addDefaultButton("view_all", MenuItem.button()
+                                .defaultState(ItemState.builder()
                                                 .icon(NightItem.fromType(Material.ENDER_EYE)
                                                                 .setDisplayName(GREEN.and(BOLD).wrap("View All Warps"))
                                                                 .setLore(Lists.newList(
@@ -252,8 +252,8 @@ public class PlayerWarpsMainMenu extends AbstractMenu implements LangContainer {
                         if (inventorySlot >= inventory.getSize())
                                 return;
 
-                        items.add(MenuItem.builder()
-                                        .defaultState(ItemState.defaultBuilder()
+                        items.add(MenuItem.button()
+                                        .defaultState(ItemState.builder()
                                                         .icon(warp.getIcon()
                                                                         .localized(ICON_FEATURED_WARP)
                                                                         .replace(builder -> builder
@@ -283,8 +283,8 @@ public class PlayerWarpsMainMenu extends AbstractMenu implements LangContainer {
                                 if (usedSlots.contains(inventorySlot))
                                         continue;
 
-                                items.add(MenuItem.builder()
-                                                .defaultState(ItemState.defaultBuilder()
+                                items.add(MenuItem.button()
+                                                .defaultState(ItemState.builder()
                                                                 .icon(this.featuredIcon.copy()
                                                                                 .replace(builder -> builder.with(
                                                                                                 slot.placeholders())))
@@ -309,8 +309,8 @@ public class PlayerWarpsMainMenu extends AbstractMenu implements LangContainer {
                         if (index < popularWarps.size()) {
                                 PlayerWarp warp = popularWarps.get(index);
 
-                                items.add(MenuItem.builder()
-                                                .defaultState(ItemState.defaultBuilder()
+                                items.add(MenuItem.button()
+                                                .defaultState(ItemState.builder()
                                                                 .icon(warp.getIcon()
                                                                                 .localized(ICON_POPULAR_WARP)
                                                                                 .replace(builder -> builder
@@ -323,7 +323,7 @@ public class PlayerWarpsMainMenu extends AbstractMenu implements LangContainer {
                                                 .slots(inventorySlot)
                                                 .build());
                         } else {
-                                items.add(MenuItem.builder()
+                                items.add(MenuItem.button()
                                                 .defaultState(this.popularIcon.copy()
                                                                 .replace(builder -> builder.with(GENERIC_VALUE,
                                                                                 () -> String.valueOf(top))))

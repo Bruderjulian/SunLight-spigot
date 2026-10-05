@@ -74,16 +74,16 @@ public class PlayerWarpOptionsMenu extends AbstractObjectMenu<PlayerWarp> {
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(0, 9).toArray());
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(36, 45).toArray());
 
-        this.addDefaultButton("back", MenuItem.builder()
-                .defaultState(ItemState.defaultBuilder()
+        this.addDefaultButton("back", MenuItem.button()
+                .defaultState(ItemState.builder()
                         .icon(NightItem.fromType(Material.COMPASS).setDisplayName(WHITE.wrap("Go Back")))
                         .action(this.backAction)
                         .build())
                 .slots(40)
                 .build());
 
-        this.addDefaultButton("name", MenuItem.builder()
-                .defaultState(ItemState.defaultBuilder()
+        this.addDefaultButton("name", MenuItem.button()
+                .defaultState(ItemState.builder()
                         .icon(NightItem.fromType(Material.NAME_TAG)
                                 .setDisplayName(GOLD.and(BOLD).wrap("Name"))
                                 .setLore(Lists.newList(
@@ -98,8 +98,8 @@ public class PlayerWarpOptionsMenu extends AbstractObjectMenu<PlayerWarp> {
                 .slots(19)
                 .build());
 
-        this.addDefaultButton("description", MenuItem.builder()
-                .defaultState(ItemState.defaultBuilder()
+        this.addDefaultButton("description", MenuItem.button()
+                .defaultState(ItemState.builder()
                         .icon(NightItem.fromType(Material.WRITABLE_BOOK)
                                 .setDisplayName(GOLD.and(BOLD).wrap("Description"))
                                 .setLore(Lists.newList(
@@ -114,8 +114,8 @@ public class PlayerWarpOptionsMenu extends AbstractObjectMenu<PlayerWarp> {
                 .slots(21)
                 .build());
 
-        this.addDefaultButton("icon", MenuItem.builder()
-                .defaultState(ItemState.defaultBuilder()
+        this.addDefaultButton("icon", MenuItem.button()
+                .defaultState(ItemState.builder()
                         .icon(NightItem.fromType(Material.ITEM_FRAME)
                                 .setDisplayName(GREEN.and(BOLD).wrap("Icon"))
                                 .setLore(Lists.newList(
@@ -128,8 +128,8 @@ public class PlayerWarpOptionsMenu extends AbstractObjectMenu<PlayerWarp> {
                 .slots(23)
                 .build());
 
-        this.addDefaultButton("category", MenuItem.builder()
-                .defaultState(ItemState.defaultBuilder()
+        this.addDefaultButton("category", MenuItem.button()
+                .defaultState(ItemState.builder()
                         .icon(NightItem.fromType(Material.ENCHANTED_BOOK)
                                 .setDisplayName(GOLD.and(BOLD).wrap("Category"))
                                 .setLore(Lists.newList(
@@ -145,8 +145,8 @@ public class PlayerWarpOptionsMenu extends AbstractObjectMenu<PlayerWarp> {
                 .slots(25)
                 .build());
 
-        this.addDefaultButton("price", MenuItem.builder()
-                .defaultState(ItemState.defaultBuilder()
+        this.addDefaultButton("price", MenuItem.button()
+                .defaultState(ItemState.builder()
                         .icon(NightItem.fromType(Material.EMERALD)
                                 .setDisplayName(GREEN.and(BOLD).wrap("Price"))
                                 .setLore(Lists.newList(

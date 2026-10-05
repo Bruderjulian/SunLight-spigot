@@ -127,10 +127,10 @@ public class BansModule extends Module {
 
     private void loadMenu() {
         this.historyMenu = new HistoryMenu(this.plugin, this);
-        this.historyMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "history.yml"));
+        this.historyMenu.load(FileConfig.load(this.getLocalUIPath(), "history.yml"));
 
         this.punishmentsMenu = new PunishmentsMenu(this.plugin, this);
-        this.punishmentsMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "punishments.yml"));
+        this.punishmentsMenu.load(FileConfig.load(this.getLocalUIPath(), "punishments.yml"));
     }
 
     private void loadData() {

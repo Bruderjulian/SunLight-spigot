@@ -172,7 +172,7 @@ public class TeleportCommandsProvider extends CommandProvider<EssentialModule> {
                 .withPermission(PERMISSION_MOVE)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                                 info -> CommandArgumentConstants.onlinePlayerNames()),
-                        CommandArgumentConstants.string(CommandArgumentConstants.TARGET,
+                        CommandArgumentConstants.string(CommandArgumentConstants.DESTINATION,
                                 info -> CommandArgumentConstants.onlinePlayerNames()))
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
@@ -227,7 +227,10 @@ public class TeleportCommandsProvider extends CommandProvider<EssentialModule> {
             if (!(info.sender() instanceof final Player player)) {
                 return Collections.emptyList();
             }
-            final Block block = player.getTargetBlock(null, 100);
+            final Block block = player.getTargetBlockExact(100);
+            if (block == null) {
+                return Collections.emptyList();
+            }
             return Lists.newList(NumberUtil.format(function.apply(block)));
         });
     }
@@ -279,13 +282,13 @@ public class TeleportCommandsProvider extends CommandProvider<EssentialModule> {
     }
 
     private int movePlayerToOther(final CommandSender sender, final CommandArguments arguments) {
-        final Object targetArg = arguments.get(CommandArgumentConstants.TARGET);
-        if (!(targetArg instanceof final String targetName)) {
+        final Object destinationArg = arguments.get(CommandArgumentConstants.DESTINATION);
+        if (!(destinationArg instanceof final String destinationName)) {
             this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
             return 0;
         }
-        final Object toArg = arguments.get(CommandArgumentConstants.PLAYER);
-        if (!(toArg instanceof final String toName)) {
+        final Object victimArg = arguments.get(CommandArgumentConstants.PLAYER);
+        if (!(victimArg instanceof final String victimName)) {
             this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
             return 0;
         }
@@ -296,28 +299,28 @@ public class TeleportCommandsProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        this.loadPlayerAndRunInMainThread(sender, targetName, target -> {
+        this.loadPlayerAndRunInMainThread(sender, destinationName, destination -> {
 
-            this.loadPlayerAndRunInMainThread(sender, toName, toPlayer -> {
-                final Location location = target.getLocation();
+            this.loadPlayerAndRunInMainThread(sender, victimName, victim -> {
+                final Location location = destination.getLocation();
 
                 final TeleportContext teleportContext = TeleportContext
-                        .builder(this.module, target, location)
+                        .builder(this.module, victim, location)
                         .withFlag(TeleportFlag.KEEP_DIRECTION)
                         .withFlag(TeleportFlag.LOOK_FOR_SURFACE)
                         .sender(sender)
                         .callback(() -> {
-                            if (toPlayer != sender) {
+                            if (victim != sender) {
                                 this.module.sendPrefixed(MESSAGE_MOVE_FEEDBACK, sender,
                                         replacer -> replacer
-                                                .with(GENERIC_SOURCE, toPlayer::getName)
-                                                .with(GENERIC_TARGET, target::getName));
+                                                .with(GENERIC_SOURCE, victim::getName)
+                                                .with(GENERIC_TARGET, destination::getName));
                             }
 
                             if (!flags.silent()) {
-                                this.module.sendPrefixed(MESSAGE_MOVE_NOTIFY, toPlayer,
+                                this.module.sendPrefixed(MESSAGE_MOVE_NOTIFY, victim,
                                         replacer -> replacer
-                                                .with(CommonPlaceholders.PLAYER.resolver(target)));
+                                                .with(CommonPlaceholders.PLAYER.resolver(destination)));
                             }
                         })
                         .build();

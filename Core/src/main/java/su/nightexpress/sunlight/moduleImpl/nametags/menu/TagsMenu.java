@@ -72,8 +72,8 @@ public class TagsMenu extends AbstractMenu {
     public void defineDefaultLayout() {
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(0, 9).toArray());
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(36, 45).toArray());
-        this.addNextPageItem(Material.ARROW, 41);
-        this.addPreviousPageItem(Material.ARROW, 39);
+        this.addNextPageButton(41);
+        this.addPreviousPageButton(39);
     }
 
     @Override
@@ -122,7 +122,7 @@ public class TagsMenu extends AbstractMenu {
                 .setDisplayName(tag.getDisplay())
                 .setLore(this.buildLore(player, user, tag, now, hasAccess, isSelected));
 
-            list.add(MenuItem.builder()
+            list.add(MenuItem.button()
                 .defaultState(icon, actionContext -> this.onTagClick(actionContext.getPlayer(), user, tag, now))
                 .slots(FIRST_SLOT + index - fromIndex)
                 .build());

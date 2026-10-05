@@ -146,11 +146,11 @@ public class PlayerWarpsListMenu extends AbstractObjectMenu<WarpsListData> imple
                 this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(0, 9).toArray());
                 this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(45, 54).toArray());
 
-                this.addNextPageItem(Material.ARROW, 53);
-                this.addPreviousPageItem(Material.ARROW, 45);
+                this.addNextPageButton(53);
+                this.addPreviousPageButton(45);
 
-                this.addDefaultButton("back", MenuItem.builder()
-                                .defaultState(ItemState.defaultBuilder()
+                this.addDefaultButton("back", MenuItem.button()
+                                .defaultState(ItemState.builder()
                                                 .icon(NightItem.fromType(Material.COMPASS)
                                                                 .setDisplayName(WHITE.wrap("Back to Main Menu"))
                                                                 .hideAllComponents())
@@ -159,8 +159,8 @@ public class PlayerWarpsListMenu extends AbstractObjectMenu<WarpsListData> imple
                                 .slots(49)
                                 .build());
 
-                this.addDefaultButton("search", MenuItem.builder()
-                                .defaultState(ItemState.defaultBuilder()
+                this.addDefaultButton("search", MenuItem.button()
+                                .defaultState(ItemState.builder()
                                                 .icon(NightItem.fromType(Material.SPRUCE_SIGN)
                                                                 .setDisplayName(GOLD.and(BOLD).wrap("Search by Name"))
                                                                 .setLore(Lists.newList(
@@ -195,8 +195,8 @@ public class PlayerWarpsListMenu extends AbstractObjectMenu<WarpsListData> imple
                                 .slots(47)
                                 .build());
 
-                this.addDefaultButton("sorting", MenuItem.builder()
-                                .defaultState(ItemState.defaultBuilder()
+                this.addDefaultButton("sorting", MenuItem.button()
+                                .defaultState(ItemState.builder()
                                                 .icon(NightItem.fromType(Material.HOPPER)
                                                                 .setDisplayName(GOLD.and(BOLD).wrap("Sorting Mode"))
                                                                 .setLore(Lists.newList(

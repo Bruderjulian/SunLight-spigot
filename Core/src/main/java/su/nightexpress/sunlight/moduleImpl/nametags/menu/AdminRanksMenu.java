@@ -64,8 +64,8 @@ public class AdminRanksMenu extends AbstractMenu {
     @Override
     public void defineDefaultLayout() {
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, 36, 37, 38, 39, 42, 43, 44);
-        this.addNextPageItem(Material.ARROW, 39);
-        this.addPreviousPageItem(Material.ARROW, 36);
+        this.addNextPageButton(39);
+        this.addPreviousPageButton(36);
     }
 
     @Override
@@ -116,7 +116,7 @@ public class AdminRanksMenu extends AbstractMenu {
             lore.add(GRAY.wrap(NametagsLang.MENU_RIGHT_CLICK_DELETE.text()));
             if (this.isReferenced(rank)) lore.add(GRAY.wrap(NametagsLang.MENU_DELETE_REFERENCED.text()));
 
-            list.add(MenuItem.builder()
+            list.add(MenuItem.button()
                 .defaultState(NightItem.fromType(icon == null ? Material.PLAYER_HEAD : icon)
                         .setDisplayName(rank.getDisplay())
                         .setLore(lore),
@@ -126,7 +126,7 @@ public class AdminRanksMenu extends AbstractMenu {
                 .build());
         }
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.LIME_DYE)
                     .setDisplayName(GREEN.wrap(NametagsLang.MENU_CREATE_RANK.text()))
                     .setLore(List.of(GRAY.wrap(NametagsLang.MENU_CREATE_RANK_HINT.text()))),
@@ -134,7 +134,7 @@ public class AdminRanksMenu extends AbstractMenu {
             .slots(SLOT_CREATE)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BARRIER)
                     .setDisplayName(RED.wrap(NametagsLang.MENU_CLOSE.text()))
                     .setLore(List.of(GRAY.wrap(NametagsLang.MENU_CLICK_CLOSE.text()))),

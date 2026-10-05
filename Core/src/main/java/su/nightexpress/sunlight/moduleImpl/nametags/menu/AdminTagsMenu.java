@@ -66,8 +66,8 @@ public class AdminTagsMenu extends AbstractMenu {
     @Override
     public void defineDefaultLayout() {
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, 36, 37, 38, 39, 42, 43, 44);
-        this.addNextPageItem(Material.ARROW, 39);
-        this.addPreviousPageItem(Material.ARROW, 36);
+        this.addNextPageButton(39);
+        this.addPreviousPageButton(36);
     }
 
     @Override
@@ -105,7 +105,7 @@ public class AdminTagsMenu extends AbstractMenu {
             TagDefinition tag = tags.get(index);
             Material icon = Material.matchMaterial(tag.getIconMaterial());
 
-            list.add(MenuItem.builder()
+            list.add(MenuItem.button()
                 .defaultState(NightItem.fromType(icon == null ? Material.NAME_TAG : icon)
                         .setDisplayName(tag.getDisplay())
                         .setLore(List.of(
@@ -122,7 +122,7 @@ public class AdminTagsMenu extends AbstractMenu {
                 .build());
         }
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.LIME_DYE)
                     .setDisplayName(GREEN.wrap(NametagsLang.MENU_CREATE_TAG.text()))
                     .setLore(List.of(GRAY.wrap(NametagsLang.MENU_CREATE_TAG_HINT.text()))),
@@ -130,7 +130,7 @@ public class AdminTagsMenu extends AbstractMenu {
             .slots(SLOT_CREATE)
             .build());
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BARRIER)
                     .setDisplayName(RED.wrap(NametagsLang.MENU_CLOSE.text()))
                     .setLore(List.of(GRAY.wrap(NametagsLang.MENU_CLICK_CLOSE.text()))),

@@ -65,8 +65,8 @@ public class ProfilesMenu extends AbstractMenu {
     public void defineDefaultLayout() {
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(0, 9).toArray());
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(36, 45).toArray());
-        this.addNextPageItem(Material.ARROW, 41);
-        this.addPreviousPageItem(Material.ARROW, 39);
+        this.addNextPageButton(41);
+        this.addPreviousPageButton(39);
     }
 
     @Override
@@ -97,7 +97,7 @@ public class ProfilesMenu extends AbstractMenu {
         Profile selected = this.module.getSelectedProfile(player);
         List<Profile> profiles = this.module.getCatalog().getProfilesSorted();
 
-        list.add(MenuItem.builder()
+        list.add(MenuItem.button()
             .defaultState(NightItem.fromType(Material.BARRIER)
                     .setDisplayName(RED.wrap(NametagsLang.MENU_VALUE_NONE.text()))
                     .setLore(List.of(
@@ -120,7 +120,7 @@ public class ProfilesMenu extends AbstractMenu {
             boolean isSelected = selected != null && selected.getId().equals(profile.getId());
             Material icon = Material.matchMaterial(profile.getIconMaterial());
 
-            list.add(MenuItem.builder()
+            list.add(MenuItem.button()
                 .defaultState(NightItem.fromType(icon == null ? Material.NAME_TAG : icon)
                         .setDisplayName(available ? profile.getDisplay() : GRAY.wrap(profile.getDisplay()))
                         .setLore(this.buildLore(profile, available, isSelected)),
