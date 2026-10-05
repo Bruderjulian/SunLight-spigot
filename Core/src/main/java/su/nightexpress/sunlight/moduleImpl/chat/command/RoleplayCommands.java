@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.chat.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -25,9 +24,9 @@ public class RoleplayCommands extends CommandProvider<ChatModule> {
 
     @Override
     public void setup() {
-        this.register("me", List.of(), command -> command
+        this.register("me", command -> command
                 .withFullDescription(ChatLang.COMMAND_ME_DESC.text())
-                .withPermission(ChatPerms.COMMAND_ME.getName())
+                .withPermission(ChatPerms.COMMAND_ME)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(new GreedyStringArgument(CommandArgumentConstants.TEXT))
                 .executes(this::showAction));

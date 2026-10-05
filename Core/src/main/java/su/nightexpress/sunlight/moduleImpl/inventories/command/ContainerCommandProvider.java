@@ -1,11 +1,9 @@
 package su.nightexpress.sunlight.moduleImpl.inventories.command;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.locale.LangEntry;
@@ -29,21 +27,16 @@ import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_TYPE;
 
 public class ContainerCommandProvider extends CommandProvider<InventoriesModule> {
 
-        private static final Permission PERMISSION_ROOT = InventoriesPerms.COMMAND.permission("container.root");
-        private static final Permission PERMISSION_OTHERS = InventoriesPerms.COMMAND.permission("container.others");
-        private static final Permission PERMISSION_ANVIL = InventoriesPerms.COMMAND.permission("container.anvil");
-        private static final Permission PERMISSION_LOOM = InventoriesPerms.COMMAND.permission("container.loom");
-        private static final Permission PERMISSION_WORKBENCH = InventoriesPerms.COMMAND
-                        .permission("container.workbench");
-        private static final Permission PERMISSION_SMITHING = InventoriesPerms.COMMAND.permission("container.smithing");
-        private static final Permission PERMISSION_GRINDSTONE = InventoriesPerms.COMMAND.permission(
-                        "container.grindstone");
-        private static final Permission PERMISSION_CARTOGRAPHY = InventoriesPerms.COMMAND.permission(
-                        "container.cartography");
-        private static final Permission PERMISSION_ENCHANTING = InventoriesPerms.COMMAND.permission(
-                        "container.enchanting");
-        private static final Permission PERMISSION_STONECUTTER = InventoriesPerms.COMMAND.permission(
-                        "container.stonecutter");
+        private static final String PERMISSION_ROOT = InventoriesPerms.COMMAND + ".container.root";
+        private static final String PERMISSION_OTHERS = InventoriesPerms.COMMAND + ".container.others";
+        private static final String PERMISSION_ANVIL = InventoriesPerms.COMMAND + ".container.anvil";
+        private static final String PERMISSION_LOOM = InventoriesPerms.COMMAND + ".container.loom";
+        private static final String PERMISSION_WORKBENCH = InventoriesPerms.COMMAND + ".container.workbench";
+        private static final String PERMISSION_SMITHING = InventoriesPerms.COMMAND + ".container.smithing";
+        private static final String PERMISSION_GRINDSTONE = InventoriesPerms.COMMAND + ".container.grindstone";
+        private static final String PERMISSION_CARTOGRAPHY = InventoriesPerms.COMMAND + ".container.cartography";
+        private static final String PERMISSION_ENCHANTING = InventoriesPerms.COMMAND + ".container.enchanting";
+        private static final String PERMISSION_STONECUTTER = InventoriesPerms.COMMAND + ".container.stonecutter";
 
         private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Container.Root.Desc").text(
                         "Portable Container commands.");
@@ -66,7 +59,7 @@ public class ContainerCommandProvider extends CommandProvider<InventoriesModule>
                 super(module, "container");
         }
 
-        private Permission getPermission(PortableContainer container) {
+        private String getPermission(PortableContainer container) {
                 return switch (container) {
                         case ANVIL -> PERMISSION_ANVIL;
                         case LOOM -> PERMISSION_LOOM;
@@ -95,22 +88,23 @@ public class ContainerCommandProvider extends CommandProvider<InventoriesModule>
         @Override
         public void setup() {
                 Stream.of(PortableContainer.values()).forEach(container -> {
-                        Permission permission = this.getPermission(container);
+                        String permission = this.getPermission(container);
                         String label = container.label();
 
-                        this.register(label, List.of(), command -> command
+                        this.register(label, command -> command
                                         .withFullDescription(DESCRIPTION_TYPE.text().replace(SLPlaceholders.GENERIC_TYPE,
                                                         CONTAINER_LOCALE.getLocalized(container)))
-                                        .withPermission(permission.getName())
+                                        .withPermission(permission)
                                         .withOptionalArguments(CommandArgumentConstants.targetArgument())
                                         .executes((sender, arguments) -> {
                                             return this.open(sender, arguments, container);
-                                        }));
+                                        }))
+                            .under("container");
                 });
 
                 this.registerRoot("container", command -> command
                                 .withFullDescription(DESCRIPTION_ROOT.text())
-                                .withPermission(PERMISSION_ROOT.getName()));
+                                .withPermission(PERMISSION_ROOT)).aliases("containers", "portablecontainers");
         }
 
         private int open(CommandSender sender, CommandArguments arguments, PortableContainer container) {
@@ -125,7 +119,7 @@ public class ContainerCommandProvider extends CommandProvider<InventoriesModule>
                         return 0;
                 }
 
-                return target.runAs(this.module, sender, PERMISSION_OTHERS.getName(), (user, targetPlayer) -> {
+                return target.runAs(this.module, sender, PERMISSION_OTHERS, (user, targetPlayer) -> {
                         nms.openContainer(targetPlayer, container);
                         VanillaSound.of(this.getSound(container)).play(targetPlayer);
 

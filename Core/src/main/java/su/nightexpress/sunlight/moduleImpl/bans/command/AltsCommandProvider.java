@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.bans.command;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.command.CommandSender;
@@ -22,9 +21,9 @@ public class AltsCommandProvider extends CommandProvider<BansModule> {
 
     @Override
     public void setup() {
-        this.register("alts", List.of(), command -> command
+        this.register("alts", command -> command
                 .withFullDescription(BansLang.COMMAND_ALTS_DESC.text())
-                .withPermission(BansPerms.COMMAND_ALTS.getName())
+                .withPermission(BansPerms.COMMAND_ALTS)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                         info -> CommandArgumentConstants.onlinePlayerNames()))
                 .executes(this::showAlts));

@@ -1,11 +1,9 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -36,7 +34,7 @@ public class PlayerInfoCommandProvider extends CommandProvider<EssentialModule> 
 
     private static final String COMMAND_PLAYER_INFO = "playerinfo";
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("playerinfo");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".playerinfo";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.PlayerInfo.Desc").text(
             "Show player info.");
@@ -50,9 +48,9 @@ public class PlayerInfoCommandProvider extends CommandProvider<EssentialModule> 
 
     @Override
     public void setup() {
-        this.register(COMMAND_PLAYER_INFO, List.of(), command -> command
+        this.register(COMMAND_PLAYER_INFO, command -> command
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION.getName())
+                .withPermission(PERMISSION)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.showPlayerInfo(sender, arguments);
@@ -66,7 +64,7 @@ public class PlayerInfoCommandProvider extends CommandProvider<EssentialModule> 
             return 0;
         }
 
-        target.runAs(this.module, sender, PERMISSION.getName(), (user, player) -> {
+        target.runAs(this.module, sender, PERMISSION, (user, player) -> {
             final Location location = player.getLocation();
             final Replacer replacer = Replacer.create()
                     .replace(forPlayerWithPAPI(player))

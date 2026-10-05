@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.extras.chestsort;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
@@ -13,23 +12,30 @@ import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasPerms;
 
 public class SortCommand extends CommandProvider<ExtrasModule> {
 
+    private static final String COMMAND_ROOT = "chestsort";
+    private static final String COMMAND_TOGGLE = "toggle";
+
     public SortCommand(final ExtrasModule module) {
         super(module, "chestsort");
     }
 
     @Override
     public void setup() {
-        this.register("chestsort", List.of(), builder -> builder
+        this.register(COMMAND_TOGGLE, builder -> builder
                 .withFullDescription(ExtrasLang.COMMAND_CHEST_SORT_DESC.text())
-                .withPermission(ExtrasPerms.COMMAND_CHEST_SORT.getName())
+                .withPermission(ExtrasPerms.COMMAND_CHEST_SORT)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.toggleSorting(sender, arguments);
-                }));
+                }))
+                .under(COMMAND_ROOT);
 
-        this.registerRoot("mode", builder -> builder
-                .withFullDescription("TODO")
-                .withPermission("TODO")); // TODO
+        this.registerRoot(COMMAND_ROOT, builder -> builder
+                .withFullDescription(ExtrasLang.COMMAND_CHEST_SORT_DESC.text())
+                .withPermission(ExtrasPerms.COMMAND_CHEST_SORT)
+                .executes((sender, arguments) -> {
+                    return this.toggleSorting(sender, arguments);
+                }));
     }
 
     private int toggleSorting(final CommandSender sender, final CommandArguments arguments) {

@@ -15,6 +15,7 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
 import su.nightexpress.sunlight.moduleImpl.warps.core.WarpsPerms;
 import su.nightexpress.sunlight.moduleImpl.warps.exception.WarpLoadException;
+import su.nightexpress.sunlight.utils.PermissionUtils;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -188,7 +189,7 @@ public class Warp implements PlaceholderResolvable {
     }
 
     public String getPermission() {
-        return WarpsPerms.WARP.childrenNode(this.getId());
+        return PermissionUtils.node(WarpsPerms.WARP, this.getId());
     }
 
     public Path getFile() {

@@ -1,13 +1,11 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -28,7 +26,7 @@ public class HatCommandProvider extends CommandProvider<EssentialModule> {
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Hat.Desc").text("Put item in head.");
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("hat");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".hat";
 
     private static final MessageLocale MESSAGE_HAT_FEEDBACK = LangEntry.builder("Command.Hat.Done").chatMessage(
             Sound.ITEM_ARMOR_EQUIP_LEATHER,
@@ -44,9 +42,9 @@ public class HatCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_HAT, List.of(), command -> command
+        this.register(COMMAND_HAT, command -> command
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION.getName())
+                .withPermission(PERMISSION)
                 .withRequirement(sender -> sender instanceof Player)
                 .executes((sender, arguments) -> {
                     return this.equipHat(sender, arguments);

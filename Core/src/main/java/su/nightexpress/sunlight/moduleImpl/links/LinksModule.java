@@ -22,14 +22,12 @@ import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.event.PlayerLinkActivateEvent;
 import su.nightexpress.sunlight.api.provider.LinksProvider;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 import su.nightexpress.sunlight.utils.EconomyUtils;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -137,11 +135,6 @@ public class LinksModule extends Module implements LinksProvider {
         this.editorMenu = null;
         this.settingsMenu = null;
         this.iconMenu = null;
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(LinksPerms.MODULE);
     }
 
     @Override

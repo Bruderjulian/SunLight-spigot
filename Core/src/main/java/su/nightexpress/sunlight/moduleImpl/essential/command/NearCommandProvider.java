@@ -9,7 +9,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -36,9 +35,9 @@ public class NearCommandProvider extends CommandProvider<EssentialModule> {
 
     private static final String COMMAND_NEAR = "near";
 
-    private static final Permission PERMISSION_COMMAND = EssentialPerms.COMMAND.permission("near");
-    private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("near.others");
-    private static final Permission PERMISSION_EXCLUDE = EssentialPerms.COMMAND.permission("near.exclude");
+    private static final String PERMISSION_COMMAND = EssentialPerms.COMMAND + ".near";
+    private static final String PERMISSION_OTHERS = EssentialPerms.COMMAND + ".near.others";
+    private static final String PERMISSION_EXCLUDE = EssentialPerms.COMMAND + ".near.exclude";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Near.Desc").text("Show nearest players.");
 
@@ -60,10 +59,10 @@ public class NearCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_NEAR, List.of(), command -> command
+        this.register(COMMAND_NEAR, command -> command
                 .withRequirement(sender -> sender instanceof Player)
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION_COMMAND.getName())
+                .withPermission(PERMISSION_COMMAND)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.showNearbyPlayers(sender, arguments);
@@ -96,7 +95,7 @@ public class NearCommandProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERMISSION_OTHERS.getName(), (user, source) -> {
+        return target.runAs(this.module, sender, PERMISSION_OTHERS, (user, source) -> {
             final Player executor = sender instanceof final Player player ? player : null;
             final List<NearbyPlayer> nearbyPlayers = new ArrayList<>();
 
@@ -114,7 +113,7 @@ public class NearCommandProvider extends CommandProvider<EssentialModule> {
                 if (other.getWorld() != sourceWorld) {
                     return;
                 }
-                if (other.hasPermission(PERMISSION_EXCLUDE.getName())) {
+                if (other.hasPermission(PERMISSION_EXCLUDE)) {
                     return;
                 }
                 if (executor != null && !executor.canSee(other)) {

@@ -3,12 +3,9 @@ package su.nightexpress.sunlight.command;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.bukkit.command.Command;
@@ -42,14 +39,15 @@ import su.nightexpress.nightcore.util.CommandUtil;
 /**
  * Registry for the CommandAPI-based command system.
  * <p>
- * Providers declare standalone nodes via
- * {@code register(id, aliases, roots, ...)} and hub roots via
- * {@code registerRoot(id, aliases, ...)}. A node listed under {@code roots}
- * is additionally attached as a subcommand (named by its node id) to each of
- * those roots, mirroring the legacy literal + hub layout. The
- * {@code commands/<provider>.yml} file keeps per-node {@code enabled} /
- * {@code aliases} / {@code cooldown} / {@code cost} entries plus the same
- * cost and cooldown semantics around executors.
+ * Providers declare subcommands via {@code register(id, builder)} and hub roots via
+ * {@code registerRoot(id, builder)}, both returning a {@link CommandProvider.Node} that can be
+ * decorated with {@code aliases(...)} and {@code under(...)}. A subcommand that names a root via
+ * {@code under(...)} is nested under it instead of becoming a command of its own.
+ * <p>
+ * The {@code commands/<provider>.yml} file keeps per-node {@code enabled} / {@code aliases} /
+ * {@code cooldown} / {@code cost} entries plus the same cost and cooldown semantics around
+ * executors. Aliases are seeded from the Java declaration on a fresh config and authoritative
+ * afterwards.
  */
 public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
@@ -72,7 +70,59 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
   @Override
   protected void onLoad() {
     this.settings.load(this.plugin.getConfig());
-    this.registerCommands();
+
+    for (final CommandProvider<?> provider : providers) {
+      final String providerId = provider.getId();
+      final FileConfig config = FileConfig.load(this.plugin.getDataFolder() + "/commands/",
+          FileConfig.withExtension(providerId));
+
+      this.plugin.injectLang(provider);
+      provider.setup();
+
+      final Map<String, CommandProvider.Node> nodes = provider.getNodes();
+
+      // Hub roots first, so their subcommands can be attached before anything is registered.
+      final Map<String, CommandAPICommand> roots = new LinkedHashMap<>();
+      for (final CommandProvider.Node node : nodes.values()) {
+        if (!node.isRoot()) {
+          continue;
+        }
+        final CommandAPICommand root = this.buildStandalone(provider, node, config);
+        if (root != null) {
+          roots.put(node.id(), root);
+        }
+      }
+
+      for (final CommandProvider.Node node : nodes.values()) {
+        if (node.isRoot()) {
+          continue;
+        }
+
+        if (node.roots().isEmpty()) {
+          // Never nested, so this node is a command of its own.
+          this.register(this.buildStandalone(provider, node, config));
+          continue;
+        }
+
+        for (final String rootId : node.roots()) {
+          final CommandAPICommand root = roots.get(rootId);
+          if (root == null) {
+            // The root is disabled or unknown; the node stays unavailable rather than
+            // silently leaking out as a global command.
+            this.plugin.warn("Command '%s' of '%s' is attached to the unknown root '%s'."
+                .formatted(node.id(), providerId, rootId));
+            break;
+          }
+          final CommandAPICommand sub = this.buildSubCommand(provider, node, config);
+          if (sub != null) {
+            root.withSubcommand(sub);
+          }
+        }
+      }
+
+      roots.values().forEach(this::register);
+      config.saveChanges();
+    }
   }
 
   @Override
@@ -100,94 +150,38 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     this.providers.add(provider);
   }
 
-  public List<CommandProvider<?>> getProviders() {
-    return this.providers;
-  }
-
-  private void registerCommands() {
-    for (final CommandProvider<?> provider : providers) {
-      final String providerId = provider.getId();
-      final FileConfig config = FileConfig.load(this.plugin.getDataFolder() + "/commands/",
-          FileConfig.withExtension(providerId));
-
-      this.plugin.injectLang(provider);
-      provider.setup();
-
-      final Map<String, String> subRoots = provider.getSubRoots() == null ? Map.of() : provider.getSubRoots();
-
-      // Hub roots first, with the subcommands that declared them as their root.
-      final Map<String, CommandAPICommand> roots = new LinkedHashMap<>();
-      final Set<String> attached = new HashSet<>();
-      provider.getRootCommandBuilders().forEach((rootId, builder) -> {
-        final CommandAPICommand root = buildRootCommand(provider, rootId, config, builder);
-        if (root == null) {
-          return;
-        }
-        roots.put(rootId, root);
-
-        subRoots.forEach((nodeId, nodeRootId) -> {
-          if (!nodeRootId.equals(rootId)) {
-            return;
-          }
-          final Consumer<CommandAPICommand> nodeBuilder = provider.getSubCommandBuilders().get(nodeId);
-          if (nodeBuilder == null) {
-            return;
-          }
-          final CommandAPICommand node = buildCommand(provider, nodeId, config, nodeBuilder);
-          if (node != null) {
-            root.withSubcommand(node);
-            attached.add(nodeId);
-          }
-        });
-      });
-
-      // Everything that is not a child of a root is a command of its own.
-      provider.getSubCommandBuilders().forEach((nodeId, builder) -> {
-        if (attached.contains(nodeId)) {
-          return;
-        }
-        final CommandAPICommand node = buildRootCommand(provider, nodeId, config, builder);
-        if (node != null) {
-          this.registerCommand(node);
-        }
-      });
-
-      roots.values().forEach(this::registerCommand);
-      config.saveChanges();
-    }
-  }
-
-  private CommandAPICommand buildRootCommand(final CommandProvider<?> provider, final String nodeId,
-      final FileConfig config, final Consumer<CommandAPICommand> builder) {
-    boolean shouldInit = false;
+  private CommandAPICommand buildStandalone(final CommandProvider<?> provider, final CommandProvider.Node node,
+      final FileConfig config) {
+    final String nodeId = node.id();
     if (!config.contains(nodeId)) {
       config.set(nodeId + ".enabled", true);
-      config.setStringArray(nodeId + ".aliases", EMPTY);
+      config.setStringArray(nodeId + ".aliases", node.aliases().toArray(EMPTY));
       config.set(nodeId + ".cooldown", 0);
       config.set(nodeId + ".cost", 0);
-      shouldInit = true;
     } else if (!config.getBoolean(nodeId + ".enabled", true)) {
       return null;
     }
+
     String[] aliases = readAliases(config, nodeId + ".aliases");
+    if (aliases.length == 0) {
+      aliases = node.aliases().toArray(EMPTY);
+    }
 
     final CommandAPICommand command = new CommandAPICommand(aliases.length == 0 ? nodeId : aliases[0]);
-    builder.accept(command);
-    if (shouldInit && command.getAliases() != null) {
-      aliases = command.getAliases();
-    }
+    node.builder().accept(command);
     if (aliases.length > 1) {
       command.withAliases(Arrays.copyOfRange(aliases, 1, aliases.length));
     }
     config.setStringArray(nodeId + ".aliases", aliases);
 
-    guard(provider, nodeId, command, config.getInt(nodeId + ".cooldown", 0),
+    this.guard(provider, nodeId, command, config.getInt(nodeId + ".cooldown", 0),
         config.getDouble(nodeId + ".cost", 0));
     return command;
   }
 
-  private CommandAPICommand buildCommand(final CommandProvider<?> provider, final String nodeId,
-      final FileConfig config, final Consumer<CommandAPICommand> builder) {
+  private CommandAPICommand buildSubCommand(final CommandProvider<?> provider, final CommandProvider.Node node,
+      final FileConfig config) {
+    final String nodeId = node.id();
     if (!config.contains(nodeId)) {
       config.set(nodeId + ".enabled", true);
       config.set(nodeId + ".cooldown", 0);
@@ -196,10 +190,12 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
       return null;
     }
 
+    // Subcommands are reached under their node id, so aliases and standalone cost
+    // handling do not apply to them.
     final CommandAPICommand command = new CommandAPICommand(nodeId);
-    builder.accept(command);
+    node.builder().accept(command);
 
-    guard(provider, nodeId, command, config.getInt(nodeId + ".cooldown", 0),
+    this.guard(provider, nodeId, command, config.getInt(nodeId + ".cooldown", 0),
         config.getDouble(nodeId + ".cost", 0));
     return command;
   }
@@ -214,7 +210,11 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     command.setExecutor(new GuardedExecutor(original, this.settings, provider, nodeId, cooldown, cost));
   }
 
-  private void registerCommand(final CommandAPICommand command) {
+  private void register(final CommandAPICommand command) {
+    if (command == null) {
+      return;
+    }
+
     final String name = command.getName();
     if (command.getAliases() != null) {
       for (final String alias : command.getAliases()) {
@@ -230,7 +230,12 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     }
     CommandAPI.unregister(name, true);
     command.register("sunlight");
-    this.commands.put(name, command);
+
+    final CommandAPICommand previous = this.commands.put(name, command);
+    if (previous != null) {
+      this.plugin.warn("Command '/%s' is declared more than once; the last declaration wins."
+          .formatted(name));
+    }
   }
 
   private String[] readAliases(final FileConfig config, final String path) {

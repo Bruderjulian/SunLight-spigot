@@ -4,7 +4,6 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.integration.permission.PermissionBridge;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -85,11 +84,6 @@ public class EssentialModule extends Module {
     @Override
     protected void unloadModule() {
 
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(EssentialPerms.MODULE);
     }
 
     @Override

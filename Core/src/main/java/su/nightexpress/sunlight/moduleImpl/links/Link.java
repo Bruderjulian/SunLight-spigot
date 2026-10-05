@@ -12,6 +12,7 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
 import su.nightexpress.nightcore.util.wrapper.UniParticle;
 import su.nightexpress.sunlight.moduleImpl.links.config.LinksPerms;
+import su.nightexpress.sunlight.utils.PermissionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -206,8 +207,7 @@ public class Link implements PlaceholderResolvable {
         if (this.hasPermission() && !sender.hasPermission(this.permission))
             return false;
 
-        return sender.hasPermission(LinksPerms.COMMAND_LINK) || sender.hasPermission(LinksPerms.COMMAND
-                .childrenNode("link." + this.id));
+        return sender.hasPermission(LinksPerms.COMMAND_LINK) || sender.hasPermission(PermissionUtils.node(LinksPerms.COMMAND, "link." + this.id));
     }
 
     /**

@@ -16,7 +16,6 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -166,17 +165,6 @@ public class ChatModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(PermissionTree root) {
-        // Attach channel-specific permissions.
-        this.channelRepository.getChannels().forEach(channel -> {
-            ChatPerms.CHANNEL_LISTEN.permission(channel.getId());
-            ChatPerms.CHANNEL_SPEAK.permission(channel.getId());
-        });
-
-        root.merge(ChatPerms.ROOT);
-    }
-
-    @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("chat_conversations_state", (player, payload) -> {
             return CoreLang.STATE_ENABLED_DISALBED.get(this.userManager.getOrFetch(player).getPropertyOrDefault(
@@ -196,9 +184,6 @@ public class ChatModule extends Module {
         UserPropertyRegistry.register(ChatProperties.MENTIONS);
 
         this.mentionsPattern = Pattern.compile(this.settings.getMentionsPattern());
-        this.settings.getCustomMentions().forEach((id, groupMention) -> {
-            ChatPerms.MENTION.permission(id);
-        });
     }
 
     private void loadConversations() {

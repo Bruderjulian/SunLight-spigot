@@ -10,7 +10,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.EnchantmentArgument;
@@ -45,11 +44,10 @@ public class EnchantCommandsProvider extends CommandProvider<EssentialModule> {
     private static final String ARG_ENCHANT = "enchant";
     private static final String ARG_LEVEL = "level";
 
-    private static final Permission PERMISSION_ENCHANT = EssentialPerms.COMMAND.permission("enchant");
-    private static final Permission PERMISSION_ENCHANT_OTHERS = EssentialPerms.COMMAND.permission("enchant.others");
-    private static final Permission PERMISSION_DISENCHANT = EssentialPerms.COMMAND.permission("disenchant");
-    private static final Permission PERMISSION_DISENCHANT_OTHERS = EssentialPerms.COMMAND.permission(
-            "disenchant.others");
+    private static final String PERMISSION_ENCHANT = EssentialPerms.COMMAND + ".enchant";
+    private static final String PERMISSION_ENCHANT_OTHERS = EssentialPerms.COMMAND + ".enchant.others";
+    private static final String PERMISSION_DISENCHANT = EssentialPerms.COMMAND + ".disenchant";
+    private static final String PERMISSION_DISENCHANT_OTHERS = EssentialPerms.COMMAND + ".disenchant.others";
 
     private static final TextLocale DESCRIPTION_ENCHANT = LangEntry.builder("Command.Enchant.Desc").text(
             "Enchant item in a slot.");
@@ -125,9 +123,9 @@ public class EnchantCommandsProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_ENCHANT, List.of(), command -> command
+        this.register(COMMAND_ENCHANT, command -> command
                 .withFullDescription(DESCRIPTION_ENCHANT.text())
-                .withPermission(PERMISSION_ENCHANT.getName())
+                .withPermission(PERMISSION_ENCHANT)
                 .withArguments(CommandArgumentConstants.string(ARG_SLOT, info -> this.slotSuggestions()),
                         new EnchantmentArgument(ARG_ENCHANT))
                 .withOptionalArguments(new IntegerArgument(ARG_LEVEL, 1)
@@ -138,9 +136,9 @@ public class EnchantCommandsProvider extends CommandProvider<EssentialModule> {
                     return this.enchantSlot(sender, arguments);
                 }));
 
-        this.register(COMMAND_DISENCHANT, List.of(), command -> command
+        this.register(COMMAND_DISENCHANT, command -> command
                 .withFullDescription(DESCRIPTION_DISENCHANT.text())
-                .withPermission(PERMISSION_DISENCHANT.getName())
+                .withPermission(PERMISSION_DISENCHANT)
                 .withArguments(CommandArgumentConstants.string(ARG_SLOT, info -> this.slotSuggestions()))
                 .withOptionalArguments(new EnchantmentArgument(ARG_ENCHANT))
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
@@ -188,7 +186,7 @@ public class EnchantCommandsProvider extends CommandProvider<EssentialModule> {
         final Object levelArg = arguments.get(ARG_LEVEL);
         final int level = levelArg instanceof final Integer value ? value : 1;
 
-        return target.runAs(this.module, sender, PERMISSION_ENCHANT_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERMISSION_ENCHANT_OTHERS, (user, player) -> {
             final ItemStack item = player.getInventory().getItem(slot);
             if (item.getType().isAir() || item.getItemMeta() == null) {
                 this.module.sendPrefixed(MESSAGE_ERROR_NO_ITEM, sender,
@@ -244,7 +242,7 @@ public class EnchantCommandsProvider extends CommandProvider<EssentialModule> {
         final Enchantment enchant = enchantArg instanceof final Enchantment parsed ? parsed : null;
         final boolean hasEnchant = enchant != null;
 
-        return target.runAs(this.module, sender, PERMISSION_DISENCHANT_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERMISSION_DISENCHANT_OTHERS, (user, player) -> {
             final ItemStack item = player.getInventory().getItem(slot);
             if (item.getType().isAir() || item.getItemMeta() == null) {
                 this.module.sendPrefixed(MESSAGE_ERROR_NO_ITEM, sender,

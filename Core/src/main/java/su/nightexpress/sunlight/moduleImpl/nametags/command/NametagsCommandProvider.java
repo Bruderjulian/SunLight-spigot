@@ -43,99 +43,112 @@ public class NametagsCommandProvider extends CommandProvider<NametagsModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_TAGS, List.of(), builder -> builder
+        this.register(COMMAND_TAGS, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_TAGS_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_TAGS.getName())
+                .withPermission(NametagsPerms.COMMAND_TAGS)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::openTagsMenu));
+                .executes(this::openTagsMenu))
+            .under("nametag");
 
-        this.register(COMMAND_TAG, List.of(), builder -> builder
+        this.register(COMMAND_TAG, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_TAG_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_TAG_SELECT.getName())
+                .withPermission(NametagsPerms.COMMAND_TAG_SELECT)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                         info -> this.tagSuggestions()))
-                .executes(this::selectTag));
+                .executes(this::selectTag))
+            .under("nametag");
 
-        this.register(COMMAND_PROFILES, List.of(), builder -> builder
+        this.register(COMMAND_PROFILES, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_PROFILES_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_PROFILES.getName())
+                .withPermission(NametagsPerms.COMMAND_PROFILES)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::openProfilesMenu));
+                .executes(this::openProfilesMenu))
+            .under("nametag");
 
-        this.register(COMMAND_PROFILE, List.of(), builder -> builder
+        this.register(COMMAND_PROFILE, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_PROFILE_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_PROFILE_SELECT.getName())
+                .withPermission(NametagsPerms.COMMAND_PROFILE_SELECT)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                         info -> this.profileSuggestions()))
-                .executes(this::selectProfile));
+                .executes(this::selectProfile))
+            .under("nametag");
 
-        this.register(COMMAND_RANK_TOGGLE, List.of(), builder -> builder
+        this.register(COMMAND_RANK_TOGGLE, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_RANK_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_NAMETAG_TOGGLE.getName())
+                .withPermission(NametagsPerms.COMMAND_NAMETAG_TOGGLE)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::toggleRank));
+                .executes(this::toggleRank))
+            .under("nametag");
 
-        this.register(COMMAND_TAG_TOGGLE, List.of(), builder -> builder
+        this.register(COMMAND_TAG_TOGGLE, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_TAG_TOGGLE_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_TAG_TOGGLE.getName())
+                .withPermission(NametagsPerms.COMMAND_TAG_TOGGLE)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::toggleTag));
+                .executes(this::toggleTag))
+            .under("nametag");
 
-        this.register(COMMAND_TEAM_TOGGLE, List.of(), builder -> builder
+        this.register(COMMAND_TEAM_TOGGLE, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_TEAM_TOGGLE_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_TEAM_TOGGLE.getName())
+                .withPermission(NametagsPerms.COMMAND_TEAM_TOGGLE)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::toggleTeam));
+                .executes(this::toggleTeam))
+            .under("nametag");
 
-        this.register(COMMAND_HIDE, List.of(), builder -> builder
+        this.register(COMMAND_HIDE, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_HIDE_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_HIDE.getName())
+                .withPermission(NametagsPerms.COMMAND_HIDE)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::hideNameplate));
+                .executes(this::hideNameplate))
+            .under("nametag");
 
-        this.register(COMMAND_SHOW, List.of(), builder -> builder
+        this.register(COMMAND_SHOW, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_SHOW_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_HIDE.getName())
+                .withPermission(NametagsPerms.COMMAND_HIDE)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::showNameplate));
+                .executes(this::showNameplate))
+            .under("nametag");
 
-        this.register(COMMAND_SET, List.of(), builder -> builder
+        this.register(COMMAND_SET, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_SET_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_NAMETAG_SET.getName())
+                .withPermission(NametagsPerms.COMMAND_NAMETAG_SET)
                 .withArguments(
                         CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                                 info -> CommandArgumentConstants.onlinePlayerNames()),
                         CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                                 info -> this.tagSuggestions()))
-                .executes(this::setTag));
+                .executes(this::setTag))
+            .under("nametag");
 
-        this.register(COMMAND_GRANT, List.of(), builder -> builder
+        this.register(COMMAND_GRANT, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_GRANT_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_GRANT.getName())
+                .withPermission(NametagsPerms.COMMAND_GRANT)
                 .withArguments(
                         CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                                 info -> CommandArgumentConstants.onlinePlayerNames()),
                         CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                                 info -> this.tagSuggestions()))
-                .executes(this::grantTag));
+                .executes(this::grantTag))
+            .under("nametag");
 
-        this.register(COMMAND_ADMIN, List.of(), builder -> builder
+        this.register(COMMAND_ADMIN, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_ADMIN_DESC.text())
-                .withPermission(NametagsPerms.ADMIN.getName())
+                .withPermission(NametagsPerms.ADMIN)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::openAdminMenu));
+                .executes(this::openAdminMenu))
+            .under("nametag");
 
-        this.register(COMMAND_RELOAD, List.of(), builder -> builder
+        this.register(COMMAND_RELOAD, builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_RELOAD_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_RELOAD.getName())
-                .executes(this::reloadModule));
+                .withPermission(NametagsPerms.COMMAND_RELOAD)
+                .executes(this::reloadModule))
+            .under("nametag");
 
         this.registerRoot("nametag", builder -> builder
                 .withFullDescription(NametagsLang.COMMAND_NAMETAG_DESC.text())
-                .withPermission(NametagsPerms.COMMAND_TAGS.getName())
-                .executes(this::openTagsMenu));
+                .withPermission(NametagsPerms.COMMAND_TAGS)
+                .executes(this::openTagsMenu)).aliases("nametags");
     }
 
     private @NotNull List<String> tagSuggestions() {

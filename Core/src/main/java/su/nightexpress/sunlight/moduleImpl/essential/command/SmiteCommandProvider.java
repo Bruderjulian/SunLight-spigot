@@ -1,9 +1,7 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -24,7 +22,7 @@ public class SmiteCommandProvider extends CommandProvider<EssentialModule> {
 
     private static final String COMMAND_SMITE = "smite";
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("smite");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".smite";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Smite.Desc").text(
             "Smite player with lightning.");
@@ -41,9 +39,9 @@ public class SmiteCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_SMITE, List.of(), command -> command
+        this.register(COMMAND_SMITE, command -> command
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION.getName())
+                .withPermission(PERMISSION)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.execute(sender, arguments);
@@ -57,7 +55,7 @@ public class SmiteCommandProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERMISSION.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERMISSION, (user, player) -> {
             player.getWorld().strikeLightning(player.getLocation());
 
             if (sender != player) {

@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.freeze.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
@@ -19,6 +18,7 @@ import su.nightexpress.sunlight.user.property.UserProperty;
 
 public class FreezeCommand extends CommandProvider<FreezeModule> {
 
+    private static final String COMMAND_ROOT = "freeze";
     private static final String COMMAND_TOGGLE = "toggle";
     private static final String COMMAND_ON = "on";
     private static final String COMMAND_OFF = "off";
@@ -29,15 +29,21 @@ public class FreezeCommand extends CommandProvider<FreezeModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_TOGGLE, List.of(), command -> this.buildCommand(command, ToggleMode.TOGGLE));
-        this.register(COMMAND_ON, List.of(), command -> this.buildCommand(command, ToggleMode.ON));
-        this.register(COMMAND_OFF, List.of(), command -> this.buildCommand(command, ToggleMode.OFF));
+        this.register(COMMAND_TOGGLE, command -> this.buildCommand(command, ToggleMode.TOGGLE))
+                .under(COMMAND_ROOT);
+        this.register(COMMAND_ON, command -> this.buildCommand(command, ToggleMode.ON))
+                .under(COMMAND_ROOT);
+        this.register(COMMAND_OFF, command -> this.buildCommand(command, ToggleMode.OFF))
+                .under(COMMAND_ROOT);
+
+        this.registerRoot(COMMAND_ROOT, command -> this.buildCommand(command, ToggleMode.TOGGLE))
+                .aliases("freezes");
     }
 
     private void buildCommand(final CommandAPICommand command, final ToggleMode mode) {
         command
                 .withFullDescription(FreezeLang.COMMAND_FREEZE_DESC.text())
-                .withPermission(FreezePerms.COMMAND_FREEZE.getName())
+                .withPermission(FreezePerms.COMMAND_FREEZE)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.toggleFreeze(sender, arguments, mode);
@@ -51,9 +57,9 @@ public class FreezeCommand extends CommandProvider<FreezeModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, FreezePerms.COMMAND_FREEZE_OTHERS.getName(), (user, targetPlayer) -> {
-            if (targetPlayer.hasPermission(FreezePerms.BYPASS_IMMUNE.getName())
-                    && !sender.hasPermission(FreezePerms.BYPASS_IMMUNE.getName())) {
+        return target.runAs(this.module, sender, FreezePerms.COMMAND_FREEZE_OTHERS, (user, targetPlayer) -> {
+            if (targetPlayer.hasPermission(FreezePerms.BYPASS_IMMUNE)
+                    && !sender.hasPermission(FreezePerms.BYPASS_IMMUNE)) {
                 this.module.sendPrefixed(FreezeLang.ERROR_IMMUNE, sender,
                         builder -> builder.with(CommonPlaceholders.PLAYER.resolver(targetPlayer)));
                 return;

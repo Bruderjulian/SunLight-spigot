@@ -21,8 +21,9 @@ public class ReportsSubmitCommandProvider extends CommandProvider<ReportsModule>
     private static final String ARG_CATEGORY = "category";
     private static final String ARG_DETAILS = "details";
 
-    private static final String COMMAND_REPORT = "report";
-    private static final String COMMAND_REPORT_STATUS = "reportstatus";
+    private static final String COMMAND_ROOT = "report";
+    private static final String COMMAND_SUBMIT = "submit";
+    private static final String COMMAND_STATUS = "status";
     private static final String COMMAND_TOGGLE = "toggle";
 
     public ReportsSubmitCommandProvider(final ReportsModule module) {
@@ -31,28 +32,37 @@ public class ReportsSubmitCommandProvider extends CommandProvider<ReportsModule>
 
     @Override
     public void setup() {
-        this.register(COMMAND_REPORT, List.of(), builder -> builder
+        this.register(COMMAND_SUBMIT, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_REPORT_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORT.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORT)
                 .withRequirement(sender -> sender instanceof Player)
                 .withOptionalArguments(
                         CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                                 info -> CommandArgumentConstants.onlinePlayerNames()),
                         this.categoryArgument(),
                         CommandArgumentConstants.greedy(ARG_DETAILS, info -> List.of()))
-                .executes(this::report));
+                .executes(this::report))
+                .under(COMMAND_ROOT);
 
-        this.register(COMMAND_REPORT_STATUS, List.of(), builder -> builder
+        this.register(COMMAND_STATUS, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_REPORT_STATUS_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORT_STATUS.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORT_STATUS)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::showStatus));
+                .executes(this::showStatus))
+                .aliases("reportstatus")
+                .under(COMMAND_ROOT);
 
-        this.register(COMMAND_TOGGLE, List.of(), builder -> builder
+        this.register(COMMAND_TOGGLE, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_TOGGLE_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORT_TOGGLE.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORT_TOGGLE)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::toggle));
+                .executes(this::toggle))
+                .under(COMMAND_ROOT);
+
+        this.registerRoot(COMMAND_ROOT, builder -> builder
+                .withFullDescription(ReportsLang.COMMAND_REPORT_DESC.text())
+                .withPermission(ReportsPerms.COMMAND_REPORT)
+                .executes(this::report));
     }
 
     private Argument<String> categoryArgument() {

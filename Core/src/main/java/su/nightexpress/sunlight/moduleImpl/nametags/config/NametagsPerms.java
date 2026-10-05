@@ -1,44 +1,47 @@
 package su.nightexpress.sunlight.moduleImpl.nametags.config;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
+
+import su.nightexpress.sunlight.utils.PermissionUtils;
 
 public class NametagsPerms {
 
-    public static final PermissionTree MODULE = Perms.detached("nametags");
-    public static final PermissionTree COMMAND = MODULE.branch("command");
-    public static final PermissionTree RANK = MODULE.branch("rank");
-    public static final PermissionTree TAG = MODULE.branch("tag");
-    public static final PermissionTree PROFILE = MODULE.branch("profile");
-    public static final PermissionTree BYPASS = MODULE.branch("bypass");
+    public static final String MODULE  = "sunlight.nametags";
+    public static final String COMMAND = MODULE + ".command";
+    public static final String RANK    = MODULE + ".rank";
+    public static final String TAG     = MODULE + ".tag";
+    public static final String PROFILE = MODULE + ".profile";
+    public static final String BYPASS  = MODULE + ".bypass";
 
-    public static final Permission COMMAND_TAGS = COMMAND.permission("tags");
-    public static final Permission COMMAND_TAG_SELECT = COMMAND.permission("tag.select");
-    public static final Permission COMMAND_PROFILE_SELECT = COMMAND.permission("profile.select");
-    public static final Permission COMMAND_PROFILES = COMMAND.permission("profiles");
-    public static final Permission COMMAND_NAMETAG_TOGGLE = COMMAND.permission("rank.toggle");
-    public static final Permission COMMAND_TAG_TOGGLE = COMMAND.permission("tag.toggle");
-    public static final Permission COMMAND_TEAM_TOGGLE = COMMAND.permission("team.toggle");
-    public static final Permission COMMAND_HIDE = COMMAND.permission("hide");
-    public static final Permission COMMAND_NAMETAG_SET = COMMAND.permission("set");
-    public static final Permission COMMAND_GRANT = COMMAND.permission("grant");
-    public static final Permission COMMAND_RELOAD = COMMAND.permission("reload");
-    public static final Permission ADMIN = MODULE.permission("admin");
+    public static final String COMMAND_TAGS           = COMMAND + ".tags";
+    public static final String COMMAND_TAG_SELECT     = COMMAND + ".tag.select";
+    public static final String COMMAND_PROFILE_SELECT = COMMAND + ".profile.select";
+    public static final String COMMAND_PROFILES       = COMMAND + ".profiles";
+    public static final String COMMAND_NAMETAG_TOGGLE = COMMAND + ".rank.toggle";
+    public static final String COMMAND_TAG_TOGGLE     = COMMAND + ".tag.toggle";
+    public static final String COMMAND_TEAM_TOGGLE    = COMMAND + ".team.toggle";
+    public static final String COMMAND_HIDE           = COMMAND + ".hide";
+    public static final String COMMAND_NAMETAG_SET    = COMMAND + ".set";
+    public static final String COMMAND_GRANT          = COMMAND + ".grant";
+    public static final String COMMAND_RELOAD         = COMMAND + ".reload";
 
-    public static final Permission BYPASS_COST = BYPASS.permission("cost");
-    public static final Permission BYPASS_ACCESS = BYPASS.permission("access");
+    public static final String ADMIN = MODULE + ".admin";
+
+    public static final String BYPASS_COST   = BYPASS + ".cost";
+    public static final String BYPASS_ACCESS = BYPASS + ".access";
 
     public static boolean hasRankAccess(CommandSender sender, String rankId) {
-        return RANK.hasChildAccess(sender, rankId);
+        return PermissionUtils.hasChildAccess(sender, RANK, rankId);
     }
 
     public static boolean hasTagAccess(CommandSender sender, String tagId) {
-        return TAG.hasChildAccess(sender, tagId);
+        return PermissionUtils.hasChildAccess(sender, TAG, tagId);
     }
 
     public static boolean hasProfileAccess(CommandSender sender, String profileId) {
-        return PROFILE.hasChildAccess(sender, profileId);
+        return PermissionUtils.hasChildAccess(sender, PROFILE, profileId);
+    }
+
+    private NametagsPerms() {
     }
 }

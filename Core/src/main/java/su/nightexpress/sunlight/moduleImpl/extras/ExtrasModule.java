@@ -2,7 +2,6 @@ package su.nightexpress.sunlight.moduleImpl.extras;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -10,7 +9,6 @@ import su.nightexpress.sunlight.moduleImpl.extras.chairs.ChairsManager;
 import su.nightexpress.sunlight.moduleImpl.extras.chestsort.SortManager;
 import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasConfig;
 import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasLang;
-import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasPerms;
 import su.nightexpress.sunlight.moduleImpl.extras.listener.ExtrasGenericListener;
 import su.nightexpress.sunlight.moduleImpl.extras.listener.PhysicsExplosionListener;
 
@@ -48,11 +46,6 @@ public class ExtrasModule extends Module {
             this.chairsManager.shutdown();
         if (this.sortManager != null)
             this.sortManager.shutdown();
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(ExtrasPerms.MODULE);
     }
 
     @Override

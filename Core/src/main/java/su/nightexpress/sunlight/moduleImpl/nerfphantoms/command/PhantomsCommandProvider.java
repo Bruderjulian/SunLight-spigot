@@ -1,9 +1,9 @@
 package su.nightexpress.sunlight.moduleImpl.nerfphantoms.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
+import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
@@ -18,6 +18,7 @@ import su.nightexpress.sunlight.moduleImpl.nerfphantoms.config.PhantomsPerms;
 
 public class PhantomsCommandProvider extends CommandProvider<PhantomsModule> {
 
+        private static final String COMMAND_ROOT = "phantoms";
         private static final String COMMAND_TOGGLE = "toggle";
 
         public PhantomsCommandProvider(final PhantomsModule module) {
@@ -26,13 +27,21 @@ public class PhantomsCommandProvider extends CommandProvider<PhantomsModule> {
 
         @Override
         public void setup() {
-                this.register(COMMAND_TOGGLE, List.of(), command -> command
+                this.register(COMMAND_TOGGLE, command -> this.buildCommand(command, ToggleMode.TOGGLE))
+                                .under(COMMAND_ROOT);
+
+                this.registerRoot(COMMAND_ROOT, command -> this.buildCommand(command, ToggleMode.TOGGLE))
+                                .aliases("nophantom", "phantom");
+        }
+
+        private void buildCommand(final CommandAPICommand command, final ToggleMode mode) {
+                command
                                 .withFullDescription(PhantomsLang.COMMAND_PHANTOMS_TOGGLE_DESC.text())
-                                .withPermission(PhantomsPerms.COMMAND_PHANTOMS_TOGGLE.getName())
+                                .withPermission(PhantomsPerms.COMMAND_PHANTOMS_TOGGLE)
                                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                                 .executes((sender, arguments) -> {
-                                        return this.togglePhantoms(sender, arguments, ToggleMode.TOGGLE);
-                                }));
+                                        return this.togglePhantoms(sender, arguments, mode);
+                                });
         }
 
         private int togglePhantoms(final CommandSender sender, final CommandArguments arguments,
@@ -44,7 +53,7 @@ public class PhantomsCommandProvider extends CommandProvider<PhantomsModule> {
                 }
 
                 return target.runAs(this.module, sender,
-                                PhantomsPerms.COMMAND_PHANTOMS_TOGGLE_OTHERS.getName(),
+                                PhantomsPerms.COMMAND_PHANTOMS_TOGGLE_OTHERS,
                                 (user, targetPlayer) -> {
                                         final boolean state = mode.apply(
                                                         user.getPropertyOrDefault(PhantomsProperties.ANTI_PHANTOM));

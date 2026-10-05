@@ -21,7 +21,6 @@ import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -105,11 +104,6 @@ public class BansModule extends Module {
         this.plugin.removeChatHandler(this.chatHandler);
         this.clearRepositories();
         this.dataLoaded = false;
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(BansPerms.ROOT);
     }
 
     @Override

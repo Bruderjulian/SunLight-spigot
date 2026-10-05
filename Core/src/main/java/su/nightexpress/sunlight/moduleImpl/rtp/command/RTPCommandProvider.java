@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.rtp.command;
 
-import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -24,9 +23,9 @@ public class RTPCommandProvider extends CommandProvider<RTPModule> {
 
     @Override
     public void setup() {
-        this.register("rtp", List.of(), command -> command
+        this.register("rtp", command -> command
                 .withFullDescription(RTPLang.COMMAND_RTP_DESC.text())
-                .withPermission(RTPPerms.COMMAND_RTP.getName())
+                .withPermission(RTPPerms.COMMAND_RTP)
                 .withOptionalArguments(new WorldArgument(CommandArgumentConstants.WORLD))
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::execute));
@@ -40,7 +39,7 @@ public class RTPCommandProvider extends CommandProvider<RTPModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, RTPPerms.COMMAND_RTP_OTHERS.getName(), (user, targetPlayer) -> {
+        return target.runAs(this.module, sender, RTPPerms.COMMAND_RTP_OTHERS, (user, targetPlayer) -> {
             Bukkit.getScheduler().runTaskAsynchronously(this.module.plugin(), () -> {
                 final boolean result = this.module.getEngine().teleportToRandomPlace(targetPlayer, world);
 

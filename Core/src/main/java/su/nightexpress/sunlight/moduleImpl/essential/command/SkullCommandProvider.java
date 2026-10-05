@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -13,7 +12,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.permissions.Permission;
 import su.nightexpress.nightcore.bridge.wrap.NightProfile;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangEntry;
@@ -39,9 +37,9 @@ public class SkullCommandProvider extends CommandProvider<EssentialModule> {
 
     private static final String COMMAND_SKULL = "skull";
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("skull");
-    private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("skull.others");
-    private static final Permission PERMISSION_CUSTOM = EssentialPerms.COMMAND.permission("skull.custom");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".skull";
+    private static final String PERMISSION_OTHERS = EssentialPerms.COMMAND + ".skull.others";
+    private static final String PERMISSION_CUSTOM = EssentialPerms.COMMAND + ".skull.custom";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Skull.Custom.Desc")
             .text("Get player's head.");
@@ -73,10 +71,10 @@ public class SkullCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_SKULL, List.of(), command -> command
+        this.register(COMMAND_SKULL, command -> command
                 .withRequirement(sender -> sender instanceof Player)
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION.getName())
+                .withPermission(PERMISSION)
                 .withOptionalArguments(CommandArgumentConstants.string(CommandArgumentConstants.VALUE,
                         info -> CommandArgumentConstants.onlinePlayerNames()))
                 .executes((sender, arguments) -> {
@@ -99,7 +97,7 @@ public class SkullCommandProvider extends CommandProvider<EssentialModule> {
             String input = raw;
 
             if (BASE_64_PATTERN.matcher(input).matches()) {
-                if (!player.hasPermission(PERMISSION_CUSTOM.getName())) {
+                if (!player.hasPermission(PERMISSION_CUSTOM)) {
                     this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
                     return 0;
                 }
@@ -123,7 +121,7 @@ public class SkullCommandProvider extends CommandProvider<EssentialModule> {
             }
 
             if (URL_VALUE_PATTERN.matcher(input).matches()) {
-                if (!player.hasPermission(PERMISSION_CUSTOM.getName())) {
+                if (!player.hasPermission(PERMISSION_CUSTOM)) {
                     this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
                     return 0;
                 }

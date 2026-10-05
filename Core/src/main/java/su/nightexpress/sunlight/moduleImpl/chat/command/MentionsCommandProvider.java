@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.chat.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
@@ -28,28 +27,31 @@ public class MentionsCommandProvider extends CommandProvider<ChatModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_TOGGLE, List.of(), command -> {
+        this.register(COMMAND_TOGGLE, command -> {
             this.buildToggleCommand(command, ChatLang.COMMAND_MENTIONS_TOGGLE_DESC.text(), ToggleMode.TOGGLE);
-        });
+        })
+            .under("mentions");
 
-        this.register(COMMAND_ON, List.of(), command -> {
+        this.register(COMMAND_ON, command -> {
             this.buildToggleCommand(command, ChatLang.COMMAND_MENTIONS_ON_DESC.text(), ToggleMode.ON);
-        });
+        })
+            .under("mentions");
 
-        this.register(COMMAND_OFF, List.of(), command -> {
+        this.register(COMMAND_OFF, command -> {
             this.buildToggleCommand(command, ChatLang.COMMAND_MENTIONS_OFF_DESC.text(), ToggleMode.OFF);
-        });
+        })
+            .under("mentions");
 
         this.registerRoot("mentions", command -> command
                 .withFullDescription(ChatLang.COMMAND_MENTIONS_ROOT_DESC.text())
-                .withPermission(ChatPerms.COMMAND_MENTIONS_ROOT.getName()));
+                .withPermission(ChatPerms.COMMAND_MENTIONS_ROOT)).aliases("mention");
     }
 
     private void buildToggleCommand(dev.jorel.commandapi.CommandAPICommand builder, String description,
             ToggleMode mode) {
         builder
                 .withFullDescription(description)
-                .withPermission(ChatPerms.COMMAND_MENTIONS_TOGGLE.getName())
+                .withPermission(ChatPerms.COMMAND_MENTIONS_TOGGLE)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.toggleMentions(sender, arguments, mode);
@@ -65,7 +67,7 @@ public class MentionsCommandProvider extends CommandProvider<ChatModule> {
         }
 
         return target.runAs(this.module, sender,
-                ChatPerms.COMMAND_MENTIONS_TOGGLE_OTHERS.getName(), (user, targetPlayer) -> {
+                ChatPerms.COMMAND_MENTIONS_TOGGLE_OTHERS, (user, targetPlayer) -> {
                     boolean state = mode.apply(user.getPropertyOrDefault(ChatProperties.MENTIONS));
 
                     user.setProperty(ChatProperties.MENTIONS, state);

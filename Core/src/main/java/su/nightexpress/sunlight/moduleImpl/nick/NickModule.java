@@ -12,7 +12,6 @@ import su.nightexpress.nightcore.util.text.tag.TagPool;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.api.provider.NickProvider;
 import su.nightexpress.sunlight.command.CommandKey;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -37,7 +36,7 @@ public class NickModule extends Module implements NickProvider {
     private static final String LEGACY_TABLIST_KEY = "Nick.Apply_To_Tablist";
 
     private static final String COOLDOWN_PROVIDER = "nickname";
-    private static final String COOLDOWN_NODE = "module_change";
+    private static final String COOLDOWN_NODE = "change";
 
     public static final CommandKey CHANGE_COOLDOWN_KEY = new CommandKey(COOLDOWN_PROVIDER, COOLDOWN_NODE);
 
@@ -70,11 +69,6 @@ public class NickModule extends Module implements NickProvider {
         // Reset player names so a nick does not leak after the module is
         // disabled/reloaded.
         Players.getOnline().forEach(this::resetNickname);
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(NickPerms.MODULE);
     }
 
     @Override

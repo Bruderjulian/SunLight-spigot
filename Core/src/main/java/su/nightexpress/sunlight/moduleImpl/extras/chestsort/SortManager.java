@@ -41,7 +41,8 @@ public class SortManager extends AbstractManager<SunLightPlugin> {
     }
 
     private void loadCommands() {
-        // TODO SortCommand.load(this.plugin, this);
+        // TODO not wired up yet: the command handlers below are still stubs.
+        // this.module.commandRegistry().addProvider(new SortCommand(this.module));
     }
 
     public static boolean isChestSortEnabled(SunUser user) {

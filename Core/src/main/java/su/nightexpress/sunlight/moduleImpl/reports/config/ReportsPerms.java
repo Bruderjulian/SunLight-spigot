@@ -1,48 +1,43 @@
 package su.nightexpress.sunlight.moduleImpl.reports.config;
 
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
-
 public class ReportsPerms {
 
-    public static final PermissionTree ROOT    = Perms.detached("reports");
-    public static final PermissionTree COMMAND = ROOT.branch("command");
-    public static final PermissionTree BYPASS  = ROOT.branch("bypass");
+    public static final String MODULE  = "sunlight.reports";
+    public static final String COMMAND = MODULE + ".command";
+    public static final String BYPASS  = MODULE + ".bypass";
 
-    public static final Permission COMMAND_REPORT = COMMAND.permission("report");
-    public static final Permission COMMAND_REPORT_STATUS = COMMAND.permission("report.status");
-    public static final Permission COMMAND_REPORT_DUPLICATE = COMMAND.permission("report.duplicate");
+    public static final String COMMAND_REPORT          = COMMAND + ".report";
+    public static final String COMMAND_REPORT_STATUS   = COMMAND + ".report.status";
+    public static final String COMMAND_REPORT_DUPLICATE = COMMAND + ".report.duplicate";
 
-    public static final Permission COMMAND_REPORTS = COMMAND.permission("reports");
+    public static final String COMMAND_REPORTS = COMMAND + ".reports";
 
-    public static final Permission COMMAND_REPORT_CLAIM = COMMAND.permission("report.claim");
-    public static final Permission COMMAND_REPORT_RESOLVE = COMMAND.permission("report.resolve");
-    public static final Permission COMMAND_REPORT_DENY = COMMAND.permission("report.deny");
-    public static final Permission COMMAND_REPORT_NOTE = COMMAND.permission("report.note");
-    public static final Permission COMMAND_REPORT_TELEPORT = COMMAND.permission("report.teleport");
-    public static final Permission COMMAND_REPORT_TELEPORT_BYPASS_WARMUP = COMMAND
-            .permission("report.teleport.bypass-warmup");
-    public static final Permission COMMAND_REPORT_DELETE = COMMAND.permission("report.delete");
-    public static final Permission COMMAND_REPORTS_STATS = COMMAND.permission("reports.stats");
-    public static final Permission COMMAND_REPORT_TOGGLE = COMMAND.permission("report.toggle");
+    public static final String COMMAND_REPORT_CLAIM   = COMMAND + ".report.claim";
+    public static final String COMMAND_REPORT_RESOLVE = COMMAND + ".report.resolve";
+    public static final String COMMAND_REPORT_DENY    = COMMAND + ".report.deny";
+    public static final String COMMAND_REPORT_NOTE    = COMMAND + ".report.note";
+    public static final String COMMAND_REPORT_TELEPORT = COMMAND + ".report.teleport";
+    public static final String COMMAND_REPORT_TELEPORT_BYPASS_WARMUP = COMMAND + ".report.teleport.bypass-warmup";
+    public static final String COMMAND_REPORT_DELETE  = COMMAND + ".report.delete";
+    public static final String COMMAND_REPORTS_STATS  = COMMAND + ".reports.stats";
+    public static final String COMMAND_REPORT_TOGGLE  = COMMAND + ".report.toggle";
 
-    public static final Permission NOTIFY = ROOT.permission("notify");
-    public static final Permission EXEMPT = ROOT.permission("exempt");
+    public static final String NOTIFY = MODULE + ".notify";
+    public static final String EXEMPT = MODULE + ".exempt";
 
-    public static final Permission BYPASS_COOLDOWN = BYPASS.permission("cooldown");
-    public static final Permission BYPASS_COST = BYPASS.permission("cost");
-    public static final Permission BYPASS_DAILY_LIMIT = BYPASS.permission("daily-limit");
+    public static final String BYPASS_COOLDOWN   = BYPASS + ".cooldown";
+    public static final String BYPASS_COST       = BYPASS + ".cost";
+    public static final String BYPASS_DAILY_LIMIT = BYPASS + ".daily-limit";
 
-    public static final Permission ADMIN = ROOT.permission("admin");
+    public static final String ADMIN = MODULE + ".admin";
 
     /**
      * Per-category permissions are read from each category's own {@code Permission} field at check
      * time rather than declared here, because the set of categories is user-defined and a static
-     * tree cannot describe it.
+     * table cannot describe it.
      */
-    public static String categoryPermission(String id) {
-        return "sunlight.reports.category." + id;
+    public static String category(String id) {
+        return MODULE + ".category." + id;
     }
 
     private ReportsPerms() {

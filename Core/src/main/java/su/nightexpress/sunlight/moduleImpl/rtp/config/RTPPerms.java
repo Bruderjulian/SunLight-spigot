@@ -1,23 +1,26 @@
 package su.nightexpress.sunlight.moduleImpl.rtp.config;
 
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
 import su.nightexpress.sunlight.utils.Utils;
 
 public class RTPPerms {
 
-    public static final PermissionTree MODULE = Perms.detached("rtp");
-    public static final PermissionTree COMMAND = MODULE.branch("command");
-    public static final PermissionTree BYPASS = MODULE.branch("bypass");
+    public static final String MODULE  = "sunlight.rtp";
+    public static final String COMMAND = MODULE + ".command";
+    public static final String BYPASS  = MODULE + ".bypass";
 
-    public static final Permission COMMAND_RTP = COMMAND.permission("rtp");
-    public static final Permission COMMAND_RTP_OTHERS = COMMAND.permission("rtp.others");
+    public static final String COMMAND_RTP        = COMMAND + ".rtp";
+    public static final String COMMAND_RTP_OTHERS = COMMAND + ".rtp.others";
 
-    public static final Permission BYPASS_COST = BYPASS.permission("cost");
-    public static final Permission BYPASS_COOLDOWN = BYPASS.permission("cooldown");
+    public static final String BYPASS_COST     = BYPASS + ".cost";
+    public static final String BYPASS_COOLDOWN = BYPASS + ".cooldown";
 
-    public static Permission world(String worldName) {
-        return new Permission(COMMAND_RTP.getName() + "." + Utils.lowercase(worldName));
+    /**
+     * Per-world permission of the {@code /rtp} command.
+     */
+    public static String world(final String worldName) {
+        return COMMAND_RTP + "." + Utils.lowercase(worldName);
+    }
+
+    private RTPPerms() {
     }
 }

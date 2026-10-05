@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.chat.mail;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.command.CommandSender;
@@ -28,30 +27,33 @@ public class MailCommandProvider extends CommandProvider<ChatModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_SEND, List.of(), command -> command
+        this.register(COMMAND_SEND, command -> command
                 .withFullDescription(ChatLang.COMMAND_MAIL_SEND_DESC.text())
-                .withPermission(ChatPerms.COMMAND_MAIL_SEND.getName())
+                .withPermission(ChatPerms.COMMAND_MAIL_SEND)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                         info -> CommandArgumentConstants.onlinePlayerNames()),
                         new GreedyStringArgument(CommandArgumentConstants.TEXT))
-                .executes(this::sendMail));
+                .executes(this::sendMail))
+            .under("mail");
 
-        this.register(COMMAND_READ, List.of(), command -> command
+        this.register(COMMAND_READ, command -> command
                 .withFullDescription(ChatLang.COMMAND_MAIL_READ_DESC.text())
-                .withPermission(ChatPerms.COMMAND_MAIL_READ.getName())
+                .withPermission(ChatPerms.COMMAND_MAIL_READ)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::readMails));
+                .executes(this::readMails))
+            .under("mail");
 
-        this.register(COMMAND_CLEAR, List.of(), command -> command
+        this.register(COMMAND_CLEAR, command -> command
                 .withFullDescription(ChatLang.COMMAND_MAIL_CLEAR_DESC.text())
-                .withPermission(ChatPerms.COMMAND_MAIL_CLEAR.getName())
+                .withPermission(ChatPerms.COMMAND_MAIL_CLEAR)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::clearMails));
+                .executes(this::clearMails))
+            .under("mail");
 
         this.registerRoot("mail", command -> command
                 .withFullDescription(ChatLang.COMMAND_MAIL_ROOT_DESC.text())
-                .withPermission(ChatPerms.COMMAND_MAIL_ROOT.getName()));
+                .withPermission(ChatPerms.COMMAND_MAIL_ROOT));
     }
 
     private int sendMail(CommandSender sender, CommandArguments arguments) {

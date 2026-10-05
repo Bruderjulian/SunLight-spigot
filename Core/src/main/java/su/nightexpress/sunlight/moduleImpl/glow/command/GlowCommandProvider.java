@@ -54,38 +54,47 @@ public class GlowCommandProvider extends CommandProvider<GlowModule> {
 
     @Override
     public void setup() {
-        this.register("color", List.of(), command -> command
+        this.register("color", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_COLOR_DESC.text())
                 .withPermission(PERM_COLOR)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                         info -> this.module.settings().getEffectsKeys()))
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes(this::setGlow));
+                .executes(this::setGlow))
+                .under("glow");
 
-        this.register("clear", List.of("unglow"), command -> command
+        this.register("clear", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_CLEAR_DESC.text())
                 .withPermission(PERM_CLEAR)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes(this::clearGlow));
+                .executes(this::clearGlow))
+                .aliases("unglow")
+                .under("glow");
 
-        this.register("list", List.of("glowlist"), command -> command
+        this.register("list", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_LIST_DESC.text())
                 .withPermission(PERM_LIST)
-                .executes(this::listGlows));
+                .executes(this::listGlows))
+                .aliases("glowlist")
+                .under("glow");
 
-        this.register("on", List.of("glow-on"), command -> command
+        this.register("on", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_ON_DESC.text())
                 .withPermission(PERM_ON)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes(this::glowOn));
+                .executes(this::glowOn))
+                .aliases("glow-on")
+                .under("glow");
 
-        this.register("off", List.of("glow-off"), command -> command
+        this.register("off", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_OFF_DESC.text())
                 .withPermission(PERM_OFF)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes(this::glowOff));
+                .executes(this::glowOff))
+                .aliases("glow-off")
+                .under("glow");
 
-        this.register("phase", List.of(), command -> command
+        this.register("phase", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_PHASE_DESC.text())
                 .withPermission(PERM_PHASE)
                 .withRequirement(sender -> sender instanceof Player)
@@ -103,9 +112,10 @@ public class GlowCommandProvider extends CommandProvider<GlowModule> {
                 .executes((executor, arguments) -> {
                     this.module.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_PHASE_USAGE, executor);
                     return 1;
-                }));
+                }))
+                .under("glow");
 
-        this.register("preset", List.of(), command -> command
+        this.register("preset", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_PRESET_DESC.text())
                 .withPermission(PERM_PRESET)
                 .withRequirement(sender -> sender instanceof Player)
@@ -125,7 +135,8 @@ public class GlowCommandProvider extends CommandProvider<GlowModule> {
                 .executes((executor, arguments) -> {
                     this.module.sendPrefixed(GlowLang.COMMAND_GLOW_ERROR_PRESET_USAGE, executor);
                     return 1;
-                }));
+                }))
+                .under("glow");
 
         this.registerRoot("glow", command -> command
                 .withFullDescription(GlowLang.COMMAND_GLOW_ROOT_DESC.text())

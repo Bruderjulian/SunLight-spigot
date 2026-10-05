@@ -9,7 +9,6 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.text.NightMessage;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -59,11 +58,6 @@ public class VanishModule extends Module implements VanishProvider {
 
         this.vanishIndicator.removeAll();
         this.vanishIndicator = null;
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(VanishPerms.MODULE);
     }
 
     @Override

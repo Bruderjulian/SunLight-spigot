@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.links.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -29,23 +28,26 @@ public class LinksCommandProvider extends CommandProvider<LinksModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_ALL, List.of(), builder -> builder
+        this.register(COMMAND_ALL, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_LINKS_ALL_DESC.text())
-                .withPermission(LinksPerms.COMMAND_LINKS_ALL.getName())
-                .executes(this::showAllLinks));
+                .withPermission(LinksPerms.COMMAND_LINKS_ALL)
+                .executes(this::showAllLinks))
+            .under("links");
 
         // Reached by ID, so it also works for links created after startup, which have no command of
         // their own yet.
-        this.register(COMMAND_GET, List.of(), builder -> builder
+        this.register(COMMAND_GET, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_LINKS_GET_DESC.text())
-                .withPermission(LinksPerms.COMMAND_LINK.getName())
+                .withPermission(LinksPerms.COMMAND_LINK)
                 .withArguments(this.linkArgument())
-                .executes(this::getLink));
+                .executes(this::getLink))
+            .under("links");
 
-        this.register(COMMAND_STATS, List.of(), builder -> builder
+        this.register(COMMAND_STATS, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_LINKS_STATS_DESC.text())
-                .withPermission(LinksPerms.COMMAND_LINKS_STATS.getName())
-                .executes(this::showStats));
+                .withPermission(LinksPerms.COMMAND_LINKS_STATS)
+                .executes(this::showStats))
+            .under("links");
 
         // One node per link that existed when the module was loaded. Bukkit cannot register a command
         // after startup, so a link created later gets its own command on the next reload.
@@ -53,7 +55,7 @@ public class LinksCommandProvider extends CommandProvider<LinksModule> {
         // checks, so toggling a link never desyncs from the command config. No framework permission
         // either: access is 'generic OR per-link OR custom', which a single permission node cannot
         // express, so openLink() enforces it manually and stays the single gate for every path.
-        this.module.getLinks().keySet().forEach(id -> this.register(COMMAND_PREFIX + id, List.of(), builder -> builder
+        this.module.getLinks().keySet().forEach(id -> this.register(COMMAND_PREFIX + id, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_LINKS_LINK_DESC.text())
                 .executes((sender, arguments) -> {
                     return this.openLink(sender, id);
@@ -61,8 +63,8 @@ public class LinksCommandProvider extends CommandProvider<LinksModule> {
 
         this.registerRoot("links", builder -> builder
                 .withFullDescription(LinksLang.COMMAND_LINKS_ROOT_DESC.text())
-                .withPermission(LinksPerms.COMMAND_LINKS_ROOT.getName())
-                .executes(this::showAllLinks));
+                .withPermission(LinksPerms.COMMAND_LINKS_ROOT)
+                .executes(this::showAllLinks)).aliases("link");
     }
 
     private Argument<String> linkArgument() {

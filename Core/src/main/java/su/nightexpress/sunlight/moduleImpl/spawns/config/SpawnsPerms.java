@@ -1,22 +1,21 @@
 package su.nightexpress.sunlight.moduleImpl.spawns.config;
 
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
-
 public class SpawnsPerms {
 
-    public static final PermissionTree MODULE  = Perms.detached("spawns");
-    public static final PermissionTree COMMAND = MODULE.branch("command");
-    public static final PermissionTree BYPASS  = MODULE.branch("bypass");
-    public static final PermissionTree SPAWN   = MODULE.branch("spawn");
+    public static final String MODULE  = "sunlight.spawns";
+    public static final String COMMAND = MODULE + ".command";
+    public static final String BYPASS  = MODULE + ".bypass";
+    public static final String SPAWN   = MODULE + ".spawn";
 
-    public static final Permission COMMAND_SPAWNS_CREATE          = COMMAND.permission("spawns.create");
-    public static final Permission COMMAND_SPAWNS_DELETE          = COMMAND.permission("spawns.delete");
-    public static final Permission COMMAND_SPAWNS_TELEPORT        = COMMAND.permission("spawns.teleport");
-    public static final Permission COMMAND_SPAWNS_TELEPORT_OTHERS = COMMAND.permission("spawns.teleport.others");
-    public static final Permission COMMAND_SPAWNS_EDITOR          = COMMAND.permission("spawns.editor");
+    public static final String COMMAND_SPAWNS_CREATE          = COMMAND + ".spawns.create";
+    public static final String COMMAND_SPAWNS_DELETE          = COMMAND + ".spawns.delete";
+    public static final String COMMAND_SPAWNS_TELEPORT        = COMMAND + ".spawns.teleport";
+    public static final String COMMAND_SPAWNS_TELEPORT_OTHERS = COMMAND + ".spawns.teleport.others";
+    public static final String COMMAND_SPAWNS_EDITOR          = COMMAND + ".spawns.editor";
 
-    public static final Permission BYPASS_COST     = BYPASS.permission("cost");
-    public static final Permission BYPASS_COOLDOWN = BYPASS.permission("cooldown");
+    public static final String BYPASS_COST     = BYPASS + ".cost";
+    public static final String BYPASS_COOLDOWN = BYPASS + ".cooldown";
+
+    private SpawnsPerms() {
+    }
 }

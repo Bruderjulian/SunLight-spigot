@@ -44,99 +44,110 @@ public class ReportsStaffCommandProvider extends CommandProvider<ReportsModule> 
 
     @Override
     public void setup() {
-        this.register(COMMAND_LIST, List.of(), builder -> builder
+        this.register(COMMAND_LIST, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_LIST_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORTS.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORTS)
                 .withRequirement(sender -> sender instanceof Player)
                 .withOptionalArguments(CommandArgumentConstants.string(ARG_FILTER,
                         info -> Utils.getEnumNames(ReportFilter.class)))
-                .executes(this::list));
+                .executes(this::list))
+            .under("reports");
 
-        this.register(COMMAND_VIEW, List.of(), builder -> builder
+        this.register(COMMAND_VIEW, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_VIEW_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORTS.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORTS)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
-                .executes(this::view));
+                .executes(this::view))
+            .under("reports");
 
-        this.register(COMMAND_CLAIM, List.of(), builder -> builder
+        this.register(COMMAND_CLAIM, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_CLAIM_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORT_CLAIM.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORT_CLAIM)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
                 .executes((sender, arguments) -> {
                     return this.withReport(sender, arguments, this.module::claim);
-                }));
+                }))
+            .under("reports");
 
-        this.register(COMMAND_RELEASE, List.of(), builder -> builder
+        this.register(COMMAND_RELEASE, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_RELEASE_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORT_CLAIM.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORT_CLAIM)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
                 .executes((sender, arguments) -> {
                     return this.withReport(sender, arguments, this.module::release);
-                }));
+                }))
+            .under("reports");
 
-        this.register(COMMAND_RESOLVE, List.of(), builder -> builder
+        this.register(COMMAND_RESOLVE, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_RESOLVE_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORT_RESOLVE.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORT_RESOLVE)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
                 .withOptionalArguments(CommandArgumentConstants.greedy(ARG_NOTE, info -> List.of()))
                 .executes((sender, arguments) -> {
                     return this.conclude(sender, arguments, ReportStatus.RESOLVED);
-                }));
+                }))
+            .under("reports");
 
-        this.register(COMMAND_DENY, List.of(), builder -> builder
+        this.register(COMMAND_DENY, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_DENY_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORT_DENY.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORT_DENY)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
                 .withOptionalArguments(CommandArgumentConstants.greedy(ARG_NOTE, info -> List.of()))
                 .executes((sender, arguments) -> {
                     return this.conclude(sender, arguments, ReportStatus.DENIED);
-                }));
+                }))
+            .under("reports");
 
-        this.register(COMMAND_NOTE, List.of(), builder -> builder
+        this.register(COMMAND_NOTE, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_NOTE_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORT_NOTE.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORT_NOTE)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument(), new GreedyStringArgument(ARG_NOTE))
-                .executes(this::note));
+                .executes(this::note))
+            .under("reports");
 
-        this.register(COMMAND_TELEPORT, List.of(), builder -> builder
+        this.register(COMMAND_TELEPORT, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_TELEPORT_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORT_TELEPORT.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORT_TELEPORT)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
-                .executes(this::teleport));
+                .executes(this::teleport))
+            .under("reports");
 
-        this.register(COMMAND_DELETE, List.of(), builder -> builder
+        this.register(COMMAND_DELETE, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_DELETE_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORT_DELETE.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORT_DELETE)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.reportArgument())
                 .executes((sender, arguments) -> {
                     return this.withReport(sender, arguments, this.module::deleteReport);
-                }));
+                }))
+            .under("reports");
 
-        this.register(COMMAND_STATS, List.of(), builder -> builder
+        this.register(COMMAND_STATS, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_STATS_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORTS_STATS.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORTS_STATS)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::stats));
+                .executes(this::stats))
+            .under("reports");
 
-        this.register(COMMAND_CASE, List.of(), builder -> builder
+        this.register(COMMAND_CASE, builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_CASE_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORTS.getName())
+                .withPermission(ReportsPerms.COMMAND_REPORTS)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                         info -> CommandArgumentConstants.onlinePlayerNames()))
-                .executes(this::openCase));
+                .executes(this::openCase))
+            .under("reports");
 
         this.registerRoot("reports", builder -> builder
                 .withFullDescription(ReportsLang.COMMAND_REPORTS_ROOT_DESC.text())
-                .withPermission(ReportsPerms.COMMAND_REPORTS.getName()));
+                .withPermission(ReportsPerms.COMMAND_REPORTS));
     }
 
     private int stats(final CommandSender sender, final CommandArguments arguments) {

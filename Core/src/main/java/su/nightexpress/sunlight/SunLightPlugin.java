@@ -32,8 +32,6 @@ import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.command.CommandRegistry;
 import su.nightexpress.sunlight.config.Config;
 import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
 import su.nightexpress.sunlight.data.DataHandler;
 import su.nightexpress.sunlight.hook.impl.PlaceholderHook;
 import su.nightexpress.sunlight.module.LoadCondition;
@@ -154,7 +152,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
         this.commandRegistry.setup();
         this.registerCommands();
-        this.registerPermissions(Perms.ROOT);
 
         if (Utils.hasPlaceholderAPI()) {
             PlaceholderHook.setup(this);
@@ -265,7 +262,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
                         }))
                 .branch(Commands.literal("reload")
                         .description(CoreLang.COMMAND_RELOAD_DESC)
-                        .permission(Perms.COMMAND_RELOAD)
+                        .permission("sunlight.command.reload")
                         .executes((context, arguments) -> {
                             this.doReload(context.getSender());
                             return true;
@@ -299,14 +296,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
                                 .replace(GENERIC_DESCRIPTION, executable.getDescription()));
                     });
                 }));
-    }
-
-    private void registerPermissions(PermissionTree tree) {
-        tree.toList().forEach(permission -> {
-            if (this.getPluginManager().getPermission(permission.getName()) == null) {
-                this.getPluginManager().addPermission(permission);
-            }
-        });
     }
 
     public DataHandler dataHandler() {

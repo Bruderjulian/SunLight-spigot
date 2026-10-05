@@ -1,10 +1,8 @@
 package su.nightexpress.sunlight.moduleImpl.bans.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -25,11 +23,11 @@ public class HistoryCommandsProvider extends CommandProvider<BansModule> {
 
     @Override
     public void setup() {
-        this.register("banhistory", List.of(),
+        this.register("banhistory",
                 builder -> this.builder(builder, PunishmentType.BAN));
-        this.register("mutehistory", List.of(),
+        this.register("mutehistory",
                 builder -> this.builder(builder, PunishmentType.MUTE));
-        this.register("warnhistory", List.of(),
+        this.register("warnhistory",
                 builder -> this.builder(builder, PunishmentType.WARN));
     }
 
@@ -40,7 +38,7 @@ public class HistoryCommandsProvider extends CommandProvider<BansModule> {
             case WARN -> BansLang.COMMAND_WARN_HISTORY_DESC.text();
         };
 
-        Permission permission = switch (type) {
+        String permission = switch (type) {
             case BAN -> BansPerms.COMMAND_BAN_HISTORY;
             case MUTE -> BansPerms.COMMAND_MUTE_HISTORY;
             case WARN -> BansPerms.COMMAND_WARN_HISTORY;
@@ -48,7 +46,7 @@ public class HistoryCommandsProvider extends CommandProvider<BansModule> {
 
         builder
                 .withFullDescription(description)
-                .withPermission(permission.getName())
+                .withPermission(permission)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                         info -> this.module.getPlayerPunishments(type).stream()

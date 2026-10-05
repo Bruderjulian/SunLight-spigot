@@ -10,7 +10,6 @@ import su.nightexpress.nightcore.util.bridge.wrapper.NightComponent;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -42,11 +41,6 @@ public class GreetingsModule extends Module {
 
     @Override
     protected void unloadModule() {
-
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
 
     }
 

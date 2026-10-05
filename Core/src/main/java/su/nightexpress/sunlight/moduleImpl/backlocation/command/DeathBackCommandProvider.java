@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.backlocation.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
@@ -22,9 +21,9 @@ public class DeathBackCommandProvider extends CommandProvider<BackLocationModule
 
     @Override
     public void setup() {
-        this.register("deathback", List.of(), command -> command
+        this.register("deathback", command -> command
                 .withFullDescription(BackLocationLang.COMMAND_DEATH_BACK_DESC.text())
-                .withPermission(BackLocationPerms.COMMAND_DEATHBACK.getName())
+                .withPermission(BackLocationPerms.COMMAND_DEATHBACK)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::moveToDeathLocation));
     }
@@ -36,7 +35,7 @@ public class DeathBackCommandProvider extends CommandProvider<BackLocationModule
             return 0;
         }
 
-        return target.runAs(this.module, sender, BackLocationPerms.COMMAND_DEATHBACK_OTHERS.getName(),
+        return target.runAs(this.module, sender, BackLocationPerms.COMMAND_DEATHBACK_OTHERS,
                 (user, targetPlayer) -> {
                     final boolean silent = target.silent();
                     if (!this.module.teleportToLocation(targetPlayer, LocationType.DEATH, silent)) {

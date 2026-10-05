@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.provider.SocialsProvider;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
@@ -14,7 +13,6 @@ import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.socials.config.SocialsConfig;
 import su.nightexpress.sunlight.moduleImpl.socials.config.SocialsLang;
-import su.nightexpress.sunlight.moduleImpl.socials.config.SocialsPerms;
 import su.nightexpress.sunlight.moduleImpl.socials.hook.DiscordHook;
 import su.nightexpress.sunlight.moduleImpl.socials.listener.SocialsListener;
 import su.nightexpress.sunlight.moduleImpl.links.LinksModule;
@@ -51,11 +49,6 @@ public class SocialsModule extends Module implements SocialsProvider {
     @Override
     protected void unloadModule() {
         this.discordHook = null;
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(SocialsPerms.MODULE);
     }
 
     @Override

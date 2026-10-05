@@ -1,10 +1,8 @@
 package su.nightexpress.sunlight.moduleImpl.bans.command;
 
 import java.net.InetAddress;
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -26,20 +24,20 @@ public class PardonCommandsProvider extends CommandProvider<BansModule> {
 
     @Override
     public void setup() {
-        this.register("unban", List.of(),
+        this.register("unban",
                 builder -> this.builderPlayer(builder, PunishmentType.BAN));
-        this.register("unmute", List.of(),
+        this.register("unmute",
                 builder -> this.builderPlayer(builder, PunishmentType.MUTE));
-        this.register("unwarn", List.of(),
+        this.register("unwarn",
                 builder -> this.builderPlayer(builder, PunishmentType.WARN));
 
-        this.register("unbanip", List.of(), this::builderInet);
+        this.register("unbanip", this::builderInet);
     }
 
     private void builderInet(dev.jorel.commandapi.CommandAPICommand builder) {
         builder
                 .withFullDescription(BansLang.COMMAND_UNBAN_IP_DESC.text())
-                .withPermission(BansPerms.COMMAND_UNBAN_IP.getName())
+                .withPermission(BansPerms.COMMAND_UNBAN_IP)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.INET_ADDRESS,
                         info -> this.module.getPunishmentRepository(PunishmentType.BAN).getActiveInetPunishments()
                                 .stream().map(InetPunishment::getRawAddress).toList()))
@@ -54,7 +52,7 @@ public class PardonCommandsProvider extends CommandProvider<BansModule> {
             case WARN -> BansLang.COMMAND_UNWARN_DESC.text();
         };
 
-        Permission permission = switch (type) {
+        String permission = switch (type) {
             case BAN -> BansPerms.COMMAND_UNBAN;
             case MUTE -> BansPerms.COMMAND_UNMUTE;
             case WARN -> BansPerms.COMMAND_UNWARN;
@@ -62,7 +60,7 @@ public class PardonCommandsProvider extends CommandProvider<BansModule> {
 
         builder
                 .withFullDescription(description)
-                .withPermission(permission.getName())
+                .withPermission(permission)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                         info -> this.module.getPunishmentRepository(type).getActivePlayerPunishments().stream()
                                 .map(PlayerPunishment::getPlayerName).toList()))

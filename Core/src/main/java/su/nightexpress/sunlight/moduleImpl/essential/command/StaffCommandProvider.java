@@ -2,13 +2,11 @@ package su.nightexpress.sunlight.moduleImpl.essential.command;
 
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.locale.LangEntry;
@@ -29,7 +27,7 @@ public class StaffCommandProvider extends CommandProvider<EssentialModule> {
 
     private static final String COMMAND_STAFF = "staff";
 
-    private static final Permission STAFF = EssentialPerms.COMMAND.permission("staff");
+    private static final String STAFF = EssentialPerms.COMMAND + ".staff";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Staff.Desc").text("Show online staff.");
 
@@ -42,9 +40,9 @@ public class StaffCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_STAFF, List.of(), command -> command
+        this.register(COMMAND_STAFF, command -> command
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(STAFF.getName())
+                .withPermission(STAFF)
                 .executes((sender, arguments) -> {
                     return this.showStaff(sender, arguments);
                 }));

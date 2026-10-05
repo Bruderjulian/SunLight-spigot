@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.afk.command;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,17 +18,10 @@ import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
 import su.nightexpress.sunlight.moduleImpl.afk.AfkModule;
 import su.nightexpress.sunlight.moduleImpl.afk.core.AfkLang;
-import su.nightexpress.sunlight.moduleImpl.afk.core.AfkPerms;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 
 public class AfkCommandProvider extends CommandProvider<AfkModule> {
-
-    private static final String COMMAND_TOGGLE = "toggle";
-    private static final String COMMAND_ON = "on";
-    private static final String COMMAND_OFF = "off";
-
-    private static final String LIST_KEYWORD = "list";
 
     public AfkCommandProvider(final AfkModule module) {
         super(module, "afk");
@@ -37,30 +29,54 @@ public class AfkCommandProvider extends CommandProvider<AfkModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_TOGGLE, List.of(), command -> this.buildCommand(command, ToggleMode.TOGGLE));
-        this.register(COMMAND_ON, List.of(), command -> this.buildCommand(command, ToggleMode.ON));
-        this.register(COMMAND_OFF, List.of(), command -> this.buildCommand(command, ToggleMode.OFF));
-    }
-
-    private void buildCommand(final dev.jorel.commandapi.CommandAPICommand command, final ToggleMode mode) {
-        command
-                .withFullDescription(switch (mode) {
-                    case ON -> AfkLang.COMMAND_AFK_ON_DESC.text();
-                    case OFF -> AfkLang.COMMAND_AFK_OFF_DESC.text();
-                    case TOGGLE -> AfkLang.COMMAND_AFK_TOGGLE_DESC.text();
-                })
-                .withPermission(AfkPerms.COMMAND_AFK.getName())
-                .withOptionalArguments(CommandArgumentConstants.targetArgument(info -> this.afkTargetSuggestions()))
+        this.register("on", command -> command
+                .withFullDescription(AfkLang.COMMAND_AFK_ON_DESC.text())
+                .withPermission("sunlight.command.afk")
+                .withOptionalArguments(
+                        CommandArgumentConstants.targetArgument().withPermission("sunlight.command.afk.others"))
                 .executes((sender, arguments) -> {
-                    return this.toggleAfkMode(sender, arguments, mode);
-                });
-    }
+                    toggleAfkMode(sender, arguments, ToggleMode.ON);
+                    return 1;
+                }))
+                .aliases("afk-on")
+                .under("afk");
 
-    private List<String> afkTargetSuggestions() {
-        final List<String> suggestions = new ArrayList<>(CommandArgumentConstants.onlinePlayerNames());
-        suggestions.removeIf(LIST_KEYWORD::equalsIgnoreCase);
-        suggestions.addFirst(LIST_KEYWORD);
-        return suggestions;
+        this.register("off", command -> command
+                .withFullDescription(AfkLang.COMMAND_AFK_OFF_DESC.text())
+                .withPermission("sunlight.command.afk")
+                .withOptionalArguments(
+                        CommandArgumentConstants.targetArgument().withPermission("sunlight.command.afk.others"))
+                .executes((sender, arguments) -> {
+                    toggleAfkMode(sender, arguments, ToggleMode.OFF);
+                    return 1;
+                }))
+                .aliases("afk-off")
+                .under("afk");
+        this.register("toggle", command -> command
+                .withFullDescription(AfkLang.COMMAND_AFK_TOGGLE_DESC.text())
+                .withPermission("sunlight.command.afk")
+                .withOptionalArguments(
+                        CommandArgumentConstants.targetArgument().withPermission("sunlight.command.afk.others"))
+                .executes((sender, arguments) -> {
+                    toggleAfkMode(sender, arguments, ToggleMode.TOGGLE);
+                    return 1;
+                }))
+                .under("afk");
+        this.register("list", command -> command
+                .withFullDescription(AfkLang.COMMAND_AFK_LIST_DESC.text())
+                .withPermission("sunlight.command.afk.list")
+                .executes((sender, arguments) -> {
+                    showList(sender);
+                    return 1;
+                }))
+                .under("afk");
+
+        this.registerRoot("afk", command -> command
+                .withFullDescription(AfkLang.COMMAND_AFK_TOGGLE_DESC.text())
+                .withPermission("sunlight.command.afk")
+                .executes((sender, arguments) -> {
+                    return this.toggleAfkMode(sender, arguments, ToggleMode.TOGGLE);
+                }));
     }
 
     private int toggleAfkMode(final CommandSender sender, final CommandArguments arguments, final ToggleMode mode) {
@@ -70,11 +86,7 @@ public class AfkCommandProvider extends CommandProvider<AfkModule> {
             return 0;
         }
 
-        if (target.playerName() != null && target.playerName().equalsIgnoreCase(LIST_KEYWORD)) {
-            return this.showList(sender);
-        }
-
-        return target.runAs(this.module, sender, AfkPerms.COMMAND_AFK_OTHERS.getName(), (user, targetPlayer) -> {
+        return target.runAs(this.module, sender, "sunlight.command.afk.others", (user, targetPlayer) -> {
             final boolean state = mode.apply(this.module.isAfk(targetPlayer));
             if (state) {
                 this.module.enterAfk(targetPlayer, false);
@@ -99,8 +111,10 @@ public class AfkCommandProvider extends CommandProvider<AfkModule> {
 
         final String list = afkPlayers.stream()
                 .map(player -> GREEN.wrap(player.getName()) + " "
-                        + DARK_GRAY.wrap("(") + ORANGE.wrap(TimeFormats.formatSince(this.module.getAfkEnterTimestamp(player),
-                                TimeFormatType.LITERAL)) + DARK_GRAY.wrap(")"))
+                        + DARK_GRAY.wrap("(")
+                        + ORANGE.wrap(TimeFormats.formatSince(this.module.getAfkEnterTimestamp(player),
+                                TimeFormatType.LITERAL))
+                        + DARK_GRAY.wrap(")"))
                 .collect(Collectors.joining(DARK_GRAY.wrap(", ")));
 
         final PlaceholderContext contextBuilder = PlaceholderContext.builder()

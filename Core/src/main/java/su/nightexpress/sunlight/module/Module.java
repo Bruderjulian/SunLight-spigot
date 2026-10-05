@@ -16,8 +16,6 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandRegistry;
 import su.nightexpress.sunlight.config.Config;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
 import su.nightexpress.sunlight.data.DataHandler;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
@@ -59,7 +57,6 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
         FileConfig config = this.getConfig();
 
         this.loadModule(config);
-        this.registerPermissions(Perms.ROOT);
 
         config.saveChanges();
     }
@@ -76,8 +73,6 @@ public abstract class Module extends AbstractManager<SunLightPlugin> {
     protected abstract void loadModule(FileConfig config) throws ModuleLoadException;
 
     protected abstract void unloadModule();
-
-    protected abstract void registerPermissions(PermissionTree root);
 
     public abstract void registerPlaceholders(PlaceholderRegistry registry);
 

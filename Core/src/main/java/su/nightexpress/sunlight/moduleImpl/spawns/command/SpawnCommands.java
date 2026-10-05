@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.spawns.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,12 +18,11 @@ import su.nightexpress.sunlight.utils.Utils;
 
 public class SpawnCommands extends CommandProvider<SpawnsModule> {
 
-    private static final String COMMAND_CREATE = "spawn_create";
-    private static final String COMMAND_DELETE = "spawn_delete";
-    private static final String COMMAND_EDITOR = "spawn_editor";
-    private static final String COMMAND_TELEPORT = "spawn_teleport";
-
-    public static final String DEF_EDITOR_ALIAS = "editspawn";
+    private static final String COMMAND_ROOT = "spawns";
+    private static final String COMMAND_CREATE = "create";
+    private static final String COMMAND_DELETE = "delete";
+    private static final String COMMAND_EDITOR = "editor";
+    private static final String COMMAND_TELEPORT = "teleport";
 
     public SpawnCommands(final SpawnsModule module) {
         super(module, "spawn");
@@ -32,35 +30,48 @@ public class SpawnCommands extends CommandProvider<SpawnsModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_CREATE, List.of(), command -> command
+        this.register(COMMAND_CREATE, command -> command
                 .withFullDescription(SpawnsLang.COMMAND_SPAWN_SET_DESC.text())
-                .withPermission(SpawnsPerms.COMMAND_SPAWNS_CREATE.getName())
+                .withPermission(SpawnsPerms.COMMAND_SPAWNS_CREATE)
                 .withRequirement(sender -> sender instanceof Player)
                 .withOptionalArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                         info -> this.module.getSpawnIds()))
-                .executes(this::setSpawn));
+                .executes(this::setSpawn))
+                .aliases("spawn_create")
+                .under(COMMAND_ROOT);
 
-        this.register(COMMAND_DELETE, List.of(), command -> command
+        this.register(COMMAND_DELETE, command -> command
                 .withFullDescription(SpawnsLang.COMMAND_SPAWN_DELETE_DESC.text())
-                .withPermission(SpawnsPerms.COMMAND_SPAWNS_DELETE.getName())
+                .withPermission(SpawnsPerms.COMMAND_SPAWNS_DELETE)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                         info -> this.module.getSpawnIds()))
-                .executes(this::deleteSpawn));
+                .executes(this::deleteSpawn))
+                .aliases("spawn_delete")
+                .under(COMMAND_ROOT);
 
-        this.register(COMMAND_EDITOR, List.of(), command -> command
+        this.register(COMMAND_EDITOR, command -> command
                 .withFullDescription(SpawnsLang.COMMAND_SPAWN_EDITOR_DESC.text())
-                .withPermission(SpawnsPerms.COMMAND_SPAWNS_EDITOR.getName())
+                .withPermission(SpawnsPerms.COMMAND_SPAWNS_EDITOR)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::openEditor));
+                .executes(this::openEditor))
+                .aliases("spawn_editor", "editspawn")
+                .under(COMMAND_ROOT);
 
-        this.register(COMMAND_TELEPORT, List.of(), command -> command
+        this.register(COMMAND_TELEPORT, command -> command
                 .withFullDescription(SpawnsLang.COMMAND_SPAWN_TELEPORT_DESC.text())
-                .withPermission(SpawnsPerms.COMMAND_SPAWNS_TELEPORT.getName())
+                .withPermission(SpawnsPerms.COMMAND_SPAWNS_TELEPORT)
                 .withOptionalArguments(
                         CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                                 info -> this.module.getSpawnIds()),
                         CommandArgumentConstants.targetArgument())
-                .executes(this::teleport));
+                .executes(this::teleport))
+                .aliases("spawn_teleport")
+                .under(COMMAND_ROOT);
+
+        this.registerRoot(COMMAND_ROOT, command -> command
+                .withFullDescription(SpawnsLang.COMMAND_SPAWN_TELEPORT_DESC.text())
+                .withPermission(SpawnsPerms.COMMAND_SPAWNS_TELEPORT))
+                .aliases("spawn");
     }
 
     private int setSpawn(final CommandSender sender, final CommandArguments arguments) {
@@ -124,7 +135,7 @@ public class SpawnCommands extends CommandProvider<SpawnsModule> {
 
         final boolean force = parsed.force();
         final boolean silent = parsed.target().silent();
-        return parsed.target().runAs(this.module, sender, SpawnsPerms.COMMAND_SPAWNS_TELEPORT_OTHERS.getName(),
+        return parsed.target().runAs(this.module, sender, SpawnsPerms.COMMAND_SPAWNS_TELEPORT_OTHERS,
                 (user, targetPlayer) -> {
                     if (!this.module.teleport(spawn, targetPlayer, force, silent)) {
                         return;

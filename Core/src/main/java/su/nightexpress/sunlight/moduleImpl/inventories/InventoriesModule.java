@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.moduleImpl.inventories;
 
 import su.nightexpress.nightcore.config.FileConfig;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -39,11 +38,6 @@ public class InventoriesModule extends Module {
     @Override
     protected void unloadModule() {
 
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(InventoriesPerms.MODULE);
     }
 
     @Override

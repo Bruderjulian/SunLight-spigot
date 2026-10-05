@@ -1,11 +1,9 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 import java.util.stream.IntStream;
 
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.IntegerArgument;
@@ -28,8 +26,8 @@ public class SpeedCommandProvider extends CommandProvider<EssentialModule> {
 
     private static final String COMMAND_SPEED = "speed";
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("speed");
-    private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("speed.others");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".speed";
+    private static final String PERMISSION_OTHERS = EssentialPerms.COMMAND + ".speed.others";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Speed.Desc")
             .text("Change walk speed.");
@@ -57,9 +55,9 @@ public class SpeedCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_SPEED, List.of(), command -> command
+        this.register(COMMAND_SPEED, command -> command
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION.getName())
+                .withPermission(PERMISSION)
                 .withArguments(new IntegerArgument(CommandArgumentConstants.VALUE, 1)
                         .replaceSuggestions(ArgumentSuggestions.stringCollection(
                                 info -> IntStream.range(1, SPEEDS_AMOUNT + 1).boxed().map(String::valueOf)
@@ -82,7 +80,7 @@ public class SpeedCommandProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERMISSION_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERMISSION_OTHERS, (user, player) -> {
             final int speed = Math.clamp(value, 1, SPEEDS_AMOUNT);
             final float realSpeed = DEF_SPEED
                     + (MAX_SPEED - DEF_SPEED) * (speed - 1) / (SPEEDS_AMOUNT - 1);

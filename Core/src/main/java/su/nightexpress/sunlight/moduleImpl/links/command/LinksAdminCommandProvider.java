@@ -70,136 +70,155 @@ public class LinksAdminCommandProvider extends CommandProvider<LinksModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_CREATE, List.of(), builder -> builder
+        this.register(COMMAND_CREATE, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_CREATE_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_CREATE.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_CREATE)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(CommandArgumentConstants.string(ARG_LINK, info -> List.of()))
-                .executes(this::createLink));
+                .executes(this::createLink))
+            .under("linksadmin");
 
-        this.register(COMMAND_DELETE, List.of(), builder -> builder
+        this.register(COMMAND_DELETE, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_DELETE_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_DELETE.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_DELETE)
                 .withArguments(this.linkArgument())
-                .executes(this::deleteLink));
+                .executes(this::deleteLink))
+            .under("linksadmin");
 
-        this.register(COMMAND_EDIT, List.of(), builder -> builder
+        this.register(COMMAND_EDIT, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_EDIT_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_EDIT.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_EDIT)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::openEditor));
+                .executes(this::openEditor))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_URL, List.of(), builder -> builder
+        this.register(COMMAND_SET_URL, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_URL_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_URL.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_URL)
                 .withArguments(this.linkArgument())
                 .withOptionalArguments(CommandArgumentConstants.greedy(ARG_URL, info -> List.of()))
-                .executes(this::setUrl));
+                .executes(this::setUrl))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_NAME, List.of(), builder -> builder
+        this.register(COMMAND_SET_NAME, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_NAME_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_NAME.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_NAME)
                 .withArguments(this.linkArgument(), new GreedyStringArgument(ARG_NAME))
-                .executes(this::setName));
+                .executes(this::setName))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_COMMAND, List.of(), builder -> builder
+        this.register(COMMAND_SET_COMMAND, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_COMMAND_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_COMMAND.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_COMMAND)
                 .withArguments(this.linkArgument())
                 .withOptionalArguments(CommandArgumentConstants.greedy(ARG_COMMAND, info -> List.of()))
-                .executes(this::setCommand));
+                .executes(this::setCommand))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_EXECUTOR, List.of(), builder -> builder
+        this.register(COMMAND_SET_EXECUTOR, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_EXECUTOR_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_EXECUTOR.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_EXECUTOR)
                 .withArguments(this.linkArgument(), CommandArgumentConstants.string(ARG_EXECUTOR,
                         info -> Utils.getEnumNames(LinkExecutor.class)))
-                .executes(this::setExecutor));
+                .executes(this::setExecutor))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_PERM, List.of(), builder -> builder
+        this.register(COMMAND_SET_PERM, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_PERMISSION_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_PERMISSION.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_PERMISSION)
                 .withArguments(this.linkArgument())
                 .withOptionalArguments(CommandArgumentConstants.string(ARG_PERMISSION, info -> List.of()))
-                .executes(this::setPermission));
+                .executes(this::setPermission))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_USE_PERM, List.of(), builder -> builder
+        this.register(COMMAND_SET_USE_PERM, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_USE_PERMISSION_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_USE_PERMISSION.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_USE_PERMISSION)
                 .withArguments(this.linkArgument())
                 .withOptionalArguments(CommandArgumentConstants.string(ARG_PERMISSION, info -> List.of()))
-                .executes(this::setUsePermission));
+                .executes(this::setUsePermission))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_ICON, List.of(), builder -> builder
+        this.register(COMMAND_SET_ICON, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_ICON_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_ICON.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_ICON)
                 .withArguments(this.linkArgument(), CommandArgumentConstants.string(ARG_MATERIAL,
                         info -> materialSuggestions()))
-                .executes(this::setIcon));
+                .executes(this::setIcon))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_PRIORITY, List.of(), builder -> builder
+        this.register(COMMAND_SET_PRIORITY, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_PRIORITY_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_PRIORITY.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_PRIORITY)
                 .withArguments(this.linkArgument(), new IntegerArgument(ARG_PRIORITY))
-                .executes(this::setPriority));
+                .executes(this::setPriority))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_COOLDOWN, List.of(), builder -> builder
+        this.register(COMMAND_SET_COOLDOWN, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_COOLDOWN_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_COOLDOWN.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_COOLDOWN)
                 .withArguments(this.linkArgument(), new IntegerArgument(ARG_SECONDS, 0))
-                .executes(this::setCooldown));
+                .executes(this::setCooldown))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_COST, List.of(), builder -> builder
+        this.register(COMMAND_SET_COST, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_COST_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_COST.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_COST)
                 .withArguments(this.linkArgument(), new DoubleArgument(ARG_COST, 0D))
-                .executes(this::setCost));
+                .executes(this::setCost))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_REWARD, List.of(), builder -> builder
+        this.register(COMMAND_SET_REWARD, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_REWARD_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_REWARD.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_REWARD)
                 .withArguments(this.linkArgument())
                 .withOptionalArguments(CommandArgumentConstants.greedy(ARG_COMMAND, info -> List.of()))
-                .executes(this::setReward));
+                .executes(this::setReward))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_SOUND, List.of(), builder -> builder
+        this.register(COMMAND_SET_SOUND, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_SOUND_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_SOUND.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_SOUND)
                 .withArguments(this.linkArgument())
                 .withOptionalArguments(CommandArgumentConstants.greedy(ARG_SOUND, info -> List.of()))
-                .executes(this::setSound));
+                .executes(this::setSound))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_ACTIONBAR, List.of(), builder -> builder
+        this.register(COMMAND_SET_ACTIONBAR, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_ACTIONBAR_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_ACTIONBAR.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_ACTIONBAR)
                 .withArguments(this.linkArgument())
                 .withOptionalArguments(CommandArgumentConstants.greedy(ARG_TEXT, info -> List.of()))
-                .executes(this::setActionbar));
+                .executes(this::setActionbar))
+            .under("linksadmin");
 
-        this.register(COMMAND_SET_PARTICLE, List.of(), builder -> builder
+        this.register(COMMAND_SET_PARTICLE, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_SET_PARTICLE_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_SET_PARTICLE.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_SET_PARTICLE)
                 .withArguments(this.linkArgument())
                 .withOptionalArguments(
                         CommandArgumentConstants.string(ARG_PARTICLE, info -> particleSuggestions()),
                         new IntegerArgument(ARG_COUNT, 0, 100))
-                .executes(this::setParticle));
+                .executes(this::setParticle))
+            .under("linksadmin");
 
-        this.register(COMMAND_TOGGLE, List.of(), builder -> builder
+        this.register(COMMAND_TOGGLE, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_TOGGLE_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_TOGGLE.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_TOGGLE)
                 .withArguments(this.linkArgument())
-                .executes(this::toggleLink));
+                .executes(this::toggleLink))
+            .under("linksadmin");
 
-        this.register(COMMAND_RESET_CLICKS, List.of(), builder -> builder
+        this.register(COMMAND_RESET_CLICKS, builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_RESET_CLICKS_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_RESET_CLICKS.getName())
+                .withPermission(LinksPerms.COMMAND_ADMIN_RESET_CLICKS)
                 .withArguments(this.linkArgument())
-                .executes(this::resetClicks));
+                .executes(this::resetClicks))
+            .under("linksadmin");
 
         this.registerRoot("linksadmin", builder -> builder
                 .withFullDescription(LinksLang.COMMAND_ADMIN_ROOT_DESC.text())
-                .withPermission(LinksPerms.COMMAND_ADMIN_ROOT.getName()));
+                .withPermission(LinksPerms.COMMAND_ADMIN_ROOT)).aliases("links-admin");
     }
 
     private static List<String> materialSuggestions() {

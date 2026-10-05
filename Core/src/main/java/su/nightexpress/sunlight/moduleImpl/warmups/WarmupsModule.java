@@ -4,7 +4,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import su.nightexpress.nightcore.config.FileConfig;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -50,11 +49,6 @@ public class WarmupsModule extends Module {
     protected void unloadModule() {
         this.getWarmups().forEach(warmup -> warmup.cancel(true));
         this.warmupByIdMap.clear();
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(WarmupsPerms.MODULE);
     }
 
     @Override

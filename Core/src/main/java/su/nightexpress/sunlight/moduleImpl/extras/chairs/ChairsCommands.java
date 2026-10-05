@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.extras.chairs;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
@@ -13,8 +12,9 @@ import su.nightexpress.sunlight.moduleImpl.extras.config.ExtrasPerms;
 
 public class ChairsCommands extends CommandProvider<ExtrasModule> {
 
-    public static final String NODE_TOGGLE = "chairs_toggle";
-    public static final String NODE_SIT = "chairs_sit";
+    private static final String COMMAND_ROOT = "chairs";
+    private static final String COMMAND_TOGGLE = "toggle";
+    private static final String COMMAND_SIT = "sit";
 
     public ChairsCommands(final ExtrasModule module) {
         super(module, "chairs");
@@ -22,25 +22,30 @@ public class ChairsCommands extends CommandProvider<ExtrasModule> {
 
     @Override
     public void setup() {
-        this.register("chairs", List.of(), builder -> builder
+        this.register(COMMAND_TOGGLE, builder -> builder
                 .withFullDescription(ExtrasLang.COMMAND_CHAIRS_DESC.text())
-                .withPermission(ExtrasPerms.COMMAND_CHAIRS.getName())
+                .withPermission(ExtrasPerms.COMMAND_CHAIRS)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.toggleChairs(sender, arguments);
-                }));
+                }))
+                .under(COMMAND_ROOT);
 
-        this.register("sit", List.of(), builder -> builder
+        this.register(COMMAND_SIT, builder -> builder
                 .withFullDescription(ExtrasLang.COMMAND_SIT_DESC.text())
-                .withPermission(ExtrasPerms.COMMAND_SIT.getName())
+                .withPermission(ExtrasPerms.COMMAND_SIT)
                 .withArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.sit(sender, arguments);
-                }));
+                }))
+                .under(COMMAND_ROOT);
 
-        this.registerRoot("mode", builder -> builder
-                .withFullDescription("TODO")
-                .withPermission("TODO")); // TODO
+        this.registerRoot(COMMAND_ROOT, builder -> builder
+                .withFullDescription(ExtrasLang.COMMAND_CHAIRS_DESC.text())
+                .withPermission(ExtrasPerms.COMMAND_CHAIRS)
+                .executes((sender, arguments) -> {
+                    return this.toggleChairs(sender, arguments);
+                }));
     }
 
     private int toggleChairs(final CommandSender sender, final CommandArguments arguments) {

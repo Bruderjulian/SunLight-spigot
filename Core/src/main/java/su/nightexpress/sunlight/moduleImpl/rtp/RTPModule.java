@@ -4,14 +4,12 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.language.LangAssets;
 import su.nightexpress.nightcore.util.NumberUtil;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.rtp.command.RTPCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.rtp.config.RTPLang;
-import su.nightexpress.sunlight.moduleImpl.rtp.config.RTPPerms;
 import su.nightexpress.sunlight.moduleImpl.rtp.config.RTPSettings;
 import su.nightexpress.sunlight.moduleImpl.rtp.engine.RTPEngine;
 
@@ -53,11 +51,6 @@ public class RTPModule extends Module {
     @Override
     protected void unloadModule() {
         this.engine.shutdown();
-    }
-
-    @Override
-    protected void registerPermissions(final PermissionTree root) {
-        root.merge(RTPPerms.MODULE);
     }
 
     @Override

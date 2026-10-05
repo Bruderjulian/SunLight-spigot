@@ -47,12 +47,12 @@ public class ExtrasConfig {
     public static final ConfigValue<Boolean> ANVIL_COLORS_ENABLED = ConfigValue.create("Anvil_Colors.Enabled",
         true,
         "Sets whether or not Anvil Colors feature is enabled.",
-        "Players with '" + ExtrasPerms.ANVILS_COLOR.getName() + "' permission will be able to use colors on anvils.");
+        "Players with '" + ExtrasPerms.ANVILS_COLOR + "' permission will be able to use colors on anvils.");
 
     public static final ConfigValue<Boolean> SIGN_COLORS_ENABLED = ConfigValue.create("Sign_Colors.Enabled",
         false,
         "Sets whether or not Sign Colors feature is enabled.",
-        "Players with '" + ExtrasPerms.SIGNS_COLOR.getName() + "' permission will be able to use colors on signs.");
+        "Players with '" + ExtrasPerms.SIGNS_COLOR + "' permission will be able to use colors on signs.");
 
     public static final ConfigValue<Boolean> PHYSIC_EXPLOSIONS_ENABLED = ConfigValue.create("Physic_Explosions.Enabled",
         true,

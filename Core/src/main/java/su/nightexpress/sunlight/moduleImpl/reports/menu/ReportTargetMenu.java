@@ -17,7 +17,6 @@ import su.nightexpress.nightcore.util.bukkit.NightItem;
 import su.nightexpress.nightcore.util.profile.PlayerProfiles;
 import su.nightexpress.sunlight.moduleImpl.reports.ReportsModule;
 import su.nightexpress.sunlight.moduleImpl.reports.config.ReportsLang;
-import su.nightexpress.sunlight.moduleImpl.reports.config.ReportsPerms;
 
 import java.util.ArrayList;
 import java.util.List;

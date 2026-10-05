@@ -7,7 +7,6 @@ import su.nightexpress.nightcore.commands.command.NightCommand;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.FileUtil;
 import su.nightexpress.nightcore.util.Players;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -60,8 +59,8 @@ public class TextsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(TextsPerms.MODULE);
+    public String getPermissionNamespace() {
+        return "customtext";
     }
 
     @Override

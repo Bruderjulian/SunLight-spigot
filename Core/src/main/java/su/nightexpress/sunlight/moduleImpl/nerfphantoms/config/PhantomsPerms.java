@@ -1,16 +1,14 @@
 package su.nightexpress.sunlight.moduleImpl.nerfphantoms.config;
 
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
-
 public class PhantomsPerms {
 
-    public static final PermissionTree ROOT = Perms.detached("nerfphantoms");
-    public static final PermissionTree COMMAND = ROOT.branch("command");
+    public static final String MODULE  = "sunlight.nerfphantoms";
+    public static final String COMMAND = MODULE + ".command";
 
-    public static final Permission COMMAND_PHANTOMS_ROOT = COMMAND.permission("phantoms.root");
-    public static final Permission COMMAND_PHANTOMS_TOGGLE = COMMAND.permission("phantoms.toggle");
-    public static final Permission COMMAND_PHANTOMS_TOGGLE_OTHERS = COMMAND.permission("phantoms.toggle.others");
+    public static final String COMMAND_PHANTOMS_ROOT         = COMMAND + ".phantoms.root";
+    public static final String COMMAND_PHANTOMS_TOGGLE       = COMMAND + ".phantoms.toggle";
+    public static final String COMMAND_PHANTOMS_TOGGLE_OTHERS = COMMAND + ".phantoms.toggle.others";
 
+    private PhantomsPerms() {
+    }
 }

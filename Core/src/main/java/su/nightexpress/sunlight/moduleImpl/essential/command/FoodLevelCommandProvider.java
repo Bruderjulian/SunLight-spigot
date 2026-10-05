@@ -1,11 +1,9 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 import java.util.stream.IntStream;
 
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
@@ -33,12 +31,12 @@ public class FoodLevelCommandProvider extends CommandProvider<EssentialModule> {
     private static final String COMMAND_SET = "set";
     private static final String COMMAND_REMOVE = "remove";
 
-    private static final Permission PERM_ADD = EssentialPerms.COMMAND.permission("foodlevel.add");
-    private static final Permission PERM_SET = EssentialPerms.COMMAND.permission("foodlevel.set");
-    private static final Permission PERM_REMOVE = EssentialPerms.COMMAND.permission("foodlevel.remove");
-    private static final Permission PERM_RESTORE = EssentialPerms.COMMAND.permission("foodlevel.restore");
-    private static final Permission PERM_ROOT = EssentialPerms.COMMAND.permission("foodlevel.root");
-    private static final Permission PERM_OTHERS = EssentialPerms.COMMAND.permission("foodlevel.others");
+    private static final String PERM_ADD = EssentialPerms.COMMAND + ".foodlevel.add";
+    private static final String PERM_SET = EssentialPerms.COMMAND + ".foodlevel.set";
+    private static final String PERM_REMOVE = EssentialPerms.COMMAND + ".foodlevel.remove";
+    private static final String PERM_RESTORE = EssentialPerms.COMMAND + ".foodlevel.restore";
+    private static final String PERM_ROOT = EssentialPerms.COMMAND + ".foodlevel.root";
+    private static final String PERM_OTHERS = EssentialPerms.COMMAND + ".foodlevel.others";
 
     private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Food.Root.Desc")
             .text("Food level commands.");
@@ -108,21 +106,25 @@ public class FoodLevelCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_ADD, List.of(), command -> this.buildModeCommand(command, ModifyMode.ADD));
-        this.register(COMMAND_SET, List.of(), command -> this.buildModeCommand(command, ModifyMode.SET));
-        this.register(COMMAND_REMOVE, List.of(), command -> this.buildModeCommand(command, ModifyMode.REMOVE));
+        this.register(COMMAND_ADD, command -> this.buildModeCommand(command, ModifyMode.ADD))
+            .under("foodlevel");
+        this.register(COMMAND_SET, command -> this.buildModeCommand(command, ModifyMode.SET))
+            .under("foodlevel");
+        this.register(COMMAND_REMOVE, command -> this.buildModeCommand(command, ModifyMode.REMOVE))
+            .under("foodlevel");
 
-        this.register(COMMAND_RESTORE, List.of(), command -> command
+        this.register(COMMAND_RESTORE, command -> command
                 .withFullDescription(DESCRIPTION_RESTORE.text())
-                .withPermission(PERM_RESTORE.getName())
+                .withPermission(PERM_RESTORE)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.restoreFood(sender, arguments);
-                }));
+                }))
+            .under("foodlevel");
 
         this.registerRoot("foodlevel", command -> command
                 .withFullDescription(DESCRIPTION_ROOT.text())
-                .withPermission(PERM_ROOT.getName()));
+                .withPermission(PERM_ROOT));
     }
 
     private void buildModeCommand(final CommandAPICommand command, final ModifyMode mode) {
@@ -132,7 +134,7 @@ public class FoodLevelCommandProvider extends CommandProvider<EssentialModule> {
             case REMOVE -> DESCRIPTION_REMOVE;
         };
 
-        final Permission permission = switch (mode) {
+        final String permission = switch (mode) {
             case ADD -> PERM_ADD;
             case SET -> PERM_SET;
             case REMOVE -> PERM_REMOVE;
@@ -140,7 +142,7 @@ public class FoodLevelCommandProvider extends CommandProvider<EssentialModule> {
 
         command
                 .withFullDescription(description.text())
-                .withPermission(permission.getName())
+                .withPermission(permission)
                 .withArguments(new IntegerArgument(CommandArgumentConstants.AMOUNT, 0)
                         .replaceSuggestions(ArgumentSuggestions.stringCollection(info -> IntStream.range(0, 21)
                                 .boxed()
@@ -163,7 +165,7 @@ public class FoodLevelCommandProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERM_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERM_OTHERS, (user, player) -> {
             final int oldValue = player.getFoodLevel();
             final int newValue = (int) Math.clamp(mode.modify(oldValue, amount), 0, MAX_VALUE);
 
@@ -208,7 +210,7 @@ public class FoodLevelCommandProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERM_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERM_OTHERS, (user, player) -> {
             player.setFoodLevel(MAX_VALUE);
 
             if (this.module.settings().foodSaturationEnabled.get()) {

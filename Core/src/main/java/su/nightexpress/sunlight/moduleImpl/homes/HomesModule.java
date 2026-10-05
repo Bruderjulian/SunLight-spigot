@@ -36,7 +36,6 @@ import su.nightexpress.nightcore.util.geodata.pos.ExactPos;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -116,11 +115,6 @@ public class HomesModule extends Module {
         this.homesMenu = null;
 
         this.repository.clear();
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(HomesPerms.ROOT);
     }
 
     @Override

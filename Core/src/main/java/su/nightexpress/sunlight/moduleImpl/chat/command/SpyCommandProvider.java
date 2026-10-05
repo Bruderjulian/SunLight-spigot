@@ -1,10 +1,8 @@
 package su.nightexpress.sunlight.moduleImpl.chat.command;
 
 import java.util.Arrays;
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -23,15 +21,17 @@ import su.nightexpress.sunlight.utils.Utils;
 
 public class SpyCommandProvider extends CommandProvider<ChatModule> {
 
+        private static final String COMMAND_ROOT = "spy";
+
         public SpyCommandProvider(ChatModule module) {
                 super(module, "chat-spy");
         }
 
         @Override
         public void setup() {
-                this.register("logger", List.of(), command -> command
+                this.register("logger", command -> command
                                 .withFullDescription(ChatLang.COMMAND_SPY_LOGGER_DESC.text())
-                                .withPermission(ChatPerms.COMMAND_SPY_LOGGER.getName())
+                                .withPermission(ChatPerms.COMMAND_SPY_LOGGER)
                                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.TYPE,
                                                 info -> Arrays.stream(SpyType.values()).map(Enum::name).sorted()
                                                                 .toList()),
@@ -39,28 +39,43 @@ public class SpyCommandProvider extends CommandProvider<ChatModule> {
                                                 info -> CommandArgumentConstants.onlinePlayerNames()))
                                 .executes((sender, arguments) -> {
                                         return this.toggleLogger(sender, arguments, ToggleMode.TOGGLE);
-                                }));
+                                }))
+                                .aliases("logger")
+                                .under(COMMAND_ROOT);
 
-                this.register("chatspy-toggle", List.of(),
-                                command -> this.builderMode(command, SpyType.CHAT, ToggleMode.TOGGLE));
-                this.register("chatspy-on", List.of(),
-                                command -> this.builderMode(command, SpyType.CHAT, ToggleMode.ON));
-                this.register("chatspy-off", List.of(),
-                                command -> this.builderMode(command, SpyType.CHAT, ToggleMode.OFF));
+                this.register("chat-toggle",
+                                command -> this.builderMode(command, SpyType.CHAT, ToggleMode.TOGGLE))
+                                .aliases("chatspy-toggle").under(COMMAND_ROOT);
+                this.register("chat-on",
+                                command -> this.builderMode(command, SpyType.CHAT, ToggleMode.ON))
+                                .aliases("chatspy-on").under(COMMAND_ROOT);
+                this.register("chat-off",
+                                command -> this.builderMode(command, SpyType.CHAT, ToggleMode.OFF))
+                                .aliases("chatspy-off").under(COMMAND_ROOT);
 
-                this.register("commandspy-toggle", List.of(),
-                                command -> this.builderMode(command, SpyType.COMMAND, ToggleMode.TOGGLE));
-                this.register("commandspy-on", List.of(),
-                                command -> this.builderMode(command, SpyType.COMMAND, ToggleMode.ON));
-                this.register("commandspy-off", List.of(),
-                                command -> this.builderMode(command, SpyType.COMMAND, ToggleMode.OFF));
+                this.register("command-toggle",
+                                command -> this.builderMode(command, SpyType.COMMAND, ToggleMode.TOGGLE))
+                                .aliases("commandspy-toggle").under(COMMAND_ROOT);
+                this.register("command-on",
+                                command -> this.builderMode(command, SpyType.COMMAND, ToggleMode.ON))
+                                .aliases("commandspy-on").under(COMMAND_ROOT);
+                this.register("command-off",
+                                command -> this.builderMode(command, SpyType.COMMAND, ToggleMode.OFF))
+                                .aliases("commandspy-off").under(COMMAND_ROOT);
 
-                this.register("socialspy-toggle", List.of(),
-                                command -> this.builderMode(command, SpyType.SOCIAL, ToggleMode.TOGGLE));
-                this.register("socialspy-on", List.of(),
-                                command -> this.builderMode(command, SpyType.SOCIAL, ToggleMode.ON));
-                this.register("socialspy-off", List.of(),
-                                command -> this.builderMode(command, SpyType.SOCIAL, ToggleMode.OFF));
+                this.register("social-toggle",
+                                command -> this.builderMode(command, SpyType.SOCIAL, ToggleMode.TOGGLE))
+                                .aliases("socialspy-toggle").under(COMMAND_ROOT);
+                this.register("social-on",
+                                command -> this.builderMode(command, SpyType.SOCIAL, ToggleMode.ON))
+                                .aliases("socialspy-on").under(COMMAND_ROOT);
+                this.register("social-off",
+                                command -> this.builderMode(command, SpyType.SOCIAL, ToggleMode.OFF))
+                                .aliases("socialspy-off").under(COMMAND_ROOT);
+
+                this.registerRoot(COMMAND_ROOT, command -> command
+                                .withFullDescription(ChatLang.COMMAND_SPY_ROOT_DESC.text())
+                                .withPermission(ChatPerms.COMMAND_SPY_ROOT));
         }
 
         private void builderMode(dev.jorel.commandapi.CommandAPICommand builder, SpyType spyType, ToggleMode mode) {
@@ -70,7 +85,7 @@ public class SpyCommandProvider extends CommandProvider<ChatModule> {
                         case OFF -> ChatLang.COMMAND_SPY_MODE_OFF_DESC.text();
                 };
 
-                Permission permission = switch (spyType) {
+                String permission = switch (spyType) {
                         case CHAT -> ChatPerms.COMMAND_SPY_CHAT;
                         case COMMAND -> ChatPerms.COMMAND_SPY_COMMAND;
                         case SOCIAL -> ChatPerms.COMMAND_SPY_SOCIAL;
@@ -79,7 +94,7 @@ public class SpyCommandProvider extends CommandProvider<ChatModule> {
                 builder
                                 .withFullDescription(description.replace(SLPlaceholders.GENERIC_TYPE,
                                                 ChatLang.SPY_TYPE.getLocalized(spyType)))
-                                .withPermission(permission.getName())
+                                .withPermission(permission)
                                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                                 .executes((sender, arguments) -> {
                                         return this.toggleMode(sender, arguments, spyType, mode);
@@ -95,9 +110,9 @@ public class SpyCommandProvider extends CommandProvider<ChatModule> {
                 }
 
                 final String othersPermission = switch (spyType) {
-                        case CHAT -> ChatPerms.COMMAND_SPY_CHAT_OTHERS.getName();
-                        case COMMAND -> ChatPerms.COMMAND_SPY_COMMAND_OTHERS.getName();
-                        case SOCIAL -> ChatPerms.COMMAND_SPY_SOCIAL_OTEHRS.getName();
+                        case CHAT -> ChatPerms.COMMAND_SPY_CHAT_OTHERS;
+                        case COMMAND -> ChatPerms.COMMAND_SPY_COMMAND_OTHERS;
+                        case SOCIAL -> ChatPerms.COMMAND_SPY_SOCIAL_OTHERS;
                 };
 
                 return target.runAs(this.module, sender, othersPermission, (user, targetPlayer) -> {

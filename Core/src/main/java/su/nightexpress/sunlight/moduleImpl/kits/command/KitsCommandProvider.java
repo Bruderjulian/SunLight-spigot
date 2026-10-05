@@ -43,58 +43,65 @@ public class KitsCommandProvider extends CommandProvider<KitsModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_EDITOR, List.of(), builder -> builder
+        this.register(COMMAND_EDITOR, builder -> builder
                 .withFullDescription(KitsLang.COMMAND_KITS_EDITOR_DESC.text())
-                .withPermission(KitsPerms.COMMAND_EDIT_KIT.getName())
+                .withPermission(KitsPerms.COMMAND_EDIT_KIT)
                 .withRequirement(sender -> sender instanceof Player)
-                .executes(this::openEditor));
+                .executes(this::openEditor))
+            .under("kits");
 
-        this.register(COMMAND_GET, List.of(), builder -> builder
+        this.register(COMMAND_GET, builder -> builder
                 .withFullDescription(KitsLang.COMMAND_KITS_GET_DESC.text())
-                .withPermission(KitsPerms.COMMAND_KIT_GET.getName())
+                .withPermission(KitsPerms.COMMAND_KIT_GET)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(this.kitArgument())
-                .executes(this::getKit));
+                .executes(this::getKit))
+            .under("kits");
 
-        this.register(COMMAND_GIVE, List.of(), builder -> builder
+        this.register(COMMAND_GIVE, builder -> builder
                 .withFullDescription(KitsLang.COMMAND_KITS_GIVE_DESC.text())
-                .withPermission(KitsPerms.COMMAND_KIT_GIVE.getName())
+                .withPermission(KitsPerms.COMMAND_KIT_GIVE)
                 .withArguments(this.kitArgument(), CommandArgumentConstants.targetArgument())
-                .executes(this::giveKit));
+                .executes(this::giveKit))
+            .under("kits");
 
-        this.register(COMMAND_LIST, List.of(), builder -> builder
+        this.register(COMMAND_LIST, builder -> builder
                 .withFullDescription(KitsLang.COMMAND_KITS_LIST_DESC.text())
-                .withPermission(KitsPerms.COMMAND_KIT_LIST.getName())
+                .withPermission(KitsPerms.COMMAND_KIT_LIST)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes(this::listKits));
+                .executes(this::listKits))
+            .under("kits");
 
-        this.register(COMMAND_PREVIEW, List.of(), builder -> builder
+        this.register(COMMAND_PREVIEW, builder -> builder
                 .withFullDescription(KitsLang.COMMAND_KITS_PREVIEW_DESC.text())
-                .withPermission(KitsPerms.COMMAND_PREVIEW_KIT.getName())
+                .withPermission(KitsPerms.COMMAND_PREVIEW_KIT)
                 .withArguments(this.kitArgument())
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes(this::previewKit));
+                .executes(this::previewKit))
+            .under("kits");
 
-        this.register(COMMAND_RESET_COOLDOWN, List.of(), builder -> builder
+        this.register(COMMAND_RESET_COOLDOWN, builder -> builder
                 .withFullDescription(KitsLang.COMMAND_KITS_RESET_COOLDOWN_DESC.text())
-                .withPermission(KitsPerms.COMMAND_RESET_KIT_COOLDOWN.getName())
+                .withPermission(KitsPerms.COMMAND_RESET_KIT_COOLDOWN)
                 .withArguments(this.kitArgument(), CommandArgumentConstants.targetArgument())
-                .executes(this::resetCooldown));
+                .executes(this::resetCooldown))
+            .under("kits");
 
-        this.register(COMMAND_SET_COOLDOWN, List.of(), builder -> builder
+        this.register(COMMAND_SET_COOLDOWN, builder -> builder
                 .withFullDescription(KitsLang.COMMAND_KITS_SET_COOLDOWN_DESC.text())
-                .withPermission(KitsPerms.COMMAND_SET_KIT_COOLDOWN.getName())
+                .withPermission(KitsPerms.COMMAND_SET_KIT_COOLDOWN)
                 .withArguments(
                         this.kitArgument(),
                         new IntegerArgument(CommandArgumentConstants.TIME, 1)
                                 .replaceSuggestions(ArgumentSuggestions
                                         .stringCollection(info -> List.of("300", "3600", "86400"))),
                         CommandArgumentConstants.targetArgument())
-                .executes(this::setCooldown));
+                .executes(this::setCooldown))
+            .under("kits");
 
         this.registerRoot("kits", builder -> builder
                 .withFullDescription(KitsLang.COMMAND_KITS_ROOT_DESC.text())
-                .withPermission(KitsPerms.COMMAND_KITS_ROOT.getName()));
+                .withPermission(KitsPerms.COMMAND_KITS_ROOT)).aliases("kit");
     }
 
     private Argument<String> kitArgument() {
@@ -167,7 +174,7 @@ public class KitsCommandProvider extends CommandProvider<KitsModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, KitsPerms.COMMAND_KIT_LIST_OTHERS.getName(),
+        return target.runAs(this.module, sender, KitsPerms.COMMAND_KIT_LIST_OTHERS,
                 (user, targetPlayer) -> {
                     this.module.openKitsMenu(targetPlayer);
 
@@ -190,7 +197,7 @@ public class KitsCommandProvider extends CommandProvider<KitsModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, KitsPerms.COMMAND_PREVIEW_KIT_OTHERS.getName(),
+        return target.runAs(this.module, sender, KitsPerms.COMMAND_PREVIEW_KIT_OTHERS,
                 (user, targetPlayer) -> {
                     this.module.previewKit(targetPlayer, kit);
 

@@ -8,7 +8,6 @@ import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.provider.NametagsProvider;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
@@ -164,11 +163,6 @@ public class NametagsModule extends Module implements NametagsProvider {
         this.menu = null;
         this.teamSource = null;
         this.groupSource = null;
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(NametagsPerms.MODULE);
     }
 
     /**

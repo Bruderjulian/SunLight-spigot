@@ -10,7 +10,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -43,18 +42,15 @@ public class EnderchestCommandsProvider extends CommandProvider<InventoriesModul
         private static final String COMMAND_OPEN = "open";
         private static final String COMMAND_REPAIR = "repair";
 
-        private static final Permission PERMISSION_ROOT = InventoriesPerms.COMMAND.permission("enderchest.root");
-        private static final Permission PERMISSION_CLEAR = InventoriesPerms.COMMAND.permission("enderchest.clear");
-        private static final Permission PERMISSION_CLEAR_OTHERS = InventoriesPerms.COMMAND.permission(
-                        "enderchest.clear.others");
-        private static final Permission PERMISSION_COPY = InventoriesPerms.COMMAND.permission("enderchest.copy");
-        private static final Permission PERMISSION_FILL = InventoriesPerms.COMMAND.permission("enderchest.fill");
-        private static final Permission PERMISSION_OPEN = InventoriesPerms.COMMAND.permission("enderchest.open");
-        private static final Permission PERMISSION_OPEN_OTHERS = InventoriesPerms.COMMAND.permission(
-                        "enderchest.open.others");
-        private static final Permission PERMISSION_REPAIR = InventoriesPerms.COMMAND.permission("enderchest.repair");
-        private static final Permission PERMISSION_REPAIR_OTHERS = InventoriesPerms.COMMAND.permission(
-                        "enderchest.repair.others");
+        private static final String PERMISSION_ROOT = InventoriesPerms.COMMAND + ".enderchest.root";
+        private static final String PERMISSION_CLEAR = InventoriesPerms.COMMAND + ".enderchest.clear";
+        private static final String PERMISSION_CLEAR_OTHERS = InventoriesPerms.COMMAND + ".enderchest.clear.others";
+        private static final String PERMISSION_COPY = InventoriesPerms.COMMAND + ".enderchest.copy";
+        private static final String PERMISSION_FILL = InventoriesPerms.COMMAND + ".enderchest.fill";
+        private static final String PERMISSION_OPEN = InventoriesPerms.COMMAND + ".enderchest.open";
+        private static final String PERMISSION_OPEN_OTHERS = InventoriesPerms.COMMAND + ".enderchest.open.others";
+        private static final String PERMISSION_REPAIR = InventoriesPerms.COMMAND + ".enderchest.repair";
+        private static final String PERMISSION_REPAIR_OTHERS = InventoriesPerms.COMMAND + ".enderchest.repair.others";
 
         private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Enderchest.Hub.Desc").text(
                         "Ender Chest commands.");
@@ -135,27 +131,29 @@ public class EnderchestCommandsProvider extends CommandProvider<InventoriesModul
 
         @Override
         public void setup() {
-                this.register(COMMAND_CLEAR, List.of(), builder -> builder
+                this.register(COMMAND_CLEAR, builder -> builder
                                 .withFullDescription(DESCRIPTION_CLEAR.text())
-                                .withPermission(PERMISSION_CLEAR.getName())
+                                .withPermission(PERMISSION_CLEAR)
                                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                                 .executes((sender, arguments) -> {
                                     return this.executeClear(sender, arguments);
-                                }));
+                                }))
+                    .under("enderchest");
 
-                this.register(COMMAND_COPY, List.of(), builder -> builder
+                this.register(COMMAND_COPY, builder -> builder
                                 .withFullDescription(DESCRIPTION_COPY.text())
-                                .withPermission(PERMISSION_COPY.getName())
+                                .withPermission(PERMISSION_COPY)
                                 .withRequirement(sender -> sender instanceof Player)
                                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                                         info -> CommandArgumentConstants.onlinePlayerNames()))
                                 .executes((sender, arguments) -> {
                                     return this.executeCopy(sender, arguments);
-                                }));
+                                }))
+                    .under("enderchest");
 
-                this.register(COMMAND_FILL, List.of(), builder -> builder
+                this.register(COMMAND_FILL, builder -> builder
                                 .withFullDescription(DESCRIPTION_FILL.text())
-                                .withPermission(PERMISSION_FILL.getName())
+                                .withPermission(PERMISSION_FILL)
                                 .withArguments(
                                                 CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                                                         info -> CommandArgumentConstants.onlinePlayerNames()),
@@ -163,28 +161,31 @@ public class EnderchestCommandsProvider extends CommandProvider<InventoriesModul
                                                         info -> materialSuggestions()))
                                 .executes((sender, arguments) -> {
                                     return this.executeFill(sender, arguments);
-                                }));
+                                }))
+                    .under("enderchest");
 
-                this.register(COMMAND_OPEN, List.of(), builder -> builder
+                this.register(COMMAND_OPEN, builder -> builder
                                 .withFullDescription(DESCRIPTION_OPEN.text())
-                                .withPermission(PERMISSION_OPEN.getName())
+                                .withPermission(PERMISSION_OPEN)
                                 .withRequirement(sender -> sender instanceof Player)
                                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                                 .executes((sender, arguments) -> {
                                     return this.executeOpen(sender, arguments);
-                                }));
+                                }))
+                    .under("enderchest");
 
-                this.register(COMMAND_REPAIR, List.of(), builder -> builder
+                this.register(COMMAND_REPAIR, builder -> builder
                                 .withFullDescription(DESCRIPTION_REPAIR.text())
-                                .withPermission(PERMISSION_REPAIR.getName())
+                                .withPermission(PERMISSION_REPAIR)
                                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                                 .executes((sender, arguments) -> {
                                     return this.executeRepair(sender, arguments);
-                                }));
+                                }))
+                    .under("enderchest");
 
                 this.registerRoot("enderchest", builder -> builder
                                 .withFullDescription(DESCRIPTION_ROOT.text())
-                                .withPermission(PERMISSION_ROOT.getName()));
+                                .withPermission(PERMISSION_ROOT)).aliases("ec");
         }
 
         private static List<String> materialSuggestions() {
@@ -216,7 +217,7 @@ public class EnderchestCommandsProvider extends CommandProvider<InventoriesModul
                         return 0;
                 }
 
-                return target.runAs(this.module, sender, PERMISSION_CLEAR_OTHERS.getName(),
+                return target.runAs(this.module, sender, PERMISSION_CLEAR_OTHERS,
                         (user, targetPlayer) -> {
                                 final boolean self = sender == targetPlayer;
                                 final boolean confirm = this.module.isClearConfirmationRequired()
@@ -322,7 +323,7 @@ public class EnderchestCommandsProvider extends CommandProvider<InventoriesModul
                         return 0;
                 }
 
-                return target.runAs(this.module, sender, PERMISSION_OPEN_OTHERS.getName(),
+                return target.runAs(this.module, sender, PERMISSION_OPEN_OTHERS,
                         (user, targetPlayer) -> {
                                 this.getEnderChest(sender, targetPlayer).ifPresent(inventory -> {
                                         player.openInventory(inventory);
@@ -345,7 +346,7 @@ public class EnderchestCommandsProvider extends CommandProvider<InventoriesModul
                         return 0;
                 }
 
-                return target.runAs(this.module, sender, PERMISSION_REPAIR_OTHERS.getName(),
+                return target.runAs(this.module, sender, PERMISSION_REPAIR_OTHERS,
                         (user, targetPlayer) -> {
                                 this.getEnderChest(sender, targetPlayer).ifPresent(inventory -> {
                                         inventory.forEach(ItemStackUtils::repairItem);

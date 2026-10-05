@@ -22,7 +22,6 @@ import su.nightexpress.sunlight.api.event.PlayerReportResolvedEvent;
 import su.nightexpress.sunlight.api.provider.ReportHandle;
 import su.nightexpress.sunlight.api.provider.ReportsProvider;
 import su.nightexpress.sunlight.command.CommandKey;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -85,7 +84,7 @@ import java.util.function.Consumer;
 
 public class ReportsModule extends Module implements ReportsProvider {
 
-    private static final CommandKey COOLDOWN_KEY = new CommandKey("reports", "submit");
+    private static final CommandKey COOLDOWN_KEY = new CommandKey("reports-submit", "submit");
     private static final String PLAYTIME_MODULE_ID = "playtime";
     private static final UUID NOBODY = new UUID(0L, 0L);
 
@@ -151,11 +150,6 @@ public class ReportsModule extends Module implements ReportsProvider {
         this.targetMenu = null;
         this.caseMenu = null;
         this.statsMenu = null;
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(ReportsPerms.ROOT);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.nick.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -34,31 +33,34 @@ public class NickCommandProvider extends CommandProvider<NickModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_CHANGE, List.of(), builder -> builder
+        this.register(COMMAND_CHANGE, builder -> builder
                 .withFullDescription(NickLang.COMMAND_NICK_CHANGE_DESC.text())
-                .withPermission(NickPerms.COMMAND_NICK_CHANGE.getName())
+                .withPermission(NickPerms.COMMAND_NICK_CHANGE)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(new GreedyStringArgument(CommandArgumentConstants.NAME))
-                .executes(this::changeNick));
+                .executes(this::changeNick))
+            .under("nickname");
 
-        this.register(COMMAND_CLEAR, List.of(), builder -> builder
+        this.register(COMMAND_CLEAR, builder -> builder
                 .withFullDescription(NickLang.COMMAND_NICK_CLEAR_DESC.text())
-                .withPermission(NickPerms.COMMAND_NICK_CLEAR.getName())
+                .withPermission(NickPerms.COMMAND_NICK_CLEAR)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes(this::clearNick));
+                .executes(this::clearNick))
+            .under("nickname");
 
-        this.register(COMMAND_SET, List.of(), builder -> builder
+        this.register(COMMAND_SET, builder -> builder
                 .withFullDescription(NickLang.COMMAND_NICK_SET_DESC.text())
-                .withPermission(NickPerms.COMMAND_NICK_SET.getName())
+                .withPermission(NickPerms.COMMAND_NICK_SET)
                 .withArguments(
                         CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                                 info -> CommandArgumentConstants.onlinePlayerNames()),
                         new GreedyStringArgument(CommandArgumentConstants.NAME))
-                .executes(this::setNickForPlayer));
+                .executes(this::setNickForPlayer))
+            .under("nickname");
 
         this.registerRoot("nickname", builder -> builder
                 .withFullDescription(NickLang.COMMAND_NICK_ROOT_DESC.text())
-                .withPermission(NickPerms.COMMAND_NICK_ROOT.getName()));
+                .withPermission(NickPerms.COMMAND_NICK_ROOT)).aliases("nick");
     }
 
     private int changeNick(final CommandSender sender, final CommandArguments arguments) {
@@ -126,7 +128,7 @@ public class NickCommandProvider extends CommandProvider<NickModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, NickPerms.COMMAND_NICK_CLEAR_OTHERS.getName(),
+        return target.runAs(this.module, sender, NickPerms.COMMAND_NICK_CLEAR_OTHERS,
                 (user, targetPlayer) -> {
                     this.module.setNickname(user, null);
 

@@ -1,9 +1,7 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.executors.CommandArguments;
@@ -23,7 +21,7 @@ import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.BR;
 
 public class BroadcastCommandProvider extends CommandProvider<EssentialModule> {
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("broadcast");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".broadcast";
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Broadcast.Desc")
             .text("Broadcast a message.");
 
@@ -33,9 +31,9 @@ public class BroadcastCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register("broadcast", List.of(), command -> command
+        this.register("broadcast", command -> command
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION.getName())
+                .withPermission(PERMISSION)
                 .withArguments(new GreedyStringArgument(CommandArgumentConstants.TEXT))
                 .executes((sender, arguments) -> {
                     return this.broadcast(sender, arguments);

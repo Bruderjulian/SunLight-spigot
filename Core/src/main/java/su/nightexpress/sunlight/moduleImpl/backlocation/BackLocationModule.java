@@ -13,7 +13,6 @@ import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -65,11 +64,6 @@ public class BackLocationModule extends Module {
     @Override
     protected void unloadModule() {
         this.locationMap.clear();
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(BackLocationPerms.ROOT);
     }
 
     @Override

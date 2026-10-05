@@ -3,7 +3,6 @@ package su.nightexpress.sunlight.moduleImpl.essential.command;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Material;
@@ -13,7 +12,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -32,7 +30,7 @@ import static su.nightexpress.sunlight.SLPlaceholders.*;
 
 public class CondenseCommandProvider extends CommandProvider<EssentialModule> {
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("condense");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".condense";
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Condense.Desc")
             .text("Condense items into blocks.");
 
@@ -56,9 +54,9 @@ public class CondenseCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register("condense", List.of(), command -> command
+        this.register("condense", command -> command
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION.getName())
+                .withPermission(PERMISSION)
                 .withRequirement(sender -> sender instanceof Player)
                 .executes((sender, arguments) -> {
                     return this.condense(sender, arguments);

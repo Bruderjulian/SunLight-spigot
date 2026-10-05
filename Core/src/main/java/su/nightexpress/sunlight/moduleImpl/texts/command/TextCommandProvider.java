@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.texts.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
@@ -21,9 +20,9 @@ public class TextCommandProvider extends CommandProvider<TextsModule> {
 
     @Override
     public void setup() {
-        this.register("customtext", List.of(), command -> command
+        this.register("customtext", command -> command
                 .withFullDescription(TextsLang.COMMAND_TEXT_DESC.text())
-                .withPermission(TextsPerms.COMMAND_TEXT.getName())
+                .withPermission(TextsPerms.COMMAND_TEXT)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                         info -> this.module.getCustomTexts().stream()
                                 .filter(text -> text.hasPermission(info.sender()))

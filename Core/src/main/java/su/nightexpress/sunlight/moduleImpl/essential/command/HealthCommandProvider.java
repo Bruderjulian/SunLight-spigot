@@ -1,12 +1,10 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 import java.util.stream.IntStream;
 
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
@@ -35,12 +33,12 @@ public class HealthCommandProvider extends CommandProvider<EssentialModule> {
     private static final String COMMAND_SET = "set";
     private static final String COMMAND_REMOVE = "remove";
 
-    private static final Permission PERM_ADD = EssentialPerms.COMMAND.permission("health.add");
-    private static final Permission PERM_SET = EssentialPerms.COMMAND.permission("health.set");
-    private static final Permission PERM_REMOVE = EssentialPerms.COMMAND.permission("health.remove");
-    private static final Permission PERM_RESTORE = EssentialPerms.COMMAND.permission("health.restore");
-    private static final Permission PERM_ROOT = EssentialPerms.COMMAND.permission("health.root");
-    private static final Permission PERM_OTHERS = EssentialPerms.COMMAND.permission("health.others");
+    private static final String PERM_ADD = EssentialPerms.COMMAND + ".health.add";
+    private static final String PERM_SET = EssentialPerms.COMMAND + ".health.set";
+    private static final String PERM_REMOVE = EssentialPerms.COMMAND + ".health.remove";
+    private static final String PERM_RESTORE = EssentialPerms.COMMAND + ".health.restore";
+    private static final String PERM_ROOT = EssentialPerms.COMMAND + ".health.root";
+    private static final String PERM_OTHERS = EssentialPerms.COMMAND + ".health.others";
 
     private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Health.Root.Desc")
             .text("Health commands.");
@@ -140,21 +138,25 @@ public class HealthCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_ADD, List.of(), command -> this.buildMode(command, ModifyMode.ADD));
-        this.register(COMMAND_SET, List.of(), command -> this.buildMode(command, ModifyMode.SET));
-        this.register(COMMAND_REMOVE, List.of(), command -> this.buildMode(command, ModifyMode.REMOVE));
+        this.register(COMMAND_ADD, command -> this.buildMode(command, ModifyMode.ADD))
+            .under("health");
+        this.register(COMMAND_SET, command -> this.buildMode(command, ModifyMode.SET))
+            .under("health");
+        this.register(COMMAND_REMOVE, command -> this.buildMode(command, ModifyMode.REMOVE))
+            .under("health");
 
-        this.register(COMMAND_RESTORE, List.of(), command -> command
+        this.register(COMMAND_RESTORE, command -> command
                 .withFullDescription(DESCRIPTION_RESTORE.text())
-                .withPermission(PERM_RESTORE.getName())
+                .withPermission(PERM_RESTORE)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.restoreHealth(sender, arguments);
-                }));
+                }))
+            .under("health");
 
         this.registerRoot("health", command -> command
                 .withFullDescription(DESCRIPTION_ROOT.text())
-                .withPermission(PERM_ROOT.getName()));
+                .withPermission(PERM_ROOT)).aliases("hp");
     }
 
     private void buildMode(final CommandAPICommand builder, final ModifyMode mode) {
@@ -164,7 +166,7 @@ public class HealthCommandProvider extends CommandProvider<EssentialModule> {
             case REMOVE -> DESCRIPTION_REMOVE;
         };
 
-        final Permission permission = switch (mode) {
+        final String permission = switch (mode) {
             case ADD -> PERM_ADD;
             case SET -> PERM_SET;
             case REMOVE -> PERM_REMOVE;
@@ -172,7 +174,7 @@ public class HealthCommandProvider extends CommandProvider<EssentialModule> {
 
         builder
                 .withFullDescription(description.text())
-                .withPermission(permission.getName())
+                .withPermission(permission)
                 .withArguments(new DoubleArgument(CommandArgumentConstants.AMOUNT, 0D)
                         .replaceSuggestions(ArgumentSuggestions.stringCollection(
                                 info -> IntStream.range(0, 21).boxed().map(String::valueOf).toList())))
@@ -194,7 +196,7 @@ public class HealthCommandProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERM_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERM_OTHERS, (user, player) -> {
             if (player.isDead()) {
                 (sender == player ? MESSAGE_DEAD_NOTIFY : MESSAGE_DEAD_FEEDBACK).message()
                         .send(sender, replacer -> replacer.replace(forPlayer(player)));
@@ -252,7 +254,7 @@ public class HealthCommandProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERM_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERM_OTHERS, (user, player) -> {
             final MessageLocale feedbackLocale;
             final MessageLocale notifyLocale;
 

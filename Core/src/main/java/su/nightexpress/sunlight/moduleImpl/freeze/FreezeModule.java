@@ -4,7 +4,6 @@ import org.bukkit.entity.Player;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.api.provider.FreezeProvider;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -12,7 +11,6 @@ import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.freeze.command.FreezeCommand;
 import su.nightexpress.sunlight.moduleImpl.freeze.config.FreezeConfig;
 import su.nightexpress.sunlight.moduleImpl.freeze.config.FreezeLang;
-import su.nightexpress.sunlight.moduleImpl.freeze.config.FreezePerms;
 import su.nightexpress.sunlight.moduleImpl.freeze.event.PlayerFreezeEvent;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserProperty;
@@ -39,11 +37,6 @@ public class FreezeModule extends Module implements FreezeProvider {
     @Override
     protected void unloadModule() {
 
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(FreezePerms.MODULE);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package su.nightexpress.sunlight.command;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -15,19 +16,16 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangContainer;
-import su.nightexpress.nightcore.util.Placeholders;
-import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.utils.Utils;
 
 public abstract class CommandProvider<T extends Module> implements LangContainer {
 
     protected final T module;
     protected String id;
-    protected String usage;
-    private final Map<String, Consumer<CommandAPICommand>> subCmdBuilders;
-    private final Map<String, Consumer<CommandAPICommand>> rootBuilders;
-    private Map<String, String> subRoots;
+
+    private final Map<String, Node> nodes;
 
     public CommandProvider(final T module, final String id) {
         if (id == null || id.isBlank()) {
@@ -35,93 +33,132 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         }
         this.id = Utils.lowercase(id.trim());
         this.module = module;
-        this.subCmdBuilders = new HashMap<>();
-        this.rootBuilders = new HashMap<>();
-        this.subRoots = null;
+        this.nodes = new LinkedHashMap<>();
     }
 
     public abstract void setup();
 
-    protected void register(final String id, final Consumer<CommandAPICommand> consumer) {
-        this.register(id, List.of(), consumer);
+    /**
+     * A command node declared by a provider.
+     * <p>
+     * A node is a standalone command by default. {@link #under(String...)} additionally nests it
+     * under the given roots, where it is reachable under its node id.
+     */
+    public static final class Node {
+
+        private final String id;
+        private final boolean root;
+        private final Consumer<CommandAPICommand> builder;
+        private final List<String> aliases;
+        private final List<String> roots;
+
+        private Node(final String id, final boolean root, final Consumer<CommandAPICommand> builder,
+                final List<String> aliases, final List<String> roots) {
+            this.id = id;
+            this.root = root;
+            this.builder = builder;
+            this.aliases = aliases;
+            this.roots = roots;
+        }
+
+        /**
+         * Declares extra names for this command. The first one replaces the node id as the primary
+         * command name, the rest are registered as additional aliases. Written to a fresh
+         * {@code commands/<provider>.yml} and overridable there.
+         */
+        public Node aliases(final String... aliases) {
+            for (final String alias : aliases) {
+                if (alias == null) continue;
+                final String cleaned = Utils.lowercase(alias.trim());
+                if (cleaned.isEmpty() || cleaned.equals(this.id) || this.aliases.contains(cleaned)) continue;
+                this.aliases.add(cleaned);
+            }
+            return this;
+        }
+
+        /**
+         * Also makes this command available as a subcommand of the given roots. The name used under
+         * the root is always the node id; aliases only apply to the standalone command.
+         */
+        public Node under(final String... roots) {
+            for (final String root : roots) {
+                if (root == null) continue;
+                final String cleaned = Utils.lowercase(root.trim());
+                if (cleaned.isEmpty() || cleaned.equals(this.id) || this.roots.contains(cleaned)) continue;
+                this.roots.add(cleaned);
+            }
+            return this;
+        }
+
+        public String id() {
+            return this.id;
+        }
+
+        public boolean isRoot() {
+            return this.root;
+        }
+
+        public List<String> aliases() {
+            return List.copyOf(this.aliases);
+        }
+
+        public List<String> roots() {
+            return List.copyOf(this.roots);
+        }
+
+        Consumer<CommandAPICommand> builder() {
+            return this.builder;
+        }
+
+        @Override
+        public String toString() {
+            return this.id;
+        }
     }
 
     /**
-     * Declares a standalone command that is additionally attached as a
-     * subcommand (named {@code id}) to each of the given root commands.
-     * <p>
-     * This mirrors the legacy system where a literal had standalone aliases
-     * and additionally appeared as a child of hub roots.
+     * Declares a subcommand. It becomes a command of its own unless it is nested under a root with
+     * {@link Node#under(String...)}.
      *
-     * @param id       The node id: config key, subcommand name under each root,
-     *                 and standalone name fallback when no aliases resolve.
-     * @param aliases  Default standalone aliases written to a fresh config.
-     * @param roots    Root command ids this node is attached to.
-     * @param enabled  Default for the {@code enabled} config flag.
-     * @param consumer Configures the command (arguments, permission, executor).
+     * @param id      Node id: the config key, the name under each root, and the fallback
+     *                standalone name when no alias resolves.
+     * @param builder Configures the command (arguments, permission, executor).
      */
-    protected void register(final String id, final List<String> roots, final Consumer<CommandAPICommand> consumer) {
-        final String key = Utils.lowercase(id);
-        this.subCmdBuilders.put(key, consumer);
-        if (roots == null || roots.isEmpty()) {
-            return;
-        }
-        if (subRoots == null) {
-            this.subRoots = new HashMap<>();
-        }
-        for (String root : roots) {
-            if (root == null || root.isBlank()) {
-                continue;
-            }
-            root = Utils.lowercase(root.trim());
-            if (root.equals(key)) {
-                continue;
-            }
-            this.subRoots.put(key, root);
-        }
+    protected Node register(final String id, final Consumer<CommandAPICommand> builder) {
+        return this.addNode(id, false, builder);
     }
 
-    protected void registerRoot(final String id, final Consumer<CommandAPICommand> consumer) {
+    /**
+     * Declares a hub root. Roots are always registered as commands of their own and collect the
+     * subcommands that named them via {@link Node#under(String...)}.
+     *
+     * @param id      Node id: the config key and the fallback command name when no alias resolves.
+     * @param builder Configures the command (arguments, permission, executor).
+     */
+    protected Node registerRoot(final String id, final Consumer<CommandAPICommand> builder) {
+        return this.addNode(id, true, builder);
+    }
+
+    private Node addNode(final String id, final boolean root, final Consumer<CommandAPICommand> builder) {
         if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("Command Root cant be empty");
+            throw new IllegalArgumentException("Command Node id cant be empty");
         }
-        this.rootBuilders.put(Utils.lowercase(id.trim()), consumer);
-    }
+        if (builder == null) {
+            throw new IllegalArgumentException("Command Node '" + id + "' needs a builder");
+        }
 
-    public void setUsage(final String usage) {
-        this.usage = usage;
+        final String key = Utils.lowercase(id.trim());
+        final Node node = new Node(key, root, builder, new ArrayList<>(), new ArrayList<>());
+        this.nodes.put(key, node);
+        return node;
     }
 
     public String getId() {
-        return id;
+        return this.id;
     }
 
-    public T getModule() {
-        return module;
-    }
-
-    public Map<String, Consumer<CommandAPICommand>> getSubCommandBuilders() {
-        return this.subCmdBuilders;
-    }
-
-    public Map<String, Consumer<CommandAPICommand>> getRootCommandBuilders() {
-        return this.rootBuilders;
-    }
-
-    public Map<String, String> getSubRoots() {
-        return this.subRoots;
-    }
-
-    protected boolean runForOnlinePlayerOrSender(final CommandSender sender, final CommandArguments arguments,
-            final Function<Player, Boolean> consumer) {
-        if (arguments.getOptional(CommandArgumentConstants.PLAYER).isEmpty() && !(sender instanceof Player)) {
-            CoreLang.COMMAND_EXECUTION_MISSING_ARGUMENTS.withPrefix(module.plugin().getPrefix()).send(sender,
-                    replacer -> replacer
-                            .replace(Placeholders.GENERIC_COMMAND, usage));
-            return false;
-        }
-
-        return this.runForOnlinePlayer(sender, arguments, consumer);
+    public Map<String, Node> getNodes() {
+        return this.nodes;
     }
 
     protected boolean runForOnlinePlayer(final CommandSender sender, final CommandArguments arguments,
@@ -135,19 +172,6 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         }
 
         return consumer.apply(target);
-    }
-
-    protected boolean loadPlayerOrSenderWithDataAndRunInMainThread(final CommandSender sender,
-            final CommandArguments arguments,
-            final BiConsumer<SunUser, Player> consumer) {
-        if (arguments.getOptional(CommandArgumentConstants.PLAYER).isEmpty() && !(sender instanceof Player)) {
-            CoreLang.COMMAND_EXECUTION_MISSING_ARGUMENTS.withPrefix(module.plugin().getPrefix()).send(sender,
-                    replacer -> replacer
-                            .replace(Placeholders.GENERIC_COMMAND, usage));
-            return false;
-        }
-
-        return this.loadPlayerWithDataAndRunInMainThread(sender, arguments, consumer);
     }
 
     protected boolean loadPlayerWithDataAndRunInMainThread(final CommandSender sender, final CommandArguments arguments,
@@ -180,18 +204,6 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         return true;
     }
 
-    protected boolean loadPlayerOrSenderAndRunInMainThread(final CommandSender sender, final CommandArguments arguments,
-            final Consumer<Player> consumer) {
-        if (arguments.getOptional(CommandArgumentConstants.PLAYER).isEmpty() && !(sender instanceof Player)) {
-            CoreLang.COMMAND_EXECUTION_MISSING_ARGUMENTS.withPrefix(module.plugin().getPrefix()).send(sender,
-                    replacer -> replacer
-                            .replace(Placeholders.GENERIC_COMMAND, usage));
-            return false;
-        }
-
-        return this.loadPlayerAndRunInMainThread(sender, arguments, consumer);
-    }
-
     protected boolean loadPlayerAndRunInMainThread(final CommandSender sender, final CommandArguments arguments,
             final Consumer<Player> consumer) {
         final String playerName = arguments.getOrDefaultUnchecked(CommandArgumentConstants.PLAYER, sender.getName());
@@ -216,10 +228,6 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         }, runnable -> module.plugin().runTask(runnable)).whenComplete(Utils::printStacktrace);
 
         return true;
-    }
-
-    protected boolean IsPlayer(final CommandSender sender, final Player target) {
-        return sender instanceof Player;
     }
 
     protected boolean canSee(final CommandSender sender, final Player target) {

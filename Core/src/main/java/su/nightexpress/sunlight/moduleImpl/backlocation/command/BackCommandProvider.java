@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.backlocation.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
@@ -22,9 +21,9 @@ public class BackCommandProvider extends CommandProvider<BackLocationModule> {
 
     @Override
     public void setup() {
-        this.register("back", List.of(), command -> command
+        this.register("back", command -> command
                 .withFullDescription(BackLocationLang.COMMAND_BACK_DESC.text())
-                .withPermission(BackLocationPerms.COMMAND_BACK.getName())
+                .withPermission(BackLocationPerms.COMMAND_BACK)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::moveToPreviousLocation));
     }
@@ -36,7 +35,7 @@ public class BackCommandProvider extends CommandProvider<BackLocationModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, BackLocationPerms.COMMAND_BACK_OTHERS.getName(),
+        return target.runAs(this.module, sender, BackLocationPerms.COMMAND_BACK_OTHERS,
                 (user, targetPlayer) -> {
                     final boolean silent = target.silent();
                     if (!this.module.teleportToLocation(targetPlayer, LocationType.PREVIOUS, silent)) {

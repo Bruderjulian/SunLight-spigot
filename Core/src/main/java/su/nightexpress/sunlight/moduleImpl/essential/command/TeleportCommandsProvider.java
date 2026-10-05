@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Function;
 
 import org.bukkit.Location;
@@ -11,7 +10,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.IntegerArgument;
@@ -39,19 +37,29 @@ public class TeleportCommandsProvider extends CommandProvider<EssentialModule> {
 
     // TODO Split
 
+    private static final String COMMAND_ROOT = "teleport";
+
+    // Nested names, used as subcommands of the '/teleport' root.
+    private static final String COMMAND_COORDS = "coords";
+    private static final String COMMAND_PLAYER = "player";
+    private static final String COMMAND_HERE = "here";
+    private static final String COMMAND_SURFACE = "surface";
+
+    // Standalone names.
     private static final String COMMAND_LOCATION = "tppos";
     private static final String COMMAND_MOVE = "tpplayer";
     private static final String COMMAND_BRING = "tphere";
     private static final String COMMAND_GO_TO = "goto";
     private static final String COMMAND_TOP = "tptop";
 
-    private static final Permission PERMISSION_LOCATION = EssentialPerms.COMMAND.permission("coords");
-    private static final Permission PERMISSION_LOCATION_OTHERS = EssentialPerms.COMMAND.permission("coords.others");
-    private static final Permission PERMISSION_BRING = EssentialPerms.COMMAND.permission("bring");
-    private static final Permission PERMISSION_GOTO = EssentialPerms.COMMAND.permission("goto");
-    private static final Permission PERMISSION_MOVE = EssentialPerms.COMMAND.permission("move");
-    private static final Permission PERMISSION_SURFACE = EssentialPerms.COMMAND.permission("surface");
-    private static final Permission PERMISSION_SURFACE_OTHERS = EssentialPerms.COMMAND.permission("surface.others");
+    private static final String PERMISSION_ROOT = EssentialPerms.COMMAND + ".teleport.root";
+    private static final String PERMISSION_LOCATION = EssentialPerms.COMMAND + ".coords";
+    private static final String PERMISSION_LOCATION_OTHERS = EssentialPerms.COMMAND + ".coords.others";
+    private static final String PERMISSION_BRING = EssentialPerms.COMMAND + ".bring";
+    private static final String PERMISSION_GOTO = EssentialPerms.COMMAND + ".goto";
+    private static final String PERMISSION_MOVE = EssentialPerms.COMMAND + ".move";
+    private static final String PERMISSION_SURFACE = EssentialPerms.COMMAND + ".surface";
+    private static final String PERMISSION_SURFACE_OTHERS = EssentialPerms.COMMAND + ".surface.others";
 
     private static final TextLocale DESCRIPTION_LOCATION = LangEntry.builder("Command.Teleport.Location.Desc").text(
             "Teleport to specific position.");
@@ -141,9 +149,9 @@ public class TeleportCommandsProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_LOCATION, List.of(), command -> command
+        this.register(COMMAND_COORDS, command -> command
                 .withFullDescription(DESCRIPTION_LOCATION.text())
-                .withPermission(PERMISSION_LOCATION.getName())
+                .withPermission(PERMISSION_LOCATION)
                 .withArguments(
                         new IntegerArgument(CommandArgumentConstants.X)
                                 .replaceSuggestions(this.blockCoordinate(Block::getX)),
@@ -155,11 +163,13 @@ public class TeleportCommandsProvider extends CommandProvider<EssentialModule> {
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.teleportToCoords(sender, arguments);
-                }));
+                }))
+                .aliases(COMMAND_LOCATION)
+                .under(COMMAND_ROOT);
 
-        this.register(COMMAND_MOVE, List.of(), command -> command
+        this.register(COMMAND_PLAYER, command -> command
                 .withFullDescription(DESCRIPTION_SEND.text())
-                .withPermission(PERMISSION_MOVE.getName())
+                .withPermission(PERMISSION_MOVE)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                                 info -> CommandArgumentConstants.onlinePlayerNames()),
                         CommandArgumentConstants.string(CommandArgumentConstants.TARGET,
@@ -167,37 +177,49 @@ public class TeleportCommandsProvider extends CommandProvider<EssentialModule> {
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.movePlayerToOther(sender, arguments);
-                }));
+                }))
+                .aliases(COMMAND_MOVE)
+                .under(COMMAND_ROOT);
 
-        this.register(COMMAND_BRING, List.of(), command -> command
+        this.register(COMMAND_HERE, command -> command
                 .withRequirement(sender -> sender instanceof Player)
                 .withFullDescription(DESCRIPTION_SUMMON.text())
-                .withPermission(PERMISSION_BRING.getName())
+                .withPermission(PERMISSION_BRING)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                         info -> CommandArgumentConstants.onlinePlayerNames()))
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.summonPlayer(sender, arguments);
-                }));
+                }))
+                .aliases(COMMAND_BRING)
+                .under(COMMAND_ROOT);
 
-        this.register(COMMAND_GO_TO, List.of(), command -> command
+        this.register(COMMAND_GO_TO, command -> command
                 .withRequirement(sender -> sender instanceof Player)
                 .withFullDescription(DESCRIPTION_TO.text())
-                .withPermission(PERMISSION_GOTO.getName())
+                .withPermission(PERMISSION_GOTO)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                         info -> CommandArgumentConstants.onlinePlayerNames()))
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.teleportToPlayer(sender, arguments);
-                }));
+                }))
+                .under(COMMAND_ROOT);
 
-        this.register(COMMAND_TOP, List.of(), command -> command
+        this.register(COMMAND_SURFACE, command -> command
                 .withFullDescription(DESCRIPTION_TOP.text())
-                .withPermission(PERMISSION_SURFACE.getName())
+                .withPermission(PERMISSION_SURFACE)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.teleportToTop(sender, arguments);
-                }));
+                }))
+                .aliases(COMMAND_TOP)
+                .under(COMMAND_ROOT);
+
+        this.registerRoot(COMMAND_ROOT, command -> command
+                .withFullDescription(DESCRIPTION_TO.text())
+                .withPermission(PERMISSION_ROOT))
+                .aliases("tp");
     }
 
     private ArgumentSuggestions<CommandSender> blockCoordinate(final Function<Block, Integer> function) {
@@ -225,7 +247,7 @@ public class TeleportCommandsProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERMISSION_LOCATION_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERMISSION_LOCATION_OTHERS, (user, player) -> {
             final Object worldArg = arguments.get(CommandArgumentConstants.WORLD);
             final World world = worldArg instanceof final World parsed ? parsed : player.getWorld();
 
@@ -391,7 +413,7 @@ public class TeleportCommandsProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERMISSION_SURFACE_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERMISSION_SURFACE_OTHERS, (user, player) -> {
             final Block block = player.getWorld().getHighestBlockAt(player.getLocation())
                     .getRelative(BlockFace.UP);
             final Location location = block.getLocation();

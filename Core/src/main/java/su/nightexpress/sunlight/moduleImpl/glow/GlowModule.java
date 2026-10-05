@@ -8,7 +8,6 @@ import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.bukkit.NightTask;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.provider.GlowProvider;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -62,10 +61,6 @@ public class GlowModule extends Module implements GlowProvider {
     protected void unloadModule() {
         handler.shutdown();
         this.menu = null;
-    }
-
-    @Override
-    protected void registerPermissions(final PermissionTree root) {
     }
 
     @Override

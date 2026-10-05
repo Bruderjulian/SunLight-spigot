@@ -15,7 +15,6 @@ import su.nightexpress.nightcore.util.*;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -94,11 +93,6 @@ public class WarpsModule extends Module {
     protected void unloadModule() {
         this.saveDirtyWarps();
         this.getWarps().forEach(this::unloadWarp);
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(WarpsPerms.MODULE);
     }
 
     @Override

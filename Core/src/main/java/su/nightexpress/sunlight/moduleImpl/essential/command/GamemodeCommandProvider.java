@@ -1,10 +1,8 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.executors.CommandArguments;
@@ -32,12 +30,12 @@ public class GamemodeCommandProvider extends CommandProvider<EssentialModule> {
     private static final String COMMAND_ADVENTURE = "adventure";
     private static final String COMMAND_CREATIVE = "creative";
 
-    private static final Permission PERM_SURVIVAL = EssentialPerms.COMMAND.permission("gamemode.survival");
-    private static final Permission PERM_SPECTATOR = EssentialPerms.COMMAND.permission("gamemode.spectator");
-    private static final Permission PERM_ADVENTURE = EssentialPerms.COMMAND.permission("gamemode.adventure");
-    private static final Permission PERM_CREATIVE = EssentialPerms.COMMAND.permission("gamemode.creative");
-    private static final Permission PERM_OTEHRS = EssentialPerms.COMMAND.permission("gamemode.others");
-    private static final Permission PERM_ROOT = EssentialPerms.COMMAND.permission("gamemode.root");
+    private static final String PERM_SURVIVAL = EssentialPerms.COMMAND + ".gamemode.survival";
+    private static final String PERM_SPECTATOR = EssentialPerms.COMMAND + ".gamemode.spectator";
+    private static final String PERM_ADVENTURE = EssentialPerms.COMMAND + ".gamemode.adventure";
+    private static final String PERM_CREATIVE = EssentialPerms.COMMAND + ".gamemode.creative";
+    private static final String PERM_OTEHRS = EssentialPerms.COMMAND + ".gamemode.others";
+    private static final String PERM_ROOT = EssentialPerms.COMMAND + ".gamemode.root";
 
     private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.GameMode.Root.Desc")
             .text("Game Mode commands.");
@@ -61,18 +59,22 @@ public class GamemodeCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_SURVIVAL, List.of(), command -> this.buildTypeCommand(command, GameMode.SURVIVAL));
-        this.register(COMMAND_SPECTATOR, List.of(), command -> this.buildTypeCommand(command, GameMode.SPECTATOR));
-        this.register(COMMAND_ADVENTURE, List.of(), command -> this.buildTypeCommand(command, GameMode.ADVENTURE));
-        this.register(COMMAND_CREATIVE, List.of(), command -> this.buildTypeCommand(command, GameMode.CREATIVE));
+        this.register(COMMAND_SURVIVAL, command -> this.buildTypeCommand(command, GameMode.SURVIVAL))
+            .under("gm");
+        this.register(COMMAND_SPECTATOR, command -> this.buildTypeCommand(command, GameMode.SPECTATOR))
+            .under("gm");
+        this.register(COMMAND_ADVENTURE, command -> this.buildTypeCommand(command, GameMode.ADVENTURE))
+            .under("gm");
+        this.register(COMMAND_CREATIVE, command -> this.buildTypeCommand(command, GameMode.CREATIVE))
+            .under("gm");
 
         this.registerRoot("gm", command -> command
                 .withFullDescription(DESCRIPTION_ROOT.text())
-                .withPermission(PERM_ROOT.getName()));
+                .withPermission(PERM_ROOT)).aliases("gamemode");
     }
 
     private void buildTypeCommand(final CommandAPICommand command, final GameMode mode) {
-        final Permission permission = switch (mode) {
+        final String permission = switch (mode) {
             case CREATIVE -> PERM_CREATIVE;
             case SURVIVAL -> PERM_SURVIVAL;
             case ADVENTURE -> PERM_ADVENTURE;
@@ -82,7 +84,7 @@ public class GamemodeCommandProvider extends CommandProvider<EssentialModule> {
         command
                 .withFullDescription(DESCRIPTION_TYPE.text().replace(SLPlaceholders.GENERIC_TYPE,
                         Lang.GAME_MODE.getLocalized(mode)))
-                .withPermission(permission.getName())
+                .withPermission(permission)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.changeGameMode(sender, arguments, mode);
@@ -96,7 +98,7 @@ public class GamemodeCommandProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERM_OTEHRS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERM_OTEHRS, (user, player) -> {
             if (player.isOnline()) {
                 player.setGameMode(mode);
             } else {

@@ -1,21 +1,20 @@
 package su.nightexpress.sunlight.moduleImpl.extras.config;
 
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
-
 public class ExtrasPerms {
 
-    public static final PermissionTree MODULE  = Perms.detached("extras");
-    public static final PermissionTree COMMAND = MODULE.branch("command");
+    public static final String MODULE  = "sunlight.extras";
+    public static final String COMMAND = MODULE + ".command";
 
-    public static final Permission COMMAND_CHAIRS            = COMMAND.permission("chairs");
-    public static final Permission COMMAND_CHAIRS_OTHERS     = COMMAND.permission("chairs.others");
-    public static final Permission COMMAND_SIT               = COMMAND.permission("sit");
-    public static final Permission COMMAND_SIT_OTHERS        = COMMAND.permission("sit.others");
-    public static final Permission COMMAND_CHEST_SORT        = COMMAND.permission("chestsort");
-    public static final Permission COMMAND_CHEST_SORT_OTHERS = COMMAND.permission("chestsort.others");
+    public static final String COMMAND_CHAIRS            = COMMAND + ".chairs";
+    public static final String COMMAND_CHAIRS_OTHERS     = COMMAND + ".chairs.others";
+    public static final String COMMAND_SIT               = COMMAND + ".sit";
+    public static final String COMMAND_SIT_OTHERS        = COMMAND + ".sit.others";
+    public static final String COMMAND_CHEST_SORT        = COMMAND + ".chestsort";
+    public static final String COMMAND_CHEST_SORT_OTHERS = COMMAND + ".chestsort.others";
 
-    public static final Permission SIGNS_COLOR  = MODULE.permission("signs.color");
-    public static final Permission ANVILS_COLOR = MODULE.permission("anvils.color");
+    public static final String SIGNS_COLOR  = MODULE + ".signs.color";
+    public static final String ANVILS_COLOR = MODULE + ".anvils.color";
+
+    private ExtrasPerms() {
+    }
 }

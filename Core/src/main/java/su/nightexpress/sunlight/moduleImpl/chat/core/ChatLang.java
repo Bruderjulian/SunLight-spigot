@@ -45,6 +45,7 @@ public class ChatLang implements LangContainer {
     public static final TextLocale COMMAND_SPY_MODE_TOGGLE_DESC   = LangEntry.builder("Chat.Command.SpyMode.Toggle.Desc").text("Toggle " + GENERIC_TYPE + " spy.");
     public static final TextLocale COMMAND_SPY_MODE_ON_DESC   = LangEntry.builder("Chat.Command.SpyMode.On.Desc").text("Enable " + GENERIC_TYPE + " spy.");
     public static final TextLocale COMMAND_SPY_MODE_OFF_DESC   = LangEntry.builder("Chat.Command.SpyMode.Off.Desc").text("Disable " + GENERIC_TYPE + " spy.");
+    public static final TextLocale COMMAND_SPY_ROOT_DESC = LangEntry.builder("Chat.Command.Spy.Root.Desc").text("Chat spy commands.");
     public static final TextLocale COMMAND_SPY_LOGGER_DESC = LangEntry.builder("Chat.Command.SpyLogger.Desc").text("Toggle spy logger.");
     public static final TextLocale COMMAND_REPLY_DESC      = LangEntry.builder("Chat.Command.Reply.Desc").text("Quick reply on latest PM.");
 

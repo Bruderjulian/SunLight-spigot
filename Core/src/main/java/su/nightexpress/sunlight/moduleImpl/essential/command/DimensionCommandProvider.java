@@ -1,12 +1,10 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.arguments.WorldArgument;
 import dev.jorel.commandapi.executors.CommandArguments;
@@ -30,8 +28,8 @@ import static su.nightexpress.sunlight.SLPlaceholders.PLAYER_DISPLAY_NAME;
 
 public class DimensionCommandProvider extends CommandProvider<EssentialModule> {
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("dimension");
-    private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("dimension.others");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".dimension";
+    private static final String PERMISSION_OTHERS = EssentialPerms.COMMAND + ".dimension.others";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Dimension.Desc")
             .text("Teleport to a world.");
@@ -50,9 +48,9 @@ public class DimensionCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register("dimension", List.of(), command -> command
+        this.register("dimension", command -> command
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION.getName())
+                .withPermission(PERMISSION)
                 .withArguments(new WorldArgument(CommandArgumentConstants.WORLD))
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
@@ -72,7 +70,7 @@ public class DimensionCommandProvider extends CommandProvider<EssentialModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERMISSION_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERMISSION_OTHERS, (user, player) -> {
             final Location location = world.getSpawnLocation();
 
             final TeleportContext teleportContext = TeleportContext

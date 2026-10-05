@@ -9,7 +9,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.EntityTypeArgument;
@@ -35,7 +34,7 @@ import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_TYPE;
 @Deprecated
 public class SpawnMobCommandProvider extends CommandProvider<EssentialModule> {
 
-    public static final Permission PERMISSION = EssentialPerms.COMMAND.permission("spawnmob");
+    public static final String PERMISSION = EssentialPerms.COMMAND + ".spawnmob";
 
     public static final TextLocale DESCRIPTION = LangEntry.builder("Command.Mob.Spawn.Desc").text("Spawn a mob.");
 
@@ -63,10 +62,10 @@ public class SpawnMobCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register("spawnmob", List.of(), command -> command
+        this.register("spawnmob", command -> command
                 .withRequirement(sender -> sender instanceof Player)
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION.getName())
+                .withPermission(PERMISSION)
                 .withArguments(new EntityTypeArgument(CommandArgumentConstants.TYPE)
                         .replaceSuggestions(ArgumentSuggestions.stringCollection(
                                 info -> spawnableTypes())))

@@ -1,10 +1,8 @@
 package su.nightexpress.sunlight.moduleImpl.bans.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.sunlight.command.CommandProvider;
@@ -25,11 +23,11 @@ public class ListCommandsProvider extends CommandProvider<BansModule> {
 
     @Override
     public void setup() {
-        this.register("banlist", List.of(),
+        this.register("banlist",
                 builder -> this.build(builder, PunishmentType.BAN));
-        this.register("mutelist", List.of(),
+        this.register("mutelist",
                 builder -> this.build(builder, PunishmentType.MUTE));
-        this.register("warnlist", List.of(),
+        this.register("warnlist",
                 builder -> this.build(builder, PunishmentType.WARN));
     }
 
@@ -40,7 +38,7 @@ public class ListCommandsProvider extends CommandProvider<BansModule> {
             case WARN -> BansLang.COMMAND_WARN_LIST_DESC.text();
         };
 
-        Permission permission = switch (type) {
+        String permission = switch (type) {
             case BAN -> BansPerms.COMMAND_BAN_LIST;
             case MUTE -> BansPerms.COMMAND_MUTE_LIST;
             case WARN -> BansPerms.COMMAND_WARN_LIST;
@@ -48,7 +46,7 @@ public class ListCommandsProvider extends CommandProvider<BansModule> {
 
         builder
                 .withFullDescription(description)
-                .withPermission(permission.getName())
+                .withPermission(permission)
                 .withRequirement(sender -> sender instanceof Player)
                 .executes((sender, arguments) -> {
                     return this.showMenu(sender, arguments, type);

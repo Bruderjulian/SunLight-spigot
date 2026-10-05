@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.chat.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -26,27 +25,29 @@ public class ChannelCommandsProvider extends CommandProvider<ChatModule> {
 
         @Override
         public void setup() {
-                this.register(COMMAND_JOIN, List.of(), command -> command
+                this.register(COMMAND_JOIN, command -> command
                                 .withFullDescription(ChatLang.COMMAND_CHANNEL_JOIN_DESC.text())
-                                .withPermission(ChatPerms.COMMAND_CHANNEL_JOIN.getName())
+                                .withPermission(ChatPerms.COMMAND_CHANNEL_JOIN)
                                 .withRequirement(sender -> sender instanceof Player)
                                 .withArguments(CommandArgumentConstants.string(ARG_CHANNEL,
                                                 info -> this.module.getChannelRepository().getChannels().stream()
                                                                 .map(ChatChannel::getId).sorted().toList()))
-                                .executes(this::joinChannel));
+                                .executes(this::joinChannel))
+                    .under("channel");
 
-                this.register(COMMAND_LEAVE, List.of(), command -> command
+                this.register(COMMAND_LEAVE, command -> command
                                 .withFullDescription(ChatLang.COMMAND_CHANNEL_LEAVE_DESC.text())
-                                .withPermission(ChatPerms.COMMAND_CHANNEL_LEAVE.getName())
+                                .withPermission(ChatPerms.COMMAND_CHANNEL_LEAVE)
                                 .withRequirement(sender -> sender instanceof Player)
                                 .withArguments(CommandArgumentConstants.string(ARG_CHANNEL,
                                                 info -> this.module.getChannelRepository().getChannels().stream()
                                                                 .map(ChatChannel::getId).sorted().toList()))
-                                .executes(this::leaveChannel));
+                                .executes(this::leaveChannel))
+                    .under("channel");
 
                 this.registerRoot("channel", command -> command
                                 .withFullDescription(ChatLang.COMMAND_CHANNEL_ROOT_DESC.text())
-                                .withPermission(ChatPerms.COMMAND_CHANNEL_ROOT.getName()));
+                                .withPermission(ChatPerms.COMMAND_CHANNEL_ROOT)).aliases("ch");
         }
 
         private int joinChannel(CommandSender sender, CommandArguments arguments) {

@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.chat.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -24,9 +23,9 @@ public class ClearChatCommandProvider extends CommandProvider<ChatModule> {
 
     @Override
     public void setup() {
-        this.register("clearchat", List.of(), command -> command
+        this.register("clearchat", command -> command
                 .withFullDescription(ChatLang.COMMAND_CLEAR_CHAT_DESC.text())
-                .withPermission(ChatPerms.COMMAND_CLEARCHAT.getName())
+                .withPermission(ChatPerms.COMMAND_CLEARCHAT)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes(this::clearChat));
     }

@@ -1,10 +1,8 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.arguments.IntegerArgument;
 import dev.jorel.commandapi.executors.CommandArguments;
@@ -33,15 +31,13 @@ public class ExperienceCommandsProvider extends CommandProvider<EssentialModule>
     private static final String COMMAND_XP_SET = "xp_set";
     private static final String COMMAND_XP_REMOVE = "xp_remove";
 
-    private static final Permission PERMISSION_LEVEL = EssentialPerms.COMMAND.permission("experience.level");
-    private static final Permission PERMISSION_LEVEL_OTHERS = EssentialPerms.COMMAND
-            .permission("experience.level.others");
+    private static final String PERMISSION_LEVEL = EssentialPerms.COMMAND + ".experience.level";
+    private static final String PERMISSION_LEVEL_OTHERS = EssentialPerms.COMMAND + ".experience.level.others";
 
-    private static final Permission PERMISSION_XP = EssentialPerms.COMMAND.permission("experience.xp");
-    private static final Permission PERMISSION_XP_OTHERS = EssentialPerms.COMMAND
-            .permission("experience.xp.others");
+    private static final String PERMISSION_XP = EssentialPerms.COMMAND + ".experience.xp";
+    private static final String PERMISSION_XP_OTHERS = EssentialPerms.COMMAND + ".experience.xp.others";
 
-    private static final Permission PERMISSION_ROOT = EssentialPerms.COMMAND.permission("experience.root");
+    private static final String PERMISSION_ROOT = EssentialPerms.COMMAND + ".experience.root";
 
     private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Experience.Root.Desc")
             .text("Experience commands.");
@@ -157,30 +153,36 @@ public class ExperienceCommandsProvider extends CommandProvider<EssentialModule>
 
     @Override
     public void setup() {
-        this.register(COMMAND_LEVEL_ADD, List.of(), command -> this.buildLevelCommand(command,
-                DESCRIPTION_LEVEL_ADD, ModifyMode.ADD));
-        this.register(COMMAND_LEVEL_SET, List.of(), command -> this.buildLevelCommand(command,
-                DESCRIPTION_LEVEL_SET, ModifyMode.SET));
-        this.register(COMMAND_LEVEL_REMOVE, List.of(), command -> this.buildLevelCommand(command,
-                DESCRIPTION_LEVEL_REMOVE, ModifyMode.REMOVE));
+        this.register(COMMAND_LEVEL_ADD, command -> this.buildLevelCommand(command,
+                DESCRIPTION_LEVEL_ADD, ModifyMode.ADD))
+            .under("experience");
+        this.register(COMMAND_LEVEL_SET, command -> this.buildLevelCommand(command,
+                DESCRIPTION_LEVEL_SET, ModifyMode.SET))
+            .under("experience");
+        this.register(COMMAND_LEVEL_REMOVE, command -> this.buildLevelCommand(command,
+                DESCRIPTION_LEVEL_REMOVE, ModifyMode.REMOVE))
+            .under("experience");
 
-        this.register(COMMAND_XP_ADD, List.of(), command -> this.buildXPCommand(command,
-                DESCRIPTION_XP_ADD, ModifyMode.ADD));
-        this.register(COMMAND_XP_SET, List.of(), command -> this.buildXPCommand(command,
-                DESCRIPTION_XP_SET, ModifyMode.SET));
-        this.register(COMMAND_XP_REMOVE, List.of(), command -> this.buildXPCommand(command,
-                DESCRIPTION_XP_REMOVE, ModifyMode.REMOVE));
+        this.register(COMMAND_XP_ADD, command -> this.buildXPCommand(command,
+                DESCRIPTION_XP_ADD, ModifyMode.ADD))
+            .under("experience");
+        this.register(COMMAND_XP_SET, command -> this.buildXPCommand(command,
+                DESCRIPTION_XP_SET, ModifyMode.SET))
+            .under("experience");
+        this.register(COMMAND_XP_REMOVE, command -> this.buildXPCommand(command,
+                DESCRIPTION_XP_REMOVE, ModifyMode.REMOVE))
+            .under("experience");
 
         this.registerRoot("experience", command -> command
                 .withFullDescription(DESCRIPTION_ROOT.text())
-                .withPermission(PERMISSION_ROOT.getName()));
+                .withPermission(PERMISSION_ROOT)).aliases("xp", "exp");
     }
 
     private void buildLevelCommand(final dev.jorel.commandapi.CommandAPICommand command,
             final TextLocale description, final ModifyMode mode) {
         command
                 .withFullDescription(description.text())
-                .withPermission(PERMISSION_LEVEL.getName())
+                .withPermission(PERMISSION_LEVEL)
                 .withArguments(new IntegerArgument(CommandArgumentConstants.AMOUNT))
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
@@ -192,7 +194,7 @@ public class ExperienceCommandsProvider extends CommandProvider<EssentialModule>
             final TextLocale description, final ModifyMode mode) {
         command
                 .withFullDescription(description.text())
-                .withPermission(PERMISSION_XP.getName())
+                .withPermission(PERMISSION_XP)
                 .withArguments(new IntegerArgument(CommandArgumentConstants.AMOUNT))
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
@@ -212,7 +214,7 @@ public class ExperienceCommandsProvider extends CommandProvider<EssentialModule>
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERMISSION_XP_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERMISSION_XP_OTHERS, (user, player) -> {
             final int oldXP = player.getTotalExperience();
             MessageLocale feedbackMessage;
             MessageLocale notifyMessage;
@@ -274,7 +276,7 @@ public class ExperienceCommandsProvider extends CommandProvider<EssentialModule>
             return 0;
         }
 
-        return target.runAs(this.module, sender, PERMISSION_LEVEL_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERMISSION_LEVEL_OTHERS, (user, player) -> {
             final int oldLevel = player.getLevel();
 
             MessageLocale feedbackMessage;

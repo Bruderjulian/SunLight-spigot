@@ -1,9 +1,9 @@
 package su.nightexpress.sunlight.moduleImpl.vanish.command;
 
-import java.util.List;
 
 import org.bukkit.command.CommandSender;
 
+import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.SLPlaceholders;
@@ -17,6 +17,7 @@ import su.nightexpress.sunlight.user.property.UserProperty;
 
 public class VanishCommand extends CommandProvider<VanishModule> {
 
+    private static final String COMMAND_ROOT = "vanish";
     private static final String COMMAND_TOGGLE = "toggle";
 
     public VanishCommand(final VanishModule module) {
@@ -25,13 +26,21 @@ public class VanishCommand extends CommandProvider<VanishModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_TOGGLE, List.of(), command -> command
+        this.register(COMMAND_TOGGLE, command -> this.buildCommand(command, ToggleMode.TOGGLE))
+                .under(COMMAND_ROOT);
+
+        this.registerRoot(COMMAND_ROOT, command -> this.buildCommand(command, ToggleMode.TOGGLE))
+                .aliases("v");
+    }
+
+    private void buildCommand(final CommandAPICommand command, final ToggleMode mode) {
+        command
                 .withFullDescription(VanishLang.COMMAND_VANISH_DESC.text())
-                .withPermission(VanishPerms.COMMAND_VANISH.getName())
+                .withPermission(VanishPerms.COMMAND_VANISH)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
-                    return this.toggleVanish(sender, arguments, ToggleMode.TOGGLE);
-                }));
+                    return this.toggleVanish(sender, arguments, mode);
+                });
     }
 
     private int toggleVanish(final CommandSender sender, final CommandArguments arguments, final ToggleMode mode) {
@@ -41,7 +50,7 @@ public class VanishCommand extends CommandProvider<VanishModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, VanishPerms.COMMAND_VANISH_OTHERS.getName(), (user, targetPlayer) -> {
+        return target.runAs(this.module, sender, VanishPerms.COMMAND_VANISH_OTHERS, (user, targetPlayer) -> {
             final UserProperty<Boolean> setting = VanishModule.VANISH;
 
             final boolean state = mode.apply(user.getPropertyOrDefault(setting));

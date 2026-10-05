@@ -1,10 +1,8 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import java.util.List;
 import java.util.stream.IntStream;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.IntegerArgument;
@@ -32,8 +30,8 @@ public class FlySpeedCommandProvider extends CommandProvider<EssentialModule> {
 
     // TODO Per speed permission
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("flyspeed");
-    private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("flyspeed.others");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".flyspeed";
+    private static final String PERMISSION_OTHERS = EssentialPerms.COMMAND + ".flyspeed.others";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.FlySpeed.Desc")
             .text("Change fly speed.");
@@ -55,9 +53,9 @@ public class FlySpeedCommandProvider extends CommandProvider<EssentialModule> {
 
     @Override
     public void setup() {
-        this.register("flyspeed", List.of(), command -> command
+        this.register("flyspeed", command -> command
                 .withFullDescription(DESCRIPTION.text())
-                .withPermission(PERMISSION.getName())
+                .withPermission(PERMISSION)
                 .withArguments(new IntegerArgument(CommandArgumentConstants.VALUE)
                         .replaceSuggestions(ArgumentSuggestions.stringCollection(info -> IntStream
                                 .range(1, SPEEDS_AMOUNT + 1).boxed()
@@ -82,7 +80,7 @@ public class FlySpeedCommandProvider extends CommandProvider<EssentialModule> {
 
         final int speed = Math.clamp(value, 1, SPEEDS_AMOUNT);
 
-        return target.runAs(this.module, sender, PERMISSION_OTHERS.getName(), (user, player) -> {
+        return target.runAs(this.module, sender, PERMISSION_OTHERS, (user, player) -> {
             final float realSpeed = DEF_SPEED
                     + (MAX_SPEED - DEF_SPEED) * (speed - 1) / (SPEEDS_AMOUNT - 1);
 

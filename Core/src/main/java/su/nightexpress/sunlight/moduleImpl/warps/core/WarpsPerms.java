@@ -1,28 +1,27 @@
 package su.nightexpress.sunlight.moduleImpl.warps.core;
 
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
-
 public class WarpsPerms {
 
-    public static final PermissionTree MODULE  = Perms.detached("warps");
-    public static final PermissionTree COMMAND = MODULE.branch("command");
-    public static final PermissionTree WARP    = MODULE.branch("warp");
-    public static final PermissionTree BYPASS  = MODULE.branch("bypass");
+    public static final String MODULE  = "sunlight.warps";
+    public static final String COMMAND = MODULE + ".command";
+    public static final String WARP    = MODULE + ".warp";
+    public static final String BYPASS  = MODULE + ".bypass";
 
-    public static final Permission EDITOR = MODULE.permission("editor");
+    public static final String EDITOR = MODULE + ".editor";
 
-    public static final Permission COMMAND_WARPS_ROOT        = COMMAND.permission("warps.root");
-    public static final Permission COMMAND_WARPS_CREATE      = COMMAND.permission("warps.create");
-    public static final Permission COMMAND_WARPS_UPDATE      = COMMAND.permission("warps.update");
-    public static final Permission COMMAND_WARPS_DELETE      = COMMAND.permission("warps.delete");
-    public static final Permission COMMAND_WARPS_JUMP        = COMMAND.permission("warps.teleport");
-    public static final Permission COMMAND_WARPS_JUMP_OTHERS = COMMAND.permission("warps.teleport.others");
-    public static final Permission COMMAND_WARPS_LIST        = COMMAND.permission("warps.list");
-    public static final Permission COMMAND_WARPS_LIST_OTHERS = COMMAND.permission("warps.list.others");
-    public static final Permission COMMAND_WARPS_EDIT        = COMMAND.permission("warps.edit");
+    public static final String COMMAND_WARPS_ROOT        = COMMAND + ".warps.root";
+    public static final String COMMAND_WARPS_CREATE      = COMMAND + ".warps.create";
+    public static final String COMMAND_WARPS_UPDATE      = COMMAND + ".warps.update";
+    public static final String COMMAND_WARPS_DELETE      = COMMAND + ".warps.delete";
+    public static final String COMMAND_WARPS_JUMP        = COMMAND + ".warps.teleport";
+    public static final String COMMAND_WARPS_JUMP_OTHERS = COMMAND + ".warps.teleport.others";
+    public static final String COMMAND_WARPS_LIST        = COMMAND + ".warps.list";
+    public static final String COMMAND_WARPS_LIST_OTHERS = COMMAND + ".warps.list.others";
+    public static final String COMMAND_WARPS_EDIT        = COMMAND + ".warps.edit";
 
-    public static final Permission BYPASS_COST     = BYPASS.permission("cost");
-    public static final Permission BYPASS_COOLDOWN = BYPASS.permission("cooldown");
+    public static final String BYPASS_COST     = BYPASS + ".cost";
+    public static final String BYPASS_COOLDOWN = BYPASS + ".cooldown";
+
+    private WarpsPerms() {
+    }
 }

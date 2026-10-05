@@ -7,7 +7,6 @@ import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.GreedyStringArgument;
@@ -36,22 +35,22 @@ public class PunishmentCommandsProvider extends CommandProvider<BansModule> {
 
         @Override
         public void setup() {
-                this.register("ban", List.of(),
+                this.register("ban",
                                 builder -> this.buildPunishment(builder, PunishmentType.BAN, true));
-                this.register("mute", List.of(),
+                this.register("mute",
                                 builder -> this.buildPunishment(builder, PunishmentType.MUTE, true));
-                this.register("warn", List.of(),
+                this.register("warn",
                                 builder -> this.buildPunishment(builder, PunishmentType.WARN, true));
-                this.register("tempban", List.of(),
+                this.register("tempban",
                                 builder -> this.buildPunishment(builder, PunishmentType.BAN, false));
-                this.register("tempmute", List.of(),
+                this.register("tempmute",
                                 builder -> this.buildPunishment(builder, PunishmentType.MUTE, false));
-                this.register("tempwarn", List.of(),
+                this.register("tempwarn",
                                 builder -> this.buildPunishment(builder, PunishmentType.WARN, false));
 
-                this.register("banip", List.of(), command -> command
+                this.register("banip", command -> command
                                 .withFullDescription(BansLang.COMMAND_BAN_IP_DESC.text())
-                                .withPermission(BansPerms.COMMAND_BAN_IP.getName())
+                                .withPermission(BansPerms.COMMAND_BAN_IP)
                                 .withArguments(CommandArgumentConstants.string(
                                                 CommandArgumentConstants.INET_ADDRESS, info -> List.of()))
                                 .withOptionalArguments(new GreedyStringArgument(ARG_REASON)
@@ -60,9 +59,9 @@ public class PunishmentCommandsProvider extends CommandProvider<BansModule> {
                                                                                 info -> this.module.getReasonIds())))
                                 .executes(this::banInet));
 
-                this.register("kick", List.of(), command -> command
+                this.register("kick", command -> command
                                 .withFullDescription(BansLang.COMMAND_KICK_DESC.text())
-                                .withPermission(BansPerms.COMMAND_KICK.getName())
+                                .withPermission(BansPerms.COMMAND_KICK)
                                 .withArguments(CommandArgumentConstants.string(
                                                 CommandArgumentConstants.PLAYER,
                                                 info -> CommandArgumentConstants.onlinePlayerNames()))
@@ -80,7 +79,7 @@ public class PunishmentCommandsProvider extends CommandProvider<BansModule> {
                         case WARN -> BansLang.COMMAND_WARN_DESC.text();
                 };
 
-                Permission permission = switch (type) {
+                String permission = switch (type) {
                         case BAN -> BansPerms.COMMAND_BAN;
                         case MUTE -> BansPerms.COMMAND_MUTE;
                         case WARN -> BansPerms.COMMAND_WARN;
@@ -88,7 +87,7 @@ public class PunishmentCommandsProvider extends CommandProvider<BansModule> {
 
                 builder
                                 .withFullDescription(description)
-                                .withPermission(permission.getName())
+                                .withPermission(permission)
                                 .executes((sender, arguments) -> {
                                         return this.punishPlayer(sender, arguments, type, isPermanent);
                                 });

@@ -5,7 +5,6 @@ import org.bukkit.entity.Player;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -13,7 +12,6 @@ import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.command.PhantomsCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.config.PhantomsConfig;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.config.PhantomsLang;
-import su.nightexpress.sunlight.moduleImpl.nerfphantoms.config.PhantomsPerms;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.listener.PhantomsListener;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
@@ -41,8 +39,8 @@ public class PhantomsModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(PhantomsPerms.ROOT);
+    public String getPermissionNamespace() {
+        return "nerfphantoms";
     }
 
     @Override

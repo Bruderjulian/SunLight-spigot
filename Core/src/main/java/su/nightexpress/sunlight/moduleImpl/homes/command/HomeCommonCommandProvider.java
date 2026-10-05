@@ -34,61 +34,67 @@ public class HomeCommonCommandProvider extends CommandProvider<HomesModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_DELETE, List.of(), command -> command
+        this.register(COMMAND_DELETE, command -> command
                 .withFullDescription(HomesLang.COMMAND_DELETE_HOME_DESC.text())
-                .withPermission(HomesPerms.COMMAND_HOMES_DELETE.getName())
+                .withPermission(HomesPerms.COMMAND_HOMES_DELETE)
                 .withRequirement(sender -> sender instanceof Player)
                 .withOptionalArguments(CommandArgumentConstants.string(ARG_HOME,
                         info -> this.ownHomeSuggestions(info.sender())))
-                .executes(this::deleteHome));
+                .executes(this::deleteHome))
+            .under("homes");
 
-        this.register(COMMAND_LIST, List.of(), command -> command
+        this.register(COMMAND_LIST, command -> command
                 .withFullDescription(HomesLang.COMMAND_HOME_LIST_DESC.text())
-                .withPermission(HomesPerms.COMMAND_HOMES_LIST.getName())
+                .withPermission(HomesPerms.COMMAND_HOMES_LIST)
                 .withRequirement(sender -> sender instanceof Player)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes(this::listHomes));
+                .executes(this::listHomes))
+            .under("homes");
 
-        this.register(COMMAND_SET, List.of(), command -> command
+        this.register(COMMAND_SET, command -> command
                 .withFullDescription(HomesLang.COMMAND_SET_HOME_DESC.text())
-                .withPermission(HomesPerms.COMMAND_HOMES_SET.getName())
+                .withPermission(HomesPerms.COMMAND_HOMES_SET)
                 .withRequirement(sender -> sender instanceof Player)
                 .withOptionalArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                         info -> this.ownHomeSuggestions(info.sender())))
-                .executes(this::setHome));
+                .executes(this::setHome))
+            .under("homes");
 
-        this.register(COMMAND_TELEPORT, List.of(), command -> command
+        this.register(COMMAND_TELEPORT, command -> command
                 .withFullDescription(HomesLang.COMMAND_TELEPORT_HOME_DESC.text())
-                .withPermission(HomesPerms.COMMAND_HOMES_TELEPORT.getName())
+                .withPermission(HomesPerms.COMMAND_HOMES_TELEPORT)
                 .withRequirement(sender -> sender instanceof Player)
                 .withOptionalArguments(CommandArgumentConstants.string(ARG_HOME,
                         info -> this.ownHomeSuggestions(info.sender())))
-                .executes(this::teleportToHome));
+                .executes(this::teleportToHome))
+            .under("homes");
 
-        this.register(COMMAND_VISIT, List.of(), command -> command
+        this.register(COMMAND_VISIT, command -> command
                 .withFullDescription(HomesLang.COMMAND_VISIT_HOME_DESC.text())
-                .withPermission(HomesPerms.COMMAND_HOMES_VISIT.getName())
+                .withPermission(HomesPerms.COMMAND_HOMES_VISIT)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(
                         CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                                 info -> this.visitOwnerSuggestions(info.sender())),
                         CommandArgumentConstants.string(ARG_HOME,
                                 info -> this.visitHomeSuggestions(info.sender())))
-                .executes(this::visitHome));
+                .executes(this::visitHome))
+            .under("homes");
 
-        this.register(COMMAND_INVITE, List.of(), command -> command
+        this.register(COMMAND_INVITE, command -> command
                 .withFullDescription(HomesLang.COMMAND_HOME_INVITE_DESC.text())
-                .withPermission(HomesPerms.COMMAND_HOMES_INVITE.getName())
+                .withPermission(HomesPerms.COMMAND_HOMES_INVITE)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                         info -> CommandArgumentConstants.onlinePlayerNames()))
                 .withOptionalArguments(CommandArgumentConstants.string(ARG_HOME,
                         info -> this.ownHomeSuggestions(info.sender())))
-                .executes(this::inviteHome));
+                .executes(this::inviteHome))
+            .under("homes");
 
         this.registerRoot("homes", command -> command
                 .withFullDescription(HomesLang.COMMAND_HOMES_ROOT_DESC.text())
-                .withPermission(HomesPerms.COMMAND_HOMES_ROOT.getName()));
+                .withPermission(HomesPerms.COMMAND_HOMES_ROOT)).aliases("home");
     }
 
     private List<String> ownHomeSuggestions(final CommandSender sender) {
@@ -158,7 +164,7 @@ public class HomeCommonCommandProvider extends CommandProvider<HomesModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, HomesPerms.COMMAND_HOMES_LIST_OTHERS.getName(),
+        return target.runAs(this.module, sender, HomesPerms.COMMAND_HOMES_LIST_OTHERS,
                 (user, targetPlayer) -> {
                     this.module.openHomes(player, user.getId());
                 });

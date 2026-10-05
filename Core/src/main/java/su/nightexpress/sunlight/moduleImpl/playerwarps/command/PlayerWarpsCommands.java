@@ -33,45 +33,50 @@ public class PlayerWarpsCommands extends CommandProvider<PlayerWarpsModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_CREATE, List.of(), command -> command
+        this.register(COMMAND_CREATE, command -> command
                 .withFullDescription(PlayerWarpsLang.COMMAND_WARPS_CREATE_DESC.text())
-                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_CREATE.getName())
+                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_CREATE)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(new StringArgument(CommandArgumentConstants.NAME))
-                .executes(this::createWarp));
+                .executes(this::createWarp))
+            .under("playerwarps");
 
-        this.register(COMMAND_UPDATE, List.of(), command -> command
+        this.register(COMMAND_UPDATE, command -> command
                 .withFullDescription(PlayerWarpsLang.COMMAND_WARPS_UPDATE_DESC.text())
-                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_UPDATE.getName())
+                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_UPDATE)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(CommandArgumentConstants.string(ARGUMENT_WARP,
                         info -> this.editableWarpSuggestions(info.sender())))
-                .executes(this::updateWarp));
+                .executes(this::updateWarp))
+            .under("playerwarps");
 
-        this.register(COMMAND_DELETE, List.of(), command -> command
+        this.register(COMMAND_DELETE, command -> command
                 .withFullDescription(PlayerWarpsLang.COMMAND_WARPS_DELETE_DESC.text())
-                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_DELETE.getName())
+                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_DELETE)
                 .withArguments(CommandArgumentConstants.string(ARGUMENT_WARP,
                         info -> this.editableWarpSuggestions(info.sender())))
-                .executes(this::deleteWarp));
+                .executes(this::deleteWarp))
+            .under("playerwarps");
 
-        this.register(COMMAND_JUMP, List.of(), command -> command
+        this.register(COMMAND_JUMP, command -> command
                 .withFullDescription(PlayerWarpsLang.COMMAND_WARPS_JUMP_DESC.text())
-                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_JUMP.getName())
+                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_JUMP)
                 .withArguments(CommandArgumentConstants.string(ARGUMENT_WARP,
                         info -> this.usableWarpSuggestions(info.sender())))
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes(this::moveToWarp));
+                .executes(this::moveToWarp))
+            .under("playerwarps");
 
-        this.register(COMMAND_MENU, List.of(), command -> command
+        this.register(COMMAND_MENU, command -> command
                 .withFullDescription(PlayerWarpsLang.COMMAND_WARPS_LIST_DESC.text())
-                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_LIST.getName())
+                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_LIST)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
-                .executes(this::openWarps));
+                .executes(this::openWarps))
+            .under("playerwarps");
 
         this.registerRoot("playerwarps", command -> command
                 .withFullDescription(PlayerWarpsLang.COMMAND_WARPS_ROOT_DESC.text())
-                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_ROOT.getName()));
+                .withPermission(PlayerWarpsPerms.COMMAND_WARPS_ROOT)).aliases("pwarp", "pw");
     }
 
     private List<String> editableWarpSuggestions(final CommandSender sender) {
@@ -151,7 +156,7 @@ public class PlayerWarpsCommands extends CommandProvider<PlayerWarpsModule> {
             return 0;
         }
 
-        return target.runAs(this.module, sender, PlayerWarpsPerms.COMMAND_WARPS_LIST_OTHERS.getName(),
+        return target.runAs(this.module, sender, PlayerWarpsPerms.COMMAND_WARPS_LIST_OTHERS,
                 (user, targetPlayer) -> {
                     if (!targetPlayer.isOnline()) {
                         this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
@@ -182,7 +187,7 @@ public class PlayerWarpsCommands extends CommandProvider<PlayerWarpsModule> {
         }
 
         final boolean force = parsed.force();
-        return parsed.target().runAs(this.module, sender, PlayerWarpsPerms.COMMAND_WARPS_JUMP_OTHERS.getName(),
+        return parsed.target().runAs(this.module, sender, PlayerWarpsPerms.COMMAND_WARPS_JUMP_OTHERS,
                 (user, targetPlayer) -> {
                     if (sender != targetPlayer) {
                         this.module.sendPrefixed(PlayerWarpsLang.WARP_JUMP_FEEDBACK, sender, replacer -> replacer

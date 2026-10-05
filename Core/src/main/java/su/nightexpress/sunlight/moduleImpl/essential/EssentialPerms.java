@@ -1,20 +1,19 @@
 package su.nightexpress.sunlight.moduleImpl.essential;
 
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
-
 public class EssentialPerms {
 
-    public static final PermissionTree MODULE  = Perms.detached("essential");
-    public static final PermissionTree COMMAND = MODULE.branch("command");
-    public static final PermissionTree BYPASS  = MODULE.branch("bypass");
+    public static final String MODULE  = "sunlight.essential";
+    public static final String COMMAND = MODULE + ".command";
+    public static final String BYPASS  = MODULE + ".bypass";
 
-    public static final Permission COMMAND_INVULNERABILITY        = COMMAND.permission("invulnerability");
-    public static final Permission COMMAND_INVULNERABILITY_OTHERS = COMMAND.permission("invulnerability.others");
-    public static final Permission COMMAND_GOD                     = COMMAND.permission("god");
-    public static final Permission COMMAND_GOD_OTHERS              = COMMAND.permission("god.others");
+    public static final String COMMAND_INVULNERABILITY        = COMMAND + ".invulnerability";
+    public static final String COMMAND_INVULNERABILITY_OTHERS = COMMAND + ".invulnerability.others";
+    public static final String COMMAND_GOD                     = COMMAND + ".god";
+    public static final String COMMAND_GOD_OTHERS              = COMMAND + ".god.others";
 
-    public static final Permission BYPASS_INVULNERABILITY_WORLD  = BYPASS.permission("invulnerability.world");
-    public static final Permission BYPASS_INVULNERABILITY_DAMAGE = BYPASS.permission("invulnerability.damage");
+    public static final String BYPASS_INVULNERABILITY_WORLD  = BYPASS + ".invulnerability.world";
+    public static final String BYPASS_INVULNERABILITY_DAMAGE = BYPASS + ".invulnerability.damage";
+
+    private EssentialPerms() {
+    }
 }

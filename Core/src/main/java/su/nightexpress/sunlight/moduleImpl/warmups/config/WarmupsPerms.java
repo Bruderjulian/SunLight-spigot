@@ -1,14 +1,13 @@
 package su.nightexpress.sunlight.moduleImpl.warmups.config;
 
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
-
 public class WarmupsPerms {
 
-    public static final PermissionTree MODULE = Perms.detached("warmups");
-    public static final PermissionTree BYPASS = MODULE.branch("bypass");
+    public static final String MODULE = "sunlight.warmups";
+    public static final String BYPASS = MODULE + ".bypass";
 
-    public static final Permission BYPASS_TELEPORT = BYPASS.permission("teleport");
-    public static final Permission BYPASS_COMMAND = BYPASS.permission("command");
+    public static final String BYPASS_TELEPORT = BYPASS + ".teleport";
+    public static final String BYPASS_COMMAND  = BYPASS + ".command";
+
+    private WarmupsPerms() {
+    }
 }

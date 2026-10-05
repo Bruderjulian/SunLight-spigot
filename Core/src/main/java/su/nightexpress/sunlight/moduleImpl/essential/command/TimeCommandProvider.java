@@ -2,14 +2,12 @@ package su.nightexpress.sunlight.moduleImpl.essential.command;
 
 import java.time.LocalTime;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.IntegerArgument;
@@ -41,12 +39,13 @@ public class TimeCommandProvider extends CommandProvider<EssentialModule> {
     public static final long MAX_TICKS = 24L * MODIFIER;
     public static final long MIN_TICKS = 0L;
 
+    private static final String COMMAND_ROOT = "time";
     private static final String COMMAND_SHOW = "show";
     private static final String COMMAND_SET = "set";
 
-    private static final Permission PERMISSION_ROOT = EssentialPerms.COMMAND.permission("time.root");
-    private static final Permission PERMISSION_SHOW = EssentialPerms.COMMAND.permission("time.show");
-    private static final Permission PERMISSION_SET = EssentialPerms.COMMAND.permission("time.set");
+    private static final String PERMISSION_ROOT = EssentialPerms.COMMAND + ".time.root";
+    private static final String PERMISSION_SHOW = EssentialPerms.COMMAND + ".time.show";
+    private static final String PERMISSION_SET = EssentialPerms.COMMAND + ".time.set";
 
     private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Time.Root.Desc")
             .text("World time commands.");
@@ -77,27 +76,29 @@ public class TimeCommandProvider extends CommandProvider<EssentialModule> {
     @Override
     public void setup() {
         this.timeAliases.forEach(timeAlias -> {
-            this.register(timeAlias.name(), List.of(), command -> command
+            this.register(timeAlias.name(), command -> command
                     .withFullDescription(DESCRIPTION_SET_TIME.text().formatted(
                             String.valueOf(timeAlias.gameTime())))
-                    .withPermission(PERMISSION_SET.getName())
+                    .withPermission(PERMISSION_SET)
                     .withOptionalArguments(new WorldArgument(CommandArgumentConstants.WORLD))
                     .executes((sender, arguments) -> {
                         return this.setWorldTime(sender, arguments, timeAlias.gameTime());
-                    }));
+                    }))
+                    .under(COMMAND_ROOT);
         });
 
-        this.register(COMMAND_SHOW, List.of(), command -> command
+        this.register(COMMAND_SHOW, command -> command
                 .withFullDescription(DESCRIPTION_SHOW.text())
-                .withPermission(PERMISSION_SHOW.getName())
+                .withPermission(PERMISSION_SHOW)
                 .withOptionalArguments(new WorldArgument(CommandArgumentConstants.WORLD))
                 .executes((sender, arguments) -> {
                     return this.displayWorldTime(sender, arguments);
-                }));
+                }))
+                .under(COMMAND_ROOT);
 
-        this.register(COMMAND_SET, List.of(), command -> command
+        this.register(COMMAND_SET, command -> command
                 .withFullDescription(DESCRIPTION_SET_TICKS.text())
-                .withPermission(PERMISSION_SET.getName())
+                .withPermission(PERMISSION_SET)
                 .withArguments(new IntegerArgument(CommandArgumentConstants.TIME, (int) MIN_TICKS, (int) MAX_TICKS)
                         .replaceSuggestions(ArgumentSuggestions.stringCollection(
                                 info -> IntStream.range(0, 25)
@@ -111,11 +112,12 @@ public class TimeCommandProvider extends CommandProvider<EssentialModule> {
                         return 0;
                     }
                     return this.setWorldTime(sender, arguments, ticks);
-                }));
+                }))
+                .under(COMMAND_ROOT);
 
-        this.registerRoot("time", command -> command
+        this.registerRoot(COMMAND_ROOT, command -> command
                 .withFullDescription(DESCRIPTION_ROOT.text())
-                .withPermission(PERMISSION_ROOT.getName()));
+                .withPermission(PERMISSION_ROOT));
     }
 
     private int setWorldTime(final CommandSender sender, final CommandArguments arguments, final long ticks) {

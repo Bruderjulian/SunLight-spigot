@@ -1,6 +1,5 @@
 package su.nightexpress.sunlight.moduleImpl.chat.command;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.command.CommandSender;
@@ -34,44 +33,49 @@ public class ConversationCommandProvider extends CommandProvider<ChatModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_MESSAGE, List.of(), command -> command
+        this.register(COMMAND_MESSAGE, command -> command
                 .withFullDescription(ChatLang.COMMAND_TELL_DESC.text())
-                .withPermission(ChatPerms.COMMAND_TELL.getName())
+                .withPermission(ChatPerms.COMMAND_TELL)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                         info -> CommandArgumentConstants.onlinePlayerNames()),
                         new GreedyStringArgument(CommandArgumentConstants.TEXT))
-                .executes(this::sendConversationMessage));
+                .executes(this::sendConversationMessage)).aliases("msg", "tell")
+            .under("conversations");
 
-        this.register(COMMAND_REPLY, List.of(), command -> command
+        this.register(COMMAND_REPLY, command -> command
                 .withFullDescription(ChatLang.COMMAND_REPLY_DESC.text())
-                .withPermission(ChatPerms.COMMAND_REPLY.getName())
+                .withPermission(ChatPerms.COMMAND_REPLY)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(new GreedyStringArgument(CommandArgumentConstants.TEXT))
-                .executes(this::replyToConversation));
+                .executes(this::replyToConversation))
+            .under("conversations");
 
-        this.register(COMMAND_TOGGLE, List.of(), command -> {
+        this.register(COMMAND_TOGGLE, command -> {
             this.buildToggleCommand(command, ChatLang.COMMAND_CONVERSATIONS_TOGGLE_DESC.text(), ToggleMode.TOGGLE);
-        });
+        })
+            .under("conversations");
 
-        this.register(COMMAND_ON, List.of(), command -> {
+        this.register(COMMAND_ON, command -> {
             this.buildToggleCommand(command, ChatLang.COMMAND_CONVERSATIONS_ON_DESC.text(), ToggleMode.ON);
-        });
+        })
+            .under("conversations");
 
-        this.register(COMMAND_OFF, List.of(), command -> {
+        this.register(COMMAND_OFF, command -> {
             this.buildToggleCommand(command, ChatLang.COMMAND_CONVERSATIONS_OFF_DESC.text(), ToggleMode.OFF);
-        });
+        })
+            .under("conversations");
 
         this.registerRoot("conversations", command -> command
                 .withFullDescription(ChatLang.COMMAND_CONVERSATIONS_ROOT_DESC.text())
-                .withPermission(ChatPerms.COMMAND_CONVERSATIONS_ROOT.getName()));
+                .withPermission(ChatPerms.COMMAND_CONVERSATIONS_ROOT)).aliases("convos");
     }
 
     private void buildToggleCommand(dev.jorel.commandapi.CommandAPICommand builder, String description,
             ToggleMode mode) {
         builder
                 .withFullDescription(description)
-                .withPermission(ChatPerms.COMMAND_CONVERSATIONS_TOGGLE.getName())
+                .withPermission(ChatPerms.COMMAND_CONVERSATIONS_TOGGLE)
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.toggleConversations(sender, arguments, mode);
@@ -123,7 +127,7 @@ public class ConversationCommandProvider extends CommandProvider<ChatModule> {
         }
 
         return target.runAs(this.module, sender,
-                ChatPerms.COMMAND_CONVERSATIONS_TOGGLE_OTHERS.getName(), (user, targetPlayer) -> {
+                ChatPerms.COMMAND_CONVERSATIONS_TOGGLE_OTHERS, (user, targetPlayer) -> {
                     boolean state = mode.apply(user.getPropertyOrDefault(ChatProperties.CONVERSATIONS));
 
                     user.setProperty(ChatProperties.CONVERSATIONS, state);

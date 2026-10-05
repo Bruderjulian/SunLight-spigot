@@ -6,7 +6,6 @@ import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.Strings;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -48,11 +47,6 @@ public class SchedulerModule extends Module {
     @Override
     protected void unloadModule() {
         this.announcerByIdMap.clear();
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-
     }
 
     @Override

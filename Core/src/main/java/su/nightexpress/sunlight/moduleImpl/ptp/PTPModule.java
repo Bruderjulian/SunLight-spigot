@@ -10,7 +10,6 @@ import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -56,11 +55,6 @@ public class PTPModule extends Module {
     @Override
     protected void unloadModule() {
         this.requestsMap.clear();
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(PTPPerms.MODULE);
     }
 
     @Override

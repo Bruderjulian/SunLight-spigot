@@ -32,29 +32,31 @@ public class HomeAdminCommandProvider extends CommandProvider<HomesModule> {
 
     @Override
     public void setup() {
-        this.register(COMMAND_DELETE, List.of(), command -> command
+        this.register(COMMAND_DELETE, command -> command
                 .withFullDescription(HomesLang.COMMAND_ADMIN_DELETE_HOME_DESC.text())
-                .withPermission(HomesPerms.COMMAND_HOMES_DELETE_OTHERS.getName())
+                .withPermission(HomesPerms.COMMAND_HOMES_DELETE_OTHERS)
                 .withArguments(
                         CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                                 info -> CommandArgumentConstants.onlinePlayerNames()),
                         CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                                 info -> this.allHomeIdSuggestions()))
-                .executes(this::deleteHome));
+                .executes(this::deleteHome))
+            .under("homesadmin");
 
-        this.register(COMMAND_CREATE, List.of(), command -> command
+        this.register(COMMAND_CREATE, command -> command
                 .withFullDescription(HomesLang.COMMAND_ADMIN_CREATE_HOME_DESC.text())
-                .withPermission(HomesPerms.COMMAND_HOMES_SET_OTHERS.getName())
+                .withPermission(HomesPerms.COMMAND_HOMES_SET_OTHERS)
                 .withRequirement(sender -> sender instanceof Player)
                 .withArguments(CommandArgumentConstants.string(CommandArgumentConstants.PLAYER,
                         info -> CommandArgumentConstants.onlinePlayerNames()))
                 .withOptionalArguments(CommandArgumentConstants.string(CommandArgumentConstants.NAME,
                         info -> this.allHomeIdSuggestions()))
-                .executes(this::createHome));
+                .executes(this::createHome))
+            .under("homesadmin");
 
         this.registerRoot("homesadmin", command -> command
                 .withFullDescription(HomesLang.COMMAND_ADMIN_ROOT_DESC.text())
-                .withPermission(HomesPerms.COMMAND_HOMES_ADMIN_ROOT.getName()));
+                .withPermission(HomesPerms.COMMAND_HOMES_ADMIN_ROOT)).aliases("homes-admin");
     }
 
     private List<String> allHomeIdSuggestions() {

@@ -61,7 +61,8 @@ public class ChairsManager extends AbstractManager<SunLightPlugin> {
     }
 
     private void loadCommands() {
-        // TODO ChairsCommands.load(this.plugin, this);
+        // TODO not wired up yet: the command handlers below are still stubs.
+        // this.module.commandRegistry().addProvider(new ChairsCommands(this.module));
     }
 
     public static boolean isChairsEnabled(SunUser user) {

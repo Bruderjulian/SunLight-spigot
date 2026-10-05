@@ -20,7 +20,6 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -59,8 +58,8 @@ public class DeathMessagesModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(PermissionTree root) {
-
+    public String getPermissionNamespace() {
+        return "deathmessages";
     }
 
     @Override
