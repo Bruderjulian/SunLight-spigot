@@ -25,8 +25,7 @@ public class PlaytimeListener extends AbstractListener<SunLightPlugin> {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         SunUser user = this.module.userManager().getOrFetch(player);
-        this.module.ensureRollover(user);
-        user.setProperty(PlaytimeProperties.LAST_SEEN, System.currentTimeMillis());
+        this.module.startSession(user);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

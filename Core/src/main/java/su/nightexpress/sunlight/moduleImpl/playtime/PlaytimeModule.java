@@ -6,6 +6,8 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -13,8 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
@@ -23,23 +27,30 @@ import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.provider.PlaytimeProvider;
+import su.nightexpress.sunlight.data.DataQueries;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
+import su.nightexpress.sunlight.moduleImpl.playtime.command.PlaytimeAdminCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.playtime.command.PlaytimeCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.playtime.config.PlaytimeLang;
 import su.nightexpress.sunlight.moduleImpl.playtime.listener.PlaytimeListener;
+import su.nightexpress.sunlight.moduleImpl.playtime.menu.PlaytimeStatsMenu;
+import su.nightexpress.sunlight.moduleImpl.playtime.menu.PlaytimeTopMenu;
+import su.nightexpress.sunlight.moduleImpl.playtime.model.PlaytimeMilestone;
 import su.nightexpress.sunlight.moduleImpl.playtime.model.PlaytimePeriod;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 import su.nightexpress.sunlight.utils.Utils;
 
-public class PlaytimeModule extends Module {
+public class PlaytimeModule extends Module implements PlaytimeProvider {
 
     public static final int TOP_PAGE_SIZE = 10;
     public static final int TOP_CACHE_LIMIT = 100;
 
     private final PlaytimeSettings settings;
+    private final Map<String, PlaytimeMilestone> milestones;
     private final Map<PlaytimePeriod, List<TopEntry>> topCache;
 
     private volatile long topCacheTimestamp;
@@ -47,6 +58,7 @@ public class PlaytimeModule extends Module {
     public PlaytimeModule(ModuleDefinition<PlaytimeModule> definition, SunLightPlugin plugin) {
         super(definition, plugin);
         this.settings = new PlaytimeSettings();
+        this.milestones = new LinkedHashMap<>();
         this.topCache = new ConcurrentHashMap<>();
         this.topCacheTimestamp = 0L;
     }
@@ -54,6 +66,8 @@ public class PlaytimeModule extends Module {
     @Override
     protected void loadModule(FileConfig config) {
         this.settings.load(config);
+        this.loadMilestones(config);
+        config.saveChanges();
         this.plugin.injectLang(PlaytimeLang.class);
 
         // Must happen before any SunUser is deserialised.
@@ -78,21 +92,40 @@ public class PlaytimeModule extends Module {
         UserPropertyRegistry.register(PlaytimeProperties.REMINDED_DAY_KEY);
         UserPropertyRegistry.register(PlaytimeProperties.REMINDED_WEEK_KEY);
         UserPropertyRegistry.register(PlaytimeProperties.REMINDED_MONTH_KEY);
+        UserPropertyRegistry.register(PlaytimeProperties.SESSION);
+        UserPropertyRegistry.register(PlaytimeProperties.SESSION_START);
+        UserPropertyRegistry.register(PlaytimeProperties.MILESTONE_PROGRESS);
 
         this.addListener(new PlaytimeListener(this.plugin, this));
         this.addTask(this::tick, this.settings.getTickInterval());
         this.addAsyncTask(this::refreshTopCache, (int) Math.max(1L, this.settings.getTopRefreshInterval() / 20L));
 
         this.commandRegistry.addProvider(new PlaytimeCommandProvider(this));
+        this.commandRegistry.addProvider(new PlaytimeAdminCommandProvider(this));
 
-        Utils.onlinePlayers().forEach(player -> this.ensureRollover(this.userManager.getOrFetch(player)));
-        this.refreshTopCache();
+        Utils.onlinePlayers().forEach(player -> {
+            SunUser user = this.userManager.getOrFetch(player);
+            this.ensureRollover(user);
+            if (user.getPropertyOrDefault(PlaytimeProperties.SESSION_START) <= 0L) {
+                user.setProperty(PlaytimeProperties.SESSION_START, System.currentTimeMillis());
+            }
+        });
+        this.refreshTopCacheAsync();
     }
 
     @Override
     protected void unloadModule() {
         this.topCache.clear();
         this.topCacheTimestamp = 0L;
+        this.milestones.clear();
+    }
+
+    public void reloadModule() {
+        FileConfig config = this.getConfig();
+        this.settings.load(config);
+        this.loadMilestones(config);
+        config.saveChanges();
+        this.refreshTopCacheAsync();
     }
 
     @Override
@@ -107,20 +140,63 @@ public class PlaytimeModule extends Module {
         registry.register("playtime_week_formatted", (player, payload) -> this.format(this.getEffectivePlaytime(player, PlaytimePeriod.WEEK)));
         registry.register("playtime_day", (player, payload) -> String.valueOf(this.getEffectivePlaytime(player, PlaytimePeriod.DAY)));
         registry.register("playtime_day_formatted", (player, payload) -> this.format(this.getEffectivePlaytime(player, PlaytimePeriod.DAY)));
+        registry.register("playtime_session", (player, payload) -> String.valueOf(this.getSessionPlaytime(player)));
+        registry.register("playtime_session_formatted", (player, payload) -> this.format(this.getSessionPlaytime(player)));
         registry.register("playtime_streak_daily", (player, payload) -> String.valueOf(this.getStreak(player, true)));
         registry.register("playtime_streak_weekly", (player, payload) -> String.valueOf(this.getStreak(player, false)));
         registry.register("playtime_goal_day", (player, payload) -> String.valueOf(this.getEffectiveGoalMs(player, true, false, false)));
         registry.register("playtime_goal_week", (player, payload) -> String.valueOf(this.getEffectiveGoalMs(player, false, true, false)));
         registry.register("playtime_goal_month", (player, payload) -> String.valueOf(this.getEffectiveGoalMs(player, false, false, true)));
+        registry.register("playtime_milestones", (player, payload) -> String.valueOf(this.getMilestoneCount(player)));
     }
 
     public PlaytimeSettings getSettings() {
         return this.settings;
     }
 
+    public Map<String, PlaytimeMilestone> getMilestones() {
+        return Map.copyOf(this.milestones);
+    }
+
     public String format(long ms) {
         if (ms <= 0L) return TimeFormats.formatAmount(0L, TimeFormatType.LITERAL);
         return TimeFormats.formatAmount(ms, TimeFormatType.LITERAL);
+    }
+
+    // --- Milestones config ---
+
+    private void loadMilestones(FileConfig config) {
+        if (config.getConfigurationSection("Playtime.Milestones") == null) {
+            config.addMissing("Playtime.Milestones.starter.Name", "Starter");
+            config.addMissing("Playtime.Milestones.starter.Minutes", 60L);
+            config.addMissing("Playtime.Milestones.starter.Repeatable", false);
+            config.addMissing("Playtime.Milestones.starter.Rewards", List.of("eco give %player_name% 500"));
+            config.addMissing("Playtime.Milestones.veteran.Name", "Veteran");
+            config.addMissing("Playtime.Milestones.veteran.Minutes", 600L);
+            config.addMissing("Playtime.Milestones.veteran.Repeatable", false);
+            config.addMissing("Playtime.Milestones.veteran.Rewards", List.of("eco give %player_name% 5000"));
+            config.addMissing("Playtime.Milestones.grinder.Name", "Grinder");
+            config.addMissing("Playtime.Milestones.grinder.Minutes", 120L);
+            config.addMissing("Playtime.Milestones.grinder.Repeatable", true);
+            config.addMissing("Playtime.Milestones.grinder.Rewards", List.of("eco give %player_name% 250"));
+        }
+
+        this.milestones.clear();
+        ConfigurationSection section = config.getConfigurationSection("Playtime.Milestones");
+        if (section == null) return;
+
+        for (String id : section.getKeys(false)) {
+            String key = Utils.lowercase(id);
+            if (key == null || key.isBlank()) continue;
+            String base = "Playtime.Milestones." + id + ".";
+            long minutes = Math.max(0L, config.getLong(base + "Minutes", 0L));
+            if (minutes <= 0L) continue;
+            String name = config.getString(base + "Name", id);
+            if (name == null || name.isBlank()) name = id;
+            boolean repeatable = config.getBoolean(base + "Repeatable", false);
+            List<String> rewards = config.getStringList(base + "Rewards");
+            this.milestones.put(key, new PlaytimeMilestone(key, name, minutes * 60_000L, repeatable, List.copyOf(rewards)));
+        }
     }
 
     // --- Tick ---
@@ -146,8 +222,10 @@ public class PlaytimeModule extends Module {
             user.setProperty(PlaytimeProperties.MONTH, user.getPropertyOrDefault(PlaytimeProperties.MONTH) + deltaMs);
             user.setProperty(PlaytimeProperties.WEEK, user.getPropertyOrDefault(PlaytimeProperties.WEEK) + deltaMs);
             user.setProperty(PlaytimeProperties.DAY, user.getPropertyOrDefault(PlaytimeProperties.DAY) + deltaMs);
+            user.setProperty(PlaytimeProperties.SESSION, user.getPropertyOrDefault(PlaytimeProperties.SESSION) + deltaMs);
 
             this.checkGoals(player, user);
+            this.checkMilestones(player, user);
         }
     }
 
@@ -211,6 +289,13 @@ public class PlaytimeModule extends Module {
         }
     }
 
+    public void startSession(@NotNull SunUser user) {
+        this.ensureRollover(user);
+        user.setProperty(PlaytimeProperties.SESSION, 0L);
+        user.setProperty(PlaytimeProperties.SESSION_START, System.currentTimeMillis());
+        user.setProperty(PlaytimeProperties.LAST_SEEN, System.currentTimeMillis());
+    }
+
     // --- Reads ---
 
     public long getStoredPlaytime(@NotNull SunUser user, @NotNull PlaytimePeriod period) {
@@ -242,12 +327,30 @@ public class PlaytimeModule extends Module {
         return this.getEffectivePlaytime(user, period);
     }
 
+    public long getSessionPlaytime(@NotNull SunUser user) {
+        return Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.SESSION));
+    }
+
+    private long getSessionPlaytime(Player player) {
+        if (player == null) return 0L;
+        SunUser user = this.userManager.getOrFetch(player);
+        if (user == null) return 0L;
+        return this.getSessionPlaytime(user);
+    }
+
     private int getStreak(Player player, boolean daily) {
         if (player == null) return 0;
         SunUser user = this.userManager.getOrFetch(player);
         if (user == null) return 0;
         return daily ? Math.max(0, user.getPropertyOrDefault(PlaytimeProperties.DAILY_STREAK))
             : Math.max(0, user.getPropertyOrDefault(PlaytimeProperties.WEEKLY_STREAK));
+    }
+
+    private int getMilestoneCount(Player player) {
+        if (player == null) return 0;
+        SunUser user = this.userManager.getOrFetch(player);
+        if (user == null) return 0;
+        return user.getPropertyOrDefault(PlaytimeProperties.MILESTONE_PROGRESS).size();
     }
 
     public long getTotalPlaytimeMs(@NotNull UUID playerId) {
@@ -258,6 +361,71 @@ public class PlaytimeModule extends Module {
 
     public long getTotalPlaytimeMs(@NotNull Player player) {
         return Math.max(0L, this.userManager.getOrFetch(player).getPropertyOrDefault(PlaytimeProperties.TOTAL));
+    }
+
+    // --- PlaytimeProvider ---
+
+    @Override
+    public long getPlaytimeMs(@NotNull UUID playerId, @NotNull String period) {
+        PlaytimePeriod parsed;
+        try {
+            parsed = PlaytimePeriod.fromString(period);
+        } catch (Exception exception) {
+            parsed = PlaytimePeriod.ALLTIME;
+        }
+        final PlaytimePeriod resolved = parsed;
+        return this.userManager.getOrFetch(playerId)
+            .map(user -> this.getEffectivePlaytime(user, resolved))
+            .orElse(0L);
+    }
+
+    @Override
+    public long getSessionPlaytimeMs(@NotNull UUID playerId) {
+        return this.userManager.getOrFetch(playerId)
+            .map(user -> Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.SESSION)))
+            .orElse(0L);
+    }
+
+    @Override
+    public int getDailyStreak(@NotNull UUID playerId) {
+        return this.userManager.getOrFetch(playerId)
+            .map(user -> Math.max(0, user.getPropertyOrDefault(PlaytimeProperties.DAILY_STREAK)))
+            .orElse(0);
+    }
+
+    @Override
+    public int getWeeklyStreak(@NotNull UUID playerId) {
+        return this.userManager.getOrFetch(playerId)
+            .map(user -> Math.max(0, user.getPropertyOrDefault(PlaytimeProperties.WEEKLY_STREAK)))
+            .orElse(0);
+    }
+
+    @Override
+    public long getGoalMs(@NotNull UUID playerId, @NotNull String scope) {
+        String normalized = Utils.lowercase(scope);
+        boolean day = normalized != null && (normalized.equals("day") || normalized.equals("daily"));
+        boolean week = normalized != null && (normalized.equals("week") || normalized.equals("weekly"));
+        return this.userManager.getOrFetch(playerId)
+            .map(user -> this.getEffectiveGoalMs(user, day, week, !day && !week))
+            .orElse(0L);
+    }
+
+    @Override
+    public @NotNull List<PlaytimeProvider.TopEntry> getTop(@NotNull String period, int limit) {
+        PlaytimePeriod parsed;
+        try {
+            parsed = PlaytimePeriod.fromString(period);
+        } catch (Exception exception) {
+            parsed = PlaytimePeriod.ALLTIME;
+        }
+        int max = Math.max(1, Math.min(limit <= 0 ? TOP_CACHE_LIMIT : limit, TOP_CACHE_LIMIT));
+        List<TopEntry> cached = new ArrayList<>(this.getTop(parsed));
+        List<PlaytimeProvider.TopEntry> result = new ArrayList<>(Math.min(max, cached.size()));
+        for (int index = 0; index < Math.min(max, cached.size()); index++) {
+            TopEntry entry = cached.get(index);
+            result.add(new PlaytimeProvider.TopEntry(entry.id(), entry.name(), entry.value()));
+        }
+        return result;
     }
 
     // --- Goals ---
@@ -351,7 +519,51 @@ public class PlaytimeModule extends Module {
     private void giveGoalReward(@NotNull Player player, @NotNull List<String> commands, @NotNull String goalName) {
         this.sendPrefixed(PlaytimeLang.REWARD_GOAL, player, b -> b
             .with(SLPlaceholders.GENERIC_NAME, () -> goalName));
+        this.dispatchRewardCommands(player, commands);
+    }
 
+    // --- Milestones ---
+
+    private void checkMilestones(@NotNull Player player, @NotNull SunUser user) {
+        if (this.milestones.isEmpty()) return;
+
+        long total = Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.TOTAL));
+        if (total <= 0L) return;
+
+        Map<String, Integer> progress = new HashMap<>(user.getPropertyOrDefault(PlaytimeProperties.MILESTONE_PROGRESS));
+        boolean changed = false;
+
+        List<PlaytimeMilestone> ordered = new ArrayList<>(this.milestones.values());
+        ordered.sort(Comparator.comparingLong(PlaytimeMilestone::thresholdMs));
+
+        for (PlaytimeMilestone milestone : ordered) {
+            if (milestone.thresholdMs() <= 0L || total < milestone.thresholdMs()) continue;
+
+            if (milestone.repeatable()) {
+                int reached = (int) (total / milestone.thresholdMs());
+                int claimed = Math.max(0, progress.getOrDefault(milestone.id(), 0));
+                if (reached > claimed) {
+                    progress.put(milestone.id(), reached);
+                    changed = true;
+                    this.sendPrefixed(PlaytimeLang.MILESTONE_REWARD, player, b -> b
+                        .with(SLPlaceholders.GENERIC_NAME, milestone::name));
+                    this.dispatchRewardCommands(player, milestone.rewards());
+                }
+            } else if (!progress.containsKey(milestone.id())) {
+                progress.put(milestone.id(), 1);
+                changed = true;
+                this.sendPrefixed(PlaytimeLang.MILESTONE_REWARD, player, b -> b
+                    .with(SLPlaceholders.GENERIC_NAME, milestone::name));
+                this.dispatchRewardCommands(player, milestone.rewards());
+            }
+        }
+
+        if (changed) {
+            user.setProperty(PlaytimeProperties.MILESTONE_PROGRESS, progress);
+        }
+    }
+
+    private void dispatchRewardCommands(@NotNull Player player, @NotNull List<String> commands) {
         if (commands.isEmpty()) return;
 
         PlaceholderContext context = PlaceholderContext.builder()
@@ -366,6 +578,117 @@ public class PlaytimeModule extends Module {
 
         CommandSender console = this.plugin.getServer().getConsoleSender();
         this.plugin.runTask(() -> resolved.forEach(command -> this.plugin.getServer().dispatchCommand(console, command)));
+    }
+
+    // --- Admin operations ---
+
+    public void addPlaytime(@NotNull SunUser user, @Nullable PlaytimePeriod period, long deltaMs) {
+        if (deltaMs == 0L) return;
+        this.ensureRollover(user);
+        if (period == null) {
+            for (PlaytimePeriod bucket : PlaytimePeriod.values()) {
+                this.addBucket(user, bucket, deltaMs);
+            }
+            return;
+        }
+        this.addBucket(user, period, deltaMs);
+    }
+
+    private void addBucket(@NotNull SunUser user, @NotNull PlaytimePeriod period, long deltaMs) {
+        switch (period) {
+            case ALLTIME -> user.setProperty(PlaytimeProperties.TOTAL, Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.TOTAL) + deltaMs));
+            case YEAR -> {
+                user.setProperty(PlaytimeProperties.TOTAL, Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.TOTAL) + deltaMs));
+                user.setProperty(PlaytimeProperties.YEAR, Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.YEAR) + deltaMs));
+            }
+            case MONTH -> {
+                user.setProperty(PlaytimeProperties.TOTAL, Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.TOTAL) + deltaMs));
+                user.setProperty(PlaytimeProperties.MONTH, Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.MONTH) + deltaMs));
+            }
+            case WEEK -> {
+                user.setProperty(PlaytimeProperties.TOTAL, Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.TOTAL) + deltaMs));
+                user.setProperty(PlaytimeProperties.WEEK, Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.WEEK) + deltaMs));
+            }
+            case DAY -> {
+                user.setProperty(PlaytimeProperties.TOTAL, Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.TOTAL) + deltaMs));
+                user.setProperty(PlaytimeProperties.DAY, Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.DAY) + deltaMs));
+            }
+        }
+    }
+
+    public void setPlaytime(@NotNull SunUser user, @Nullable PlaytimePeriod period, long valueMs) {
+        long value = Math.max(0L, valueMs);
+        this.ensureRollover(user);
+        if (period == null) {
+            user.setProperty(PlaytimeProperties.TOTAL, value);
+            user.setProperty(PlaytimeProperties.YEAR, value);
+            user.setProperty(PlaytimeProperties.MONTH, value);
+            user.setProperty(PlaytimeProperties.WEEK, value);
+            user.setProperty(PlaytimeProperties.DAY, value);
+            return;
+        }
+        switch (period) {
+            case ALLTIME -> user.setProperty(PlaytimeProperties.TOTAL, value);
+            case YEAR -> user.setProperty(PlaytimeProperties.YEAR, value);
+            case MONTH -> user.setProperty(PlaytimeProperties.MONTH, value);
+            case WEEK -> user.setProperty(PlaytimeProperties.WEEK, value);
+            case DAY -> user.setProperty(PlaytimeProperties.DAY, value);
+        }
+    }
+
+    public void resetScope(@NotNull SunUser user, @NotNull String scope) {
+        String normalized = Utils.lowercase(scope);
+        if (normalized == null) return;
+        PeriodKeys keys = this.currentKeys();
+        switch (normalized) {
+            case "all" -> {
+                user.setProperty(PlaytimeProperties.TOTAL, 0L);
+                user.setProperty(PlaytimeProperties.YEAR, 0L);
+                user.setProperty(PlaytimeProperties.MONTH, 0L);
+                user.setProperty(PlaytimeProperties.WEEK, 0L);
+                user.setProperty(PlaytimeProperties.DAY, 0L);
+                user.setProperty(PlaytimeProperties.SESSION, 0L);
+                user.setProperty(PlaytimeProperties.DAILY_STREAK, 0);
+                user.setProperty(PlaytimeProperties.WEEKLY_STREAK, 0);
+                user.setProperty(PlaytimeProperties.GOAL_DAY, 0L);
+                user.setProperty(PlaytimeProperties.GOAL_WEEK, 0L);
+                user.setProperty(PlaytimeProperties.GOAL_MONTH, 0L);
+                user.setProperty(PlaytimeProperties.MILESTONE_PROGRESS, new HashMap<String, Integer>());
+            }
+            case "alltime", "total" -> user.setProperty(PlaytimeProperties.TOTAL, 0L);
+            case "year" -> {
+                user.setProperty(PlaytimeProperties.YEAR, 0L);
+                user.setProperty(PlaytimeProperties.YEAR_KEY, keys.year());
+            }
+            case "month" -> {
+                user.setProperty(PlaytimeProperties.MONTH, 0L);
+                user.setProperty(PlaytimeProperties.MONTH_KEY, keys.month());
+            }
+            case "week" -> {
+                user.setProperty(PlaytimeProperties.WEEK, 0L);
+                user.setProperty(PlaytimeProperties.WEEK_KEY, keys.week());
+            }
+            case "day" -> {
+                user.setProperty(PlaytimeProperties.DAY, 0L);
+                user.setProperty(PlaytimeProperties.DAY_KEY, keys.day());
+            }
+            case "session" -> {
+                user.setProperty(PlaytimeProperties.SESSION, 0L);
+                user.setProperty(PlaytimeProperties.SESSION_START, System.currentTimeMillis());
+            }
+            case "streaks", "streak" -> {
+                user.setProperty(PlaytimeProperties.DAILY_STREAK, 0);
+                user.setProperty(PlaytimeProperties.WEEKLY_STREAK, 0);
+            }
+            case "goals", "goal" -> {
+                user.setProperty(PlaytimeProperties.GOAL_DAY, 0L);
+                user.setProperty(PlaytimeProperties.GOAL_WEEK, 0L);
+                user.setProperty(PlaytimeProperties.GOAL_MONTH, 0L);
+            }
+            case "milestones", "milestone" -> user.setProperty(PlaytimeProperties.MILESTONE_PROGRESS, new HashMap<String, Integer>());
+            default -> {
+            }
+        }
     }
 
     // --- Display ---
@@ -426,12 +749,21 @@ public class PlaytimeModule extends Module {
                 .with(SLPlaceholders.GENERIC_NAME, () -> name));
             return;
         }
-        long percent = Math.min(100L, current * 100L / Math.max(1L, goal));
+        long percent = current <= 0L ? 0L : Math.min(100L, current * 100L / Math.max(1L, goal));
         this.sendPrefixed(PlaytimeLang.GOAL_LINE, viewer, b -> b
             .with(SLPlaceholders.GENERIC_NAME, () -> name)
             .with(SLPlaceholders.GENERIC_VALUE, () -> String.valueOf(percent))
             .with(SLPlaceholders.GENERIC_CURRENT, () -> this.format(Math.max(0L, current)))
             .with(SLPlaceholders.GENERIC_MAX, () -> this.format(goal)));
+    }
+
+    public boolean openStatsMenu(@NotNull Player viewer, @NotNull SunUser target) {
+        this.ensureRollover(target);
+        return new PlaytimeStatsMenu(this, target.getId()).show(this.plugin, viewer);
+    }
+
+    public boolean openTopMenu(@NotNull Player viewer, @NotNull PlaytimePeriod period) {
+        return new PlaytimeTopMenu(this, period).show(this.plugin, viewer);
     }
 
     // --- Top ---
@@ -440,13 +772,34 @@ public class PlaytimeModule extends Module {
     }
 
     public List<TopEntry> getTop(@NotNull PlaytimePeriod period) {
-        long refreshMs = Math.max(1000L, this.settings.getTopRefreshInterval() * 50L);
-        if (System.currentTimeMillis() - this.topCacheTimestamp > refreshMs || !this.topCache.containsKey(period)) {
-            this.refreshTopCache();
+        List<TopEntry> cached = this.topCache.getOrDefault(period, List.of());
+        if (cached.isEmpty()) {
+            this.refreshTopCacheAsync();
+            return List.copyOf(cached);
         }
-        return this.topCache.getOrDefault(period, List.of());
+        long refreshMs = Math.max(1000L, this.settings.getTopRefreshInterval() * 50L);
+        if (System.currentTimeMillis() - this.topCacheTimestamp > refreshMs) {
+            this.refreshTopCacheAsync();
+        }
+        return List.copyOf(cached);
     }
 
+    public void refreshTopCacheAsync() {
+        try {
+            this.plugin.runTaskAsync(task -> this.refreshTopCache());
+        } catch (Exception exception) {
+            this.refreshTopCache();
+        }
+    }
+
+    /**
+     * Rebuilds the leaderboard from every persisted user row merged with live
+     * in-memory data.
+     * <p>
+     * Playtime lives in the user table's JSON properties blob, so there is no
+     * {@code ORDER BY} for it in SQL. Instead all rows are loaded once per
+     * refresh ({@code Top.Refresh-Interval}) and sorted here. Runs off-thread.
+     */
     public void refreshTopCache() {
         PeriodKeys keys;
         try {
@@ -455,13 +808,28 @@ public class PlaytimeModule extends Module {
             return;
         }
 
-        Collection<SunUser> users;
+        Map<UUID, SunUser> merged = new LinkedHashMap<>();
         try {
-            users = this.userManager.getAll();
+            for (SunUser persisted : this.dataHandler.selectAny(this.dataHandler.getUsersTable(), DataQueries.SELECT_USER)) {
+                if (persisted == null) continue;
+                merged.put(persisted.getId(), persisted);
+            }
         } catch (Exception exception) {
-            return;
+            this.debug("Top refresh: database scan failed, falling back to cached users.");
         }
-        if (users == null || users.isEmpty()) {
+        try {
+            Collection<SunUser> live = this.userManager.getAll();
+            if (live != null) {
+                for (SunUser user : live) {
+                    if (user == null) continue;
+                    merged.put(user.getId(), user);
+                }
+            }
+        } catch (Exception exception) {
+            // Live data is best-effort; persisted rows still produce a board.
+        }
+
+        if (merged.isEmpty()) {
             for (PlaytimePeriod period : PlaytimePeriod.values()) {
                 this.topCache.put(period, List.of());
             }
@@ -471,7 +839,7 @@ public class PlaytimeModule extends Module {
 
         for (PlaytimePeriod period : PlaytimePeriod.values()) {
             List<TopEntry> entries = new ArrayList<>();
-            for (SunUser user : users) {
+            for (SunUser user : merged.values()) {
                 long value;
                 try {
                     value = switch (period) {

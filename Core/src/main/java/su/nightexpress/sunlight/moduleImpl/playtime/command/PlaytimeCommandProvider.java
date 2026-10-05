@@ -26,6 +26,12 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
     private static final String ARG_PAGE = "page";
     private static final String ARG_MINUTES = "minutes";
 
+    private static final String COMMAND_ROOT = "playtime";
+    private static final String COMMAND_STATS = "stats";
+    private static final String COMMAND_TOP = "top";
+    private static final String COMMAND_GOAL = "goal";
+    private static final String COMMAND_MENU = "menu";
+
     public PlaytimeCommandProvider(PlaytimeModule module) {
         super(module, "playtime");
     }
@@ -56,6 +62,14 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
                 .executes(this::goal))
                 .under("playtime");
 
+        this.register(COMMAND_MENU, command -> command
+                .withFullDescription(PlaytimeLang.COMMAND_MENU_DESC.text())
+                .withPermission(PlaytimePerms.COMMAND_MENU)
+                .withOptionalArguments(CommandArgumentConstants.targetArgument().withPermission(PlaytimePerms.COMMAND_MENU_OTHERS))
+                .executes(this::showMenu))
+                .aliases("gui")
+                .under("playtime");
+
         this.registerRoot("playtime", command -> command
                 .withFullDescription(PlaytimeLang.COMMAND_PLAYTIME_DESC.text())
                 .withPermission(PlaytimePerms.COMMAND_PLAYTIME)
@@ -77,6 +91,11 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
         if (target == null) {
             this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
             return 0;
+        }
+        // Bare /playtime opens the menu for players checking themselves.
+        if (!target.hasTarget() && sender instanceof Player player && sender.hasPermission(PlaytimePerms.COMMAND_MENU)) {
+            SunUser self = this.module.userManager().getOrFetch(player);
+            return this.module.openStatsMenu(player, self) ? 1 : 0;
         }
         return target.runAs(this.module, sender, PlaytimePerms.COMMAND_STATS_OTHERS, (user, targetPlayer) -> {
             SunUser resolved = this.module.userManager().getOrFetch(targetPlayer);
@@ -118,8 +137,28 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
             page = value;
         }
 
+        if (sender instanceof Player player) {
+            return this.module.openTopMenu(player, period) ? 1 : 0;
+        }
+
         this.module.showTop(sender, period, page);
         return 1;
+    }
+
+    private int showMenu(CommandSender sender, CommandArguments arguments) {
+        if (!(sender instanceof Player player)) {
+            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
+            return 0;
+        }
+        CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
+        return target.runAs(this.module, sender, PlaytimePerms.COMMAND_MENU_OTHERS, (user, targetPlayer) -> {
+            SunUser resolved = this.module.userManager().getOrFetch(targetPlayer);
+            this.module.openStatsMenu(player, resolved);
+        });
     }
 
     private int goal(CommandSender sender, CommandArguments arguments) {
