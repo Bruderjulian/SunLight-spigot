@@ -3,8 +3,10 @@ package su.nightexpress.sunlight.moduleImpl.profiles.listener;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import su.nightexpress.nightcore.manager.AbstractListener;
@@ -36,6 +38,7 @@ public class ProfilesListener extends AbstractListener<SunLightPlugin> {
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         try {
+            this.module.getWarmup().cancel(player, true);
             SunUser user = this.plugin.userManager().getOrFetch(player);
             this.module.getManager().saveCurrent(player, user);
         } catch (Exception exception) {
@@ -47,8 +50,28 @@ public class ProfilesListener extends AbstractListener<SunLightPlugin> {
     public void onDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
         try {
+            this.module.getWarmup().cancel(player, true);
             SunUser user = this.plugin.userManager().getOrFetch(player);
             this.module.getManager().saveCurrent(player, user);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onMove(PlayerMoveEvent event) {
+        try {
+            this.module.getWarmup().cancelOnMove(event.getPlayer());
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        try {
+            this.module.getWarmup().cancelOnDamage(player);
         } catch (Exception exception) {
             exception.printStackTrace();
         }

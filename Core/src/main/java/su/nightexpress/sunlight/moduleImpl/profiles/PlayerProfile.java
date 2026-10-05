@@ -21,6 +21,8 @@ public class PlayerProfile {
     private final UUID ownerId;
     private final String id;
     private String name;
+    private String icon;
+    private String description;
     private final long createdAt;
     private long lastPlayed;
 
@@ -28,20 +30,21 @@ public class PlayerProfile {
     private Map<String, JsonElement> properties;
 
     public PlayerProfile(UUID ownerId, String id, String name) {
-        this.ownerId = ownerId;
-        this.id = id;
-        this.name = name;
-        this.createdAt = System.currentTimeMillis();
-        this.lastPlayed = this.createdAt;
-        this.state = new VanillaState();
-        this.properties = new HashMap<>();
+        this(ownerId, id, name, "PLAYER_HEAD", "", System.currentTimeMillis(), System.currentTimeMillis(), null, null);
     }
 
     public PlayerProfile(UUID ownerId, String id, String name, long createdAt, long lastPlayed,
                          VanillaState state, Map<String, JsonElement> properties) {
+        this(ownerId, id, name, "PLAYER_HEAD", "", createdAt, lastPlayed, state, properties);
+    }
+
+    public PlayerProfile(UUID ownerId, String id, String name, String icon, String description,
+                         long createdAt, long lastPlayed, VanillaState state, Map<String, JsonElement> properties) {
         this.ownerId = ownerId;
         this.id = id;
         this.name = name;
+        this.icon = icon == null || icon.isBlank() ? "PLAYER_HEAD" : icon.toUpperCase(java.util.Locale.ROOT);
+        this.description = description == null ? "" : description;
         this.createdAt = createdAt;
         this.lastPlayed = lastPlayed;
         this.state = state == null ? new VanillaState() : state;
@@ -64,6 +67,22 @@ public class PlayerProfile {
         this.name = name;
     }
 
+    public String getIcon() {
+        return this.icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon == null || icon.isBlank() ? "PLAYER_HEAD" : icon.toUpperCase(java.util.Locale.ROOT);
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description == null ? "" : description;
+    }
+
     public long getCreatedAt() {
         return this.createdAt;
     }
@@ -74,6 +93,16 @@ public class PlayerProfile {
 
     public void touch() {
         this.lastPlayed = System.currentTimeMillis();
+    }
+
+    /**
+     * Deep-copies this profile under a new id and name. Used by clone.
+     */
+    public PlayerProfile copyTo(String id, String name) {
+        VanillaState stateCopy = VanillaState.deserialize(this.state.serialize());
+        long now = System.currentTimeMillis();
+        return new PlayerProfile(this.ownerId, id, name, this.icon, this.description,
+            now, now, stateCopy, this.getPropertiesRaw());
     }
 
     public VanillaState getState() {
@@ -141,6 +170,8 @@ public class PlayerProfile {
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
         map.put("name", this.name);
+        map.put("icon", this.icon);
+        map.put("description", this.description);
         map.put("createdAt", this.createdAt);
         map.put("lastPlayed", this.lastPlayed);
         map.put("state", this.state.serialize());
@@ -156,6 +187,8 @@ public class PlayerProfile {
     public static PlayerProfile deserialize(UUID ownerId, String id, Map<String, Object> map) {
         if (map == null) return null;
         Object name = map.get("name");
+        Object icon = map.get("icon");
+        Object description = map.get("description");
         long createdAt = map.get("createdAt") instanceof Number number ? number.longValue() : System.currentTimeMillis();
         long lastPlayed = map.get("lastPlayed") instanceof Number number ? number.longValue() : createdAt;
         Object stateRaw = map.get("state");
@@ -174,6 +207,9 @@ public class PlayerProfile {
                 }
             }
         }
-        return new PlayerProfile(ownerId, id, name == null ? id : String.valueOf(name), createdAt, lastPlayed, state, props);
+        return new PlayerProfile(ownerId, id, name == null ? id : String.valueOf(name),
+            icon == null ? "PLAYER_HEAD" : String.valueOf(icon),
+            description == null ? "" : String.valueOf(description),
+            createdAt, lastPlayed, state, props);
     }
 }

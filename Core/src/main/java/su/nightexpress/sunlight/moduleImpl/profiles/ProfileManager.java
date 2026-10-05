@@ -17,6 +17,7 @@ import su.nightexpress.sunlight.command.CommandKey;
 import su.nightexpress.sunlight.moduleImpl.freeze.FreezeModule;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowModule;
 import su.nightexpress.sunlight.moduleImpl.nick.NickModule;
+import su.nightexpress.sunlight.hook.combat.CombatTracker;
 import su.nightexpress.sunlight.moduleImpl.profiles.config.ProfilesPerms;
 import su.nightexpress.sunlight.moduleImpl.profiles.event.ProfileSwitchEvent;
 import su.nightexpress.sunlight.moduleImpl.vanish.VanishModule;
@@ -42,13 +43,16 @@ public class ProfileManager {
     private final ProfilesSettings settings;
     private final ProfileScopeRegistry scopes;
     private final ProfileStore store;
+    private final CombatTracker combat;
 
     private final Map<UUID, Map<String, PlayerProfile>> cache = new ConcurrentHashMap<>();
 
-    public ProfileManager(SunLightPlugin plugin, ProfilesSettings settings, ProfileScopeRegistry scopes, File moduleFolder) {
+    public ProfileManager(SunLightPlugin plugin, ProfilesSettings settings, ProfileScopeRegistry scopes,
+                          CombatTracker combat, File moduleFolder) {
         this.plugin = plugin;
         this.settings = settings;
         this.scopes = scopes;
+        this.combat = combat;
         this.store = new ProfileStore(moduleFolder);
     }
 
@@ -71,6 +75,9 @@ public class ProfileManager {
         return new ArrayList<>(this.getProfiles(ownerId).values());
     }
 
+    public CombatTracker getCombat() {
+        return this.combat;
+    }
     public PlayerProfile findByIdOrName(UUID ownerId, String query) {
         if (query == null) return null;
         Map<String, PlayerProfile> profiles = this.getProfiles(ownerId);
@@ -167,11 +174,58 @@ public class ProfileManager {
         profiles.remove(profile.getId());
         profile.setName(newName);
         PlayerProfile renamed = new PlayerProfile(ownerId, Utils.lowercase(newName),
-            newName, profile.getCreatedAt(), profile.getLastPlayed(), profile.getState(),
+            newName, profile.getIcon(), profile.getDescription(),
+            profile.getCreatedAt(), profile.getLastPlayed(), profile.getState(),
             profile.getPropertiesRaw());
         profiles.put(renamed.getId(), renamed);
         this.persist(ownerId);
         return RenameResult.OK;
+    }
+
+    public enum CloneResult {
+        OK, NOT_FOUND, LIMIT, EXISTS, INVALID_NAME
+    }
+
+    public synchronized CloneResult cloneProfile(UUID ownerId, int maxSlots, String sourceQuery, String newName) {
+        if (newName == null || !newName.matches(NAME_PATTERN)) return CloneResult.INVALID_NAME;
+        Map<String, PlayerProfile> profiles = this.getProfiles(ownerId);
+        PlayerProfile source = this.findByIdOrName(ownerId, sourceQuery);
+        if (source == null) return CloneResult.NOT_FOUND;
+        if (profiles.size() >= maxSlots) return CloneResult.LIMIT;
+        for (PlayerProfile other : profiles.values()) {
+            if (other.getName().equalsIgnoreCase(newName)) return CloneResult.EXISTS;
+        }
+        String id = Utils.lowercase(newName);
+        if (profiles.containsKey(id)) return CloneResult.EXISTS;
+        PlayerProfile copy = source.copyTo(id, newName);
+        profiles.put(id, copy);
+        this.persist(ownerId);
+        return CloneResult.OK;
+    }
+
+    public synchronized boolean setIcon(UUID ownerId, String query, String icon) {
+        PlayerProfile profile = this.findByIdOrName(ownerId, query);
+        if (profile == null) return false;
+        profile.setIcon(icon);
+        this.persist(ownerId);
+        return true;
+    }
+
+    public synchronized boolean setDescription(UUID ownerId, String query, String description) {
+        PlayerProfile profile = this.findByIdOrName(ownerId, query);
+        if (profile == null) return false;
+        profile.setDescription(description);
+        this.persist(ownerId);
+        return true;
+    }
+
+    /**
+     * Deletes every profile of a player. The next join (or an explicit
+     * {@code ensureLoaded}) recreates a fresh {@code Main} profile.
+     */
+    public synchronized void resetAll(UUID ownerId) {
+        this.cache.remove(ownerId);
+        this.store.delete(ownerId);
     }
 
     public enum DeleteResult {
@@ -179,13 +233,21 @@ public class ProfileManager {
     }
 
     public synchronized DeleteResult delete(Player player, SunUser user, String query) {
-        Map<String, PlayerProfile> profiles = this.getProfiles(player.getUniqueId());
-        PlayerProfile profile = this.findByIdOrName(player.getUniqueId(), query);
+        return this.deleteById(player.getUniqueId(), this.getActiveId(user), query);
+    }
+
+    /**
+     * File-level delete that also works for offline players when their
+     * active profile id is known (may be {@code null}).
+     */
+    public synchronized DeleteResult deleteById(UUID ownerId, String activeId, String query) {
+        Map<String, PlayerProfile> profiles = this.getProfiles(ownerId);
+        PlayerProfile profile = this.findByIdOrName(ownerId, query);
         if (profile == null) return DeleteResult.NOT_FOUND;
         if (profiles.size() <= 1) return DeleteResult.LAST;
-        if (this.getActiveId(user).equals(profile.getId())) return DeleteResult.ACTIVE;
+        if (profile.getId().equals(activeId)) return DeleteResult.ACTIVE;
         profiles.remove(profile.getId());
-        this.persist(player.getUniqueId());
+        this.persist(ownerId);
         return DeleteResult.OK;
     }
 
@@ -226,7 +288,7 @@ public class ProfileManager {
     // ------------------------------------------------------------------
 
     public enum SwitchBlock {
-        NONE, NOT_FOUND, ALREADY_ACTIVE, COOLDOWN, DEAD, VANISHED, FROZEN, FLYING, CANCELLED, FAILED
+        NONE, NOT_FOUND, ALREADY_ACTIVE, COOLDOWN, DEAD, VANISHED, FROZEN, FLYING, COMBAT, CANCELLED, FAILED
     }
 
     public record SwitchResult(SwitchBlock block, long cooldownLeftMs) {
@@ -246,12 +308,7 @@ public class ProfileManager {
         if (!bypassSafety) {
             SwitchBlock guard = this.checkGuards(player, user);
             if (guard != SwitchBlock.NONE) {
-                if (guard == SwitchBlock.COOLDOWN) {
-                    Long expire = user.getCommandCooldown(new CommandKey("profiles", "switch"));
-                    long left = expire == null ? 0L : Math.max(0L, expire - System.currentTimeMillis());
-                    return new SwitchResult(guard, left);
-                }
-                return new SwitchResult(guard, 0L);
+                return new SwitchResult(guard, guard == SwitchBlock.COOLDOWN ? this.cooldownLeftMs(user) : 0L);
             }
         }
 
@@ -311,8 +368,21 @@ public class ProfileManager {
         }
     }
 
-    private SwitchBlock checkGuards(Player player, SunUser user) {
+    public static CommandKey switchCooldownKey() {
+        return new CommandKey("profiles", "switch");
+    }
+
+    public long cooldownLeftMs(SunUser user) {
+        Long expire = user.getCommandCooldown(switchCooldownKey());
+        if (expire == null || TimeUtil.isPassed(expire)) return 0L;
+        return Math.max(0L, expire - System.currentTimeMillis());
+    }
+
+    public SwitchBlock checkGuards(Player player, SunUser user) {
         if (this.settings.isBlockWhileDead() && player.isDead()) return SwitchBlock.DEAD;
+
+        if (this.settings.isBlockWhileTagged() && !player.hasPermission(ProfilesPerms.BYPASS_SAFETY)
+            && this.combat.isInCombat(player)) return SwitchBlock.COMBAT;
 
         if (this.settings.isBlockWhileFrozen() && !player.hasPermission(ProfilesPerms.BYPASS_SAFETY)) {
             var freeze = this.plugin.moduleManager().getByType(FreezeModule.class);

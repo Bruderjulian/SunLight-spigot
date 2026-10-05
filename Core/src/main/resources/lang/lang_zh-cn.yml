@@ -905,20 +905,6 @@ Essential:
     RestrictedWorld:
       Usage: <gray>你不能在此世界使用 <orange>无敌</orange></gray>
       Notify: <gray>你的 <orange>无敌</orange> 已切换为 <red>关闭</red>，因为此世界不允许</gray>
-Extras:
-  Command:
-    Chairs:
-      Desc: 切换椅子。
-      Notify: <lgray>设置 <lyellow>椅子</lyellow> 为 <lyellow>%state%</lyellow></lgray>
-      Target: <lgray>设置 <lyellow>%player_display_name%</lyellow> 的 <lyellow>椅子</lyellow> 为 <lyellow>%state%</lyellow></lgray>
-    Sit:
-      Desc: 坐在方块上。
-      Notify: <lgray>你现在坐着</lgray>
-      Target: <lgray>让 <lyellow>%player_name%</lyellow> 坐下</lgray>
-    ChestSort:
-      Desc: 切换箱子排序。
-      Notify: <lgray>设置 <lyellow>箱子排序</lyellow> 为 <lyellow>%state%</lyellow></lgray>
-      Target: <lgray>设置 <lyellow>%player_display_name%</lyellow> 的 <lyellow>箱子排序</lyellow> 为 <lyellow>%state%</lyellow></lgray>
 Homes:
   HomeType:
     PUBLIC: 公共

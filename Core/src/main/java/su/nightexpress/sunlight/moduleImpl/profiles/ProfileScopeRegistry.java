@@ -77,10 +77,6 @@ public class ProfileScopeRegistry {
         this.setPropertyDefault("accept_pm", ProfileScope.PER_PROFILE);
         this.setPropertyDefault("mentions", ProfileScope.PER_PROFILE);
         this.setPropertyDefault("anti_phantom", ProfileScope.PER_PROFILE);
-        this.setPropertyDefault("chairs.enabled", ProfileScope.PER_PROFILE);
-        this.setPropertyDefault("chairs_enabled", ProfileScope.PER_PROFILE);
-        this.setPropertyDefault("chest_sort", ProfileScope.PER_PROFILE);
-        this.setPropertyDefault("chest_sort_enabled", ProfileScope.PER_PROFILE);
         this.setPropertyDefault("linksclaimedrewards", ProfileScope.PER_PROFILE);
 
         this.setPropertyDefault("afk_total_time", ProfileScope.GLOBAL);

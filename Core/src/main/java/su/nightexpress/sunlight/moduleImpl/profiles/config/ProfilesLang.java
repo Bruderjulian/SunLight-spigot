@@ -18,6 +18,14 @@ public class ProfilesLang implements LangContainer {
         .text("List your profiles.");
     public static final TextLocale COMMAND_CREATE_DESC = LangEntry.builder("Profiles.Command.Create.Desc")
         .text("Create a new profile.");
+    public static final TextLocale COMMAND_CLONE_DESC = LangEntry.builder("Profiles.Command.Clone.Desc")
+        .text("Clone a profile.");
+    public static final TextLocale COMMAND_ICON_DESC = LangEntry.builder("Profiles.Command.Icon.Desc")
+        .text("Set a profile icon.");
+    public static final TextLocale COMMAND_DESCRIBE_DESC = LangEntry.builder("Profiles.Command.Describe.Desc")
+        .text("Set a profile description.");
+    public static final TextLocale COMMAND_ADMIN_DESC = LangEntry.builder("Profiles.Command.Admin.Desc")
+        .text("Manage other players' profiles.");
     public static final TextLocale COMMAND_RENAME_DESC = LangEntry.builder("Profiles.Command.Rename.Desc")
         .text("Rename a profile.");
     public static final TextLocale COMMAND_DELETE_DESC = LangEntry.builder("Profiles.Command.Delete.Desc")
@@ -84,6 +92,9 @@ public class ProfilesLang implements LangContainer {
     public static final MessageLocale SWITCH_BLOCKED_DEAD = LangEntry.builder("Profiles.Error.BlockedDead").chatMessage(
         GRAY.wrap("You can not switch profiles while dead."));
 
+    public static final MessageLocale SWITCH_BLOCKED_COMBAT = LangEntry.builder("Profiles.Error.BlockedCombat").chatMessage(
+        GRAY.wrap("You can not switch profiles while in combat."));
+
     public static final MessageLocale SWITCH_FAILED = LangEntry.builder("Profiles.Error.Failed").chatMessage(
         GRAY.wrap("Profile switch failed. Your previous state was restored. Contact staff if this repeats."));
 
@@ -101,4 +112,71 @@ public class ProfilesLang implements LangContainer {
 
     public static final MessageLocale DELETE_DISABLED = LangEntry.builder("Profiles.Error.DeleteDisabled").chatMessage(
         GRAY.wrap("Deleting profiles is disabled by the server."));
+
+    public static final TextLocale MENU_TITLE = LangEntry.builder("Profiles.Menu.Title")
+        .text("Your Profiles");
+
+    public static final TextLocale MENU_OPTIONS_TITLE = LangEntry.builder("Profiles.Menu.OptionsTitle")
+        .text("Profile Options");
+
+    public static final MessageLocale MENU_SWITCH_HINT = LangEntry.builder("Profiles.Menu.SwitchHint").chatMessage(
+        GRAY.wrap("Click to play on this profile. Right-click for options."));
+
+    public static final MessageLocale MENU_ACTIVE_HINT = LangEntry.builder("Profiles.Menu.ActiveHint").chatMessage(
+        GREEN.wrap("Currently active. Right-click for options."));
+
+    public static final MessageLocale MENU_CREATE_HINT = LangEntry.builder("Profiles.Menu.CreateHint").chatMessage(
+        GRAY.wrap("Create a new profile with " + ORANGE.wrap("/profile create <name>") + GRAY.wrap(".")));
+
+    public static final MessageLocale MENU_DELETE_ARM = LangEntry.builder("Profiles.Menu.DeleteArm").chatMessage(
+        GRAY.wrap("Click again within 5 seconds to permanently delete " + ORANGE.wrap(GENERIC_NAME) + GRAY.wrap(".")));
+
+    public static final MessageLocale MENU_DELETED = LangEntry.builder("Profiles.Menu.Deleted").chatMessage(
+        GRAY.wrap("Profile " + ORANGE.wrap(GENERIC_NAME) + GRAY.wrap(" deleted.")));
+
+    public static final MessageLocale MENU_BACK_HINT = LangEntry.builder("Profiles.Menu.BackHint").chatMessage(
+        GRAY.wrap("Back to your profiles."));
+
+    public static final MessageLocale CLONED = LangEntry.builder("Profiles.Cloned").chatMessage(
+        GRAY.wrap("Profile " + ORANGE.wrap(GENERIC_NAME) + GRAY.wrap(" cloned to " + ORANGE.wrap(GENERIC_VALUE) + ".")));
+
+    public static final MessageLocale ICON_SET = LangEntry.builder("Profiles.IconSet").chatMessage(
+        GRAY.wrap("Profile " + ORANGE.wrap(GENERIC_NAME) + GRAY.wrap(" icon set.")));
+
+    public static final MessageLocale ICON_INVALID = LangEntry.builder("Profiles.Error.InvalidIcon").chatMessage(
+        GRAY.wrap("Unknown material " + ORANGE.wrap(GENERIC_VALUE) + GRAY.wrap(". Use a Bukkit material name.")));
+
+    public static final MessageLocale DESCRIBED = LangEntry.builder("Profiles.Described").chatMessage(
+        GRAY.wrap("Profile " + ORANGE.wrap(GENERIC_NAME) + GRAY.wrap(" description updated.")));
+
+    public static final MessageLocale SWITCH_CANT_AFFORD = LangEntry.builder("Profiles.Error.CantAfford").chatMessage(
+        GRAY.wrap("Switching profiles costs " + ORANGE.wrap(GENERIC_AMOUNT) + GRAY.wrap(".")));
+
+    public static final MessageLocale SWITCH_CHARGED = LangEntry.builder("Profiles.Switch.Charged").chatMessage(
+        GRAY.wrap("Charged " + ORANGE.wrap(GENERIC_AMOUNT) + GRAY.wrap(" for switching to ")
+            + ORANGE.wrap(GENERIC_NAME) + GRAY.wrap(".")));
+
+    public static final MessageLocale WARMUP_START = LangEntry.builder("Profiles.Warmup.Start").chatMessage(
+        GRAY.wrap("Switching profile in " + ORANGE.wrap(GENERIC_TIME) + GRAY.wrap(". Don't move!")));
+
+    public static final MessageLocale WARMUP_CANCEL_MOVE = LangEntry.builder("Profiles.Warmup.CancelMove").chatMessage(
+        GRAY.wrap("Profile switch cancelled: you moved."));
+
+    public static final MessageLocale WARMUP_CANCEL_DAMAGE = LangEntry.builder("Profiles.Warmup.CancelDamage").chatMessage(
+        GRAY.wrap("Profile switch cancelled: you took damage."));
+
+    public static final MessageLocale WARMUP_ALREADY = LangEntry.builder("Profiles.Warmup.Already").chatMessage(
+        GRAY.wrap("A profile switch is already warming up."));
+
+    public static final MessageLocale ADMIN_RESET = LangEntry.builder("Profiles.Admin.Reset").chatMessage(
+        GRAY.wrap("All profiles of " + ORANGE.wrap(GENERIC_NAME) + GRAY.wrap(" were reset.")));
+
+    public static final MessageLocale ADMIN_SWITCH_NOTIFY = LangEntry.builder("Profiles.Admin.SwitchNotify").chatMessage(
+        GRAY.wrap("Your active profile was set to " + ORANGE.wrap(GENERIC_NAME) + GRAY.wrap(" by an admin.")));
+
+    public static final MessageLocale ADMIN_NO_PROFILE_DATA = LangEntry.builder("Profiles.Admin.NoData").chatMessage(
+        GRAY.wrap(ORANGE.wrap(GENERIC_NAME) + GRAY.wrap(" has no profile data.")));
+
+    public static final TextLocale MENU_CONFIRM_TITLE = LangEntry.builder("Profiles.Menu.ConfirmTitle")
+        .text("Confirm Switch");
 }

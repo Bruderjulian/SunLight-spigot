@@ -84,6 +84,13 @@ public class Utils {
         .toList();
   }
 
+  public static String[] getEnumNamesArray(Class<? extends Enum<?>> type) {
+    return Stream.of(type.getEnumConstants())
+        .sorted(Comparator.comparingInt(Enum::ordinal))
+        .map(Object::toString)
+        .toArray(String[]::new);
+  }
+
   public static Player getPlayer(String name) {
     return Bukkit.getServer().getPlayer(name);
   }

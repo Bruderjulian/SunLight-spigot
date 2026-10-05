@@ -27,4 +27,31 @@ public class VanishConfig {
         BarStyle.class, BarStyle.SEGMENTED_10,
         "Sets vanish indicator bar style."
     );
+
+    public static final ConfigValue<String> METADATA_KEY = ConfigValue.create("Vanish.Metadata-Key",
+        "vanished",
+        "Metadata flag set on vanished players so other plugins can detect them.",
+        "Empty value disables the metadata flag."
+    );
+
+    public static final ConfigValue<Boolean> SUPPRESS_JOIN_QUIT = ConfigValue.create("Vanish.Suppress-Join-Quit-Messages",
+        true,
+        "Sets whether real join/quit messages of vanished players should be hidden."
+    );
+
+    public static final ConfigValue<Boolean> FAKE_MESSAGES_ENABLED = ConfigValue.create("Vanish.Fake-Messages.Enabled",
+        true,
+        "Sets whether fake join/leave messages should be broadcast on vanish toggle.",
+        "Fake messages are only sent to players without the see-bypass permission."
+    );
+
+    public static final ConfigValue<Boolean> FAKE_MESSAGE_ON_VANISH = ConfigValue.create("Vanish.Fake-Messages.On-Vanish",
+        true,
+        "Sets whether a fake leave message is broadcast when a player vanishes."
+    );
+
+    public static final ConfigValue<Boolean> FAKE_MESSAGE_ON_UNVANISH = ConfigValue.create("Vanish.Fake-Messages.On-Unvanish",
+        true,
+        "Sets whether a fake join message is broadcast when a player unvanishes."
+    );
 }

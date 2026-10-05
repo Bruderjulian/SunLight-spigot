@@ -1587,20 +1587,6 @@ RTP:
         - <output:"titles:20:80:20"><sound:"entity_villager_no">
         - <lred><b>Teletransporte fallido</b></lred>
         - <lgray>No se pudo encontrar una ubicación válida.</lgray>
-Extras:
-  Command:
-    Chairs:
-      Desc: Activar/desactivar Sillas.
-      Notify: <lgray>Se establecieron las <lyellow>Sillas</lyellow> en <lyellow>%state%</lyellow>.</lgray>
-      Target: <lgray>Se establecieron las <lyellow>Sillas</lyellow> de <lyellow>%player_display_name%</lyellow> en <lyellow>%state%</lyellow>.</lgray>
-    Sit:
-      Desc: Sentarse en un bloque.
-      Notify: <lgray>Ahora estás sentado.</lgray>
-      Target: <lgray>Se hizo que <lyellow>%player_name%</lyellow> se sentara.</lgray>
-    ChestSort:
-      Desc: Activar/desactivar Ordenamiento de Cofre.
-      Notify: <lgray>Se estableció el <lyellow>Ordenamiento de Cofre</lyellow> en <lyellow>%state%</lyellow>.</lgray>
-      Target: <lgray>Se estableció el <lyellow>Ordenamiento de Cofre</lyellow> de <lyellow>%player_display_name%</lyellow> en <lyellow>%state%</lyellow>.</lgray>
 BackLocation:
   Command:
     Back:

@@ -53,11 +53,15 @@ public class VanishCommand extends CommandProvider<VanishModule> {
         return target.runAs(this.module, sender, VanishPerms.COMMAND_VANISH_OTHERS, (user, targetPlayer) -> {
             final UserProperty<Boolean> setting = VanishModule.VANISH;
 
-            final boolean state = mode.apply(user.getPropertyOrDefault(setting));
+            final boolean previous = user.getPropertyOrDefault(setting);
+            final boolean state = mode.apply(previous);
             user.setProperty(setting, state);
             user.markDirty();
 
             module.vanish(targetPlayer, state);
+            if (state != previous) {
+                module.broadcastFake(targetPlayer, !state);
+            }
 
             if (sender != targetPlayer) {
                 VanishLang.COMMAND_VANISH_TARGET.message().send(sender, replacer -> replacer
