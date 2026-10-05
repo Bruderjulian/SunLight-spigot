@@ -66,8 +66,7 @@ import su.nightexpress.sunlight.moduleImpl.vanish.VanishModule;
 import su.nightexpress.sunlight.moduleImpl.warmups.WarmupsModule;
 import su.nightexpress.sunlight.moduleImpl.warps.WarpsModule;
 import su.nightexpress.sunlight.nms.SunNMS;
-import su.nightexpress.sunlight.nms.mc_1_21_11.MC_1_21_11;
-import su.nightexpress.sunlight.nms.v26p1.NMSv26p1;
+import su.nightexpress.sunlight.nms.SunNMSFactory;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
@@ -193,10 +192,9 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         }
 
         try {
-            this.sunNMS = switch (Version.getCurrent()) {
-                case MC_1_21_11 -> new MC_1_21_11();
-                default -> new NMSv26p1();
-            };
+            // Resolved reflectively: each implementation is compiled against a
+            // different Minecraft version and must not be referenced from here.
+            this.sunNMS = SunNMSFactory.create(Version.getCurrent());
         } catch (Exception | NoClassDefFoundError e) {
             e.printStackTrace();
         }

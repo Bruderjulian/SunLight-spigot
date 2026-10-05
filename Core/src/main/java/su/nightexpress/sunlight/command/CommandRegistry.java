@@ -70,35 +70,41 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
       // registered.
       final Map<String, CommandAPICommand> roots = new LinkedHashMap<>();
       for (final CommandProvider.Node node : provider.getNodes()) {
-        if (node.isRoot()) {
-          final CommandAPICommand root = this.buildStandalone(provider, node, config);
-          if (root != null) {
-            roots.put(node.id(), root);
-          }
-        } else {
-          if (node.roots().isEmpty()) {
-            // Never nested, so this node is a command of its own.
-            this.register(this.buildStandalone(provider, node, config));
-            continue;
-          }
+        if (!node.isRoot()) {
+          continue;
+        }
 
-          for (final String rootId : node.roots()) {
-            final CommandAPICommand root = roots.get(rootId);
-            if (root == null) {
-              // The root is disabled or unknown; the node stays unavailable rather than
-              // silently leaking out as a global command.
-              this.plugin.warn("Command '%s' of '%s' is attached to the unknown root '%s'."
-                  .formatted(node.id(), providerId, rootId));
-              break;
-            }
-            final CommandAPICommand sub = this.buildSubCommand(provider, node, config);
-            if (sub != null) {
-              root.withSubcommand(sub);
-            }
+        final CommandAPICommand root = this.buildStandalone(provider, node, config);
+        if (root != null) {
+          roots.put(node.id(), root);
+        }
+      }
+      for (final CommandProvider.Node node : provider.getNodes()) {
+        if (node.isRoot()) {
+          continue;
+        }
+
+        if (node.roots().isEmpty()) {
+          // Never nested, so this node is a command of its own.
+          this.register(this.buildStandalone(provider, node, config));
+          continue;
+        }
+
+        for (final String rootId : node.roots()) {
+          final CommandAPICommand root = roots.get(rootId);
+          if (root == null) {
+            // The root is disabled or unknown; the node stays unavailable rather than
+            // silently leaking out as a global command.
+            this.plugin.warn("Command '%s' of '%s' is attached to the unknown root '%s'."
+                .formatted(node.id(), providerId, rootId));
+            break;
+          }
+          final CommandAPICommand sub = this.buildSubCommand(provider, node, config);
+          if (sub != null) {
+            root.withSubcommand(sub);
           }
         }
       }
-
       roots.values().forEach(this::register);
       config.saveChanges();
     }

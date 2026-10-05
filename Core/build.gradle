@@ -1,45 +1,78 @@
 plugins {
-    id 'com.gradleup.shadow' version '9.2.2'
+    id 'com.gradleup.shadow' version '9.6.1'
 }
 
 dependencies {
     implementation project(':API')
     implementation project(':NMS')
-    implementation project(":MC_1_21_11")
-    implementation project(":nms-26-1")
-    implementation("dev.jorel:commandapi-paper-shade:12.1.0")  { transitive = false }
+    // Both version impls are bundled into the fat jar, but Core does not reference
+    // them: SunNMSFactory resolves one reflectively, so an impl is only ever
+    // class-loaded on the server version it targets. runtimeOnly therefore keeps
+    // them out of Core's compile classpath while shadow still packages them.
+    runtimeOnly project(":MC_1_21_11")
+    runtimeOnly project(":nms-26-1")
+
+    // Bundled and relocated below. Declared here rather than for the whole build
+    // because Core is the only module that uses CommandAPI.
+    implementation("dev.jorel:commandapi-paper-shade:12.1.0") { transitive = false }
 }
 
-// Configure the shadowJar task to bundle the necessary dependencies.
-shadowJar {
-    archiveBaseName.set("SunLight")
-    archiveVersion.set(project.version.toString())
-    archiveClassifier.set("")
-    destinationDirectory = file("$rootDir/target")
+// Captured at configuration time on purpose. Reading `project` inside a
+// filesMatching action would read it at execution time, which is a
+// configuration-cache violation and a hard error in Gradle 10.
+def versionTokens = [version: project.version]
 
-    relocate("dev.jorel.commandapi", "su.nightexpress.sunlight.libs.commandapi")
-
-    // The shade artifact is itself a fat jar, so its service entries must be merged
-    // rather than overwritten for the relocated platform to resolve.
-    mergeServiceFiles()
-}
-
-processResources {
-    filesMatching("*.yml") {
-        expand(
-                project: project,
-                version: project.version
-        )
+tasks.named('processResources') {
+    // Only plugin.yml is templated. Running a template engine over the 76-91KB
+    // lang files is pure waste, and they contain literal '$' characters that a
+    // translator's '${...}' would turn into a build failure.
+    filteringCharset = 'UTF-8'
+    inputs.property('version', project.version)
+    filesMatching('plugin.yml') {
+        filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: versionTokens)
     }
 }
 
-// Equivalent of the maven-source-plugin.
-//java {
-    //withSourcesJar()
-    //withJavadocJar()
-//}
+tasks.named('shadowJar') {
+    archiveBaseName.set("SunLight")
+    archiveVersion.set(project.version.toString())
+    archiveClassifier.set("")
+    destinationDirectory.set(rootProject.layout.projectDirectory.dir("target"))
+    relocate("dev.jorel.commandapi", "su.nightexpress.sunlight.libs.commandapi")
 
-// Ensure that building the project runs the shadowJar task.
-tasks.build {
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    exclude 'META-INF/maven/**'
+    exclude 'META-INF/versions/**'
+    exclude 'module-info.class'
+
+    // CommandAPI's MIT notice has to stay in the artifact, so the project's own
+    // licence goes in beside it rather than colliding with it at the root.
+    from(rootProject.file('LICENSE')) {
+        rename { 'LICENSE-SunLight' }
+    }
+}
+
+// The fat jar lands in <rootDir>/target, outside this project's build directory,
+// so the default clean leaves a stale plugin jar sitting there.
+tasks.named('clean') {
+    delete rootProject.layout.projectDirectory.dir("target")
+}
+
+// `build` already depends on `assemble`, so hooking assemble puts the fat jar in
+// the normal lifecycle (and in `publish`) without waiting for the whole `check`
+// chain first.
+tasks.named('assemble') {
     dependsOn(tasks.shadowJar)
+}
+
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            // The shaded jar, not the thin one: it is the plugin, and everything it
+            // needs is shaded into it, so the POM deliberately declares no
+            // dependencies.
+            artifact(tasks.shadowJar)
+            artifactId = project.name
+        }
+    }
 }

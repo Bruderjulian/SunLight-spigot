@@ -1,7 +1,7 @@
 plugins {
-    id("java-library")
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.21" apply(false)
-    id("maven-publish")
+    // Applied by the version-specific NMS modules; declared here only to pin a
+    // single version across the build.
+    id("io.papermc.paperweight.userdev") version "2.0.0-beta.24" apply(false)
 }
 
 allprojects {
@@ -23,6 +23,9 @@ allprojects {
 
 subprojects {
     apply plugin: 'java-library'
+    // Applied so every module shares one publishing-repository definition below.
+    // Publications themselves are only declared by the modules that are meant to
+    // be consumed externally (API and Core).
     apply plugin: 'maven-publish'
 
     java {
@@ -33,14 +36,22 @@ subprojects {
         //withJavadocJar()
     }
 
-    // Set the project encoding.
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
     }
 
     dependencies {
+        // Unpinnable by nature, so keep them in sync deliberately:
+        //  - su.nightexpress.nightcore:main:* tracks a moving branch, meaning the
+        //    compile classpath can change without any change in this repo.
+        //  - ProtocolLib 5.4.0-SNAPSHOT is the only ProtocolLib build the
+        //    optional packet hooks can target.
+        //  - The 1.21.11 paper dev bundle is a SNAPSHOT because that is how Paper
+        //    publishes dev bundles.
         compileOnly 'su.nightexpress.nightcore:main:2.16.4'
-        compileOnly 'io.papermc.paper:paper-api:26.1.2.build.+'
+        // Pinned, not '26.1.2.build.+': a dynamic version lets an unchanged
+        // checkout compile against a different paper-api without a diff.
+        compileOnly 'io.papermc.paper:paper-api:26.1.2.build.74-stable'
         compileOnly 'com.comphenix.protocol:ProtocolLib:5.4.0-SNAPSHOT'
         compileOnly 'com.github.retrooper:packetevents-spigot:2.12.0'
         compileOnly 'com.discordsrv:discordsrv:1.28.0'
@@ -53,20 +64,9 @@ subprojects {
         compileOnly 'org.apache.commons:commons-text:1.10.0'
         compileOnly 'net.luckperms:api:5.5'
         compileOnly('com.github.NEZNAMY:TAB-API:6.1.2') { transitive = false }
-        implementation("dev.jorel:commandapi-paper-shade:12.1.0")  { transitive = false }
     }
 
     publishing {
-        publications {
-            create("mavenJava", MavenPublication) {
-                artifact(tasks.jar)
-                artifact(tasks.sourcesJar) {
-                    classifier = "sources"
-                }
-                // artifact(tasks.javadocJar) { classifier = "javadoc" }
-                artifactId = project.name
-            }
-        }
         repositories {
             maven {
                 name = "nightexpress"

@@ -1,0 +1,10 @@
+// The one module intended for external consumers. Publishing from the component
+// keeps the java-library api/implementation split in the POM correct.
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            from components.java
+            artifactId = project.name
+        }
+    }
+}

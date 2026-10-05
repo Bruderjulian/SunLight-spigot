@@ -48,16 +48,15 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         private final String id;
         private final boolean root;
         private final Consumer<CommandAPICommand> builder;
-        private final List<String> aliases;
-        private final List<String> roots;
+        private List<String> aliases;
+        private List<String> roots;
 
-        private Node(final String id, final boolean root, final Consumer<CommandAPICommand> builder,
-                final List<String> aliases, final List<String> roots) {
+        private Node(final String id, final boolean root, final Consumer<CommandAPICommand> builder) {
             this.id = id;
             this.root = root;
             this.builder = builder;
-            this.aliases = aliases;
-            this.roots = roots;
+            this.aliases = null;
+            this.roots = null;
         }
 
         /**
@@ -73,8 +72,11 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
                     continue;
                 }
                 alias = Utils.lowercase(alias.trim());
-                if (alias.equals(this.id) || this.aliases.contains(alias)) {
+                if (alias.equals(this.id) || this.aliases != null && this.aliases.contains(alias)) {
                     continue;
+                }
+                if (this.aliases == null) {
+                    this.aliases = new ArrayList<>();
                 }
                 this.aliases.add(alias);
             }
@@ -92,8 +94,11 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
                     continue;
                 }
                 root = Utils.lowercase(root.trim());
-                if (root.equals(this.id) || this.roots.contains(root)) {
+                if (root.equals(this.id) || this.roots != null && this.roots.contains(root)) {
                     continue;
+                }
+                if (this.roots == null) {
+                    this.roots = new ArrayList<>();
                 }
                 this.roots.add(root);
             }
@@ -109,11 +114,11 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         }
 
         public List<String> aliases() {
-            return List.copyOf(this.aliases);
+            return this.aliases == null ? List.of() : this.aliases;
         }
 
         public List<String> roots() {
-            return List.copyOf(this.roots);
+            return this.roots == null ? List.of() : this.roots;
         }
 
         Consumer<CommandAPICommand> builder() {
@@ -162,7 +167,7 @@ public abstract class CommandProvider<T extends Module> implements LangContainer
         }
 
         final String key = Utils.lowercase(id.trim());
-        final Node node = new Node(key, root, builder, List.of(), List.of());
+        final Node node = new Node(key, root, builder);
         this.nodes.add(node);
         return node;
     }
