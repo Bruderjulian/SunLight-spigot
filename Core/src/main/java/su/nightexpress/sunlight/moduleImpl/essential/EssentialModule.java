@@ -1,20 +1,25 @@
 package su.nightexpress.sunlight.moduleImpl.essential;
 
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.integration.permission.PermissionBridge;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.provider.EssentialProvider;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.essential.command.*;
+import su.nightexpress.sunlight.moduleImpl.essential.listener.ColorsListener;
 import su.nightexpress.sunlight.moduleImpl.essential.listener.GodListener;
 import su.nightexpress.sunlight.moduleImpl.essential.listener.InvulnerabilityListener;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.user.property.UserProperty;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 
-public class EssentialModule extends Module {
+public class EssentialModule extends Module implements EssentialProvider {
 
     public static final UserProperty<Boolean> GOD = UserProperty.create("god", Boolean.class, false, true);
 
@@ -81,11 +86,41 @@ public class EssentialModule extends Module {
         if (this.settings.isInvulnerabilityEnabled()) {
             this.addListener(new InvulnerabilityListener(this.plugin, this, this.settings));
         }
+
+        if (this.settings.isSignColorsEnabled() || this.settings.isAnvilColorsEnabled()) {
+            this.addListener(new ColorsListener(this.plugin, this));
+        }
     }
 
     @Override
     protected void unloadModule() {
 
+    }
+
+    @Override
+    public boolean isGodEnabled() {
+        return this.settings.isGodEnabled();
+    }
+
+    @Override
+    public boolean isInvulnerabilityEnabled() {
+        return this.settings.isInvulnerabilityEnabled();
+    }
+
+    @Override
+    public boolean isGod(@NotNull Player player) {
+        if (!this.settings.isGodEnabled())
+            return false;
+
+        return this.userManager.getOrFetch(player).getPropertyOrDefault(GOD);
+    }
+
+    @Override
+    public void setGod(@NotNull Player player, boolean god) {
+        if (!this.settings.isGodEnabled())
+            return;
+
+        this.userManager.getOrFetch(player).setProperty(GOD, god);
     }
 
     @Override

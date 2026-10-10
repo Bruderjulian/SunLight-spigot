@@ -14,6 +14,9 @@ public class EssentialPerms {
     public static final String BYPASS_INVULNERABILITY_WORLD  = BYPASS + ".invulnerability.world";
     public static final String BYPASS_INVULNERABILITY_DAMAGE = BYPASS + ".invulnerability.damage";
 
+    public static final String SIGNS_COLOR  = MODULE + ".signs.color";
+    public static final String ANVILS_COLOR = MODULE + ".anvils.color";
+
     private EssentialPerms() {
     }
 }
