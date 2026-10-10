@@ -20,17 +20,7 @@ import su.nightexpress.nightcore.config.PluginDetails;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.Version;
 import su.nightexpress.sunlight.api.SunlightAPI;
-import su.nightexpress.sunlight.api.provider.AfkProvider;
-import su.nightexpress.sunlight.api.provider.FreezeProvider;
-import su.nightexpress.sunlight.api.provider.GlowProvider;
-import su.nightexpress.sunlight.api.provider.LinksProvider;
-import su.nightexpress.sunlight.api.provider.NametagsProvider;
-import su.nightexpress.sunlight.api.provider.NickProvider;
-import su.nightexpress.sunlight.api.provider.ProfilesProvider;
-import su.nightexpress.sunlight.api.provider.PlaytimeProvider;
-import su.nightexpress.sunlight.api.provider.ReportsProvider;
-import su.nightexpress.sunlight.api.provider.SocialsProvider;
-import su.nightexpress.sunlight.api.provider.VanishProvider;
+import su.nightexpress.sunlight.api.provider.*;
 import su.nightexpress.sunlight.command.CommandRegistry;
 import su.nightexpress.sunlight.config.Config;
 import su.nightexpress.sunlight.config.Lang;
@@ -44,7 +34,6 @@ import su.nightexpress.sunlight.moduleImpl.bans.BansModule;
 import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.deathmessages.DeathMessagesModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
-import su.nightexpress.sunlight.moduleImpl.extras.ExtrasModule;
 import su.nightexpress.sunlight.moduleImpl.freeze.FreezeModule;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowModule;
 import su.nightexpress.sunlight.moduleImpl.greetings.GreetingsModule;
@@ -296,7 +285,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("chat", "Chat", ChatModule::new);
         manager.register("death_messages", "Death Messages", DeathMessagesModule::new);
         manager.register("essential", "Essential", EssentialModule::new);
-        manager.register("extras", "Extras", ExtrasModule::new);
         manager.register("freeze", "Freeze", FreezeModule::new);
         manager.register("glow", "Glow", GlowModule::new);
         manager.register("greetings", "Greetings", GreetingsModule::new);
@@ -623,22 +611,82 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
     }
 
     @Override
-    public Optional<? extends su.nightexpress.sunlight.api.provider.HomesProvider> homesProvider() {
+    public Optional<? extends HomesProvider> homesProvider() {
         return this.moduleManager.getByType(HomesModule.class);
     }
 
     @Override
-    public Optional<? extends su.nightexpress.sunlight.api.provider.WarpsProvider> warpsProvider() {
+    public Optional<? extends WarpsProvider> warpsProvider() {
         return this.moduleManager.getByType(WarpsModule.class);
     }
 
     @Override
-    public Optional<? extends su.nightexpress.sunlight.api.provider.KitsProvider> kitsProvider() {
+    public Optional<? extends KitsProvider> kitsProvider() {
         return this.moduleManager.getByType(KitsModule.class);
     }
 
-    @Override
+@Override
     public Optional<? extends su.nightexpress.sunlight.api.provider.BansProvider> bansProvider() {
         return this.moduleManager.getByType(BansModule.class);
+    }
+
+    @Override
+    public Optional<? extends SpawnsProvider> spawnsProvider() {
+        return this.moduleManager.getByType(SpawnsModule.class);
+    }
+
+    @Override
+    public Optional<? extends PtpProvider> ptpProvider() {
+        return this.moduleManager.getByType(PTPModule.class);
+    }
+
+    @Override
+    public Optional<? extends BackLocationProvider> backLocationProvider() {
+        return this.moduleManager.getByType(BackLocationModule.class);
+    }
+
+    @Override
+    public Optional<? extends PlayerWarpsProvider> playerWarpsProvider() {
+        return this.moduleManager.getByType(PlayerWarpsModule.class);
+    }
+
+    @Override
+    public Optional<? extends WarmupsProvider> warmupsProvider() {
+        return this.moduleManager.getByType(WarmupsModule.class);
+    }
+
+    @Override
+    public Optional<? extends RtpProvider> rtpProvider() {
+        return this.moduleManager.getByType(RTPModule.class);
+    }
+
+    @Override
+    public Optional<? extends TextsProvider> textsProvider() {
+        return this.moduleManager.getByType(TextsModule.class);
+    }
+
+    @Override
+    public Optional<? extends ChatProvider> chatProvider() {
+        return this.moduleManager.getByType(ChatModule.class);
+    }
+
+    @Override
+    public Optional<? extends GreetingsProvider> greetingsProvider() {
+        return this.moduleManager.getByType(GreetingsModule.class);
+    }
+
+    @Override
+    public Optional<? extends EssentialProvider> essentialProvider() {
+        return this.moduleManager.getByType(EssentialModule.class);
+    }
+
+    @Override
+    public Optional<? extends InventoriesProvider> inventoriesProvider() {
+        return this.moduleManager.getByType(InventoriesModule.class);
+    }
+
+@Override
+    public Optional<? extends PhantomsProvider> phantomsProvider() {
+        return this.moduleManager.getByType(PhantomsModule.class);
     }
 }

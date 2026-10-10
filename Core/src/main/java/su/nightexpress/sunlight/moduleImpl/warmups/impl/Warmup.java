@@ -14,6 +14,8 @@ import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.moduleImpl.warmups.WarmupsModule;
 import su.nightexpress.sunlight.moduleImpl.warmups.config.WarmupsConfig;
 
+import java.util.concurrent.TimeUnit;
+
 public abstract class Warmup {
 
     protected final WarmupsModule module;
@@ -123,6 +125,16 @@ public abstract class Warmup {
 
     public boolean isCompleted() {
         return TimeUtil.isPassed(this.finishTime);
+    }
+
+    /** Epoch milliseconds at which this warmup completes. */
+    public long getFinishTime() {
+        return this.finishTime;
+    }
+
+    /** Seconds left, rounded up, never negative. */
+    public int getRemainingSeconds() {
+        return (int) Math.max(0L, TimeUnit.MILLISECONDS.toSeconds(this.finishTime - System.currentTimeMillis()));
     }
 
     public void init() {

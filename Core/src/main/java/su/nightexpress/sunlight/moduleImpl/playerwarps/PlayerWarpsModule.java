@@ -3,6 +3,7 @@ package su.nightexpress.sunlight.moduleImpl.playerwarps;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -14,6 +15,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -25,6 +28,8 @@ import su.nightexpress.nightcore.util.StringUtil;
 import su.nightexpress.nightcore.util.Strings;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
+import su.nightexpress.sunlight.api.provider.PlayerWarpsProvider;
+import su.nightexpress.sunlight.api.provider.dto.PlayerWarpHandle;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -60,7 +65,7 @@ import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.teleport.TeleportType;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 
-public class PlayerWarpsModule extends Module {
+public class PlayerWarpsModule extends Module implements PlayerWarpsProvider {
 
     private final TeleportManager teleportManager;
 
@@ -237,10 +242,12 @@ public class PlayerWarpsModule extends Module {
         this.dialogRegistry.show(player, PlayerWarpsDialogKeys.WARP_SEARCH, data, null);
     }
 
+    @Override
     public int getAllowedWarpsAmount(Player player) {
         return this.settings.getMaxWarpsAmount(player);
     }
 
+    @Override
     public int getOwnedWarpsAmount(Player player) {
         return this.getOwnedWarps(player).size();
     }
@@ -486,5 +493,61 @@ public class PlayerWarpsModule extends Module {
         this.sendPrefixed(PlayerWarpsLang.WARP_FEATURE_SUCCESS, player, builder -> builder.with(slot.placeholders())
                 .with(warp.placeholders()));
         return true;
+    }
+
+    @Override
+    public PlayerWarpHandle getWarp(@NotNull String id) {
+        return handle(this.repository.getById(id));
+    }
+
+    @Override
+    public List<PlayerWarpHandle> listAvailableWarps(@NotNull Player player) {
+        return this.getAvailableWarps(player).stream().map(PlayerWarpsModule::handle).toList();
+    }
+
+    @Override
+    public List<PlayerWarpHandle> listOwnedWarps(@NotNull Player player) {
+        return this.getOwnedWarps(player).stream().map(PlayerWarpsModule::handle).toList();
+    }
+
+    @Override
+    public boolean ownsWarp(@NotNull Player player, @NotNull String warpId) {
+        PlayerWarp warp = this.repository.getById(warpId);
+        return warp != null && warp.isOwner(player);
+    }
+
+    @Override
+    public boolean createWarp(@NotNull Player player, @NotNull String name, boolean force) {
+        return this.create(player, name, force);
+    }
+
+    @Override
+    public boolean deleteWarp(@NotNull CommandSender sender, @NotNull String warpId, boolean force) {
+        PlayerWarp warp = this.repository.getById(warpId);
+        return warp != null && this.removeWarp(sender, warp, force);
+    }
+
+    @Override
+    public boolean teleportToWarp(@NotNull Player player, @NotNull String warpId, boolean force) {
+        PlayerWarp warp = this.repository.getById(warpId);
+        return warp != null && this.teleportToWarp(warp, player, force);
+    }
+
+    private static PlayerWarpHandle handle(@Nullable PlayerWarp warp) {
+        if (warp == null)
+            return null;
+
+        return new PlayerWarpHandle(
+                warp.getId(),
+                warp.getName(),
+                warp.getOwnerId(),
+                warp.getOwnerName(),
+                warp.getWorldName(),
+                warp.getCategoryId(),
+                List.copyOf(warp.getDescription()),
+                warp.getPrice(),
+                warp.isFeatured(),
+                warp.getTotalVisits(),
+                warp.getCreationTimestamp());
     }
 }

@@ -2,12 +2,14 @@ package su.nightexpress.sunlight.moduleImpl.nerfphantoms;
 
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.provider.PhantomsProvider;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.command.PhantomsCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.nerfphantoms.config.PhantomsConfig;
@@ -16,7 +18,7 @@ import su.nightexpress.sunlight.moduleImpl.nerfphantoms.listener.PhantomsListene
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 
-public class PhantomsModule extends Module {
+public class PhantomsModule extends Module implements PhantomsProvider {
 
     public PhantomsModule(ModuleDefinition<PhantomsModule> definition, SunLightPlugin plugin) {
         super(definition, plugin);
@@ -49,6 +51,16 @@ public class PhantomsModule extends Module {
             return CoreLang.STATE_YES_NO.get(this.userManager.getOrFetch(player).getPropertyOrDefault(
                     PhantomsProperties.ANTI_PHANTOM));
         });
+    }
+
+    @Override
+    public boolean isPhantomSpawnPrevented(@NotNull Player player) {
+        return this.userManager.getOrFetch(player).getPropertyOrDefault(PhantomsProperties.ANTI_PHANTOM);
+    }
+
+    @Override
+    public void setPhantomSpawnPrevented(@NotNull Player player, boolean prevented) {
+        this.userManager.getOrFetch(player).setProperty(PhantomsProperties.ANTI_PHANTOM, prevented);
     }
 
     private void resetRestTime() {

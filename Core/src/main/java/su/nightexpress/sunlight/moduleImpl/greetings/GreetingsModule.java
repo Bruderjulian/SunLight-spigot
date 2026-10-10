@@ -95,7 +95,7 @@ public class GreetingsModule extends Module implements GreetingsProvider {
 
     @Override
     public NightComponent getFirstJoinMessage(final Player player) {
-        return this.getMessage(player, GreetingMessageType.JOIN);
+        return this.getMessage(player, GreetingMessageType.FIRST_JOIN);
     }
 
     @Override

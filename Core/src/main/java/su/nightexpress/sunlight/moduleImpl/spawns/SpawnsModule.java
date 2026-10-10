@@ -4,6 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -12,6 +14,8 @@ import su.nightexpress.nightcore.util.StringUtil;
 import su.nightexpress.nightcore.util.Strings;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.config.Lang;
+import su.nightexpress.sunlight.api.provider.SpawnsProvider;
+import su.nightexpress.sunlight.api.provider.dto.SpawnHandle;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -37,7 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public class SpawnsModule extends Module {
+public class SpawnsModule extends Module implements SpawnsProvider {
 
     private final TeleportManager teleportManager;
     private final SpawnsSettings settings;
@@ -287,5 +291,53 @@ public class SpawnsModule extends Module {
                 .build();
 
         return this.teleportManager.teleport(teleportContext, TeleportType.SPAWN);
+    }
+
+    @Override
+    public SpawnHandle findSpawn(@NotNull String id) {
+        return handle(this.getSpawn(id));
+    }
+
+    @Override
+    public List<SpawnHandle> listSpawns() {
+        return this.spawnMap.values().stream().map(SpawnsModule::handle).toList();
+    }
+
+    @Override
+    public SpawnHandle getDefaultSpawnInfo() {
+        return handle(this.getDefaultSpawn());
+    }
+
+    @Override
+    public SpawnHandle getLoginSpawnInfo(@NotNull Player player) {
+        return handle(this.getLoginSpawn(player));
+    }
+
+    @Override
+    public SpawnHandle getDeathSpawnInfo(@NotNull Player player) {
+        return handle(this.getDeathSpawn(player));
+    }
+
+    @Override
+    public boolean hasSpawnPermission(@NotNull Player player, @NotNull String spawnId) {
+        Spawn spawn = this.getSpawn(spawnId);
+        return spawn != null && spawn.hasPermission(player);
+    }
+
+    @Override
+    public boolean deleteSpawn(@NotNull String id) {
+        Spawn spawn = this.getSpawn(id);
+        return spawn != null && this.deleteSpawn(spawn);
+    }
+
+    @Override
+    public boolean teleport(@NotNull Player player, @NotNull String id, boolean forced) {
+        Spawn spawn = this.getSpawn(id);
+        return spawn != null && this.teleport(spawn, player, forced, false);
+    }
+
+    private static SpawnHandle handle(@Nullable Spawn spawn) {
+        return spawn == null ? null : new SpawnHandle(spawn.getId(), spawn.getName(), spawn.getWorldName(),
+                spawn.getPriority(), spawn.isActive(), spawn.isPermissionRequired());
     }
 }

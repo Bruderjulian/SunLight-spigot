@@ -5,6 +5,7 @@ import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.provider.InventoriesProvider;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.inventories.command.ContainerCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.inventories.command.EnderchestCommandsProvider;
@@ -13,7 +14,7 @@ import su.nightexpress.sunlight.moduleImpl.inventories.dialog.InventoryDialogKey
 import su.nightexpress.sunlight.moduleImpl.inventories.dialog.impl.InventoryClearDialog;
 import su.nightexpress.sunlight.nms.SunNMS;
 
-public class InventoriesModule extends Module {
+public class InventoriesModule extends Module implements InventoriesProvider {
 
     private final SunNMS internals;
 
@@ -49,10 +50,12 @@ public class InventoriesModule extends Module {
         return this.internals;
     }
 
+    @Override
     public boolean isClearConfirmationRequired() {
         return InventoriesSettings.CLEAR_REQUIRE_CONFIRMATION.get();
     }
 
+    @Override
     public boolean isClearConfirmSelfOnly() {
         return InventoriesSettings.CLEAR_CONFIRM_SELF_ONLY.get();
     }

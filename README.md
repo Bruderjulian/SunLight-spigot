@@ -31,11 +31,10 @@ It includes **29** fully optional and customizable modules, allowing you to sele
 - **Bans**: A comprehensive punishment system (Ban, Mute, Kick, Warn) featuring cross-server DB syncing, role priority, alt-account detection, and history GUIs.
 - **Chat**: Advanced chat management with multi-channel (radius/world) settings, auto-moderation (anti-flood/caps), mentions, item showcases, and social spy.
 - **Death Messages**: Customizable death notifications based on damage or killer type with randomization support.
-- **Essential**: Provides ~35 core utility commands including flight, healing, feeding, teleportation, XP management, world/weather control, and more.
-- **Extras**: Miscellaneous server extras such as keep-inventory ranks, join commands, anvil/sign colors, and block physics for explosions.
+- **Essential**: Provides ~35 core utility commands including flight, healing, feeding, teleportation, XP management, world/weather control, anvil and sign colours, and more.
 - **Freeze**: Freeze players in place with configurable restrictions on movement, combat, blocks, items, commands, and chat.
 - **Glow**: Give players a glowing outline in any colour, with static and animated effects. The active colour is rendered on the nametag via TAB.
-- **Greetings**: Customize rank-based join and quit messages with priority system.
+- **Greetings**: Customize rank-based join, first-join and quit messages with priority system, plus commands executed on join.
 - **Homes**: Allows players to set home points via commands or beds, featuring GUIs, guest/invite systems, and rank-based home limits.
 - **Inventories**: View and edit online/offline player inventories and Ender Chests, and access workstations like Anvils or Looms from anywhere!
 - **Items**: Modify and obtain in-game items. Edit item data in hand, including durability, model data, stack sizes, name/lore, and more!

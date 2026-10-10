@@ -2,17 +2,22 @@ package su.nightexpress.sunlight.moduleImpl.warmups;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.provider.WarmupsProvider;
+import su.nightexpress.sunlight.api.provider.dto.WarmupKind;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.warmups.config.WarmupsConfig;
 import su.nightexpress.sunlight.moduleImpl.warmups.config.WarmupsLang;
 import su.nightexpress.sunlight.moduleImpl.warmups.config.WarmupsPerms;
 import su.nightexpress.sunlight.moduleImpl.warmups.impl.TeleportWarmup;
 import su.nightexpress.sunlight.moduleImpl.warmups.impl.Warmup;
+import su.nightexpress.sunlight.moduleImpl.warmups.impl.WarmupType;
 import su.nightexpress.sunlight.moduleImpl.warmups.listener.WarmupsListener;
 import su.nightexpress.sunlight.teleport.TeleportContext;
 import su.nightexpress.sunlight.teleport.TeleportManager;
@@ -24,7 +29,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class WarmupsModule extends Module {
+public class WarmupsModule extends Module implements WarmupsProvider {
 
     private final TeleportManager teleportManager;
 
@@ -121,16 +126,19 @@ public class WarmupsModule extends Module {
         return !player.hasPermission(WarmupsPerms.BYPASS_TELEPORT) && this.canHandleTeleport(type);
     }
 
-    public void cancelWarmup(Player player) {
-        this.cancelWarmup(player, false);
+    @Override
+    public boolean cancelWarmup(Player player) {
+        return this.cancelWarmup(player, false);
     }
 
-    public void cancelWarmup(Player player, boolean silent) {
+    @Override
+    public boolean cancelWarmup(Player player, boolean silent) {
         Warmup warmup = this.warmupByIdMap.remove(player.getUniqueId());
         if (warmup == null)
-            return;
+            return false;
 
         warmup.cancel(silent);
+        return true;
     }
 
     public void addWarmup(Player player, Warmup warmup) {
@@ -156,5 +164,30 @@ public class WarmupsModule extends Module {
         Warmup warmup = new TeleportWarmup(this, player, value, location, callback);
 
         this.addWarmup(player, warmup);
+    }
+
+    @Override
+    public int getRemainingSeconds(@NotNull Player player) {
+        Warmup warmup = this.getWarmup(player);
+        return warmup == null ? 0 : warmup.getRemainingSeconds();
+    }
+
+    @Override
+    public WarmupKind getWarmupType(@NotNull Player player) {
+        Warmup warmup = this.getWarmup(player);
+        if (warmup == null)
+            return null;
+
+        return warmup.getType() == WarmupType.COMMAND ? WarmupKind.COMMAND : WarmupKind.TELEPORT;
+    }
+
+    @Override
+    public int getWarmupCount() {
+        return this.warmupByIdMap.size();
+    }
+
+    @Override
+    public UUID[] getWarmingPlayers() {
+        return this.warmupByIdMap.keySet().toArray(UUID[]::new);
     }
 }

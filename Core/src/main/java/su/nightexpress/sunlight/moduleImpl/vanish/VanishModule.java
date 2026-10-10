@@ -19,7 +19,6 @@ import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.module.ModuleDefinition;
-import su.nightexpress.sunlight.moduleImpl.greetings.message.GreetingMessage;
 import su.nightexpress.sunlight.moduleImpl.greetings.GreetingsModule;
 import su.nightexpress.sunlight.moduleImpl.vanish.command.VanishCommand;
 import su.nightexpress.sunlight.moduleImpl.vanish.config.VanishConfig;
@@ -36,12 +35,12 @@ public class VanishModule extends Module implements VanishProvider {
 
     private BossBar vanishIndicator;
 
-    public VanishModule(ModuleDefinition<VanishModule> definition, SunLightPlugin plugin) {
+    public VanishModule(final ModuleDefinition<VanishModule> definition, final SunLightPlugin plugin) {
         super(definition, plugin);
     }
 
     @Override
-    protected void loadModule(FileConfig config) {
+    protected void loadModule(final FileConfig config) {
         config.initializeOptions(VanishConfig.class);
         this.plugin.injectLang(VanishLang.class);
         UserPropertyRegistry.register(VANISH);
@@ -50,9 +49,9 @@ public class VanishModule extends Module implements VanishProvider {
         this.commandRegistry.addProvider(new VanishCommand(this));
 
         if (VanishConfig.BAR_INDICATOR_ENABLED.get()) {
-            String title = VanishConfig.BAR_INDICATOR_VANISHED_TITLE.get();
-            BarColor color = VanishConfig.BAR_INDICATOR_VANISHED_COLOR.get();
-            BarStyle style = VanishConfig.BAR_INDICATOR_VANISHED_STYLE.get();
+            final String title = VanishConfig.BAR_INDICATOR_VANISHED_TITLE.get();
+            final BarColor color = VanishConfig.BAR_INDICATOR_VANISHED_COLOR.get();
+            final BarStyle style = VanishConfig.BAR_INDICATOR_VANISHED_STYLE.get();
 
             this.vanishIndicator = this.plugin.getServer().createBossBar(NightMessage.asLegacy(title), color, style);
         }
@@ -71,7 +70,7 @@ public class VanishModule extends Module implements VanishProvider {
     }
 
     @Override
-    public void registerPlaceholders(PlaceholderRegistry registry) {
+    public void registerPlaceholders(final PlaceholderRegistry registry) {
         registry.register("vanish_state", (player, payload) -> {
             return CoreLang.STATE_YES_NO.get(this.userManager.getOrFetch(player).getPropertyOrDefault(VANISH));
         });
@@ -87,17 +86,18 @@ public class VanishModule extends Module implements VanishProvider {
     }
 
     @Override
-    public boolean isVanished(Player player) {
-        SunUser user = this.plugin.userManager().getOrFetch(player);
+    public boolean isVanished(final Player player) {
+        final SunUser user = this.plugin.userManager().getOrFetch(player);
         return user.getPropertyOrDefault(VANISH);
     }
 
-    public void vanish(Player player, boolean isVanished) {
-        PlayerVanishToggleEvent event = new PlayerVanishToggleEvent(player, isVanished);
+    public void vanish(final Player player, boolean isVanished) {
+        final PlayerVanishToggleEvent event = new PlayerVanishToggleEvent(player, isVanished);
         this.plugin.getPluginManager().callEvent(event);
-        if (event.isCancelled()) return;
+        if (event.isCancelled())
+            return;
         isVanished = event.isVanished();
-        for (Player other : this.plugin.getServer().getOnlinePlayers()) {
+        for (final Player other : this.plugin.getServer().getOnlinePlayers()) {
             if (isVanished) {
                 if (!other.hasPermission(VanishPerms.BYPASS_SEE)) {
                     other.hidePlayer(this.plugin, player);
@@ -113,8 +113,8 @@ public class VanishModule extends Module implements VanishProvider {
         this.setMetadata(player, isVanished);
     }
 
-    private void setMetadata(Player player, boolean isVanished) {
-        String key = VanishConfig.METADATA_KEY.get();
+    private void setMetadata(final Player player, final boolean isVanished) {
+        final String key = VanishConfig.METADATA_KEY.get();
         if (key == null || key.isBlank())
             return;
 
@@ -133,7 +133,7 @@ public class VanishModule extends Module implements VanishProvider {
      * @param player the toggled player
      * @param joined true for a fake join (unvanish), false for fake leave
      */
-    public void broadcastFake(Player player, boolean joined) {
+    public void broadcastFake(final Player player, final boolean joined) {
         if (!VanishConfig.FAKE_MESSAGES_ENABLED.get())
             return;
         if (joined && !VanishConfig.FAKE_MESSAGE_ON_UNVANISH.get())
@@ -141,28 +141,28 @@ public class VanishModule extends Module implements VanishProvider {
         if (!joined && !VanishConfig.FAKE_MESSAGE_ON_VANISH.get())
             return;
 
-        NightComponent component = this.resolveFakeMessage(player, joined);
+        final NightComponent component = this.resolveFakeMessage(player, joined);
         if (component == null)
             return;
 
-        for (Player recipient : this.plugin.getServer().getOnlinePlayers()) {
+        for (final Player recipient : this.plugin.getServer().getOnlinePlayers()) {
             if (recipient.hasPermission(VanishPerms.BYPASS_SEE))
                 continue;
             Players.sendMessage(recipient, component);
         }
     }
 
-    private NightComponent resolveFakeMessage(Player player, boolean joined) {
+    private NightComponent resolveFakeMessage(final Player player, final boolean joined) {
         // Prefer the server's greetings so fakes match real join/leave style.
-        GreetingMessage greeting = this.plugin.moduleManager().getByType(GreetingsModule.class)
+        final NightComponent greeting = this.plugin.moduleManager().getByType(GreetingsModule.class)
                 .map(module -> joined ? module.getJoinMessage(player) : module.getQuitMessage(player))
                 .orElse(null);
-        if (greeting != null && greeting.getMessage() != null && !greeting.getMessage().isBlank()) {
-            PlaceholderContext context = PlaceholderContext.builder()
+        if (greeting != null) {
+            final PlaceholderContext context = PlaceholderContext.builder()
                     .with(CommonPlaceholders.PLAYER.resolver(player))
                     .andThen(CommonPlaceholders.forPlaceholderAPI(player))
                     .build();
-            return NightMessage.parse(context.apply(greeting.getMessage()));
+            return NightMessage.parse(context.apply(greeting.toLegacy()));
         }
         // Fallback when greetings are absent or have no matching message.
         return NightMessage.parse(joined

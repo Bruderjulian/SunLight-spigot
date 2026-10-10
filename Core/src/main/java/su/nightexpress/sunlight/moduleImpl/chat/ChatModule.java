@@ -3,6 +3,8 @@ package su.nightexpress.sunlight.moduleImpl.chat;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import su.nightexpress.nightcore.bridge.chat.UniversalChatEvent;
 import su.nightexpress.nightcore.bridge.chat.UniversalChatEventHandler;
@@ -16,6 +18,9 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.provider.ChatProvider;
+import su.nightexpress.sunlight.api.provider.dto.ChatSpyType;
+import su.nightexpress.sunlight.api.provider.dto.MailHandle;
 import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -71,7 +76,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ChatModule extends Module {
+public class ChatModule extends Module implements ChatProvider {
 
     private final ChatSettings settings;
     private final ChannelRepository channelRepository;
@@ -617,9 +622,10 @@ public class ChatModule extends Module {
         }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
     }
 
-    public void readMails(Player player) {
+    @Override
+    public boolean readMails(Player player) {
         if (this.mailDataManager == null)
-            return;
+            return false;
 
         CompletableFuture.supplyAsync(() -> this.mailDataManager.getMails(player.getUniqueId()))
                 .thenAcceptAsync(mails -> {
@@ -630,6 +636,7 @@ public class ChatModule extends Module {
                     this.printMails(player, mails);
                     this.mailDataManager.deleteMails(player.getUniqueId());
                 }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
+        return true;
     }
 
     public void clearMails(Player player) {
@@ -763,5 +770,114 @@ public class ChatModule extends Module {
 
         processors.forEach(messageProcessor -> messageProcessor.postProcess(this, context));
         return true;
+    }
+
+    @Override
+    public List<String> getChannelIds() {
+        return this.channelRepository.getChannels().stream().map(ChatChannel::getId).toList();
+    }
+
+    @Override
+    public String getChannelId(@NotNull String channelId) {
+        ChatChannel channel = this.channelRepository.getById(channelId);
+        return channel == null ? null : channel.getId();
+    }
+
+    @Override
+    public String getDefaultChannelId() {
+        ChatChannel channel = this.channelRepository.getDefaultChannel();
+        return channel == null ? null : channel.getId();
+    }
+
+    @Override
+    public String getEffectiveChannelId(@NotNull Player player, @Nullable Character prefix) {
+        ChatChannel channel = this.getEffectiveChannel(player, prefix);
+        return channel == null ? null : channel.getId();
+    }
+
+    @Override
+    public List<String> getListenableChannelIds(@NotNull Player player) {
+        return this.getChannelsAllowedToListen(player).stream().map(ChatChannel::getId).toList();
+    }
+
+    @Override
+    public boolean joinChannel(@NotNull Player player, @NotNull String channelId) {
+        ChatChannel channel = this.channelRepository.getById(channelId);
+        return channel != null && this.joinChannel(player, channel);
+    }
+
+    @Override
+    public boolean leaveChannel(@NotNull Player player, @NotNull String channelId) {
+        ChatChannel channel = this.channelRepository.getById(channelId);
+        return channel != null && this.leaveChannel(player, channel);
+    }
+
+    @Override
+    public boolean sendMail(@NotNull Player sender, @NotNull UUID recipientId, @NotNull String message) {
+        if (this.mailDataManager == null)
+            return false;
+
+        return this.userManager.getOrFetch(recipientId)
+                .map(recipient -> {
+                    this.sendMail(sender, new UserInfo(recipientId, recipient.getName()), message);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public List<MailHandle> getMails(@NotNull UUID recipientId) {
+        if (this.mailDataManager == null)
+            return List.of();
+
+        return this.mailDataManager.getMails(recipientId).stream()
+                .map(mail -> new MailHandle(mail.getId(), mail.getSenderId(), mail.getSenderName(), mail.getMessage(),
+                        mail.getDateCreated()))
+                .toList();
+    }
+
+    @Override
+    public void clearMails(@NotNull UUID playerId) {
+        Player player = Utils.getPlayer(playerId);
+        if (player != null) {
+            this.clearMails(player);
+            return;
+        }
+
+        if (this.mailDataManager != null)
+            this.mailDataManager.deleteMails(playerId);
+    }
+
+    @Override
+    public int getSpyCount(@NotNull ChatSpyType spyType) {
+        return this.getSpies(switch (spyType) {
+            case SOCIAL -> SpyType.SOCIAL;
+            case COMMAND -> SpyType.COMMAND;
+            case CHAT -> SpyType.CHAT;
+        }).size();
+    }
+
+    @Override
+    public boolean isConversationsEnabled(@NotNull UUID playerId) {
+        return this.userManager.getOrFetch(playerId)
+                .map(user -> user.getPropertyOrDefault(ChatProperties.CONVERSATIONS))
+                .orElse(true);
+    }
+
+    @Override
+    public void setConversationsEnabled(@NotNull Player player, boolean enabled) {
+        this.userManager.getOrFetch(player).setProperty(ChatProperties.CONVERSATIONS, enabled);
+    }
+
+    @Override
+    public boolean isMentionsEnabled(@NotNull UUID playerId) {
+        return this.userManager.getOrFetch(playerId)
+                .map(user -> user.getPropertyOrDefault(ChatProperties.MENTIONS))
+                .orElse(true);
+    }
+
+    @Override
+    public void setMentionsEnabled(@NotNull Player player, boolean enabled) {
+        this.userManager.getOrFetch(player).setProperty(ChatProperties.MENTIONS, enabled);
     }
 }

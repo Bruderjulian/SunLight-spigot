@@ -46,6 +46,18 @@ public class StoredLocation {
         return worldName;
     }
 
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public double getZ() {
+        return z;
+    }
+
     public long getExpireDate() {
         return expireDate;
     }

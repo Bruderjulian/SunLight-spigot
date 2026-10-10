@@ -2,6 +2,8 @@ package su.nightexpress.sunlight.moduleImpl.ptp;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -14,6 +16,9 @@ import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.event.PlayerTeleportRequestEvent;
+import su.nightexpress.sunlight.api.provider.PtpProvider;
+import su.nightexpress.sunlight.api.provider.dto.PtpMode;
+import su.nightexpress.sunlight.api.provider.dto.TeleportRequestHandle;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.ptp.command.PTPCommands;
 import su.nightexpress.sunlight.moduleImpl.ptp.config.PTPLang;
@@ -28,7 +33,7 @@ import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.util.*;
 
-public class PTPModule extends Module {
+public class PTPModule extends Module implements PtpProvider {
 
     private final TeleportManager teleportManager;
     private final PTPSettings settings;
@@ -62,6 +67,48 @@ public class PTPModule extends Module {
         registry.register("ptp_requests_enabled", (player, payload) -> {
             return CoreLang.STATE_YES_NO.get(this.isRequestsEnabled(player));
         });
+    }
+
+    @Override
+    public List<TeleportRequestHandle> getPendingRequests(@NotNull UUID playerId) {
+        return this.getRequests(playerId).stream().map(PTPModule::handle).toList();
+    }
+
+    @Override
+    public TeleportRequestHandle getLatestRequest(@NotNull UUID playerId) {
+        return handle(this.getLatest(playerId));
+    }
+
+    @Override
+    public TeleportRequestHandle getRequest(@NotNull UUID playerId, @NotNull String senderName) {
+        return handle(this.getPlayerRequest(playerId, senderName));
+    }
+
+    @Override
+    public boolean sendRequest(@NotNull Player sender, @NotNull Player target, @NotNull PtpMode mode) {
+        return this.sendRequest(sender, target, mode == PtpMode.INVITE ? TeleportMode.INVITE : TeleportMode.REQUEST);
+    }
+
+    @Override
+    public boolean acceptRequest(@NotNull Player player, @Nullable String senderName) {
+        return this.accept(player, senderName);
+    }
+
+    @Override
+    public boolean declineRequest(@NotNull Player player, @Nullable String senderName) {
+        return this.decline(player, senderName);
+    }
+
+    private static TeleportRequestHandle handle(@Nullable TeleportRequest request) {
+        if (request == null)
+            return null;
+
+        return new TeleportRequestHandle(
+                request.getSenderId(),
+                request.getTargetId(),
+                request.getMode() == TeleportMode.INVITE ? PtpMode.INVITE : PtpMode.REQUEST,
+                request.getExpireDate(),
+                request.isExpired());
     }
 
     public Map<UUID, List<TeleportRequest>> getRequestsMap() {
@@ -100,10 +147,12 @@ public class PTPModule extends Module {
         this.clearRequests(player.getUniqueId());
     }
 
+    @Override
     public void clearRequests(UUID playerId) {
         this.requestsMap.remove(playerId);
     }
 
+    @Override
     public boolean isRequestsEnabled(Player player) {
         return this.userManager.getOrFetch(player).getPropertyOrDefault(PTPProperties.TELEPORT_REQUESTS);
     }
