@@ -34,8 +34,14 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
     }
 
     public boolean teleport(final TeleportContext context, final TeleportType type) {
+        if (context == null || context.getTarget() == null || context.getDestination() == null) return false;
         final SunlightPlayerTeleportEvent event = new SunlightPlayerTeleportEvent(context, type);
-        this.plugin.getPluginManager().callEvent(event);
+        try {
+            this.plugin.getPluginManager().callEvent(event);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
+        }
         if (event.isIntercepted())
             return true;
         if (event.isCancelled())
@@ -45,8 +51,9 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
     }
 
     public boolean move(final TeleportContext context) {
+        if (context == null || context.getTarget() == null) return false;
         final Location destination = this.getDestination(context);
-        if (destination == null) {
+        if (destination == null || destination.getWorld() == null) {
             context.getModule().sendPrefixed(
                     context.hasSender() ? Lang.TELEPORT_UNSAFE_FEEDBACK : Lang.TELEPORT_UNSAFE_NOTIFY,
                     context.getExecutor(), builder -> builder
@@ -57,39 +64,119 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
         final Player player = context.getTarget();
 
         if (player.isOnline()) {
-            if (!player.teleport(destination)) {
-                return false;
+            if (!this.isFolia()) {
+                if (!player.teleport(destination)) {
+                    return false;
+                }
+            } else {
+                // Folia: entity scheduler teleport. Fall back to sync teleport if scheduler is unavailable.
+                try {
+                    player.getScheduler().run(this.plugin, task -> player.teleport(destination), null);
+                } catch (Exception | NoSuchMethodError exception) {
+                    if (!player.teleport(destination)) return false;
+                }
             }
         } else {
             if (this.internals == null) {
                 context.getModule().sendPrefixed(Lang.TELEPORT_NO_OFFLINE_HANDLER_FEEDBACK, context.getExecutor());
                 return false;
             }
-            this.internals.teleport(player, destination);
+            try {
+                this.internals.teleport(player, destination);
+            } catch (Exception exception) {
+                exception.printStackTrace();
+                return false;
+            }
         }
 
-        context.runCallback();
+        try {
+            context.runCallback();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
         return true;
     }
 
-    private Location getDestination(final TeleportContext context) {
-        final Location destination = context.getDestination();
-        if (!context.hasFlags())
-            return destination;
+    /**
+     * Async-safe entry point: ensures the destination chunk is loaded before
+     * moving the player on the main thread. Falls back to {@link #move} when
+     * Paper's async chunk API is unavailable.
+     */
+    public void teleportAsync(final TeleportContext context, final TeleportType type) {
+        if (context == null) return;
+        Location raw = null;
+        try {
+            raw = context.getDestination();
+        } catch (Exception ignored) {
+        }
+        if (raw == null || raw.getWorld() == null || context.getTarget() == null) {
+            this.move(context);
+            return;
+        }
+        final Location snapshot = raw.clone();
+        try {
+            snapshot.getWorld().getChunkAtAsync(snapshot).thenAccept(chunk -> {
+                try {
+                    this.plugin.runTask(task -> this.teleport(context, type));
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+            });
+        } catch (Exception | NoSuchMethodError exception) {
+            this.teleport(context, type);
+        }
+    }
 
-        final World world = destination.getWorld();
+    private boolean isFolia() {
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    private Location getDestination(final TeleportContext context) {
+        final Location raw = context.getDestination();
+        if (raw == null) return null;
+        if (!context.hasFlags())
+            return raw.clone();
+
+        final World world = raw.getWorld();
         if (world == null)
             return null;
 
-        final Location location = destination.clone();
+        final Location location;
+        try {
+            location = raw.clone();
+        } catch (Exception e) {
+            return null;
+        }
 
         if (context.hasFlag(TeleportFlag.LOOK_FOR_SURFACE)) {
-            Block block = location.getBlock();
+            try {
+                if (!location.isChunkLoaded()) return null;
+            } catch (Exception | NoSuchMethodError ignored) {
+            }
+            Block block;
+            try {
+                block = location.getBlock();
+            } catch (Exception e) {
+                return null;
+            }
             final boolean isSolid = isSolidBlock(block);
             final BlockFace face = isSolid ? BlockFace.UP : BlockFace.DOWN;
 
+            int steps = 0;
+            final int maxSteps = Math.max(8, world.getMaxHeight() - world.getMinHeight() + 8);
             while (true) {
-                final Block relative = block.getRelative(face);
+                if (++steps > maxSteps) return null;
+                final Block relative;
+                try {
+                    relative = block.getRelative(face);
+                } catch (Exception e) {
+                    return null;
+                }
                 if (isSolidBlock(relative) == !isSolid)
                     break;
 
@@ -107,9 +194,18 @@ public class TeleportManager extends SimpleManager<SunLightPlugin> {
         }
 
         if (context.hasFlag(TeleportFlag.AVOID_LAVA)) {
-            if (location.getBlock().getType() == Material.LAVA) {
+            Material type;
+            try {
+                type = location.getBlock().getType();
+            } catch (Exception e) {
                 return null;
             }
+            if (type == Material.LAVA || type == Material.MAGMA_BLOCK || type == Material.CACTUS
+                || type == Material.FIRE || type == Material.SOUL_FIRE) {
+                return null;
+            }
+            // Void guard: y below min height is never safe.
+            if (location.getY() < world.getMinHeight()) return null;
         }
         if (context.hasFlag(TeleportFlag.CENTERED)) {
             location.setX(location.getBlockX() + 0.5);

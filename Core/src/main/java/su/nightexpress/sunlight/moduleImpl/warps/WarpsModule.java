@@ -47,7 +47,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class WarpsModule extends Module {
+public class WarpsModule extends Module implements su.nightexpress.sunlight.api.provider.WarpsProvider {
+
+    @Override
+    public Set<String> getWarpIds() {
+        try {
+            return this.repository.keySet().stream().map(id -> id.toLowerCase(java.util.Locale.ROOT)).collect(Collectors.toSet());
+        } catch (Exception exception) {
+            return Set.of();
+        }
+    }
 
     private final TeleportManager teleportManager;
 
@@ -273,6 +282,14 @@ public class WarpsModule extends Module {
         warp.setName(StringUtil.capitalizeUnderscored(id));
         warp.setIcon(this.getSettings().getDefaultIcon());
         warp.setLocation(location);
+        su.nightexpress.sunlight.api.event.WarpCreateEvent apiEvent = new su.nightexpress.sunlight.api.event.WarpCreateEvent(id, location);
+        try {
+            this.plugin.getPluginManager().callEvent(apiEvent);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
+        }
+        if (apiEvent.isCancelled()) return false;
         warp.save();
         if (charge)
             EconomyUtils.withdraw(player, cost);

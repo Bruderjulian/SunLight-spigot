@@ -54,7 +54,7 @@ public class PlayerInfoCommandProvider extends CommandProvider<EssentialModule> 
                 .withOptionalArguments(CommandArgumentConstants.targetArgument())
                 .executes((sender, arguments) -> {
                     return this.showPlayerInfo(sender, arguments);
-                }));
+                })).aliases("seen", "whois");
     }
 
     private int showPlayerInfo(final CommandSender sender, final CommandArguments arguments) {

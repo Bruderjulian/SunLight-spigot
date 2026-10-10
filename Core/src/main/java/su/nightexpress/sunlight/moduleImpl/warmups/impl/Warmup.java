@@ -113,7 +113,12 @@ public abstract class Warmup {
     }
 
     public boolean isMoved() {
-        return this.player.getLocation().distance(this.originLocation) > WarmupsConfig.WARMUP_MOVEMENT_THRESHOLD.get();
+        try {
+            if (!this.player.isOnline() || this.player.isDead()) return false;
+            return this.player.getLocation().distance(this.originLocation) > WarmupsConfig.WARMUP_MOVEMENT_THRESHOLD.get();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean isCompleted() {

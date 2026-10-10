@@ -84,7 +84,8 @@ public class HomeAdminCommandProvider extends CommandProvider<HomesModule> {
 
         final Home home = this.module.getHome(playerId, homeId);
         if (home == null) {
-            this.module.createHome(homeId, new UserInfo(playerId, userName), player.getLocation());
+            Home created = this.module.createHome(homeId, new UserInfo(playerId, userName), player.getLocation());
+            if (created == null) return 0;
             this.module.sendPrefixed(HomesLang.ADMIN_HOME_CREATE_FEEDBACK, player, builder -> builder
                     .with(HomePlaceholders.HOME_ID, () -> homeId)
                     .with(CommonPlaceholders.PLAYER_NAME, () -> userName));

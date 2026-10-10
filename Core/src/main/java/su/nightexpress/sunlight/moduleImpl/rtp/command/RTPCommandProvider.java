@@ -1,7 +1,6 @@
 package su.nightexpress.sunlight.moduleImpl.rtp.command;
 
 
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 
@@ -40,12 +39,18 @@ public class RTPCommandProvider extends CommandProvider<RTPModule> {
         }
 
         return target.runAs(this.module, sender, RTPPerms.COMMAND_RTP_OTHERS, (user, targetPlayer) -> {
-            Bukkit.getScheduler().runTaskAsynchronously(this.module.plugin(), () -> {
-                final boolean result = this.module.getEngine().teleportToRandomPlace(targetPlayer, world);
+            this.module.plugin().runTaskAsync(() -> {
+                final boolean result;
+                try {
+                    result = this.module.getEngine().teleportToRandomPlace(targetPlayer, world);
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                    return;
+                }
 
                 if (result && sender != targetPlayer) {
-                    this.module.sendPrefixed(RTPLang.COMMAND_RTP_OTHERS_SUCCESS, sender,
-                            builder -> builder.with(CommonPlaceholders.PLAYER.resolver(targetPlayer)));
+                    this.module.plugin().runTask(task -> this.module.sendPrefixed(RTPLang.COMMAND_RTP_OTHERS_SUCCESS, sender,
+                            builder -> builder.with(CommonPlaceholders.PLAYER.resolver(targetPlayer))));
                 }
             });
         });

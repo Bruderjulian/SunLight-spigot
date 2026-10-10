@@ -74,7 +74,7 @@ public class AfkModule extends Module implements AfkProvider {
             this.plugin.addChatHandler(EventPriority.MONITOR, this.chatEventHandler);
         }
 
-        this.addTask(this::tickTrackers, 1);
+        this.addTask(this::tickTrackers, 20L);
 
         Utils.onlinePlayers().forEach(this::track);
         this.commandRegistry.addProvider(new AfkCommandProvider(this));
@@ -247,11 +247,12 @@ public class AfkModule extends Module implements AfkProvider {
     }
 
     private void tickTrackers() {
+        if (this.activityTrackerMap.isEmpty()) return;
         this.pruneKickRecords();
 
         Map.copyOf(this.activityTrackerMap).forEach((playerId, tracker) -> {
             final Player player = Utils.getPlayer(playerId);
-            if (player == null)
+            if (player == null || !player.isOnline())
                 return;
 
             if (this.isExempt(player)) {
@@ -343,6 +344,7 @@ public class AfkModule extends Module implements AfkProvider {
 
         final PlayerAfkEvent event = new PlayerAfkEvent(player, true);
         this.plugin.getPluginManager().callEvent(event);
+        this.plugin.getPluginManager().callEvent(new su.nightexpress.sunlight.api.event.PlayerAfkChangeEvent(player, true));
 
         this.settings.soundEnter.get().play(player);
 
@@ -368,6 +370,7 @@ public class AfkModule extends Module implements AfkProvider {
 
         final PlayerAfkEvent event = new PlayerAfkEvent(player, false);
         this.plugin.getPluginManager().callEvent(event);
+        this.plugin.getPluginManager().callEvent(new su.nightexpress.sunlight.api.event.PlayerAfkChangeEvent(player, false));
 
         this.settings.soundExit.get().play(player);
 

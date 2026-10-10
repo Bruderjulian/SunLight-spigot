@@ -15,6 +15,12 @@ public class GriefPreventionHook implements ProtectionHook {
 
     @Override
     public boolean isProtected(Location location) {
-        return GriefPrevention.instance.dataStore.getClaimAt(location, false, null) != null;
+        try {
+            if (location == null || location.getWorld() == null) return false;
+            if (GriefPrevention.instance == null || GriefPrevention.instance.dataStore == null) return false;
+            return GriefPrevention.instance.dataStore.getClaimAt(location, false, null) != null;
+        } catch (Exception | NoClassDefFoundError exception) {
+            return false;
+        }
     }
 }

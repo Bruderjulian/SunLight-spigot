@@ -27,6 +27,7 @@ public final class LegacyText {
     private static final Pattern HEX_PATTERN = Pattern.compile("(?i)" + SECTION + "x(?:(?:" + SECTION + "[0-9a-f]){6})");
     private static final Pattern HEX_INPUT = Pattern.compile("(?i)^#?([0-9a-f]{6})$");
     private static final Pattern HEX_INPUT_0X = Pattern.compile("(?i)^0x([0-9a-f]{6})$");
+    private static final Pattern STRIP_PATTERN = Pattern.compile("(?i)" + SECTION + "[0-9a-fk-orx]");
 
     /** The sixteen vanilla colours, by their Minecraft hex value. */
     private static final Map<String, String> BY_HEX = new HashMap<>();
@@ -117,7 +118,7 @@ public final class LegacyText {
     /** Strips every legacy section-sign sequence from the given text. */
     public static @NotNull String stripLegacy(@Nullable String text) {
         if (text == null || text.isEmpty()) return "";
-        return text.replaceAll("(?i)" + SECTION + "[0-9a-fk-orx]", "");
+        return STRIP_PATTERN.matcher(text).replaceAll("");
     }
 
     /**

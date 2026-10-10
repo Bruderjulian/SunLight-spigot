@@ -64,6 +64,8 @@ public class EssentialModule extends Module {
         this.commandRegistry.addProvider(new HealthCommandProvider(this));
         this.commandRegistry.addProvider(new NearCommandProvider(this));
         this.commandRegistry.addProvider(new PlayerInfoCommandProvider(this));
+        this.commandRegistry.addProvider(new SudoCommandProvider(this));
+        this.commandRegistry.addProvider(new JumpCommandProvider(this));
         this.commandRegistry.addProvider(new SkullCommandProvider(this));
         this.commandRegistry.addProvider(new SmiteCommandProvider(this));
         this.commandRegistry.addProvider(new SpeedCommandProvider(this));

@@ -42,12 +42,22 @@ public class WarmupsModule extends Module {
         this.plugin.injectLang(WarmupsLang.class);
 
         this.addListener(new WarmupsListener(this.plugin, this));
-        this.addAsyncTask(this::tickWarmups, WarmupsConfig.WARMUP_TICK_INTERVAL.get());
+        // Must run on the main thread: tick touches Player#getLocation,
+        // BossBar and particles which are not thread-safe.
+        this.addTask(this::tickWarmups, Math.max(1L, WarmupsConfig.WARMUP_TICK_INTERVAL.get()));
     }
 
     @Override
     protected void unloadModule() {
-        this.getWarmups().forEach(warmup -> warmup.cancel(true));
+        // Fail-safe: notify + refund is handled by Warmup#onCancel implementations;
+        // never silently drop pending teleports here.
+        new HashSet<>(this.warmupByIdMap.values()).forEach(warmup -> {
+            try {
+                warmup.cancel(false);
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        });
         this.warmupByIdMap.clear();
     }
 
@@ -57,13 +67,27 @@ public class WarmupsModule extends Module {
     }
 
     private void tickWarmups() {
-        this.getWarmups().removeIf(warmup -> {
-            this.tickWarmup(warmup);
+        if (this.warmupByIdMap.isEmpty()) return;
+        this.warmupByIdMap.values().removeIf(warmup -> {
+            try {
+                this.tickWarmup(warmup);
+            } catch (Exception exception) {
+                exception.printStackTrace();
+                return true;
+            }
             return warmup.isCompleted();
         });
     }
 
     private void tickWarmup(Warmup warmup) {
+        if (!warmup.getPlayer().isOnline()) {
+            this.warmupByIdMap.remove(warmup.getPlayer().getUniqueId());
+            try {
+                warmup.cancel(false);
+            } catch (Exception ignored) {
+            }
+            return;
+        }
         if (WarmupsConfig.WARMUP_CANCEL_ON_MOVE.get() && warmup.isMoved()) {
             this.cancelWarmup(warmup.getPlayer());
             return;
@@ -72,7 +96,7 @@ public class WarmupsModule extends Module {
         warmup.onTick();
 
         if (warmup.isCompleted()) {
-            this.plugin.runTask(task -> warmup.complete()); // Back to the main thread.
+            warmup.complete(); // Already on the main thread.
             this.warmupByIdMap.remove(warmup.getPlayer().getUniqueId());
         }
     }

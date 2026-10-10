@@ -13,6 +13,7 @@ import su.nightexpress.nightcore.util.bridge.wrapper.NightComponent;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
+import su.nightexpress.sunlight.api.event.PlayerVanishToggleEvent;
 import su.nightexpress.sunlight.api.provider.VanishProvider;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -92,6 +93,10 @@ public class VanishModule extends Module implements VanishProvider {
     }
 
     public void vanish(Player player, boolean isVanished) {
+        PlayerVanishToggleEvent event = new PlayerVanishToggleEvent(player, isVanished);
+        this.plugin.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return;
+        isVanished = event.isVanished();
         for (Player other : this.plugin.getServer().getOnlinePlayers()) {
             if (isVanished) {
                 if (!other.hasPermission(VanishPerms.BYPASS_SEE)) {

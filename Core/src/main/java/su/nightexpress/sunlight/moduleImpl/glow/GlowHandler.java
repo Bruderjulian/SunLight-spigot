@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 import org.bukkit.entity.Player;
 
@@ -43,6 +44,8 @@ public class GlowHandler {
   private final Map<UUID, GlowState> states = new ConcurrentHashMap<>();
   private final Map<UUID, GlowEffect> currentEffects = new ConcurrentHashMap<>();
   private final GlowModule module;
+
+  private static final Pattern PRESET_NAME_PATTERN = Pattern.compile("[a-z0-9_\\-]+");
 
   private static final class GlowState {
 
@@ -245,9 +248,15 @@ public class GlowHandler {
     }
 
     final long step = module.settings().getUpdateInterval();
-    for (final Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
-      final GlowState state = this.states.get(player.getUniqueId());
-      if (state == null) {
+    // Iterate only animated players instead of all online players.
+    for (var entry : this.states.entrySet()) {
+      final UUID playerId = entry.getKey();
+      final GlowState state = entry.getValue();
+      if (state == null) continue;
+      final Player player = org.bukkit.Bukkit.getPlayer(playerId);
+      if (player == null || !player.isOnline()) {
+        this.states.remove(playerId);
+        this.currentEffects.remove(playerId);
         continue;
       }
 
@@ -306,7 +315,7 @@ public class GlowHandler {
     if (name.isEmpty() || name.length() > MAX_PRESET_NAME_LENGTH) {
       return null;
     }
-    if (!name.matches("[a-z0-9_\\-]+")) {
+    if (!PRESET_NAME_PATTERN.matcher(name).matches()) {
       return null;
     }
     return name;

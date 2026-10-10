@@ -22,15 +22,21 @@ public class SLUtils {
 
     public static final String CONSOLE_NAME = Bukkit.getServer().getConsoleSender().getName();
 
-    private static DateTimeFormatter dateFormatter;
-    private static DateTimeFormatter timeFormatter;
+    private static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     public static void setDateFormatter(String pattern) {
-        dateFormatter = DateTimeFormatter.ofPattern(pattern);
+        try {
+            dateFormatter = DateTimeFormatter.ofPattern(pattern);
+        } catch (Exception ignored) {
+        }
     }
 
     public static void setTimeFormatter(String pattern) {
-        timeFormatter = DateTimeFormatter.ofPattern(pattern);
+        try {
+            timeFormatter = DateTimeFormatter.ofPattern(pattern);
+        } catch (Exception ignored) {
+        }
     }
 
     public static boolean hasPacketLibrary() {

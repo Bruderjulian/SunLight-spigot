@@ -4,11 +4,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
+
+import su.nightexpress.nightcore.bridge.scheduler.AdaptedTask;
 
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.moduleImpl.profiles.ProfilesModule;
@@ -25,7 +25,7 @@ public class ProfileWarmupManager {
     private final ProfilesModule module;
     private final Map<UUID, PendingSwitch> pending = new ConcurrentHashMap<>();
 
-    private record PendingSwitch(String profileId, Location origin, BukkitTask task) {
+    private record PendingSwitch(String profileId, Location origin, AdaptedTask task) {
     }
 
     public ProfileWarmupManager(@NotNull SunLightPlugin plugin, @NotNull ProfilesModule module) {
@@ -50,6 +50,7 @@ public class ProfileWarmupManager {
     public void request(@NotNull Player player, @NotNull String profileId, int seconds) {
         this.cancel(player, true);
         if (seconds <= 0) {
+            if (!player.isOnline() || player.isDead()) return;
             this.module.executeSwitch(player, profileId);
             return;
         }
@@ -58,11 +59,15 @@ public class ProfileWarmupManager {
         this.module.sendPrefixed(ProfilesLang.WARMUP_START, player,
             builder -> builder.with(su.nightexpress.sunlight.SLPlaceholders.GENERIC_TIME, () -> seconds + "s"));
 
-        BukkitTask task = Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+        AdaptedTask task = this.plugin.scheduler().runTaskLater(() -> {
             PendingSwitch current = this.pending.remove(player.getUniqueId());
             if (current == null) return;
             if (!player.isOnline() || player.isDead()) return;
-            this.module.executeSwitch(player, profileId);
+            try {
+                this.module.executeSwitch(player, profileId);
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
         }, seconds * 20L);
 
         this.pending.put(player.getUniqueId(), new PendingSwitch(profileId, origin, task));

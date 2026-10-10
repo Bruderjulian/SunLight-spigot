@@ -42,7 +42,16 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class KitsModule extends Module {
+public class KitsModule extends Module implements su.nightexpress.sunlight.api.provider.KitsProvider {
+
+    @Override
+    public Set<String> getKitIdSet() {
+        try {
+            return this.kitByIdMap.keySet().stream().map(id -> id.toLowerCase(java.util.Locale.ROOT)).collect(java.util.stream.Collectors.toSet());
+        } catch (Exception exception) {
+            return Set.of();
+        }
+    }
 
     private final KitsSettings settings;
     private final KitDataManager dataManager;
@@ -232,6 +241,16 @@ public class KitsModule extends Module {
             this.sendPrefixed(KitsLang.DATA_ERROR_NOT_LOADED, player);
             return false;
         }
+
+        // Third-party hook point.
+        su.nightexpress.sunlight.api.event.KitClaimEvent claimEvent = new su.nightexpress.sunlight.api.event.KitClaimEvent(player, kit.getId());
+        try {
+            this.plugin.getPluginManager().callEvent(claimEvent);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
+        }
+        if (claimEvent.isCancelled()) return false;
 
         // Check kit permission.
         if (!force && !kit.hasPermission(player)) {

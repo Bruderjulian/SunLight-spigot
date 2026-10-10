@@ -44,7 +44,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class BansModule extends Module {
+public class BansModule extends Module implements su.nightexpress.sunlight.api.provider.BansProvider {
 
     private final BansSettings settings;
     private final BansDataManager dataManager;

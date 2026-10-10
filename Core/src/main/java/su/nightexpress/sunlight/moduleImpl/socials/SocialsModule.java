@@ -138,7 +138,6 @@ public class SocialsModule extends Module implements SocialsProvider {
     private void relayAsync(@NotNull String text) {
         String plain = DiscordHook.strip(text);
         String channelId = SocialsConfig.CHANNEL_ID.get();
-        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin,
-            () -> this.sendDiscordMessage(channelId, plain));
+        this.plugin.runTaskAsync(() -> this.sendDiscordMessage(channelId, plain));
     }
 }

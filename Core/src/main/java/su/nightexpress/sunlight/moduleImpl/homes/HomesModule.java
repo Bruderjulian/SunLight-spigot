@@ -68,7 +68,16 @@ import su.nightexpress.sunlight.teleport.TeleportType;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 import su.nightexpress.sunlight.utils.Utils;
 
-public class HomesModule extends Module {
+public class HomesModule extends Module implements su.nightexpress.sunlight.api.provider.HomesProvider {
+
+    @Override
+    public Set<String> getHomeIds(UUID playerId) {
+        try {
+            return this.getHomes(playerId).stream().map(home -> home.getId().toLowerCase(java.util.Locale.ROOT)).collect(Collectors.toSet());
+        } catch (Exception exception) {
+            return Set.of();
+        }
+    }
 
     private final TeleportManager teleportManager;
     private final HomeDataManager dataManager;
@@ -419,6 +428,7 @@ public class HomesModule extends Module {
 
         if (currentHome == null) {
             Home created = this.createHome(id, UserInfo.of(player), location);
+            if (created == null) return false;
             if (chargeCreation)
                 EconomyUtils.withdraw(player, creationCost);
             if (this.countHomes(player) == 0) {
@@ -434,6 +444,14 @@ public class HomesModule extends Module {
     }
 
     public Home createHome(String id, UserInfo owner, Location location) {
+        su.nightexpress.sunlight.api.event.HomeCreateEvent event = new su.nightexpress.sunlight.api.event.HomeCreateEvent(owner.id(), id, location);
+        try {
+            this.plugin.getPluginManager().callEvent(event);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return null;
+        }
+        if (event.isCancelled()) return null;
         Home home = Home.createDefault(id, owner, this.settings.getDefaultIconId(), location.getWorld(), ExactPos.from(
                 location));
         home.activate();

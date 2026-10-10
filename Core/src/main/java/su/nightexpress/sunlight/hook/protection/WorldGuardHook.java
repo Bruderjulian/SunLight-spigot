@@ -29,11 +29,13 @@ public class WorldGuardHook implements ProtectionHook {
 
     @Override
     public boolean isProtected(Location location) {
-        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-        ApplicableRegionSet set = container.createQuery().getApplicableRegions(BukkitAdapter.adapt(location));
-
-        if (set.size() == 0)
-            return false;
+        try {
+            if (location == null || location.getWorld() == null) return false;
+            RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+            if (container == null) return false;
+            ApplicableRegionSet set = container.createQuery().getApplicableRegions(BukkitAdapter.adapt(location));
+            if (set == null || set.size() == 0)
+                return false;
 
         if (this.ignoreGlobalRegion.getAsBoolean() && set.size() == 1) {
             ProtectedRegion region = set.getRegions().iterator().next();
@@ -42,5 +44,8 @@ public class WorldGuardHook implements ProtectionHook {
         }
 
         return true;
+        } catch (Exception | NoClassDefFoundError exception) {
+            return false;
+        }
     }
 }

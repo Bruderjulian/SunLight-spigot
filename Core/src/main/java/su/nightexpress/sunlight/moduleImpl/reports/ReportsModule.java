@@ -809,10 +809,25 @@ public class ReportsModule extends Module implements ReportsProvider {
         }
 
         if (!toRemind.isEmpty()) {
-            this.plugin.runTask(task -> toRemind.forEach(this::markReminded));
+            // Already off-thread: DB writes stay async, only staff chat hops to main.
+            toRemind.forEach(report -> {
+                try {
+                    this.markReminded(report);
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+            });
+            List<Report> reminded = List.copyOf(toRemind);
+            this.plugin.runTask(task -> reminded.forEach(this::notifyStaffReminders));
         }
         if (!toExpire.isEmpty()) {
-            this.plugin.runTask(task -> toExpire.forEach(this::autoExpire));
+            toExpire.forEach(report -> {
+                try {
+                    this.autoExpire(report);
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
+            });
         }
     }
 
@@ -820,7 +835,6 @@ public class ReportsModule extends Module implements ReportsProvider {
         Report before = this.snapshot(report);
         report.setReminded(true);
         this.commit(report, before);
-        this.notifyStaffReminders(report);
     }
 
     private void autoExpire(Report report) {
@@ -835,9 +849,13 @@ public class ReportsModule extends Module implements ReportsProvider {
         // Deliberately not PlayerReportResolvedEvent's reward path: an expired report
         // is a record
         // that nobody worked it, not a judgement that it was unjustified, and pays
-        // nothing.
-        this.plugin.getPluginManager().callEvent(new PlayerReportResolvedEvent(report, ReportStatus.EXPIRED, false,
-                false));
+        // nothing. Event must fire on the main thread.
+        try {
+            this.plugin.runTask(task -> this.plugin.getPluginManager().callEvent(new PlayerReportResolvedEvent(report, ReportStatus.EXPIRED, false,
+                    false)));
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     private void notifyStaffReminders(Report report) {

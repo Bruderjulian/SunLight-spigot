@@ -77,7 +77,9 @@ public class CombatTracker {
         try {
             return this.getActiveHook().isInCombat(player);
         } catch (Exception exception) {
-            return false;
+            // Fail-closed: a broken hook must not let players escape combat-tag restrictions.
+            exception.printStackTrace();
+            return true;
         }
     }
 
