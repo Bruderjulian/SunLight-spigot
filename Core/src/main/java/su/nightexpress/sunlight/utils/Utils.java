@@ -56,7 +56,7 @@ public class Utils {
 
   public static <T extends Enum<T>> T enumValueOf(String str, Class<T> type) {
     try {
-      return str == null ? null : Enum.valueOf(type, str.toUpperCase());
+      return str == null ? null : Enum.valueOf(type, str.toUpperCase(Locale.ROOT));
     } catch (Exception exception) {
       return null;
     }
@@ -64,7 +64,7 @@ public class Utils {
 
   public static <T extends Enum<T>> Optional<T> enumOptionalValueOf(String str, Class<T> type) {
     try {
-      return str == null ? Optional.empty() : Optional.of(Enum.valueOf(type, str.toUpperCase()));
+      return str == null ? Optional.empty() : Optional.of(Enum.valueOf(type, str.toUpperCase(Locale.ROOT)));
     } catch (Exception exception) {
       return Optional.empty();
     }

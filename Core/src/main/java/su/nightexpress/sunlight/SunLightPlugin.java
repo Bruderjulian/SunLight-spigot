@@ -56,6 +56,7 @@ import su.nightexpress.sunlight.moduleImpl.socials.SocialsModule;
 import su.nightexpress.sunlight.moduleImpl.spawns.SpawnsModule;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsModule;
 import su.nightexpress.sunlight.moduleImpl.vanish.VanishModule;
+import su.nightexpress.sunlight.moduleImpl.voting.VotingModule;
 import su.nightexpress.sunlight.moduleImpl.warmups.WarmupsModule;
 import su.nightexpress.sunlight.moduleImpl.warps.WarpsModule;
 import su.nightexpress.sunlight.nms.SunNMS;
@@ -306,6 +307,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("socials", "Socials", SocialsModule::new);
         manager.register("spawns", "Spawn", SpawnsModule::new);
         manager.register("vanish", "Vanish", VanishModule::new);
+        manager.register("voting", "Voting", VotingModule::new);
         manager.register("warmups", "Warmups", WarmupsModule::new);
         manager.register("warps", "Warps", WarpsModule::new);
     }
@@ -688,5 +690,10 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 @Override
     public Optional<? extends PhantomsProvider> phantomsProvider() {
         return this.moduleManager.getByType(PhantomsModule.class);
+    }
+
+    @Override
+    public Optional<? extends su.nightexpress.sunlight.api.provider.VotingProvider> votingProvider() {
+        return this.moduleManager.getByType(VotingModule.class);
     }
 }

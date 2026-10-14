@@ -4,7 +4,7 @@
 
 **SunLight** is a modern, lightweight, all-in-one core solution featuring the essential tools every server needs. 
 
-It includes **29** fully optional and customizable modules, allowing you to select only what your server actually requires!
+It includes **30** fully optional and customizable modules, allowing you to select only what your server actually requires!
 
 ---
 
@@ -52,6 +52,7 @@ It includes **29** fully optional and customizable modules, allowing you to sele
 - **Spawns**: Create unlimited spawn points with rank-based auto-teleportation on join or respawn and a GUI editor.
 - **Texts**: Maps the contents of text files to unique custom commands with MiniMessage and PlaceholderAPI support.
 - **Vanish**: Hide yourself from others with a status-persisting logout feature and a Boss Bar indicator.
+- **Voting**: Let players vote on server decisions that are open at the same time, with `/yes`, `/no` and `/neutral` shortcuts plus arbitrary extra choices. A vote can be weighted by permission, rank or balance, with hard caps so no single player can decide it, and an open vote can instead allow several choices each. Choices can be gated behind payment, a permission, a rank, a world or a playtime requirement, and a paid vote is refunded when the choice is withdrawn or the vote produces no winner. Staff open, close, extend and rule-tune polls from commands, and results are broadcast with console commands to run on a pass, a fail or a cancellation.
 - **Warm Ups**: Add preparation timers to teleports (Home, Spawn, RTP, etc.) with Boss Bar progress and movement/damage cancellation.
 - **Warps**: Create public fast-travel points with access requirements based on permissions and money costs.
 - **Worlds**: Create unlimited custom worlds with dynamic loading, GUI GameRule editing, and per-world inventory separation.

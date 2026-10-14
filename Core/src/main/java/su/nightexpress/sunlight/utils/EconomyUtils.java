@@ -60,8 +60,33 @@ public class EconomyUtils {
         return EconomyBridge.api().queryBalance(player) >= cost;
     }
 
+    public static double getBalance(Player player) {
+        return EconomyBridge.api().queryBalance(player);
+    }
+
     public static void withdraw(Player player, double cost) {
         EconomyBridge.api().withdraw(player, cost);
+    }
+
+    /** Gives money back, for a refunded cost or a withdrawn vote. */
+    public static void deposit(Player player, double amount) {
+        if (amount <= 0D) {
+            return;
+        }
+        EconomyBridge.api().deposit(player, amount);
+    }
+
+    /**
+     * Offline-capable refund path. The {@link Player} overload only works while the player is
+     * online; this one pays by UUID so a refund owed to somebody who has since logged off is not
+     * silently dropped. Used by every refund in the voting module, where the ballot rows outlive
+     * the player's session.
+     */
+    public static void deposit(java.util.UUID playerId, double amount) {
+        if (playerId == null || amount <= 0D) {
+            return;
+        }
+        EconomyBridge.api().deposit(playerId, amount);
     }
 
     public static String format(double cost) {
