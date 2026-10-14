@@ -53,7 +53,7 @@ public class VotesMenu extends AbstractObjectMenu<VotesMenu.Data> {
      * The bound object is view state, not a database row, exactly as in the Reports punishments
      * menu.
      */
-    public record Data(boolean mineOnly) {
+    public record Data(VotingModule.Filter filter) {
     }
 
     private final VotingModule module;
@@ -64,15 +64,24 @@ public class VotesMenu extends AbstractObjectMenu<VotesMenu.Data> {
     }
 
     public boolean open(final Player player) {
-        return this.open(player, false);
+        return this.open(player, VotingModule.Filter.OPEN);
     }
 
     public boolean openMyVotes(final Player player) {
-        return this.open(player, true);
+        return this.open(player, VotingModule.Filter.MINE);
     }
 
+    public boolean openHistory(final Player player) {
+        return this.open(player, VotingModule.Filter.FINISHED);
+    }
+
+    @Deprecated
     public boolean open(final Player player, final boolean mineOnly) {
-        return this.show(player, new Data(mineOnly));
+        return this.open(player, mineOnly ? VotingModule.Filter.MINE : VotingModule.Filter.OPEN);
+    }
+
+    public boolean open(final Player player, final VotingModule.Filter filter) {
+        return this.show(player, new Data(filter));
     }
 
     @Override
@@ -84,7 +93,11 @@ public class VotesMenu extends AbstractObjectMenu<VotesMenu.Data> {
     }
 
     private String mode(final Data data) {
-        return data.mineOnly() ? VotingLang.MODE_MINE.text() : VotingLang.MODE_OPEN.text();
+        return switch (data.filter()) {
+            case MINE -> VotingLang.MODE_MINE.text();
+            case FINISHED -> VotingLang.MODE_HISTORY.text();
+            case OPEN -> VotingLang.MODE_OPEN.text();
+        };
     }
 
     @Override
@@ -116,7 +129,14 @@ public class VotesMenu extends AbstractObjectMenu<VotesMenu.Data> {
                         .hideAllComponents())
                         .displayModifier((context, item) -> item.replace(builder -> builder
                                 .with(SLPlaceholders.GENERIC_MODE, () -> this.mode(this.getObject(context)))))
-                        .action(context -> this.open(context.getPlayer(), !this.getObject(context).mineOnly()))
+                        .action(context -> {
+                            final VotingModule.Filter next = switch (this.getObject(context).filter()) {
+                                case OPEN -> VotingModule.Filter.MINE;
+                                case MINE -> VotingModule.Filter.FINISHED;
+                                case FINISHED -> VotingModule.Filter.OPEN;
+                            };
+                            this.open(context.getPlayer(), next);
+                        })
                         .build())
                 .slots(SLOT_MODE)
                 .build());
@@ -146,7 +166,7 @@ public class VotesMenu extends AbstractObjectMenu<VotesMenu.Data> {
     public void onPrepare(final ViewerContext context, final InventoryView view, final Inventory inventory,
             final List<MenuItem> items) {
         final Player player = context.getPlayer();
-        final List<Vote> votes = this.module.getVisibleVotes(player, this.getObject(context).mineOnly());
+        final List<Vote> votes = this.module.getVisibleVotes(player, this.getObject(context).filter());
 
         final var viewer = context.getViewer();
         final int perPage = LAST_SLOT - FIRST_SLOT;
@@ -169,15 +189,32 @@ public class VotesMenu extends AbstractObjectMenu<VotesMenu.Data> {
 
     private NightItem icon(final Player player, final Vote vote) {
         final VoteTally tally = this.module.tally(vote);
-        final var leader = vote.getOption(tally.leader());
+        final var leader = vote.isExposed() ? vote.getOption(tally.leader()) : null;
+
+        final String closes = vote.isScheduled() ? VOTE_TIME_TO_START
+                : vote.isOpen() ? VOTE_TIME_LEFT
+                : VOTE_TIME_END;
+        final String closesLabel = vote.isScheduled() ? "Opens in: "
+                : vote.isOpen() ? "Closes in: "
+                : "Ended: ";
 
         final List<String> lore = new ArrayList<>(Lists.newList(
-                DARK_GRAY.wrap("» " + GRAY.wrap("Closes in: ") + WHITE.wrap(VOTE_TIME_LEFT)),
-                DARK_GRAY.wrap("» " + GRAY.wrap("People voting: ") + WHITE.wrap(VOTE_PARTICIPANTS)),
+                DARK_GRAY.wrap("» " + GRAY.wrap(closesLabel) + WHITE.wrap(closes)),
+                DARK_GRAY.wrap("» " + GRAY.wrap("People voting: ") + WHITE.wrap(vote.isExposed()
+                        ? String.valueOf(tally.getParticipantCount())
+                        : VotingLang.SECRET_HIDDEN.text())),
                 "",
-                GRAY.wrap("Leading: ") + WHITE.wrap(leader == null ? VotingLang.TEXT_NO_LEADER.text()
-                        : leader.getDisplay() + " (" + VotingModule.format(tally.share(leader.getKey())) + "%)")
+                GRAY.wrap("Leading: ") + WHITE.wrap(leader == null
+                        ? (vote.isExposed() ? VotingLang.TEXT_NO_LEADER.text()
+                                : VotingLang.SECRET_HIDDEN.text())
+                        : leader.getDisplay() + (vote.isExposed()
+                                ? " (" + VotingModule.format(tally.share(leader.getKey())) + "%)" : ""))
         ));
+
+        if (vote.hasDescription()) {
+            lore.add("");
+            lore.add(GRAY.wrap(vote.getDescription()));
+        }
 
         final String mine = this.myOptions(player, vote);
         if (mine != null) {

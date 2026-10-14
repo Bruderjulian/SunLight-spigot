@@ -63,4 +63,21 @@ public interface VotingProvider {
      * gains a rank mid-poll.
      */
     double getPlayerWeight(@NotNull UUID voteId, @NotNull UUID playerId, @NotNull String optionKey);
+
+    /** The poll's description, or an empty string when it has none. */
+    default @NotNull String getVoteDescription(@NotNull UUID voteId) {
+        final VoteHandle handle = this.getVote(voteId);
+        return handle == null ? "" : handle.description();
+    }
+
+    /** Whether the poll hides live counts until it concludes. */
+    default boolean isSecretBallot(@NotNull UUID voteId) {
+        final VoteHandle handle = this.getVote(voteId);
+        return handle != null && handle.secret();
+    }
+
+    /** Keys of the scheduled polls that have not opened yet, in no particular order. */
+    default @NotNull List<String> getScheduledVoteKeys() {
+        return List.of();
+    }
 }

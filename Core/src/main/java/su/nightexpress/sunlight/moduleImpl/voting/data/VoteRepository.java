@@ -185,6 +185,17 @@ public class VoteRepository {
         return this.getVotes(VoteStatus.OPEN);
     }
 
+    public List<Vote> getScheduledVotes() {
+        return this.getVotes(VoteStatus.SCHEDULED);
+    }
+
+    public List<Vote> getFinishedVotes() {
+        final List<Vote> votes = new ArrayList<>();
+        votes.addAll(this.getVotes(VoteStatus.CONCLUDED));
+        votes.addAll(this.getVotes(VoteStatus.CANCELLED));
+        return votes;
+    }
+
     public List<Vote> getVotesByCreator(final UUID creatorId) {
         if (creatorId == null) {
             return List.of();
@@ -205,6 +216,10 @@ public class VoteRepository {
 
     public int getOpenCount() {
         return this.getVotes(VoteStatus.OPEN).size();
+    }
+
+    public int getActiveCount() {
+        return this.getVotes(VoteStatus.OPEN).size() + this.getVotes(VoteStatus.SCHEDULED).size();
     }
 
     public int getOpenCount(final UUID creatorId) {

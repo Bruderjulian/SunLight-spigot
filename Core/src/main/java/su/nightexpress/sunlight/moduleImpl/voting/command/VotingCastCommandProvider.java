@@ -36,6 +36,7 @@ public class VotingCastCommandProvider extends CommandProvider<VotingModule> {
     private static final String COMMAND_NO        = VotingCommands.NO_NAME;
     private static final String COMMAND_NEUTRAL   = VotingCommands.NEUTRAL_NAME;
     private static final String COMMAND_MY_VOTES  = VotingCommands.MY_VOTES_NAME;
+    private static final String COMMAND_HISTORY   = "history";
 
     public VotingCastCommandProvider(final VotingModule module) {
         super(module, "voting-cast");
@@ -84,6 +85,13 @@ public class VotingCastCommandProvider extends CommandProvider<VotingModule> {
                 .withPermission(VotingPerms.COMMAND_MY)
                 .withRequirement(sender -> sender instanceof Player)
                 .executes((sender, arguments) -> this.module.openMyVotes((Player) sender) ? 1 : 0))
+                .under(COMMAND_ROOT);
+
+        this.register(COMMAND_HISTORY, builder -> builder
+                .withFullDescription(VotingLang.COMMAND_HISTORY_DESC.text())
+                .withPermission(VotingPerms.COMMAND_HISTORY)
+                .withRequirement(sender -> sender instanceof Player)
+                .executes((sender, arguments) -> this.module.openHistory((Player) sender) ? 1 : 0))
                 .under(COMMAND_ROOT);
 
         this.registerRoot(COMMAND_ROOT, builder -> builder

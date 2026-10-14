@@ -151,11 +151,15 @@ public class VoteViewMenu extends AbstractObjectMenu<VoteViewMenu.Data> {
 
     private NightItem icon(final Player player, final Vote vote, final VoteOption option, final VoteTally tally) {
         final boolean held = this.isHeld(player, vote, option);
+        final boolean exposed = vote.isExposed();
 
         final List<String> lore = new ArrayList<>(Lists.newList(
-                DARK_GRAY.wrap("• ") + WHITE.wrap(COUNT + " " + (tally.count(option.getKey()) == 1 ? "vote" : "votes"))
-                        + GRAY.wrap(" (" + SCORE + " weight)"),
-                DARK_GRAY.wrap("• ") + GRAY.wrap(PERCENT + "% of the vote")));
+                DARK_GRAY.wrap("• ") + WHITE.wrap(exposed ? COUNT + " "
+                        + (tally.count(option.getKey()) == 1 ? "vote" : "votes")
+                        : VotingLang.SECRET_HIDDEN.text())
+                        + (exposed ? GRAY.wrap(" (" + SCORE + " weight)") : ""),
+                DARK_GRAY.wrap("• ") + (exposed ? GRAY.wrap(PERCENT + "% of the vote")
+                        : GRAY.wrap(VotingLang.SECRET_HIDDEN.text()))));
 
         this.requirement(player, option).ifPresent(lore::add);
         lore.add("");

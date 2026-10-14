@@ -12,6 +12,7 @@ import su.nightexpress.nightcore.db.statement.template.SelectStatement;
 import su.nightexpress.nightcore.db.statement.template.UpdateStatement;
 import su.nightexpress.sunlight.moduleImpl.voting.model.MoneyMode;
 import su.nightexpress.sunlight.moduleImpl.voting.model.OverMaxMode;
+import su.nightexpress.sunlight.moduleImpl.voting.model.TieBreak;
 import su.nightexpress.sunlight.moduleImpl.voting.model.Vote;
 import su.nightexpress.sunlight.moduleImpl.voting.model.VoteBallot;
 import su.nightexpress.sunlight.moduleImpl.voting.model.VoteOption;
@@ -72,14 +73,31 @@ public class VotingQueries {
             rules.setMinParticipants(resultSet.getInt(COLUMN_RULE_MIN_PART.getName()));
             rules.setPassPercent(resultSet.getDouble(COLUMN_RULE_PASS_PCT.getName()));
             rules.setNeutralCountsTowardTotal(resultSet.getBoolean(COLUMN_RULE_NEUTRAL.getName()));
+            rules.setSecretBallot(readBooleanOr(resultSet, COLUMN_RULE_SECRET, false));
+            final TieBreak tieBreak = readEnum(resultSet, COLUMN_RULE_TIE_BREAK, TieBreak.class);
+            rules.setTieBreak(tieBreak == null ? TieBreak.FIRST : tieBreak);
+            rules.setAllowChange(readBooleanOr(resultSet, COLUMN_RULE_ALLOW_CHANGE, true));
+            rules.setChangeLockSeconds(readIntOr(resultSet, COLUMN_RULE_CHANGE_LOCK, 0));
+            rules.setRunoffEnabled(readBooleanOr(resultSet, COLUMN_RULE_RUNOFF, false));
+            rules.setRunoffTopN(Math.max(2, readIntOr(resultSet, COLUMN_RULE_RUNOFF_TOP, 2)));
+            rules.setRunoffDurationSeconds(Math.max(1, readIntOr(resultSet, COLUMN_RULE_RUNOFF_DUR, 86400)));
+
+            final long createDate = resultSet.getLong(COLUMN_CREATE_DATE.getName());
+            final String description = readStringOr(resultSet, COLUMN_DESCRIPTION, "");
+            long startDate = readLongOr(resultSet, COLUMN_START_DATE, 0L);
+            if (startDate <= 0L) {
+                startDate = createDate;
+            }
 
             return new Vote(
                     id,
                     resultSet.getString(COLUMN_VOTE_KEY.getName()),
                     resultSet.getString(COLUMN_DISPLAY.getName()),
+                    description,
                     readUuid(resultSet, COLUMN_CREATOR_ID),
                     resultSet.getString(COLUMN_CREATOR_NAME.getName()),
-                    resultSet.getLong(COLUMN_CREATE_DATE.getName()),
+                    createDate,
+                    startDate,
                     resultSet.getLong(COLUMN_END_DATE.getName()),
                     status,
                     Set.of(),
@@ -157,9 +175,11 @@ public class VotingQueries {
             .setUUID(COLUMN_VOTE_ID, Vote::getId)
             .setString(COLUMN_VOTE_KEY, Vote::getKey)
             .setString(COLUMN_DISPLAY, Vote::getDisplay)
+            .setString(COLUMN_DESCRIPTION, Vote::getDescription)
             .setUUID(COLUMN_CREATOR_ID, Vote::getCreatorId)
             .setString(COLUMN_CREATOR_NAME, Vote::getCreatorName)
             .setLong(COLUMN_CREATE_DATE, Vote::getCreateDate)
+            .setLong(COLUMN_START_DATE, Vote::getStartDate)
             .setLong(COLUMN_END_DATE, Vote::getEndDate)
             .setString(COLUMN_STATUS, vote -> vote.getStatus().name())
             .setString(COLUMN_OUTCOME, Vote::getOutcome)
@@ -184,10 +204,19 @@ public class VotingQueries {
             .setInt(COLUMN_RULE_MIN_PART, vote -> vote.getRules().getMinParticipants())
             .setDouble(COLUMN_RULE_PASS_PCT, vote -> vote.getRules().getPassPercent())
             .setBoolean(COLUMN_RULE_NEUTRAL, vote -> vote.getRules().isNeutralCountsTowardTotal())
+            .setBoolean(COLUMN_RULE_SECRET, vote -> vote.getRules().isSecretBallot())
+            .setString(COLUMN_RULE_TIE_BREAK, vote -> vote.getRules().getTieBreak().name())
+            .setBoolean(COLUMN_RULE_ALLOW_CHANGE, vote -> vote.getRules().isAllowChange())
+            .setInt(COLUMN_RULE_CHANGE_LOCK, vote -> vote.getRules().getChangeLockSeconds())
+            .setBoolean(COLUMN_RULE_RUNOFF, vote -> vote.getRules().isRunoffEnabled())
+            .setInt(COLUMN_RULE_RUNOFF_TOP, vote -> vote.getRules().getRunoffTopN())
+            .setInt(COLUMN_RULE_RUNOFF_DUR, vote -> vote.getRules().getRunoffDurationSeconds())
             .build();
 
     public static final UpdateStatement<Vote> UPDATE_VOTE = UpdateStatement.builder(Vote.class)
             .setString(COLUMN_DISPLAY, Vote::getDisplay)
+            .setString(COLUMN_DESCRIPTION, Vote::getDescription)
+            .setLong(COLUMN_START_DATE, Vote::getStartDate)
             .setLong(COLUMN_END_DATE, Vote::getEndDate)
             .setString(COLUMN_STATUS, vote -> vote.getStatus().name())
             .setString(COLUMN_OUTCOME, Vote::getOutcome)
@@ -212,6 +241,13 @@ public class VotingQueries {
             .setInt(COLUMN_RULE_MIN_PART, vote -> vote.getRules().getMinParticipants())
             .setDouble(COLUMN_RULE_PASS_PCT, vote -> vote.getRules().getPassPercent())
             .setBoolean(COLUMN_RULE_NEUTRAL, vote -> vote.getRules().isNeutralCountsTowardTotal())
+            .setBoolean(COLUMN_RULE_SECRET, vote -> vote.getRules().isSecretBallot())
+            .setString(COLUMN_RULE_TIE_BREAK, vote -> vote.getRules().getTieBreak().name())
+            .setBoolean(COLUMN_RULE_ALLOW_CHANGE, vote -> vote.getRules().isAllowChange())
+            .setInt(COLUMN_RULE_CHANGE_LOCK, vote -> vote.getRules().getChangeLockSeconds())
+            .setBoolean(COLUMN_RULE_RUNOFF, vote -> vote.getRules().isRunoffEnabled())
+            .setInt(COLUMN_RULE_RUNOFF_TOP, vote -> vote.getRules().getRunoffTopN())
+            .setInt(COLUMN_RULE_RUNOFF_DUR, vote -> vote.getRules().getRunoffDurationSeconds())
             .build();
 
     public static final InsertStatement<VotingDataManager.OptionRow> INSERT_OPTION =
@@ -259,11 +295,65 @@ public class VotingQueries {
      * The rule setters treat {@code null} as "use the default", so an unrecognised rule value
      * degrades one setting instead of losing the poll. The vote status is the exception and is
      * handled explicitly by the caller: guessing there could re-open a poll somebody closed.
+     * <p>
+     * A missing column (pre-migration database) also yields {@code null} rather than failing
+     * the whole row, so old polls load with defaults until they are next saved.
      */
     private static <E extends Enum<E>> E readEnum(final ResultSet resultSet,
             final Column<String> column,
-            final Class<E> type) throws SQLException {
-        return Utils.enumValueOf(resultSet.getString(column.getName()), type);
+            final Class<E> type) {
+        try {
+            return Utils.enumValueOf(resultSet.getString(column.getName()), type);
+        } catch (final SQLException | IllegalArgumentException exception) {
+            return null;
+        }
+    }
+
+    private static String readStringOr(final ResultSet resultSet, final Column<String> column,
+            final String fallback) {
+        try {
+            final String value = resultSet.getString(column.getName());
+            return value == null ? fallback : value;
+        } catch (final SQLException exception) {
+            return fallback;
+        }
+    }
+
+    private static long readLongOr(final ResultSet resultSet, final Column<Long> column,
+            final long fallback) {
+        try {
+            return resultSet.getLong(column.getName());
+        } catch (final SQLException exception) {
+            return fallback;
+        }
+    }
+
+    private static int readIntOr(final ResultSet resultSet, final Column<Integer> column,
+            final int fallback) {
+        try {
+            return resultSet.getInt(column.getName());
+        } catch (final SQLException exception) {
+            return fallback;
+        }
+    }
+
+    private static boolean readBooleanOr(final ResultSet resultSet, final Column<Boolean> column,
+            final boolean fallback) {
+        try {
+            final Object raw = resultSet.getObject(column.getName());
+            if (raw instanceof final Boolean bool) {
+                return bool;
+            }
+            if (raw instanceof final Number number) {
+                return number.intValue() != 0;
+            }
+            if (raw instanceof final String text) {
+                return text.equalsIgnoreCase("true") || text.equals("1");
+            }
+            return resultSet.getBoolean(column.getName());
+        } catch (final SQLException | IllegalArgumentException exception) {
+            return fallback;
+        }
     }
 
     private VotingQueries() {

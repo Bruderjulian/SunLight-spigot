@@ -45,6 +45,9 @@ public class VotingLang implements LangContainer {
     public static final TextLocale MODE_MINE = LangEntry.builder("Voting.Mode.Mine")
             .text(ORANGE.wrap("My Votes"));
 
+    public static final TextLocale MODE_HISTORY = LangEntry.builder("Voting.Mode.History")
+            .text(ORANGE.wrap("Finished Votes"));
+
     // -- Command descriptions -------------------------------------------------------------------
 
     public static final TextLocale COMMAND_VOTING_DESC = LangEntry.builder("Voting.Command.Root.Desc")
@@ -91,6 +94,21 @@ public class VotingLang implements LangContainer {
 
     public static final TextLocale COMMAND_CLOSE_DESC = LangEntry.builder("Voting.Command.Close.Desc")
             .text("End a vote early and announce its result.");
+
+    public static final TextLocale COMMAND_CLONE_DESC = LangEntry.builder("Voting.Command.Clone.Desc")
+            .text("Copy a vote, its choices and its rules under a new key.");
+
+    public static final TextLocale COMMAND_RENAME_DESC = LangEntry.builder("Voting.Command.Rename.Desc")
+            .text("Change the display name of a vote.");
+
+    public static final TextLocale COMMAND_DESCRIBE_DESC = LangEntry.builder("Voting.Command.Describe.Desc")
+            .text("Change the description of a vote.");
+
+    public static final TextLocale COMMAND_HISTORY_DESC = LangEntry.builder("Voting.Command.History.Desc")
+            .text("Browse finished votes.");
+
+    public static final TextLocale COMMAND_START_DESC = LangEntry.builder("Voting.Command.Start.Desc")
+            .text("Open a scheduled vote early.");
 
     public static final TextLocale COMMAND_CANCEL_DESC = LangEntry.builder("Voting.Command.Cancel.Desc")
             .text("Kill a vote without producing a result.");
@@ -184,6 +202,27 @@ public class VotingLang implements LangContainer {
             .chatMessage(Sound.BLOCK_NOTE_BLOCK_BASS,
                     GRAY.wrap(VOTE_NAME + " was cancelled: not enough people voted."));
 
+    public static final MessageLocale RESULT_TIED = LangEntry.builder("Voting.Result.Tied")
+            .chatMessage(Sound.BLOCK_NOTE_BLOCK_BASS,
+                    GRAY.wrap(VOTE_NAME + " ended in a tie: " + ORANGE.wrap(GENERIC_LIST) + "."));
+
+    public static final MessageLocale RESULT_RUNOFF = LangEntry.builder("Voting.Result.Runoff")
+            .chatMessage(Sound.BLOCK_NOTE_BLOCK_PLING,
+                    GRAY.wrap(VOTE_NAME + " produced no winner, so a runoff is open: "
+                            + ORANGE.wrap(GENERIC_TARGET) + "."));
+
+    public static final MessageLocale REMINDER = LangEntry.builder("Voting.Reminder")
+            .chatMessage(Sound.BLOCK_NOTE_BLOCK_PLING,
+                    GRAY.wrap("Vote open: " + ORANGE.wrap(VOTE_NAME)
+                            + GRAY.wrap(" closes in " + ORANGE.wrap(VOTE_TIME_LEFT) + ".")));
+
+    public static final MessageLocale JOIN_NUDGE = LangEntry.builder("Voting.JoinNudge")
+            .chatMessage(Sound.BLOCK_NOTE_BLOCK_PLING,
+                    GRAY.wrap("Open votes waiting for you: " + ORANGE.wrap(GENERIC_LIST) + "."));
+
+    public static final TextLocale SECRET_HIDDEN = LangEntry.builder("Voting.Text.SecretHidden")
+            .text(GRAY.wrap("hidden"));
+
     public static final TextLocale INFO_HEADER = LangEntry.builder("Voting.Info.Header")
             .text(BOLD.wrap(VOTE_NAME)
                     + GRAY.wrap(" by " + ORANGE.wrap(VOTE_CREATOR)
@@ -223,6 +262,18 @@ public class VotingLang implements LangContainer {
     public static final MessageLocale ERROR_NOT_OPEN = LangEntry.builder("Voting.Error.NotOpen")
             .chatMessage(Sound.ENTITY_VILLAGER_NO,
                     GRAY.wrap(VOTE_NAME + " is not open. It is " + ORANGE.wrap(VOTE_STATUS) + "."));
+
+    public static final MessageLocale ERROR_NOT_STARTED = LangEntry.builder("Voting.Error.NotStarted")
+            .chatMessage(Sound.ENTITY_VILLAGER_NO,
+                    GRAY.wrap(VOTE_NAME + " opens in " + ORANGE.wrap(VOTE_TIME_TO_START) + "."));
+
+    public static final MessageLocale ERROR_NO_CHANGE = LangEntry.builder("Voting.Error.NoChange")
+            .chatMessage(Sound.ENTITY_VILLAGER_NO,
+                    GRAY.wrap("Your vote in " + ORANGE.wrap(VOTE_NAME) + " is final."));
+
+    public static final MessageLocale ERROR_CHANGE_LOCKED = LangEntry.builder("Voting.Error.ChangeLocked")
+            .chatMessage(Sound.ENTITY_VILLAGER_NO,
+                    GRAY.wrap("Vote changes in " + ORANGE.wrap(VOTE_NAME) + " are locked."));
 
     public static final MessageLocale ERROR_BUILTIN_DISABLED = LangEntry.builder("Voting.Error.BuiltInDisabled")
             .chatMessage(Sound.ENTITY_VILLAGER_NO,
@@ -368,6 +419,22 @@ public class VotingLang implements LangContainer {
     public static final MessageLocale RULES_SET = LangEntry.builder("Voting.Rules.Set")
             .chatMessage(Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
                     GRAY.wrap("Updated the rules of " + ORANGE.wrap(VOTE_NAME) + "."));
+
+    public static final MessageLocale CLONED = LangEntry.builder("Voting.Cloned")
+            .chatMessage(Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
+                    GRAY.wrap("Copied " + ORANGE.wrap(VOTE_NAME) + " to " + ORANGE.wrap(GENERIC_TARGET) + "."));
+
+    public static final MessageLocale RENAMED = LangEntry.builder("Voting.Renamed")
+            .chatMessage(Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
+                    GRAY.wrap("Renamed " + ORANGE.wrap(VOTE_KEY) + " to " + ORANGE.wrap(GENERIC_TARGET) + "."));
+
+    public static final MessageLocale DESCRIBED = LangEntry.builder("Voting.Described")
+            .chatMessage(Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
+                    GRAY.wrap("Updated the description of " + ORANGE.wrap(VOTE_NAME) + "."));
+
+    public static final MessageLocale STARTED = LangEntry.builder("Voting.Started")
+            .chatMessage(Sound.BLOCK_NOTE_BLOCK_PLING,
+                    GRAY.wrap("Opened " + ORANGE.wrap(VOTE_NAME) + " early."));
 
     public static final MessageLocale BROADCAST = LangEntry.builder("Voting.Broadcast")
             .chatMessage(Sound.BLOCK_NOTE_BLOCK_PLING, GRAY.wrap("Re-announced " + ORANGE.wrap(VOTE_NAME) + "."));

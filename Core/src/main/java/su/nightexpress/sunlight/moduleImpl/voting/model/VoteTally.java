@@ -3,6 +3,7 @@ package su.nightexpress.sunlight.moduleImpl.voting.model;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -112,22 +113,53 @@ public class VoteTally {
      *         whichever entry the hash order happened to visit first.
      */
     public String leader() {
-        String best = null;
-        double bestScore = 0D;
+        final List<String> tied = this.tiedLeaders();
+        if (tied.isEmpty()) {
+            return null;
+        }
+        return tied.getFirst();
+    }
 
+    /**
+     * @return every passing choice tied at the top score, sorted by key. Empty when nothing passes.
+     *         A single entry means a clean winner; several mean the poll's tie-break rule decides.
+     */
+    public java.util.List<String> tiedLeaders() {
         final java.util.List<String> keys = new java.util.ArrayList<>(this.scores.keySet());
         java.util.Collections.sort(keys);
+        double bestScore = Double.NEGATIVE_INFINITY;
+        final java.util.List<String> tied = new java.util.ArrayList<>();
         for (final String key : keys) {
             if (!this.passes(key)) {
                 continue;
             }
             final double score = this.scores.getOrDefault(key, 0D);
-            if (best == null || score > bestScore) {
-                best = key;
+            if (tied.isEmpty() || score > bestScore) {
+                tied.clear();
+                tied.add(key);
                 bestScore = score;
+            } else if (Double.compare(score, bestScore) == 0) {
+                tied.add(key);
             }
         }
-        return best;
+        return tied;
+    }
+
+    /**
+     * @return the top options by score regardless of pass, best first. Used for runoffs,
+     *         which re-run the strongest choices even when none of them passed.
+     */
+    public java.util.List<String> topOptions(final int limit) {
+        final java.util.List<String> keys = new java.util.ArrayList<>(this.scores.keySet());
+        keys.sort((first, second) -> {
+            final int byScore = Double.compare(this.scores.getOrDefault(second, 0D),
+                    this.scores.getOrDefault(first, 0D));
+            return byScore != 0 ? byScore : first.compareTo(second);
+        });
+        if (limit > 0 && keys.size() > limit) {
+            return keys.subList(0, limit);
+        }
+        return keys;
     }
 
     public int getParticipantCount() {

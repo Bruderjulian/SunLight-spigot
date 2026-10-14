@@ -40,10 +40,12 @@ public class Vote implements PlaceholderResolvable {
     private final String key;
 
     private String display;
+    private String description;
     private UUID creatorId;
     private String creatorName;
 
     private final long createDate;
+    private volatile long startDate;
     private volatile long endDate;
 
     private volatile VoteStatus status;
@@ -65,6 +67,24 @@ public class Vote implements PlaceholderResolvable {
             final VoteRules rules,
             final String outcome,
             final long concludeDate) {
+        this(id, key, display, "", creatorId, creatorName, createDate, createDate, endDate, status,
+                options, rules, outcome, concludeDate);
+    }
+
+    public Vote(final UUID id,
+            final String key,
+            final String display,
+            final String description,
+            final UUID creatorId,
+            final String creatorName,
+            final long createDate,
+            final long startDate,
+            final long endDate,
+            final VoteStatus status,
+            final Collection<VoteOption> options,
+            final VoteRules rules,
+            final String outcome,
+            final long concludeDate) {
         this.id = java.util.Objects.requireNonNull(id, "vote id");
         if (key == null || key.isBlank()) {
             throw new IllegalArgumentException("vote key");
@@ -74,9 +94,11 @@ public class Vote implements PlaceholderResolvable {
         }
         this.key = key.toLowerCase(Locale.ROOT);
         this.display = display;
+        this.description = description == null ? "" : description;
         this.creatorId = creatorId;
         this.creatorName = creatorName;
         this.createDate = createDate;
+        this.startDate = startDate <= 0L ? createDate : startDate;
         this.endDate = endDate;
         this.status = status;
         this.rules = rules == null ? VoteRules.defaults() : rules;
@@ -102,9 +124,25 @@ public class Vote implements PlaceholderResolvable {
             final int durationSeconds,
             final Collection<VoteOption> options,
             final VoteRules rules) {
+        return create(key, display, "", creatorId, creatorName, durationSeconds, 0, options, rules);
+    }
+
+    public static Vote create(final String key,
+            final String display,
+            final String description,
+            final UUID creatorId,
+            final String creatorName,
+            final int durationSeconds,
+            final int startDelaySeconds,
+            final Collection<VoteOption> options,
+            final VoteRules rules) {
         final long now = System.currentTimeMillis();
-        return new Vote(UUID.randomUUID(), key, display, creatorId, creatorName, now,
-                now + TimeUnit.SECONDS.toMillis(Math.max(1, durationSeconds)), VoteStatus.OPEN, options, rules, null, 0L);
+        final long start = now + TimeUnit.SECONDS.toMillis(Math.max(0, startDelaySeconds));
+        final long end = Math.max(start, now)
+                + TimeUnit.SECONDS.toMillis(Math.max(1, durationSeconds));
+        final VoteStatus status = startDelaySeconds > 0 ? VoteStatus.SCHEDULED : VoteStatus.OPEN;
+        return new Vote(UUID.randomUUID(), key, display, description, creatorId, creatorName, now,
+                start, end, status, options, rules, null, 0L);
     }
 
     // -- Options --------------------------------------------------------------------------------
@@ -176,8 +214,47 @@ public class Vote implements PlaceholderResolvable {
         return this.status.isOpen();
     }
 
+    public boolean isScheduled() {
+        return this.status.isScheduled();
+    }
+
+    public boolean isStartDue() {
+        return this.isScheduled() && System.currentTimeMillis() >= this.startDate;
+    }
+
     public boolean isExpired() {
         return this.isOpen() && System.currentTimeMillis() >= this.endDate;
+    }
+
+    /**
+     * @return whether results may be shown to voters right now. A secret ballot hides
+     *         live numbers while it is open; finished polls always reveal.
+     */
+    public boolean isExposed() {
+        return !this.rules.isSecretBallot() || !this.isOpen();
+    }
+
+    /**
+     * @return whether vote changes are still allowed. A poll that forbids changes is
+     *         final on first cast; otherwise changes lock when little time remains.
+     */
+    public boolean isChangeAllowed() {
+        if (!this.rules.isAllowChange()) {
+            return false;
+        }
+        final int lock = this.rules.getChangeLockSeconds();
+        return lock <= 0 || this.getTimeLeft() > TimeUnit.SECONDS.toMillis(lock);
+    }
+
+    public long getTimeToStart() {
+        return this.isScheduled() ? Math.max(0L, this.startDate - System.currentTimeMillis()) : 0L;
+    }
+
+    public void open(final long date) {
+        this.status = VoteStatus.OPEN;
+        if (this.endDate < date) {
+            this.endDate = date;
+        }
     }
 
     public long getTimeLeft() {
@@ -218,6 +295,18 @@ public class Vote implements PlaceholderResolvable {
         this.display = display;
     }
 
+    public @NotNull String getDescription() {
+        return this.description == null ? "" : this.description;
+    }
+
+    public void setDescription(final String description) {
+        this.description = description == null ? "" : description;
+    }
+
+    public boolean hasDescription() {
+        return this.description != null && !this.description.isBlank();
+    }
+
     public @Nullable UUID getCreatorId() {
         return this.creatorId;
     }
@@ -228,6 +317,14 @@ public class Vote implements PlaceholderResolvable {
 
     public long getCreateDate() {
         return this.createDate;
+    }
+
+    public long getStartDate() {
+        return this.startDate;
+    }
+
+    public void setStartDate(final long startDate) {
+        this.startDate = startDate;
     }
 
     public long getEndDate() {

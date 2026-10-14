@@ -24,6 +24,7 @@ import su.nightexpress.sunlight.moduleImpl.voting.config.VotingPerms;
 import su.nightexpress.sunlight.moduleImpl.voting.model.GateType;
 import su.nightexpress.sunlight.moduleImpl.voting.model.MoneyMode;
 import su.nightexpress.sunlight.moduleImpl.voting.model.OverMaxMode;
+import su.nightexpress.sunlight.moduleImpl.voting.model.TieBreak;
 import su.nightexpress.sunlight.moduleImpl.voting.model.Vote;
 import su.nightexpress.sunlight.moduleImpl.voting.model.WeightCombine;
 import su.nightexpress.sunlight.moduleImpl.voting.model.WeightSource;
@@ -54,6 +55,10 @@ public class VotingStaffCommandProvider extends CommandProvider<VotingModule> {
     private static final String COMMAND_INFO   = "info";
     private static final String COMMAND_ALL    = "all";
     private static final String COMMAND_BROADCAST = "broadcast";
+    private static final String COMMAND_CLONE  = "clone";
+    private static final String COMMAND_RENAME = "rename";
+    private static final String COMMAND_DESCRIBE = "describe";
+    private static final String COMMAND_START  = "start";
 
     private static final String SUBCOMMAND_ADD    = "add";
     private static final String SUBCOMMAND_REMOVE = "remove";
@@ -65,6 +70,8 @@ public class VotingStaffCommandProvider extends CommandProvider<VotingModule> {
     private static final String ARGUMENT_DISPLAY  = "display";
     private static final String ARGUMENT_ICON     = "icon";
     private static final String ARGUMENT_DURATION = "duration";
+    private static final String ARGUMENT_DELAY    = "delay";
+    private static final String ARGUMENT_TEXT     = "text";
     private static final String ARGUMENT_NAME     = "name";
     private static final String ARGUMENT_SETTING  = "setting";
     private static final String ARGUMENT_VALUE    = "value";
@@ -87,6 +94,9 @@ public class VotingStaffCommandProvider extends CommandProvider<VotingModule> {
                 .withArguments(
                         CommandArgumentConstants.string(ARGUMENT_NAME, info -> List.of()),
                         CommandArgumentConstants.string(ARGUMENT_DURATION, info -> List.of("1h", "30m", "7d")))
+                .withOptionalArguments(
+                        CommandArgumentConstants.string(ARGUMENT_DELAY, info -> List.of("0", "10m", "1h")),
+                        CommandArgumentConstants.greedy(ARGUMENT_TEXT, info -> List.of()))
                 .executes(this::create))
                 .under(COMMAND_ROOT);
 
@@ -157,6 +167,38 @@ public class VotingStaffCommandProvider extends CommandProvider<VotingModule> {
                 .withPermission(VotingPerms.COMMAND_BROADCAST)
                 .withArguments(this.voteArgument())
                 .executes(this::broadcast))
+                .under(COMMAND_ROOT);
+
+        this.register(COMMAND_CLONE, builder -> builder
+                .withFullDescription(VotingLang.COMMAND_CLONE_DESC.text())
+                .withPermission(VotingPerms.COMMAND_CLONE)
+                .withArguments(this.voteArgument(),
+                        CommandArgumentConstants.string(ARGUMENT_NAME, info -> List.of()))
+                .executes(this::clonePoll))
+                .under(COMMAND_ROOT);
+
+        this.register(COMMAND_RENAME, builder -> builder
+                .withFullDescription(VotingLang.COMMAND_RENAME_DESC.text())
+                .withPermission(VotingPerms.COMMAND_RENAME)
+                .withArguments(this.voteArgument(),
+                        CommandArgumentConstants.greedy(ARGUMENT_DISPLAY, info -> List.of()))
+                .executes(this::renamePoll))
+                .under(COMMAND_ROOT);
+
+        this.register(COMMAND_DESCRIBE, builder -> builder
+                .withFullDescription(VotingLang.COMMAND_DESCRIBE_DESC.text())
+                .withPermission(VotingPerms.COMMAND_DESCRIBE)
+                .withArguments(this.voteArgument())
+                .withOptionalArguments(
+                        CommandArgumentConstants.greedy(ARGUMENT_TEXT, info -> List.of()))
+                .executes(this::describePoll))
+                .under(COMMAND_ROOT);
+
+        this.register(COMMAND_START, builder -> builder
+                .withFullDescription(VotingLang.COMMAND_START_DESC.text())
+                .withPermission(VotingPerms.COMMAND_START)
+                .withArguments(this.voteArgument())
+                .executes(this::startPoll))
                 .under(COMMAND_ROOT);
     }
 
@@ -239,7 +281,9 @@ public class VotingStaffCommandProvider extends CommandProvider<VotingModule> {
             "min-playtime", "world-mode", "worlds",
             "money-mode", "min-balance", "max-balance", "over-max", "currency-per-weight", "max-money-weight",
             "weighting", "weight-source", "weight-combine", "base-weight", "max-multiplier", "max-weight",
-            "min-participants", "pass-percent", "neutral-counts");
+            "min-participants", "pass-percent", "neutral-counts", "secret",
+            "tie-break", "allow-change", "change-lock",
+            "runoff", "runoff-top", "runoff-duration");
 
     // -- Handlers ---------------------------------------------------------------------------------
 
@@ -257,7 +301,21 @@ public class VotingStaffCommandProvider extends CommandProvider<VotingModule> {
                     b -> b.with(SLPlaceholders.GENERIC_TEXT, () -> durationRaw));
             return 0;
         }
-        return this.module.create(sender, name, name, (int) Math.min(seconds, Integer.MAX_VALUE)) != null ? 1 : 0;
+
+        int delaySeconds = 0;
+        final String delayRaw = this.string(arguments, ARGUMENT_DELAY);
+        if (delayRaw != null) {
+            final long delay = TimeUtil.parseDurationSeconds(delayRaw);
+            if (delay < 0L) {
+                this.module.sendPrefixed(VotingLang.ERROR_BAD_DURATION, sender,
+                        b -> b.with(SLPlaceholders.GENERIC_TEXT, () -> delayRaw));
+                return 0;
+            }
+            delaySeconds = (int) Math.min(delay, Integer.MAX_VALUE);
+        }
+        final String description = this.string(arguments, ARGUMENT_TEXT);
+        return this.module.create(sender, name, name, description == null ? "" : description,
+                (int) Math.min(seconds, Integer.MAX_VALUE), delaySeconds) != null ? 1 : 0;
     }
 
     private int close(final CommandSender sender, final CommandArguments arguments) {
@@ -292,6 +350,42 @@ public class VotingStaffCommandProvider extends CommandProvider<VotingModule> {
         this.module.broadcast(vote);
         this.module.sendPrefixed(VotingLang.BROADCAST, sender, b -> b.with(vote.placeholders()));
         return 1;
+    }
+
+    private int clonePoll(final CommandSender sender, final CommandArguments arguments) {
+        final Vote vote = this.require(sender, arguments);
+        final String name = this.string(arguments, ARGUMENT_NAME);
+        if (vote == null || name == null) {
+            return 0;
+        }
+        return this.module.cloneVote(sender, vote, name) != null ? 1 : 0;
+    }
+
+    private int renamePoll(final CommandSender sender, final CommandArguments arguments) {
+        final Vote vote = this.require(sender, arguments);
+        final String display = this.string(arguments, ARGUMENT_DISPLAY);
+        if (vote == null || display == null) {
+            this.module.sendPrefixed(CoreLang.COMMAND_SYNTAX_GENERIC_ERROR, sender);
+            return 0;
+        }
+        return this.module.rename(sender, vote, display) ? 1 : 0;
+    }
+
+    private int describePoll(final CommandSender sender, final CommandArguments arguments) {
+        final Vote vote = this.require(sender, arguments);
+        if (vote == null) {
+            return 0;
+        }
+        final String text = this.string(arguments, ARGUMENT_TEXT);
+        return this.module.describe(sender, vote, text == null ? "" : text) ? 1 : 0;
+    }
+
+    private int startPoll(final CommandSender sender, final CommandArguments arguments) {
+        final Vote vote = this.require(sender, arguments);
+        if (vote == null) {
+            return 0;
+        }
+        return this.module.startNow(sender, vote) ? 1 : 0;
     }
 
     private int extend(final CommandSender sender, final CommandArguments arguments) {
@@ -455,6 +549,19 @@ public class VotingStaffCommandProvider extends CommandProvider<VotingModule> {
                 case "min-participants" -> rules.setMinParticipants(parseNonNegativeInt(value));
                 case "pass-percent" -> rules.setPassPercent(parseNonNegativeDouble(value));
                 case "neutral-counts" -> rules.setNeutralCountsTowardTotal(parseBoolean(value));
+                case "secret" -> rules.setSecretBallot(parseBoolean(value));
+                case "tie-break" -> rules.setTieBreak(enumOf(value, TieBreak.class));
+                case "allow-change" -> rules.setAllowChange(parseBoolean(value));
+                case "change-lock" -> rules.setChangeLockSeconds(parseNonNegativeInt(value));
+                case "runoff" -> rules.setRunoffEnabled(parseBoolean(value));
+                case "runoff-top" -> rules.setRunoffTopN(Math.max(2, parseNonNegativeInt(value)));
+                case "runoff-duration" -> {
+                    final long seconds = TimeUtil.parseDurationSeconds(value);
+                    if (seconds <= 0L) {
+                        return false;
+                    }
+                    rules.setRunoffDurationSeconds((int) Math.min(seconds, Integer.MAX_VALUE));
+                }
                 default -> {
                     return false;
                 }

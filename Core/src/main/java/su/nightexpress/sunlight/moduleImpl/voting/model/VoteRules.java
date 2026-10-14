@@ -49,6 +49,19 @@ public class VoteRules {
     private int minParticipants;
     private double passPercent = 50D;
     private boolean neutralCountsTowardTotal = true;
+    private boolean secretBallot;
+    private TieBreak tieBreak = TieBreak.FIRST;
+
+    // -- Revote ---------------------------------------------------------------------------------
+
+    private boolean allowChange = true;
+    private int changeLockSeconds;
+
+    // -- Runoff ---------------------------------------------------------------------------------
+
+    private boolean runoffEnabled;
+    private int runoffTopN = 2;
+    private int runoffDurationSeconds = 86400;
 
     public static VoteRules defaults() {
         return new VoteRules();
@@ -285,6 +298,62 @@ public class VoteRules {
         this.neutralCountsTowardTotal = neutralCountsTowardTotal;
     }
 
+    public boolean isSecretBallot() {
+        return this.secretBallot;
+    }
+
+    public void setSecretBallot(final boolean secretBallot) {
+        this.secretBallot = secretBallot;
+    }
+
+    public TieBreak getTieBreak() {
+        return this.tieBreak;
+    }
+
+    public void setTieBreak(final TieBreak tieBreak) {
+        this.tieBreak = tieBreak == null ? TieBreak.FIRST : tieBreak;
+    }
+
+    public boolean isAllowChange() {
+        return this.allowChange;
+    }
+
+    public void setAllowChange(final boolean allowChange) {
+        this.allowChange = allowChange;
+    }
+
+    public int getChangeLockSeconds() {
+        return this.changeLockSeconds;
+    }
+
+    public void setChangeLockSeconds(final int changeLockSeconds) {
+        this.changeLockSeconds = Math.max(0, changeLockSeconds);
+    }
+
+    public boolean isRunoffEnabled() {
+        return this.runoffEnabled;
+    }
+
+    public void setRunoffEnabled(final boolean runoffEnabled) {
+        this.runoffEnabled = runoffEnabled;
+    }
+
+    public int getRunoffTopN() {
+        return this.runoffTopN;
+    }
+
+    public void setRunoffTopN(final int runoffTopN) {
+        this.runoffTopN = Math.max(2, runoffTopN);
+    }
+
+    public int getRunoffDurationSeconds() {
+        return this.runoffDurationSeconds;
+    }
+
+    public void setRunoffDurationSeconds(final int runoffDurationSeconds) {
+        this.runoffDurationSeconds = Math.max(1, runoffDurationSeconds);
+    }
+
     /**
      * @return a detached copy, used when a poll is cloned from the server-wide defaults.
      */
@@ -310,6 +379,13 @@ public class VoteRules {
         copy.minParticipants = this.minParticipants;
         copy.passPercent = this.passPercent;
         copy.neutralCountsTowardTotal = this.neutralCountsTowardTotal;
+        copy.secretBallot = this.secretBallot;
+        copy.tieBreak = this.tieBreak;
+        copy.allowChange = this.allowChange;
+        copy.changeLockSeconds = this.changeLockSeconds;
+        copy.runoffEnabled = this.runoffEnabled;
+        copy.runoffTopN = this.runoffTopN;
+        copy.runoffDurationSeconds = this.runoffDurationSeconds;
         return copy;
     }
 }

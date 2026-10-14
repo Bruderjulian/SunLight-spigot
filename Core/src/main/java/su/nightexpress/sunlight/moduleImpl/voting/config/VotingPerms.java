@@ -12,6 +12,7 @@ public class VotingPerms {
     public static final String COMMAND_VIEW   = COMMAND + ".view";
     public static final String COMMAND_VOTE   = COMMAND + ".vote";
     public static final String COMMAND_MY     = COMMAND + ".myvotes";
+    public static final String COMMAND_HISTORY = COMMAND + ".history";
 
     // Staff-facing.
 
@@ -23,6 +24,10 @@ public class VotingPerms {
     public static final String COMMAND_INFO    = COMMAND + ".info";
     public static final String COMMAND_ALL     = COMMAND + ".all";
     public static final String COMMAND_BROADCAST = COMMAND + ".broadcast";
+    public static final String COMMAND_CLONE   = COMMAND + ".clone";
+    public static final String COMMAND_RENAME  = COMMAND + ".rename";
+    public static final String COMMAND_DESCRIBE = COMMAND + ".describe";
+    public static final String COMMAND_START   = COMMAND + ".start";
 
     public static final String COMMAND_OPTION_ADD    = COMMAND + ".option.add";
     public static final String COMMAND_OPTION_REMOVE = COMMAND + ".option.remove";

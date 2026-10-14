@@ -14,6 +14,7 @@ import su.nightexpress.sunlight.moduleImpl.voting.model.GateType;
 import su.nightexpress.sunlight.moduleImpl.voting.model.MoneyMode;
 import su.nightexpress.sunlight.moduleImpl.voting.model.MultiplierTable;
 import su.nightexpress.sunlight.moduleImpl.voting.model.OverMaxMode;
+import su.nightexpress.sunlight.moduleImpl.voting.model.TieBreak;
 import su.nightexpress.sunlight.moduleImpl.voting.model.VoteOption;
 import su.nightexpress.sunlight.moduleImpl.voting.model.WeightCombine;
 import su.nightexpress.sunlight.moduleImpl.voting.model.WeightSource;
@@ -317,6 +318,59 @@ public class VotingSettings extends AbstractConfig {
             "Neutral voters count as participants either way."
     );
 
+    public final ConfigProperty<Boolean> secretBallot = this.addProperty(ConfigTypes.BOOLEAN,
+            "Voting.Resolution.Secret-Ballot",
+            false,
+            "When true, new votes hide live counts until they conclude.",
+            "Finished polls always reveal their result."
+    );
+
+    public final ConfigProperty<TieBreak> tieBreak = this.addProperty(ConfigTypes.forEnum(TieBreak.class),
+            "Voting.Resolution.Tie-Break",
+            TieBreak.FIRST,
+            "What a tied result means.",
+            "FIRST  - lowest choice key wins, always the same winner.",
+            "FAIL   - a tie counts as no winner, like nothing passed.",
+            "RANDOM - a random choice among the tied leaders wins."
+    );
+
+    // -- Revote ---------------------------------------------------------------------------------
+
+    public final ConfigProperty<Boolean> allowChange = this.addProperty(ConfigTypes.BOOLEAN,
+            "Voting.Revote.Allow-Change",
+            true,
+            "When true, new votes let players change or withdraw their vote.",
+            "When false, the first cast is final until the vote concludes."
+    );
+
+    public final ConfigProperty<Integer> changeLockSeconds = this.addProperty(ConfigTypes.INT,
+            "Voting.Revote.Change-Lock-Seconds",
+            0,
+            "Seconds before the end during which changes and withdrawals are refused.",
+            "Use 0 to allow changes until the vote closes."
+    );
+
+    // -- Runoff ---------------------------------------------------------------------------------
+
+    public final ConfigProperty<Boolean> runoffEnabled = this.addProperty(ConfigTypes.BOOLEAN,
+            "Voting.Runoff.Enabled",
+            false,
+            "When true, a failed vote re-runs its strongest choices as a new vote.",
+            "Only triggers when no choice reached the pass share."
+    );
+
+    public final ConfigProperty<Integer> runoffTopN = this.addProperty(ConfigTypes.INT,
+            "Voting.Runoff.Top-N",
+            2,
+            "How many of the strongest choices the runoff carries over."
+    );
+
+    public final ConfigProperty<Integer> runoffDurationSeconds = this.addProperty(ConfigTypes.INT,
+            "Voting.Runoff.Duration-Seconds",
+            86400,
+            "How long (in seconds) a runoff vote stays open."
+    );
+
     // -- Outcomes ---------------------------------------------------------------------------------
 
     public final ConfigProperty<List<String>> commandsOnPass = this.addProperty(ConfigTypes.STRING_LIST,
@@ -342,6 +396,21 @@ public class VotingSettings extends AbstractConfig {
             "paid on cancel has to be able to tell them apart."
     );
 
+    public final ConfigProperty<List<String>> commandsOnVote = this.addProperty(ConfigTypes.STRING_LIST,
+            "Voting.Outcomes.Commands.On-Vote",
+            List.of(),
+            "Console commands run each time a player casts a vote.",
+            "Withdrawals do not run them. Placeholders: %player_name%, %vote_name%, %vote_key%,",
+            "%option%, %option_key%, %score%, %count%."
+    );
+
+    public final ConfigProperty<List<String>> commandsOnRunoff = this.addProperty(ConfigTypes.STRING_LIST,
+            "Voting.Outcomes.Commands.On-Runoff",
+            List.of(),
+            "Console commands run when a failed vote spawns its runoff.",
+            "Placeholders: %vote_name%, %vote_key% of the new runoff vote."
+    );
+
     // -- Notifications ----------------------------------------------------------------------------
 
     public final ConfigProperty<Boolean> announceOnCreate = this.addProperty(ConfigTypes.BOOLEAN,
@@ -361,6 +430,25 @@ public class VotingSettings extends AbstractConfig {
             "Voting.Notify.On-Result",
             true,
             "When true, the result of a finished vote is announced to the whole server."
+    );
+
+    public final ConfigProperty<Integer> remindSeconds = this.addProperty(ConfigTypes.INT,
+            "Voting.Notify.Remind-Seconds",
+            0,
+            "How often (in seconds) to re-announce open votes.",
+            "Use 0 to never remind. Only players who have not voted yet are reminded."
+    );
+
+    public final ConfigProperty<Boolean> notifyOnJoin = this.addProperty(ConfigTypes.BOOLEAN,
+            "Voting.Notify.On-Join",
+            true,
+            "When true, players are told about open votes they have not voted in yet when they join."
+    );
+
+    public final ConfigProperty<Boolean> notifyScheduled = this.addProperty(ConfigTypes.BOOLEAN,
+            "Voting.Notify.On-Scheduled-Start",
+            true,
+            "When true, a scheduled vote announces itself once it opens."
     );
 
     // -- Command helpers --------------------------------------------------------------------------

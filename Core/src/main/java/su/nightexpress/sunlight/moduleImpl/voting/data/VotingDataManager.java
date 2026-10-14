@@ -41,9 +41,11 @@ public class VotingDataManager {
     public static final Column<UUID> COLUMN_VOTE_ID       = Column.uuidType("voteId").primaryKey().build();
     public static final Column<String> COLUMN_VOTE_KEY     = Column.stringType("voteKey", 64).build();
     public static final Column<String> COLUMN_DISPLAY      = Column.stringType("display", 128).build();
+    public static final Column<String> COLUMN_DESCRIPTION = Column.stringType("description", 512).nullable().build();
     public static final Column<UUID>   COLUMN_CREATOR_ID   = Column.uuidType("creatorId").nullable().build();
     public static final Column<String> COLUMN_CREATOR_NAME = Column.stringType("creatorName", 64).nullable().build();
     public static final Column<Long>   COLUMN_CREATE_DATE  = Column.longType("createDate").build();
+    public static final Column<Long>   COLUMN_START_DATE   = Column.longType("startDate").build();
     public static final Column<Long>   COLUMN_END_DATE     = Column.longType("endDate").build();
     public static final Column<String> COLUMN_STATUS       = Column.stringType("status", 16).build();
     public static final Column<String> COLUMN_OUTCOME      = Column.stringType("outcome", 64).nullable().build();
@@ -69,6 +71,13 @@ public class VotingDataManager {
     public static final Column<Integer> COLUMN_RULE_MIN_PART    = Column.intType("minParticipants").build();
     public static final Column<Double>  COLUMN_RULE_PASS_PCT    = Column.doubleType("passPercent").build();
     public static final Column<Boolean> COLUMN_RULE_NEUTRAL     = Column.booleanType("neutralCounts").build();
+    public static final Column<Boolean> COLUMN_RULE_SECRET      = Column.booleanType("secretBallot").build();
+    public static final Column<String>  COLUMN_RULE_TIE_BREAK   = Column.stringType("tieBreak", 16).build();
+    public static final Column<Boolean> COLUMN_RULE_ALLOW_CHANGE = Column.booleanType("allowChange").build();
+    public static final Column<Integer> COLUMN_RULE_CHANGE_LOCK = Column.intType("changeLockSeconds").build();
+    public static final Column<Boolean> COLUMN_RULE_RUNOFF      = Column.booleanType("runoffEnabled").build();
+    public static final Column<Integer> COLUMN_RULE_RUNOFF_TOP  = Column.intType("runoffTopN").build();
+    public static final Column<Integer> COLUMN_RULE_RUNOFF_DUR  = Column.intType("runoffDuration").build();
 
     // -- vote options -----------------------------------------------------------------------------
 
@@ -118,13 +127,15 @@ public class VotingDataManager {
     public void init(final String tablePrefix) {
         this.tableVotes = Table.builder(tablePrefix + "_votes")
                 .withColumn(
-                        COLUMN_VOTE_ID, COLUMN_VOTE_KEY, COLUMN_DISPLAY, COLUMN_CREATOR_ID, COLUMN_CREATOR_NAME,
-                        COLUMN_CREATE_DATE, COLUMN_END_DATE, COLUMN_STATUS, COLUMN_OUTCOME, COLUMN_CONCLUDE_DATE,
+                        COLUMN_VOTE_ID, COLUMN_VOTE_KEY, COLUMN_DISPLAY, COLUMN_DESCRIPTION, COLUMN_CREATOR_ID, COLUMN_CREATOR_NAME,
+                        COLUMN_CREATE_DATE, COLUMN_START_DATE, COLUMN_END_DATE, COLUMN_STATUS, COLUMN_OUTCOME, COLUMN_CONCLUDE_DATE,
                         COLUMN_RULE_MULTI_VOTE, COLUMN_RULE_MAX_VOTES, COLUMN_RULE_MIN_PLAYTIME, COLUMN_RULE_WORLD_MODE,
                         COLUMN_RULE_WORLDS, COLUMN_RULE_MONEY_MODE, COLUMN_RULE_MIN_BALANCE, COLUMN_RULE_MAX_BALANCE,
                         COLUMN_RULE_OVER_MAX, COLUMN_RULE_CURRENCY_W, COLUMN_RULE_MAX_MONEY_W, COLUMN_RULE_WEIGHTED,
                         COLUMN_RULE_W_SOURCE, COLUMN_RULE_W_COMBINE, COLUMN_RULE_BASE_W, COLUMN_RULE_MAX_MULT,
-                        COLUMN_RULE_MAX_WEIGHT, COLUMN_RULE_MIN_PART, COLUMN_RULE_PASS_PCT, COLUMN_RULE_NEUTRAL)
+                        COLUMN_RULE_MAX_WEIGHT, COLUMN_RULE_MIN_PART, COLUMN_RULE_PASS_PCT, COLUMN_RULE_NEUTRAL,
+                        COLUMN_RULE_SECRET, COLUMN_RULE_TIE_BREAK, COLUMN_RULE_ALLOW_CHANGE, COLUMN_RULE_CHANGE_LOCK,
+                        COLUMN_RULE_RUNOFF, COLUMN_RULE_RUNOFF_TOP, COLUMN_RULE_RUNOFF_DUR)
                 .build();
 
         this.tableOptions = Table.builder(tablePrefix + "_vote_options")

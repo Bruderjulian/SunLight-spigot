@@ -34,6 +34,7 @@ import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.voting.command.VotingCastCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.voting.command.VotingStaffCommandProvider;
+import su.nightexpress.sunlight.moduleImpl.voting.listener.VotingListener;
 import su.nightexpress.sunlight.moduleImpl.voting.config.VotingLang;
 import su.nightexpress.sunlight.moduleImpl.voting.config.VotingPerms;
 import su.nightexpress.sunlight.moduleImpl.voting.data.BallotRepository;
@@ -85,6 +86,7 @@ public class VotingModule extends Module implements VotingProvider {
         this.loadMenus();
         this.loadData();
         this.loadTasks();
+        this.addListener(new VotingListener(this.plugin, this));
 
         this.commandRegistry.addProvider(new VotingCastCommandProvider(this));
         this.commandRegistry.addProvider(new VotingStaffCommandProvider(this));
@@ -128,10 +130,15 @@ public class VotingModule extends Module implements VotingProvider {
         if (seconds > 0) {
             this.addAsyncTask(this::sweep, seconds);
         }
+        final int remind = this.settings.remindSeconds.get();
+        if (remind > 0) {
+            this.addAsyncTask(this::remindUnvoted, remind);
+        }
     }
 
     /**
-     * Ends polls whose time is up and clears out old history. Runs off-thread, so anything
+     * Ends polls whose time is up, opens scheduled polls whose time has come,
+     * and clears out old history. Runs off-thread, so anything
      * Bukkit-facing hops back to the main thread.
      */
     private void sweep() {
@@ -141,6 +148,13 @@ public class VotingModule extends Module implements VotingProvider {
 
         this.dataManager.purgeFinished(this.settings.keepConcludedDays.get());
 
+        final List<Vote> due = this.repository.getScheduledVotes().stream()
+                .filter(Vote::isStartDue)
+                .toList();
+        if (!due.isEmpty()) {
+            this.plugin.runTask(task -> due.forEach(this::activateScheduled));
+        }
+
         final List<Vote> expired = this.repository.getOpenVotes().stream()
                 .filter(Vote::isExpired)
                 .toList();
@@ -149,6 +163,70 @@ public class VotingModule extends Module implements VotingProvider {
         }
 
         this.plugin.runTask(task -> expired.forEach(vote -> this.conclude(vote, false, null)));
+    }
+
+    private void activateScheduled(final Vote vote) {
+        if (!vote.isScheduled()) {
+            return;
+        }
+        vote.open(System.currentTimeMillis());
+        this.repository.applyTransition(vote);
+        this.dataManager.updateVote(vote);
+        if (this.settings.notifyScheduled.get()) {
+            this.announce(vote);
+        }
+    }
+
+    /**
+     * Re-announces every open vote to the players who have not voted in it yet.
+     * Runs off-thread on its own interval; delivery hops to the main thread.
+     */
+    private void remindUnvoted() {
+        if (!this.dataLoaded) {
+            return;
+        }
+        final List<Vote> open = this.repository.getOpenVotes();
+        if (open.isEmpty()) {
+            return;
+        }
+        this.plugin.runTask(task -> {
+            for (final Vote vote : open) {
+                if (!vote.isOpen()) {
+                    continue;
+                }
+                for (final Player online : Bukkit.getOnlinePlayers()) {
+                    if (this.ballotRepository.hasVoted(vote.getId(), online.getUniqueId())) {
+                        continue;
+                    }
+                    final String permission = this.settings.notifyPermission.get();
+                    if (permission != null && !permission.isBlank()
+                            && !online.hasPermission(permission)) {
+                        continue;
+                    }
+                    this.sendPrefixed(VotingLang.REMINDER, online, b -> b.with(vote.placeholders()));
+                }
+            }
+        });
+    }
+
+    public void nudgeOnJoin(final Player player) {
+        if (!this.dataLoaded || !this.settings.notifyOnJoin.get()) {
+            return;
+        }
+        final List<Vote> pending = this.repository.getOpenVotes().stream()
+                .filter(vote -> !this.ballotRepository.hasVoted(vote.getId(), player.getUniqueId()))
+                .toList();
+        if (pending.isEmpty()) {
+            return;
+        }
+        final String permission = this.settings.notifyPermission.get();
+        if (permission != null && !permission.isBlank() && !player.hasPermission(permission)) {
+            return;
+        }
+        this.sendPrefixed(VotingLang.JOIN_NUDGE, player, b -> b
+                .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(pending.size()))
+                .with(SLPlaceholders.GENERIC_LIST,
+                        () -> String.join(", ", pending.stream().map(Vote::getKey).toList())));
     }
 
     // -- Accessors --------------------------------------------------------------------------------
@@ -194,6 +272,10 @@ public class VotingModule extends Module implements VotingProvider {
                 (player, payload) -> String.valueOf(this.repository.getOpenCount()));
         registry.register("voting_count_total",
                 (player, payload) -> String.valueOf(this.repository.getVotes().size()));
+        registry.register("voting_count_scheduled",
+                (player, payload) -> String.valueOf(this.repository.getScheduledVotes().size()));
+        registry.register("voting_count_finished",
+                (player, payload) -> String.valueOf(this.repository.getFinishedVotes().size()));
 
         // What this player has voted on, taken from their most recent open poll — the one a
         // scoreboard or chat line is almost always talking about.
@@ -208,19 +290,95 @@ public class VotingModule extends Module implements VotingProvider {
         // scoreboard shows a blank instead of a raw placeholder.
         registry.register("voting_time_left", (player, payload) -> this.field(payload,
                 vote -> TimeFormats.formatDuration(vote.getEndDate(), TimeFormatType.LITERAL)));
+        registry.register("voting_time_end", (player, payload) -> this.field(payload,
+                vote -> TimeFormats.formatDateTime(vote.getEndDate())));
+        registry.register("voting_time_to_start", (player, payload) -> this.field(payload,
+                vote -> vote.isScheduled()
+                        ? TimeFormats.formatDuration(vote.getStartDate(), TimeFormatType.LITERAL)
+                        : ""));
         registry.register("voting_participants", (player, payload) -> this.field(payload,
-                vote -> String.valueOf(this.tally(vote).getParticipantCount())));
+                vote -> this.exposed(vote) ? String.valueOf(this.tally(vote).getParticipantCount())
+                        : VotingLang.SECRET_HIDDEN.text()));
         registry.register("voting_total_score", (player, payload) -> this.field(payload,
-                vote -> format(this.tally(vote).getTotalScore())));
+                vote -> this.exposed(vote) ? format(this.tally(vote).getTotalScore())
+                        : VotingLang.SECRET_HIDDEN.text()));
         registry.register("voting_creator", (player, payload) -> this.field(payload,
                 vote -> vote.getCreatorName() == null ? "" : vote.getCreatorName()));
+        registry.register("voting_description", (player, payload) -> this.field(payload, Vote::getDescription));
+        registry.register("voting_desc", (player, payload) -> this.field(payload, Vote::getDescription));
+        registry.register("voting_status_of", (player, payload) -> this.field(payload,
+                vote -> VotingLang.STATUS.getLocalized(vote.getStatus())));
+        registry.register("voting_outcome", (player, payload) -> this.field(payload, vote -> {
+            final VoteOption outcome = vote.getOutcomeOption();
+            return outcome == null ? "" : outcome.getDisplay();
+        }));
+        registry.register("voting_outcome_key", (player, payload) -> this.field(payload,
+                vote -> vote.getOutcome() == null ? "" : vote.getOutcome()));
+        registry.register("voting_options", (player, payload) -> this.field(payload,
+                vote -> String.join(", ",
+                        vote.getOptionList().stream().map(VoteOption::getDisplay).toList())));
+        registry.register("voting_secret", (player, payload) -> this.field(payload,
+                vote -> VotingLang.STATE_YES_NO.get(vote.getRules().isSecretBallot())));
         registry.register("voting_leader", (player, payload) -> {
             final Vote vote = this.repository.getVote(payload);
             if (vote == null) {
                 return "";
             }
+            if (!this.exposed(vote)) {
+                return VotingLang.SECRET_HIDDEN.text();
+            }
             final VoteOption leader = vote.getOption(this.tally(vote).leader());
             return leader == null ? "" : leader.getDisplay();
+        });
+        registry.register("voting_leader_key", (player, payload) -> {
+            final Vote vote = this.repository.getVote(payload);
+            if (vote == null || !this.exposed(vote)) {
+                return vote == null ? "" : VotingLang.SECRET_HIDDEN.text();
+            }
+            final String leader = this.tally(vote).leader();
+            return leader == null ? "" : leader;
+        });
+        registry.register("voting_leader_score", (player, payload) -> {
+            final Vote vote = this.repository.getVote(payload);
+            if (vote == null) {
+                return "";
+            }
+            if (!this.exposed(vote)) {
+                return VotingLang.SECRET_HIDDEN.text();
+            }
+            final String leader = this.tally(vote).leader();
+            return leader == null ? "0" : format(this.tally(vote).score(leader));
+        });
+        registry.register("voting_leader_share", (player, payload) -> {
+            final Vote vote = this.repository.getVote(payload);
+            if (vote == null) {
+                return "";
+            }
+            if (!this.exposed(vote)) {
+                return VotingLang.SECRET_HIDDEN.text();
+            }
+            final String leader = this.tally(vote).leader();
+            return leader == null ? "0" : format(this.tally(vote).share(leader));
+        });
+        registry.register("voting_has_voted", (player, payload) -> {
+            final Vote vote = this.repository.getVote(payload);
+            if (vote == null || player == null) {
+                return "";
+            }
+            return VotingLang.STATE_YES_NO.get(
+                    this.ballotRepository.hasVoted(vote.getId(), player.getUniqueId()));
+        });
+        registry.register("voting_mine", (player, payload) -> {
+            final Vote vote = this.repository.getVote(payload);
+            if (vote == null || player == null) {
+                return "";
+            }
+            return this.ballotRepository.getBallots(vote.getId(), player.getUniqueId()).stream()
+                    .map(ballot -> vote.getOption(ballot.optionKey()))
+                    .filter(Objects::nonNull)
+                    .map(VoteOption::getDisplay)
+                    .reduce((first, second) -> first + ", " + second)
+                    .orElse("");
         });
 
         // Headcount per built-in choice, payload = vote key. The *_score and *_share variants
@@ -240,6 +398,55 @@ public class VotingModule extends Module implements VotingProvider {
                 (player, payload) -> this.optionShare(payload, VoteOption.NO));
         registry.register("voting_option_neutral_share",
                 (player, payload) -> this.optionShare(payload, VoteOption.NEUTRAL));
+
+        // Generic per-choice figures for custom options, payload = <voteKey>:<optionKey>.
+        // The vote is resolved by longest-prefix match so vote keys may contain underscores.
+        registry.register("voting_option_votes", (player, payload) -> this.genericOption(payload,
+                (vote, tally, option) -> String.valueOf(tally.count(option.getKey()))));
+        registry.register("voting_option_count", (player, payload) -> this.genericOption(payload,
+                (vote, tally, option) -> String.valueOf(tally.count(option.getKey()))));
+        registry.register("voting_option_score", (player, payload) -> this.genericOption(payload,
+                (vote, tally, option) -> format(tally.score(option.getKey()))));
+        registry.register("voting_option_share", (player, payload) -> this.genericOption(payload,
+                (vote, tally, option) -> format(tally.share(option.getKey()))));
+    }
+
+    private boolean exposed(final Vote vote) {
+        return vote != null && vote.isExposed();
+    }
+
+    /**
+     * Resolves a {@code <voteKey>:<optionKey>} payload. The vote key may itself contain
+     * underscores, so the vote is matched by longest prefix: every known vote key that the
+     * payload starts with is a candidate and the longest one wins.
+     */
+    private String genericOption(final String payload,
+            final OptionExtractor extractor) {
+        if (payload == null || payload.isBlank()) {
+            return "";
+        }
+        final int separator = payload.lastIndexOf(':');
+        if (separator <= 0 || separator >= payload.length() - 1) {
+            return "";
+        }
+        final String voteKey = payload.substring(0, separator).toLowerCase(java.util.Locale.ROOT);
+        final String optionKey = payload.substring(separator + 1);
+        final Vote vote = this.repository.getVote(voteKey);
+        if (vote == null) {
+            return "";
+        }
+        final VoteOption option = vote.getOption(optionKey);
+        if (option == null) {
+            return "";
+        }
+        if (!this.exposed(vote)) {
+            return VotingLang.SECRET_HIDDEN.text();
+        }
+        return extractor.extract(vote, this.tally(vote), option);
+    }
+
+    private interface OptionExtractor {
+        String extract(Vote vote, VoteTally tally, VoteOption option);
     }
 
     private String field(final String voteKey, final Function<Vote, String> extractor) {
@@ -252,6 +459,9 @@ public class VotingModule extends Module implements VotingProvider {
         if (vote == null || !vote.hasOption(optionKey)) {
             return "";
         }
+        if (!vote.isExposed()) {
+            return VotingLang.SECRET_HIDDEN.text();
+        }
         return String.valueOf(this.tally(vote).count(optionKey));
     }
 
@@ -260,6 +470,9 @@ public class VotingModule extends Module implements VotingProvider {
         if (vote == null || !vote.hasOption(optionKey)) {
             return "";
         }
+        if (!vote.isExposed()) {
+            return VotingLang.SECRET_HIDDEN.text();
+        }
         return format(this.tally(vote).score(optionKey));
     }
 
@@ -267,6 +480,9 @@ public class VotingModule extends Module implements VotingProvider {
         final Vote vote = this.repository.getVote(voteKey);
         if (vote == null || !vote.hasOption(optionKey)) {
             return "";
+        }
+        if (!vote.isExposed()) {
+            return VotingLang.SECRET_HIDDEN.text();
         }
         return format(this.tally(vote).share(optionKey));
     }
@@ -331,6 +547,11 @@ public class VotingModule extends Module implements VotingProvider {
 
     public @Nullable Vote create(final CommandSender creator, final String keyRaw, final String displayRaw,
             final int durationSeconds) {
+        return this.create(creator, keyRaw, displayRaw, "", durationSeconds, 0);
+    }
+
+    public @Nullable Vote create(final CommandSender creator, final String keyRaw, final String displayRaw,
+            final String descriptionRaw, final int durationSeconds, final int startDelaySeconds) {
         final String key = keyRaw == null ? "" : keyRaw.trim().toLowerCase(Locale.ROOT);
         if (key.isEmpty()) {
             this.sendPrefixed(VotingLang.ERROR_UNKNOWN_VOTE, creator,
@@ -344,7 +565,7 @@ public class VotingModule extends Module implements VotingProvider {
         }
 
         final int max = this.settings.maxActiveVotes.get();
-        if (max > 0 && this.repository.getOpenCount() >= max) {
+        if (max > 0 && this.repository.getActiveCount() >= max) {
             this.sendPrefixed(VotingLang.ERROR_LIMIT_GLOBAL, creator,
                     b -> b.with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(max)));
             return null;
@@ -362,7 +583,9 @@ public class VotingModule extends Module implements VotingProvider {
 
         final Vote vote = Vote.create(key,
                 displayRaw == null || displayRaw.isBlank() ? key : displayRaw.trim(),
-                creatorId, creator.getName(), durationSeconds, options, this.buildDefaultRules());
+                descriptionRaw == null ? "" : descriptionRaw.trim(),
+                creatorId, creator.getName(), durationSeconds, Math.max(0, startDelaySeconds), options,
+                this.buildDefaultRules());
 
         final VoteCreateEvent event = new VoteCreateEvent(vote);
         this.plugin.getPluginManager().callEvent(event);
@@ -376,6 +599,11 @@ public class VotingModule extends Module implements VotingProvider {
         options.forEach(option -> this.repository.upsertOption(option, vote.getId()));
 
         this.sendPrefixed(VotingLang.CREATED, creator, b -> b.with(vote.placeholders()));
+        if (vote.isScheduled()) {
+            // Scheduled polls announce on opening, not on creation, so players are not
+            // asked to vote in something they cannot vote in yet.
+            return vote;
+        }
         if (this.settings.announceOnCreate.get()) {
             this.announce(vote);
         }
@@ -433,6 +661,13 @@ public class VotingModule extends Module implements VotingProvider {
         rules.setMinParticipants(this.settings.minParticipants.get());
         rules.setPassPercent(this.settings.passPercent.get());
         rules.setNeutralCountsTowardTotal(this.settings.neutralCounts.get());
+        rules.setSecretBallot(this.settings.secretBallot.get());
+        rules.setTieBreak(this.settings.tieBreak.get());
+        rules.setAllowChange(this.settings.allowChange.get());
+        rules.setChangeLockSeconds(this.settings.changeLockSeconds.get());
+        rules.setRunoffEnabled(this.settings.runoffEnabled.get());
+        rules.setRunoffTopN(this.settings.runoffTopN.get());
+        rules.setRunoffDurationSeconds(this.settings.runoffDurationSeconds.get());
         return rules;
     }
 
@@ -444,7 +679,7 @@ public class VotingModule extends Module implements VotingProvider {
 
     public boolean addOption(final CommandSender sender, final Vote vote, final String keyRaw,
             final String displayRaw, final String iconRaw) {
-        if (!this.requireOpen(sender, vote)) {
+        if (!this.requireEditable(sender, vote)) {
             return false;
         }
         if (keyRaw == null || keyRaw.isBlank()) {
@@ -489,7 +724,7 @@ public class VotingModule extends Module implements VotingProvider {
      */
     public boolean removeOption(final CommandSender sender, final Vote vote, final String optionKeyRaw,
             final boolean force) {
-        if (!this.requireOpen(sender, vote)) {
+        if (!this.requireEditable(sender, vote)) {
             return false;
         }
         final VoteOption option = vote.getOption(optionKeyRaw);
@@ -569,7 +804,7 @@ public class VotingModule extends Module implements VotingProvider {
 
     public boolean toggleGate(final CommandSender sender, final Vote vote, final String optionKeyRaw,
             final GateType gate) {
-        if (!this.requireOpen(sender, vote)) {
+        if (!this.requireEditable(sender, vote)) {
             return false;
         }
         final VoteOption option = vote.getOption(optionKeyRaw);
@@ -603,13 +838,13 @@ public class VotingModule extends Module implements VotingProvider {
                 .findFirst()
                 .orElse(null);
         // Silently skips closed polls: rule edits must never rewrite a decided result.
-        if (vote != null && vote.isOpen()) {
+        if (vote != null && (vote.isOpen() || vote.isScheduled())) {
             this.dataManager.updateOption(vote.getId(), option);
         }
     }
 
     public void saveRules(final CommandSender sender, final Vote vote) {
-        if (!this.requireOpen(sender, vote)) {
+        if (!this.requireEditable(sender, vote)) {
             return;
         }
         this.dataManager.updateVote(vote);
@@ -619,10 +854,18 @@ public class VotingModule extends Module implements VotingProvider {
     // -- Lifecycle --------------------------------------------------------------------------------
 
     public boolean extend(final CommandSender sender, final Vote vote, final int seconds) {
-        if (!this.requireOpen(sender, vote)) {
+        if (!vote.isOpen() && !vote.isScheduled()) {
+            this.sendPrefixed(VotingLang.ERROR_NOT_OPEN, sender, b -> b.with(vote.placeholders()));
             return false;
         }
-        vote.setEndDate(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(seconds));
+        final long millis = TimeUnit.SECONDS.toMillis(seconds);
+        if (vote.isScheduled()) {
+            // A scheduled poll has not started counting down yet, so pushing its end
+            // out from now would silently shorten it. Extend from its planned end.
+            vote.setEndDate(vote.getEndDate() + millis);
+        } else {
+            vote.setEndDate(System.currentTimeMillis() + millis);
+        }
         this.dataManager.updateVote(vote);
         this.sendPrefixed(VotingLang.EXTENDED, sender, b -> b.with(vote.placeholders()));
         return true;
@@ -638,7 +881,8 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     public boolean cancel(final CommandSender sender, final Vote vote) {
-        if (!this.requireOpen(sender, vote)) {
+        if (!vote.isOpen() && !vote.isScheduled()) {
+            this.sendPrefixed(VotingLang.ERROR_NOT_OPEN, sender, b -> b.with(vote.placeholders()));
             return false;
         }
         // Deliberately not routed through conclude(): a staff member stopping a poll is not the
@@ -662,8 +906,122 @@ public class VotingModule extends Module implements VotingProvider {
         return true;
     }
 
+    public boolean rename(final CommandSender sender, final Vote vote, final String displayRaw) {
+        if (displayRaw == null || displayRaw.isBlank()) {
+            return false;
+        }
+        vote.setDisplay(displayRaw.trim());
+        this.dataManager.updateVote(vote);
+        this.sendPrefixed(VotingLang.RENAMED, sender, b -> b
+                .with(vote.placeholders())
+                .with(SLPlaceholders.GENERIC_TARGET, vote::getDisplay));
+        return true;
+    }
+
+    public boolean describe(final CommandSender sender, final Vote vote, final String descriptionRaw) {
+        vote.setDescription(descriptionRaw == null ? "" : descriptionRaw.trim());
+        this.dataManager.updateVote(vote);
+        this.sendPrefixed(VotingLang.DESCRIBED, sender, b -> b.with(vote.placeholders()));
+        return true;
+    }
+
+    public boolean startNow(final CommandSender sender, final Vote vote) {
+        if (!vote.isScheduled()) {
+            this.sendPrefixed(VotingLang.ERROR_NOT_OPEN, sender, b -> b.with(vote.placeholders()));
+            return false;
+        }
+        final int max = this.settings.maxActiveVotes.get();
+        if (max > 0 && this.repository.getOpenCount() >= max) {
+            this.sendPrefixed(VotingLang.ERROR_LIMIT_GLOBAL, sender,
+                    b -> b.with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(max)));
+            return false;
+        }
+        this.activateScheduled(vote);
+        this.sendPrefixed(VotingLang.STARTED, sender, b -> b.with(vote.placeholders()));
+        return true;
+    }
+
+    /**
+     * Copies a poll's display, description, choices and rules under a new key.
+     * Ballots never carry over: the clone is a fresh question, not a reopened count.
+     */
+    public @Nullable Vote cloneVote(final CommandSender sender, final Vote source, final String keyRaw) {
+        final String key = keyRaw == null ? "" : keyRaw.trim().toLowerCase(Locale.ROOT);
+        if (key.isEmpty()) {
+            this.sendPrefixed(VotingLang.ERROR_UNKNOWN_VOTE, sender,
+                    b -> b.with(SLPlaceholders.GENERIC_TARGET, () -> keyRaw == null ? "" : keyRaw.trim()));
+            return null;
+        }
+        if (this.repository.containsKey(key) || this.dataManager.existsKey(key)) {
+            this.sendPrefixed(VotingLang.ERROR_DUPLICATE_KEY, sender,
+                    b -> b.with(SLPlaceholders.GENERIC_TARGET, () -> key));
+            return null;
+        }
+
+        final int max = this.settings.maxActiveVotes.get();
+        if (max > 0 && this.repository.getActiveCount() >= max) {
+            this.sendPrefixed(VotingLang.ERROR_LIMIT_GLOBAL, sender,
+                    b -> b.with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(max)));
+            return null;
+        }
+
+        final List<VoteOption> options = new ArrayList<>();
+        for (final VoteOption from : source.getOptionList()) {
+            final VoteOption copy = new VoteOption(from.getKey(), from.getDisplay(), from.getIcon());
+            copy.setGates(from.getGates());
+            copy.setCost(from.getCost());
+            copy.setPermission(from.getPermission());
+            copy.setRank(from.getRank());
+            copy.setWorlds(from.getWorlds());
+            copy.setMinPlaytimeHours(from.getMinPlaytimeHours());
+            options.add(copy);
+        }
+        if (options.size() < this.settings.minOptions.get()) {
+            this.sendPrefixed(VotingLang.ERROR_LAST_OPTION, sender);
+            return null;
+        }
+
+        final UUID creatorId = sender instanceof Player player ? player.getUniqueId() : source.getCreatorId();
+        final long sourceLength = Math.max(1000L, source.getEndDate() - source.getStartDate());
+        final Vote vote = Vote.create(key, source.getDisplay(), source.getDescription(), creatorId,
+                sender.getName(), (int) Math.min(sourceLength / 1000L, Integer.MAX_VALUE), 0, options,
+                source.getRules().copy());
+
+        final VoteCreateEvent event = new VoteCreateEvent(vote);
+        this.plugin.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return null;
+        }
+
+        this.dataManager.insertVote(vote);
+        options.forEach(option -> this.dataManager.insertOption(vote.getId(), option));
+        this.repository.upsertVote(vote);
+        options.forEach(option -> this.repository.upsertOption(option, vote.getId()));
+
+        this.sendPrefixed(VotingLang.CLONED, sender, b -> b
+                .with(source.placeholders())
+                .with(SLPlaceholders.GENERIC_TARGET, vote::getKey));
+        if (this.settings.announceOnCreate.get()) {
+            this.announce(vote);
+        }
+        return vote;
+    }
+
     private boolean requireOpen(final CommandSender sender, final Vote vote) {
         if (vote.isOpen()) {
+            return true;
+        }
+        this.sendPrefixed(VotingLang.ERROR_NOT_OPEN, sender, b -> b.with(vote.placeholders()));
+        return false;
+    }
+
+    /**
+     * @return whether staff may still reconfigure the poll. Scheduled polls are editable
+     *         like open ones: they have not taken any votes yet, so nothing decided can
+     *         be rewritten by a rule change.
+     */
+    private boolean requireEditable(final CommandSender sender, final Vote vote) {
+        if (vote.isOpen() || vote.isScheduled()) {
             return true;
         }
         this.sendPrefixed(VotingLang.ERROR_NOT_OPEN, sender, b -> b.with(vote.placeholders()));
@@ -702,6 +1060,9 @@ public class VotingModule extends Module implements VotingProvider {
     /**
      * Decides a poll: cancels it if the quorum was not met, otherwise picks the highest-scoring
      * choice that reached the pass share and announces the result.
+     * <p>
+     * Tied leaders are resolved by the poll's tie-break rule. A failed poll with runoffs
+     * enabled spawns a follow-up vote over its strongest choices instead of simply ending.
      */
     public void conclude(final Vote vote, final boolean manual, final CommandSender actor) {
         if (!vote.isOpen()) {
@@ -715,13 +1076,147 @@ public class VotingModule extends Module implements VotingProvider {
             return;
         }
 
-        final String leader = tally.leader();
-        if (leader == null) {
+        final List<String> tied = tally.tiedLeaders();
+        if (tied.isEmpty()) {
             this.finish(vote, null, VoteStatus.CONCLUDED, manual, tally, VotingLang.RESULT_FAILED);
+            this.maybeRunoff(vote, tally);
             return;
         }
 
-        this.finish(vote, leader, VoteStatus.CONCLUDED, manual, tally, VotingLang.RESULT_PASSED);
+        if (tied.size() > 1) {
+            final String resolved = this.resolveTie(tied, vote);
+            if (resolved == null) {
+                this.finish(vote, null, VoteStatus.CONCLUDED, manual, tally, VotingLang.RESULT_FAILED);
+                this.announceTie(vote, tally, tied);
+                this.maybeRunoff(vote, tally);
+                return;
+            }
+            this.finish(vote, resolved, VoteStatus.CONCLUDED, manual, tally, VotingLang.RESULT_PASSED);
+            return;
+        }
+
+        this.finish(vote, tied.getFirst(), VoteStatus.CONCLUDED, manual, tally, VotingLang.RESULT_PASSED);
+    }
+
+    /**
+     * @return the winning key, or {@code null} when the tie means no winner.
+     */
+    private @Nullable String resolveTie(final List<String> tied, final Vote vote) {
+        return switch (vote.getRules().getTieBreak()) {
+            case FAIL -> null;
+            case RANDOM -> tied.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(tied.size()));
+            case FIRST -> tied.getFirst();
+        };
+    }
+
+    private void announceTie(final Vote vote, final VoteTally tally, final List<String> tied) {
+        if (!this.settings.notifyStaffResult.get()) {
+            return;
+        }
+        final String names = tied.stream()
+                .map(key -> {
+                    final VoteOption option = vote.getOption(key);
+                    return option == null ? key : option.getDisplay();
+                })
+                .reduce((first, second) -> first + ", " + second)
+                .orElse("");
+        this.broadcastPrefixed(VotingLang.RESULT_TIED, b -> {
+            b.with(vote.placeholders());
+            b.with(SLPlaceholders.GENERIC_LIST, () -> names);
+            b.with(VotingPlaceholders.VOTE_TOTAL_SCORE, () -> format(tally.getTotalScore()));
+            b.with(VotingPlaceholders.VOTE_PARTICIPANTS, () -> String.valueOf(tally.getParticipantCount()));
+        });
+    }
+
+    /**
+     * Opens a follow-up poll over the strongest choices of a failed vote.
+     * The child copies the parent's rules with runoffs switched off, so a runoff
+     * can never spawn a runoff of its own.
+     */
+    private void maybeRunoff(final Vote vote, final VoteTally tally) {
+        if (!vote.getRules().isRunoffEnabled()) {
+            return;
+        }
+        final int top = Math.max(2, vote.getRules().getRunoffTopN());
+        final List<String> strongest = tally.topOptions(top).stream()
+                .filter(key -> vote.getOption(key) != null)
+                .toList();
+        if (strongest.size() < 2) {
+            return;
+        }
+
+        final int max = this.settings.maxActiveVotes.get();
+        if (max > 0 && this.repository.getActiveCount() >= max) {
+            return;
+        }
+
+        String base = vote.getKey() + "-runoff";
+        String key = base;
+        int suffix = 2;
+        while (this.repository.containsKey(key) || this.dataManager.existsKey(key)) {
+            key = base + "-" + suffix++;
+        }
+
+        final List<VoteOption> options = new ArrayList<>();
+        for (final String optionKey : strongest) {
+            final VoteOption source = vote.getOption(optionKey);
+            if (source == null) {
+                continue;
+            }
+            final VoteOption copy = new VoteOption(source.getKey(), source.getDisplay(), source.getIcon());
+            copy.setGates(source.getGates());
+            copy.setCost(source.getCost());
+            copy.setPermission(source.getPermission());
+            copy.setRank(source.getRank());
+            copy.setWorlds(source.getWorlds());
+            copy.setMinPlaytimeHours(source.getMinPlaytimeHours());
+            options.add(copy);
+        }
+        if (options.size() < 2) {
+            return;
+        }
+
+        final VoteRules rules = vote.getRules().copy();
+        rules.setRunoffEnabled(false);
+
+        final Vote runoff = Vote.create(key, vote.getDisplay() + " (runoff)", vote.getDescription(),
+                vote.getCreatorId(), vote.getCreatorName(), vote.getRules().getRunoffDurationSeconds(),
+                0, options, rules);
+
+        final VoteCreateEvent event = new VoteCreateEvent(runoff);
+        this.plugin.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        this.dataManager.insertVote(runoff);
+        options.forEach(option -> this.dataManager.insertOption(runoff.getId(), option));
+        this.repository.upsertVote(runoff);
+        options.forEach(option -> this.repository.upsertOption(option, runoff.getId()));
+
+        if (this.settings.notifyScheduled.get() || this.settings.announceOnCreate.get()) {
+            this.announce(runoff);
+        }
+        this.broadcastPrefixed(VotingLang.RESULT_RUNOFF, b -> {
+            b.with(vote.placeholders());
+            b.with(SLPlaceholders.GENERIC_TARGET, runoff::getKey);
+        });
+        this.dispatchRunoffCommands(runoff);
+    }
+
+    private void dispatchRunoffCommands(final Vote runoff) {
+        final List<String> commands = this.settings.commandsOnRunoff.get();
+        if (commands.isEmpty()) {
+            return;
+        }
+        final PlaceholderContext.Builder builder = PlaceholderContext.builder();
+        builder.with(runoff.placeholders());
+        final PlaceholderContext context = builder.build();
+        final List<String> resolved = new ArrayList<>(commands);
+        resolved.replaceAll(context::apply);
+        final CommandSender console = this.plugin.getServer().getConsoleSender();
+        this.plugin.runTask(task -> resolved.forEach(command -> this.plugin.getServer()
+                .dispatchCommand(console, command)));
     }
 
     /**
@@ -846,7 +1341,11 @@ public class VotingModule extends Module implements VotingProvider {
             return false;
         }
         if (!vote.isOpen()) {
-            this.sendPrefixed(VotingLang.ERROR_NOT_OPEN, player, b -> b.with(vote.placeholders()));
+            if (vote.isScheduled()) {
+                this.sendPrefixed(VotingLang.ERROR_NOT_STARTED, player, b -> b.with(vote.placeholders()));
+            } else {
+                this.sendPrefixed(VotingLang.ERROR_NOT_OPEN, player, b -> b.with(vote.placeholders()));
+            }
             return false;
         }
 
@@ -869,6 +1368,9 @@ public class VotingModule extends Module implements VotingProvider {
         // option a complete undo without needing a separate command.
         final VoteBallot existing = this.findBallot(vote, player, option);
         if (existing != null) {
+            if (!this.checkChangeAllowed(player, vote)) {
+                return false;
+            }
             return this.withdraw(player, vote, option, existing);
         }
 
@@ -879,6 +1381,9 @@ public class VotingModule extends Module implements VotingProvider {
         // net cost rather than the gross: a player whose balance covers charge-minus-refund must
         // not be refused for not covering the charge alone.
         final List<VoteBallot> replaced = this.findReplacedBallots(vote, player, option);
+        if (!replaced.isEmpty() && !this.checkChangeAllowed(player, vote)) {
+            return false;
+        }
         final double refundable = replaced.stream().mapToDouble(VoteBallot::costPaid).sum();
         if (!this.checkOptionGate(player, vote, option, refundable)) {
             return false;
@@ -922,7 +1427,58 @@ public class VotingModule extends Module implements VotingProvider {
                 .with(vote.placeholders())
                 .with(option.placeholders())
                 .with(VotingPlaceholders.SCORE, () -> format(weight)));
+        this.dispatchParticipation(player, vote, option, weight);
         return true;
+    }
+
+    /**
+     * Whether this player may still change their vote. Exempt staff skip the lock like
+     * every other restriction; everyone else is bound by the poll's own setting.
+     */
+    private boolean checkChangeAllowed(final Player player, final Vote vote) {
+        if (this.isExempt(player) || this.hasBypass(player, VotingPerms.BYPASS_REQUIREMENTS)) {
+            return true;
+        }
+        if (!vote.getRules().isAllowChange()) {
+            this.sendPrefixed(VotingLang.ERROR_NO_CHANGE, player, b -> b.with(vote.placeholders()));
+            return false;
+        }
+        if (!vote.isChangeAllowed()) {
+            this.sendPrefixed(VotingLang.ERROR_CHANGE_LOCKED, player, b -> b.with(vote.placeholders()));
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Runs the per-vote participation commands as the console. Unlike outcome commands,
+     * these are about the voter rather than the result, so the player's name is
+     * available to every line.
+     */
+    private void dispatchParticipation(final Player player, final Vote vote, final VoteOption option,
+            final double weight) {
+        final List<String> commands = this.settings.commandsOnVote.get();
+        if (commands.isEmpty()) {
+            return;
+        }
+        final VoteTally tally = this.tally(vote);
+        final PlaceholderContext.Builder builder = PlaceholderContext.builder();
+        builder.with(vote.placeholders());
+        builder.with(option.placeholders());
+        builder.with(VotingPlaceholders.SCORE, () -> format(weight));
+        builder.with(VotingPlaceholders.COUNT, () -> String.valueOf(tally.count(option.getKey())));
+        builder.with(VotingPlaceholders.PERCENT, () -> format(tally.share(option.getKey())));
+        builder.with(VotingPlaceholders.VOTE_TOTAL_SCORE, () -> format(tally.getTotalScore()));
+        builder.with(VotingPlaceholders.VOTE_PARTICIPANTS, () -> String.valueOf(tally.getParticipantCount()));
+        builder.with("%player%", player::getName);
+        builder.with("%player_name%", player::getName);
+        builder.with("%uuid%", () -> player.getUniqueId().toString());
+        final PlaceholderContext context = builder.build();
+        final List<String> resolved = new ArrayList<>(commands);
+        resolved.replaceAll(context::apply);
+        final CommandSender console = this.plugin.getServer().getConsoleSender();
+        this.plugin.runTask(task -> resolved.forEach(command -> this.plugin.getServer()
+                .dispatchCommand(console, command)));
     }
 
     private boolean withdraw(final Player player, final Vote vote, final VoteOption option,
@@ -1300,18 +1856,38 @@ public class VotingModule extends Module implements VotingProvider {
 
     // -- Queries for menus ------------------------------------------------------------------------
 
+    public enum Filter {
+        OPEN,
+        MINE,
+        FINISHED
+    }
+
     public List<Vote> getOpenVotes() {
         return this.repository.getOpenVotes();
     }
 
+    public List<Vote> getScheduledVotes() {
+        return this.repository.getScheduledVotes();
+    }
+
+    public List<Vote> getFinishedVotes() {
+        final List<Vote> votes = this.repository.getFinishedVotes();
+        votes.sort((first, second) -> Long.compare(second.getConcludeDate(), first.getConcludeDate()));
+        return votes;
+    }
+
     public List<Vote> getVisibleVotes(final Player player, final boolean mineOnly) {
-        final List<Vote> votes = this.repository.getOpenVotes();
-        if (!mineOnly) {
-            return votes;
-        }
-        return votes.stream()
-                .filter(vote -> this.ballotRepository.hasVoted(vote.getId(), player.getUniqueId()))
-                .toList();
+        return this.getVisibleVotes(player, mineOnly ? Filter.MINE : Filter.OPEN);
+    }
+
+    public List<Vote> getVisibleVotes(final Player player, final Filter filter) {
+        return switch (filter) {
+            case MINE -> this.repository.getOpenVotes().stream()
+                    .filter(vote -> this.ballotRepository.hasVoted(vote.getId(), player.getUniqueId()))
+                    .toList();
+            case FINISHED -> this.getFinishedVotes();
+            case OPEN -> this.repository.getOpenVotes();
+        };
     }
 
     public List<Vote> getAllVotes() {
@@ -1332,6 +1908,7 @@ public class VotingModule extends Module implements VotingProvider {
     /**
      * Prints the full breakdown for somebody who asked for it. Headcount and weighted score are
      * both shown: they answer different questions and a single blended number would hide that.
+     * Staff always see real numbers, even for secret ballots still open.
      */
     public void showInfo(final CommandSender sender, final Vote vote) {
         final VoteTally tally = this.tally(vote);
@@ -1341,6 +1918,9 @@ public class VotingModule extends Module implements VotingProvider {
                 .build();
 
         sender.sendMessage(context.apply(VotingLang.INFO_HEADER.text()));
+        if (vote.hasDescription()) {
+            sender.sendMessage(context.apply("<dark_gray>" + VotingPlaceholders.VOTE_DESC + "</dark_gray>"));
+        }
         vote.getOptionList().forEach(option -> sender.sendMessage(PlaceholderContext.builder()
                 .with(vote.placeholders())
                 .with(option.placeholders())
@@ -1375,6 +1955,10 @@ public class VotingModule extends Module implements VotingProvider {
 
     public boolean openMyVotes(final Player player) {
         return this.menu != null && this.menu.openMyVotes(player);
+    }
+
+    public boolean openHistory(final Player player) {
+        return this.menu != null && this.menu.openHistory(player);
     }
 
     public boolean openView(final Player player, final Vote vote) {
@@ -1480,10 +2064,19 @@ public class VotingModule extends Module implements VotingProvider {
                         option.isGated(), option.getCost()))
                 .toList();
 
-        return new VoteHandle(vote.getId(), vote.getKey(), vote.getDisplay(), vote.getCreatorId(),
-                vote.getCreatorName(), vote.getCreateDate(), vote.getEndDate(), vote.getStatus().name(),
-                vote.isOpen(), vote.getRules().allowsMultipleVotes(), vote.getRules().getMaxVotes(), options,
-                vote.getOutcome(), vote.getConcludeDate());
+        return new VoteHandle(vote.getId(), vote.getKey(), vote.getDisplay(), vote.getDescription(),
+                vote.getCreatorId(), vote.getCreatorName(), vote.getCreateDate(), vote.getStartDate(),
+                vote.getEndDate(), vote.getStatus().name(), vote.isOpen(), vote.getRules().allowsMultipleVotes(),
+                vote.getRules().getMaxVotes(), vote.getRules().isSecretBallot(),
+                vote.getRules().getTieBreak().name(), options, vote.getOutcome(), vote.getConcludeDate());
+    }
+
+    @Override
+    public @NotNull List<String> getScheduledVoteKeys() {
+        if (!this.isReady()) {
+            return List.of();
+        }
+        return this.repository.getScheduledVotes().stream().map(Vote::getKey).toList();
     }
 
     public static String format(final double value) {
