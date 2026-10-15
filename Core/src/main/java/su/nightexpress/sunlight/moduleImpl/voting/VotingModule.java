@@ -872,6 +872,12 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     public boolean close(final CommandSender sender, final Vote vote) {
+        // A scheduled poll has taken no votes, so there is nothing to decide: closing one
+        // early means abandoning it, which is what cancel is. Routing it here rather than
+        // into conclude() also avoids reporting a result for a poll that never ran.
+        if (vote.isScheduled()) {
+            return this.cancel(sender, vote);
+        }
         if (!this.requireOpen(sender, vote)) {
             return false;
         }
@@ -1448,6 +1454,17 @@ public class VotingModule extends Module implements VotingProvider {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Whether the module's own bypasses let this player ignore a poll's change lock.
+     * <p>
+     * Kept separate from the poll's own setting so a menu can tell "locked for everybody"
+     * apart from "locked for this poll but not for you", and show the honest hint rather
+     * than advertising a click that the check above would refuse.
+     */
+    public boolean canChange(final Player player) {
+        return this.isExempt(player) || this.hasBypass(player, VotingPerms.BYPASS_REQUIREMENTS);
     }
 
     /**

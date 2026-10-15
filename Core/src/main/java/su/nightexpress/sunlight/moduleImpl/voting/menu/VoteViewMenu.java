@@ -131,6 +131,13 @@ public class VoteViewMenu extends AbstractObjectMenu<VoteViewMenu.Data> {
 
         final List<VoteOption> options = vote.getOptionList();
         final var viewer = context.getViewer();
+
+        // A description is the poll's own explanation of the question, so it goes into the
+        // window title rather than sitting on one item that a multi-page poll scrolls away.
+        if (vote.hasDescription() && viewer.getCurrentPage() <= 1) {
+            view.setTitle(view.getTitle() + "\n" + GRAY.wrap(vote.getDescription()));
+        }
+
         viewer.setTotalPages(Math.max(1, (int) Math.ceil((double) options.size() / OPTION_SLOTS.length)));
         viewer.setCurrentPage(Math.min(viewer.getCurrentPage(), viewer.getTotalPages()));
 
@@ -163,8 +170,7 @@ public class VoteViewMenu extends AbstractObjectMenu<VoteViewMenu.Data> {
 
         this.requirement(player, option).ifPresent(lore::add);
         lore.add("");
-        lore.add(held ? RED.wrap("→ " + UNDERLINED.wrap("Click to take your vote back"))
-                : this.holds(player, vote, option));
+        lore.add(this.hint(player, vote, held));
 
         final PlaceholderContext context = PlaceholderContext.builder()
                 .with(vote.placeholders())
@@ -218,11 +224,27 @@ public class VoteViewMenu extends AbstractObjectMenu<VoteViewMenu.Data> {
         return Optional.of(String.join("\n", lines));
     }
 
+    private String hint(final Player player, final Vote vote, final boolean held) {
+        final boolean free = vote.isChangeAllowed() || this.module.canChange(player);
+        if (!free && (held || this.heldCount(player, vote) > 0)) {
+            return RED.wrap("→ Changes are locked");
+        }
+        if (held) {
+            return RED.wrap("→ " + UNDERLINED.wrap("Click to take your vote back"));
+        }
+        // A click in a single-vote poll that already holds a ballot elsewhere replaces it,
+        // so advertising a plain "vote" would understate what the click actually does.
+        if (!vote.getRules().allowsMultipleVotes() && this.heldCount(player, vote) > 0) {
+            return RED.wrap("→ " + UNDERLINED.wrap("Click to change your vote"));
+        }
+        return this.holds(player, vote);
+    }
+
     /**
      * In a poll that allows more than one vote, saying how many slots the player has left is the
      * difference between the cap feeling arbitrary and feeling like the rule it is.
      */
-    private String holds(final Player player, final Vote vote, final VoteOption option) {
+    private String holds(final Player player, final Vote vote) {
         if (!vote.getRules().allowsMultipleVotes()) {
             return GOLD.wrap("→ " + UNDERLINED.wrap("Click to vote"));
         }
