@@ -11,7 +11,6 @@ import su.nightexpress.nightcore.util.Version;
 import su.nightexpress.sunlight.api.SunlightAPI;
 import su.nightexpress.sunlight.api.provider.*;
 import su.nightexpress.sunlight.command.CommandRegistry;
-import su.nightexpress.sunlight.command.SunlightCommandProvider;
 import su.nightexpress.sunlight.config.Config;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.data.DataHandler;

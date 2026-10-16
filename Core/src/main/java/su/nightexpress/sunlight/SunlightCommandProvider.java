@@ -1,4 +1,4 @@
-package su.nightexpress.sunlight.command;
+package su.nightexpress.sunlight;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +18,9 @@ import dev.jorel.commandapi.CommandPermission;
 import dev.jorel.commandapi.arguments.Argument;
 import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
-import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.command.AbstractCommandProvider;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
+import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.utils.Utils;
