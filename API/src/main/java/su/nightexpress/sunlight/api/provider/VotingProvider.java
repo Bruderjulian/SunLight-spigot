@@ -76,6 +76,18 @@ public interface VotingProvider {
         return handle != null && handle.secret();
     }
 
+    /** Whether the poll suppresses announcements, results and reminders. */
+    default boolean isSilent(@NotNull UUID voteId) {
+        final VoteHandle handle = this.getVote(voteId);
+        return handle != null && handle.silent();
+    }
+
+    /** Whether the poll spawns a follow-up instance when it concludes. */
+    default boolean isRecurring(@NotNull UUID voteId) {
+        final VoteHandle handle = this.getVote(voteId);
+        return handle != null && handle.recurring();
+    }
+
     /** Keys of the scheduled polls that have not opened yet, in no particular order. */
     default @NotNull List<String> getScheduledVoteKeys() {
         return List.of();

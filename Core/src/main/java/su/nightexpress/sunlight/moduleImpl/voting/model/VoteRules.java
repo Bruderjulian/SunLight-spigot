@@ -57,6 +57,16 @@ public class VoteRules {
     private boolean allowChange = true;
     private int changeLockSeconds;
 
+    // -- Visibility -------------------------------------------------------------------------------
+
+    private boolean silent;
+
+    // -- Recurrence -------------------------------------------------------------------------------
+
+    private boolean recurrenceEnabled;
+    private int recurrenceIntervalSeconds;
+    private int recurrenceLimit;
+
     // -- Runoff ---------------------------------------------------------------------------------
 
     private boolean runoffEnabled;
@@ -330,6 +340,38 @@ public class VoteRules {
         this.changeLockSeconds = Math.max(0, changeLockSeconds);
     }
 
+    public boolean isSilent() {
+        return this.silent;
+    }
+
+    public void setSilent(final boolean silent) {
+        this.silent = silent;
+    }
+
+    public boolean isRecurrenceEnabled() {
+        return this.recurrenceEnabled;
+    }
+
+    public void setRecurrenceEnabled(final boolean recurrenceEnabled) {
+        this.recurrenceEnabled = recurrenceEnabled;
+    }
+
+    public int getRecurrenceIntervalSeconds() {
+        return this.recurrenceIntervalSeconds;
+    }
+
+    public void setRecurrenceIntervalSeconds(final int recurrenceIntervalSeconds) {
+        this.recurrenceIntervalSeconds = Math.max(0, recurrenceIntervalSeconds);
+    }
+
+    public int getRecurrenceLimit() {
+        return this.recurrenceLimit;
+    }
+
+    public void setRecurrenceLimit(final int recurrenceLimit) {
+        this.recurrenceLimit = Math.max(0, recurrenceLimit);
+    }
+
     public boolean isRunoffEnabled() {
         return this.runoffEnabled;
     }
@@ -383,6 +425,10 @@ public class VoteRules {
         copy.tieBreak = this.tieBreak;
         copy.allowChange = this.allowChange;
         copy.changeLockSeconds = this.changeLockSeconds;
+        copy.silent = this.silent;
+        copy.recurrenceEnabled = this.recurrenceEnabled;
+        copy.recurrenceIntervalSeconds = this.recurrenceIntervalSeconds;
+        copy.recurrenceLimit = this.recurrenceLimit;
         copy.runoffEnabled = this.runoffEnabled;
         copy.runoffTopN = this.runoffTopN;
         copy.runoffDurationSeconds = this.runoffDurationSeconds;

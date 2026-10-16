@@ -13,6 +13,9 @@ public class VotingPerms {
     public static final String COMMAND_VOTE   = COMMAND + ".vote";
     public static final String COMMAND_MY     = COMMAND + ".myvotes";
     public static final String COMMAND_HISTORY = COMMAND + ".history";
+    public static final String COMMAND_NOTIFY = COMMAND + ".notify";
+    public static final String COMMAND_TEMPLATE = COMMAND + ".template";
+    public static final String COMMAND_WIZARD = COMMAND + ".wizard";
 
     // Staff-facing.
 

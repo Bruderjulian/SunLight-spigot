@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -34,6 +36,14 @@ import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.voting.command.VotingCastCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.voting.command.VotingStaffCommandProvider;
+import su.nightexpress.sunlight.moduleImpl.voting.command.VotingTemplateCommandProvider;
+import su.nightexpress.sunlight.moduleImpl.voting.command.VotingWizardCommandProvider;
+import su.nightexpress.sunlight.moduleImpl.voting.dialog.VoteWizardDialogKeys;
+import su.nightexpress.sunlight.moduleImpl.voting.dialog.impl.VoteWizardDescriptionDialog;
+import su.nightexpress.sunlight.moduleImpl.voting.dialog.impl.VoteWizardDurationDialog;
+import su.nightexpress.sunlight.moduleImpl.voting.dialog.impl.VoteWizardKeyDialog;
+import su.nightexpress.sunlight.moduleImpl.voting.dialog.impl.VoteWizardOptionDialog;
+import su.nightexpress.sunlight.moduleImpl.voting.dialog.impl.VoteWizardQuestionDialog;
 import su.nightexpress.sunlight.moduleImpl.voting.listener.VotingListener;
 import su.nightexpress.sunlight.moduleImpl.voting.config.VotingLang;
 import su.nightexpress.sunlight.moduleImpl.voting.config.VotingPerms;
@@ -41,15 +51,18 @@ import su.nightexpress.sunlight.moduleImpl.voting.data.BallotRepository;
 import su.nightexpress.sunlight.moduleImpl.voting.data.VoteRepository;
 import su.nightexpress.sunlight.moduleImpl.voting.data.VotingDataManager;
 import su.nightexpress.sunlight.moduleImpl.voting.menu.VoteViewMenu;
+import su.nightexpress.sunlight.moduleImpl.voting.menu.VoteWizardMenu;
 import su.nightexpress.sunlight.moduleImpl.voting.menu.VotesMenu;
 import su.nightexpress.sunlight.moduleImpl.voting.model.GateType;
 import su.nightexpress.sunlight.moduleImpl.voting.model.OverMaxMode;
 import su.nightexpress.sunlight.moduleImpl.voting.model.Vote;
 import su.nightexpress.sunlight.moduleImpl.voting.model.VoteBallot;
+import su.nightexpress.sunlight.moduleImpl.voting.model.VoteDraft;
 import su.nightexpress.sunlight.moduleImpl.voting.model.VoteOption;
 import su.nightexpress.sunlight.moduleImpl.voting.model.VoteRules;
 import su.nightexpress.sunlight.moduleImpl.voting.model.VoteStatus;
 import su.nightexpress.sunlight.moduleImpl.voting.model.VoteTally;
+import su.nightexpress.sunlight.moduleImpl.voting.model.VoteTemplate;
 import su.nightexpress.sunlight.moduleImpl.voting.model.WeightCombine;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 
@@ -61,9 +74,12 @@ public class VotingModule extends Module implements VotingProvider {
     private final VotingDataManager dataManager;
     private final VoteRepository repository;
     private final BallotRepository ballotRepository;
+    private final Map<UUID, Boolean> notifyPrefs;
+    private final Map<UUID, VoteDraft> wizardDrafts;
 
     private VotesMenu menu;
     private VoteViewMenu viewMenu;
+    private VoteWizardMenu wizardMenu;
 
     private volatile boolean dataLoaded;
 
@@ -73,6 +89,8 @@ public class VotingModule extends Module implements VotingProvider {
         this.dataManager = new VotingDataManager(this.dataHandler, this);
         this.repository = new VoteRepository();
         this.ballotRepository = new BallotRepository();
+        this.notifyPrefs = new ConcurrentHashMap<>();
+        this.wizardDrafts = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -84,21 +102,27 @@ public class VotingModule extends Module implements VotingProvider {
         this.dataManager.init(this.settings.dataTablePrefix.get());
 
         this.loadMenus();
+        this.loadDialogs();
         this.loadData();
         this.loadTasks();
         this.addListener(new VotingListener(this.plugin, this));
 
         this.commandRegistry.addProvider(new VotingCastCommandProvider(this));
         this.commandRegistry.addProvider(new VotingStaffCommandProvider(this));
+        this.commandRegistry.addProvider(new VotingTemplateCommandProvider(this));
+        this.commandRegistry.addProvider(new VotingWizardCommandProvider(this));
     }
 
     @Override
     protected void unloadModule() {
         this.repository.clear();
         this.ballotRepository.clear();
+        this.notifyPrefs.clear();
+        this.wizardDrafts.clear();
         this.dataLoaded = false;
         this.menu = null;
         this.viewMenu = null;
+        this.wizardMenu = null;
     }
 
     // -- Loading ----------------------------------------------------------------------------------
@@ -109,6 +133,17 @@ public class VotingModule extends Module implements VotingProvider {
 
         this.viewMenu = new VoteViewMenu(this);
         this.viewMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "vote-view.yml"));
+
+        this.wizardMenu = new VoteWizardMenu(this);
+        this.wizardMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "vote-wizard.yml"));
+    }
+
+    private void loadDialogs() {
+        this.dialogRegistry.register(VoteWizardDialogKeys.WIZARD_KEY, VoteWizardKeyDialog::new);
+        this.dialogRegistry.register(VoteWizardDialogKeys.WIZARD_QUESTION, VoteWizardQuestionDialog::new);
+        this.dialogRegistry.register(VoteWizardDialogKeys.WIZARD_DESCRIPTION, VoteWizardDescriptionDialog::new);
+        this.dialogRegistry.register(VoteWizardDialogKeys.WIZARD_DURATION, () -> new VoteWizardDurationDialog(this));
+        this.dialogRegistry.register(VoteWizardDialogKeys.WIZARD_OPTION, VoteWizardOptionDialog::new);
     }
 
     /**
@@ -121,6 +156,8 @@ public class VotingModule extends Module implements VotingProvider {
             this.dataManager.getVotes().forEach(this.repository::upsertVote);
             this.dataManager.getOptions().forEach(row -> this.repository.upsertOption(row.option(), row.voteId()));
             this.dataManager.getBallots().forEach(this.ballotRepository::upsert);
+            this.notifyPrefs.clear();
+            this.notifyPrefs.putAll(this.dataManager.getNotifyPrefs());
             this.dataLoaded = true;
         });
     }
@@ -172,7 +209,7 @@ public class VotingModule extends Module implements VotingProvider {
         vote.open(System.currentTimeMillis());
         this.repository.applyTransition(vote);
         this.dataManager.updateVote(vote);
-        if (this.settings.notifyScheduled.get()) {
+        if (!vote.isSilent() && this.settings.notifyScheduled.get()) {
             this.announce(vote);
         }
     }
@@ -180,6 +217,9 @@ public class VotingModule extends Module implements VotingProvider {
     /**
      * Re-announces every open vote to the players who have not voted in it yet.
      * Runs off-thread on its own interval; delivery hops to the main thread.
+     * <p>
+     * Silent polls never remind. Players who opted out via {@code /voting notify off}
+     * are skipped as well.
      */
     private void remindUnvoted() {
         if (!this.dataLoaded) {
@@ -191,11 +231,14 @@ public class VotingModule extends Module implements VotingProvider {
         }
         this.plugin.runTask(task -> {
             for (final Vote vote : open) {
-                if (!vote.isOpen()) {
+                if (!vote.isOpen() || vote.isSilent()) {
                     continue;
                 }
                 for (final Player online : Bukkit.getOnlinePlayers()) {
                     if (this.ballotRepository.hasVoted(vote.getId(), online.getUniqueId())) {
+                        continue;
+                    }
+                    if (!this.isReminderEnabled(online.getUniqueId())) {
                         continue;
                     }
                     final String permission = this.settings.notifyPermission.get();
@@ -213,7 +256,12 @@ public class VotingModule extends Module implements VotingProvider {
         if (!this.dataLoaded || !this.settings.notifyOnJoin.get()) {
             return;
         }
+        if (!this.isReminderEnabled(player.getUniqueId())) {
+            return;
+        }
+        // Silent polls never nudge: they stay votable via GUI/commands but never push.
         final List<Vote> pending = this.repository.getOpenVotes().stream()
+                .filter(vote -> !vote.isSilent())
                 .filter(vote -> !this.ballotRepository.hasVoted(vote.getId(), player.getUniqueId()))
                 .toList();
         if (pending.isEmpty()) {
@@ -227,6 +275,31 @@ public class VotingModule extends Module implements VotingProvider {
                 .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(pending.size()))
                 .with(SLPlaceholders.GENERIC_LIST,
                         () -> String.join(", ", pending.stream().map(Vote::getKey).toList())));
+    }
+
+    // -- Reminder opt-out ---------------------------------------------------------------------------
+
+    /**
+     * @return whether this player wants vote reminders and join-nudges. Absent row means
+     *         opted in; only explicit opt-outs are stored.
+     */
+    public boolean isReminderEnabled(final UUID playerId) {
+        if (playerId == null) {
+            return true;
+        }
+        return this.notifyPrefs.getOrDefault(playerId, Boolean.TRUE);
+    }
+
+    public void setReminderEnabled(final UUID playerId, final boolean enabled) {
+        if (playerId == null) {
+            return;
+        }
+        if (enabled) {
+            this.notifyPrefs.remove(playerId);
+        } else {
+            this.notifyPrefs.put(playerId, Boolean.FALSE);
+        }
+        this.plugin.runTaskAsync(task -> this.dataManager.setNotifyPref(playerId, enabled));
     }
 
     // -- Accessors --------------------------------------------------------------------------------
@@ -319,6 +392,14 @@ public class VotingModule extends Module implements VotingProvider {
                         vote.getOptionList().stream().map(VoteOption::getDisplay).toList())));
         registry.register("voting_secret", (player, payload) -> this.field(payload,
                 vote -> VotingLang.STATE_YES_NO.get(vote.getRules().isSecretBallot())));
+        registry.register("voting_silent", (player, payload) -> this.field(payload,
+                vote -> VotingLang.STATE_YES_NO.get(vote.getRules().isSilent())));
+        registry.register("voting_recurring", (player, payload) -> this.field(payload,
+                vote -> VotingLang.STATE_YES_NO.get(vote.getRules().isRecurrenceEnabled())));
+        registry.register("voting_series", (player, payload) -> this.field(payload,
+                vote -> vote.getRecurrenceSeries() == null ? "" : vote.getRecurrenceSeries()));
+        registry.register("voting_recurrence_count", (player, payload) -> this.field(payload,
+                vote -> String.valueOf(vote.getRecurrenceCount())));
         registry.register("voting_leader", (player, payload) -> {
             final Vote vote = this.repository.getVote(payload);
             if (vote == null) {
@@ -379,6 +460,12 @@ public class VotingModule extends Module implements VotingProvider {
                     .map(VoteOption::getDisplay)
                     .reduce((first, second) -> first + ", " + second)
                     .orElse("");
+        });
+        registry.register("voting_notify", (player, payload) -> {
+            if (player == null) {
+                return "";
+            }
+            return VotingLang.STATE_YES_NO.get(this.isReminderEnabled(player.getUniqueId()));
         });
 
         // Headcount per built-in choice, payload = vote key. The *_score and *_share variants
@@ -586,6 +673,8 @@ public class VotingModule extends Module implements VotingProvider {
                 descriptionRaw == null ? "" : descriptionRaw.trim(),
                 creatorId, creator.getName(), durationSeconds, Math.max(0, startDelaySeconds), options,
                 this.buildDefaultRules());
+        vote.setRecurrenceCount(0);
+        vote.setRecurrenceSeries(key);
 
         final VoteCreateEvent event = new VoteCreateEvent(vote);
         this.plugin.getPluginManager().callEvent(event);
@@ -604,7 +693,7 @@ public class VotingModule extends Module implements VotingProvider {
             // asked to vote in something they cannot vote in yet.
             return vote;
         }
-        if (this.settings.announceOnCreate.get()) {
+        if (!vote.isSilent() && this.settings.announceOnCreate.get()) {
             this.announce(vote);
         }
         return vote;
@@ -662,9 +751,13 @@ public class VotingModule extends Module implements VotingProvider {
         rules.setPassPercent(this.settings.passPercent.get());
         rules.setNeutralCountsTowardTotal(this.settings.neutralCounts.get());
         rules.setSecretBallot(this.settings.secretBallot.get());
+        rules.setSilent(this.settings.silentDefault.get());
         rules.setTieBreak(this.settings.tieBreak.get());
         rules.setAllowChange(this.settings.allowChange.get());
         rules.setChangeLockSeconds(this.settings.changeLockSeconds.get());
+        rules.setRecurrenceEnabled(this.settings.recurrenceEnabled.get());
+        rules.setRecurrenceIntervalSeconds(this.settings.recurrenceIntervalSeconds.get());
+        rules.setRecurrenceLimit(this.settings.recurrenceLimit.get());
         rules.setRunoffEnabled(this.settings.runoffEnabled.get());
         rules.setRunoffTopN(this.settings.runoffTopN.get());
         rules.setRunoffDurationSeconds(this.settings.runoffDurationSeconds.get());
@@ -992,6 +1085,8 @@ public class VotingModule extends Module implements VotingProvider {
         final Vote vote = Vote.create(key, source.getDisplay(), source.getDescription(), creatorId,
                 sender.getName(), (int) Math.min(sourceLength / 1000L, Integer.MAX_VALUE), 0, options,
                 source.getRules().copy());
+        vote.setRecurrenceCount(0);
+        vote.setRecurrenceSeries(key);
 
         final VoteCreateEvent event = new VoteCreateEvent(vote);
         this.plugin.getPluginManager().callEvent(event);
@@ -1007,10 +1102,215 @@ public class VotingModule extends Module implements VotingProvider {
         this.sendPrefixed(VotingLang.CLONED, sender, b -> b
                 .with(source.placeholders())
                 .with(SLPlaceholders.GENERIC_TARGET, vote::getKey));
-        if (this.settings.announceOnCreate.get()) {
+        if (!vote.isSilent() && this.settings.announceOnCreate.get()) {
             this.announce(vote);
         }
         return vote;
+    }
+
+    // -- Templates ----------------------------------------------------------------------------------
+
+    public Map<String, VoteTemplate> getTemplates() {
+        return this.settings.getTemplates();
+    }
+
+    public @Nullable VoteTemplate getTemplate(final String id) {
+        if (id == null) {
+            return null;
+        }
+        return this.settings.getTemplates().get(id.trim().toLowerCase(Locale.ROOT));
+    }
+
+    /**
+     * Opens a poll from an admin-defined template.
+     * <p>
+     * Everything except the key comes from the template: options, duration and silent
+     * flag are locked, rules come from the server defaults. Players can never set
+     * outcome commands through a template.
+     *
+     * @param keyRaw optional key; auto-generated from template + player when blank.
+     */
+    public @Nullable Vote createFromTemplate(final CommandSender sender, final VoteTemplate template,
+            final String keyRaw) {
+        if (template == null) {
+            return null;
+        }
+
+        String key = keyRaw == null ? "" : keyRaw.trim().toLowerCase(Locale.ROOT);
+        if (key.isEmpty()) {
+            final String base = template.getId() + "-"
+                    + sender.getName().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_]", "");
+            key = base + "-" + Integer.toHexString(Math.abs(UUID.randomUUID().hashCode()));
+            int suffix = 2;
+            String candidate = key;
+            while (this.repository.containsKey(candidate) || this.dataManager.existsKey(candidate)) {
+                candidate = key + "-" + suffix++;
+            }
+            key = candidate;
+        }
+        if (this.repository.containsKey(key) || this.dataManager.existsKey(key)) {
+            final String dupKey = key;
+            this.sendPrefixed(VotingLang.ERROR_DUPLICATE_KEY, sender,
+                    b -> b.with(SLPlaceholders.GENERIC_TARGET, () -> dupKey));
+            return null;
+        }
+
+        final int max = this.settings.maxActiveVotes.get();
+        if (max > 0 && this.repository.getActiveCount() >= max) {
+            this.sendPrefixed(VotingLang.ERROR_LIMIT_GLOBAL, sender,
+                    b -> b.with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(max)));
+            return null;
+        }
+
+        final UUID creatorId = sender instanceof Player player ? player.getUniqueId() : null;
+        final int perCreator = this.settings.maxVotesPerCreator.get();
+        if (creatorId != null && perCreator > 0 && this.repository.getOpenCount(creatorId) >= perCreator) {
+            this.sendPrefixed(VotingLang.ERROR_LIMIT_CREATOR, sender,
+                    b -> b.with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(perCreator)));
+            return null;
+        }
+
+        final List<VoteOption> options = new ArrayList<>();
+        for (final VoteTemplate.TemplateOption from : template.getOptions()) {
+            options.add(new VoteOption(from.key(), from.display(), from.icon()));
+        }
+        if (options.size() < this.settings.minOptions.get()) {
+            this.sendPrefixed(VotingLang.ERROR_LAST_OPTION, sender);
+            return null;
+        }
+
+        final VoteRules rules = this.buildDefaultRules();
+        // Template decides silent; player polls default silent unless the template opts out.
+        // Staff using templates keep the template flag as-is.
+        if (sender instanceof Player && !(sender.hasPermission(VotingPerms.COMMAND_CREATE))) {
+            rules.setSilent(template.isSilent() || this.settings.templatesPlayerSilentDefault.get());
+        } else {
+            rules.setSilent(template.isSilent());
+        }
+        // Template polls never inherit recurrence: a template spawning an endless series
+        // from one player click is a footgun, not a feature.
+        rules.setRecurrenceEnabled(false);
+
+        final Vote vote = Vote.create(key, template.getDisplay(), template.getDescription(),
+                creatorId, sender.getName(), template.getDurationSeconds(), 0, options, rules);
+        vote.setRecurrenceCount(0);
+        vote.setRecurrenceSeries(key);
+
+        final VoteCreateEvent event = new VoteCreateEvent(vote);
+        this.plugin.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return null;
+        }
+
+        this.dataManager.insertVote(vote);
+        options.forEach(option -> this.dataManager.insertOption(vote.getId(), option));
+        this.repository.upsertVote(vote);
+        options.forEach(option -> this.repository.upsertOption(option, vote.getId()));
+
+        this.sendPrefixed(VotingLang.TEMPLATE_CREATED, sender, b -> b
+                .with(vote.placeholders())
+                .with(SLPlaceholders.GENERIC_TARGET, template::getId));
+        if (vote.isScheduled()) {
+            return vote;
+        }
+        if (!vote.isSilent() && this.settings.announceOnCreate.get()) {
+            this.announce(vote);
+        }
+        return vote;
+    }
+
+    // -- Wizard -------------------------------------------------------------------------------------
+
+    public VoteDraft getOrCreateDraft(final Player player) {
+        return this.wizardDrafts.computeIfAbsent(player.getUniqueId(),
+                id -> new VoteDraft(this.settings.silentDefault.get()));
+    }
+
+    public void clearDraft(final Player player) {
+        this.wizardDrafts.remove(player.getUniqueId());
+    }
+
+    public boolean openWizard(final Player player) {
+        if (this.wizardMenu == null) {
+            return false;
+        }
+        final VoteDraft draft = this.getOrCreateDraft(player);
+        return this.wizardMenu.open(player, draft);
+    }
+
+    /**
+     * Validates the draft and persists it as a real poll. The draft survives a failed
+     * attempt so the player can fix the highlighted problem instead of starting over.
+     *
+     * @return whether a poll was created.
+     */
+    public boolean completeWizard(final Player player) {
+        final VoteDraft draft = this.wizardDrafts.get(player.getUniqueId());
+        if (draft == null || !draft.isValid()) {
+            return false;
+        }
+        final String key = draft.getKey();
+        if (this.repository.containsKey(key) || this.dataManager.existsKey(key)) {
+            this.sendPrefixed(VotingLang.ERROR_DUPLICATE_KEY, player,
+                    b -> b.with(SLPlaceholders.GENERIC_TARGET, () -> key));
+            return false;
+        }
+
+        final int max = this.settings.maxActiveVotes.get();
+        if (max > 0 && this.repository.getActiveCount() >= max) {
+            this.sendPrefixed(VotingLang.ERROR_LIMIT_GLOBAL, player,
+                    b -> b.with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(max)));
+            return false;
+        }
+
+        final int perCreator = this.settings.maxVotesPerCreator.get();
+        if (perCreator > 0 && this.repository.getOpenCount(player.getUniqueId()) >= perCreator) {
+            this.sendPrefixed(VotingLang.ERROR_LIMIT_CREATOR, player,
+                    b -> b.with(SLPlaceholders.GENERIC_MAX, () -> String.valueOf(perCreator)));
+            return false;
+        }
+
+        if (draft.getOptions().size() < this.settings.minOptions.get()) {
+            this.sendPrefixed(VotingLang.ERROR_LAST_OPTION, player);
+            return false;
+        }
+
+        final List<VoteOption> options = new ArrayList<>();
+        for (final var entry : draft.getOptions().entrySet()) {
+            options.add(new VoteOption(entry.getKey(), entry.getValue(), this.settings.iconDefault.get()));
+        }
+
+        final VoteRules rules = this.buildDefaultRules();
+        rules.setSilent(draft.isSilent());
+
+        final Vote vote = Vote.create(key, draft.getQuestion(), draft.getDescription(),
+                player.getUniqueId(), player.getName(), draft.getDurationSeconds(), 0, options, rules);
+        vote.setRecurrenceCount(0);
+        vote.setRecurrenceSeries(key);
+
+        final VoteCreateEvent event = new VoteCreateEvent(vote);
+        this.plugin.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return false;
+        }
+
+        this.dataManager.insertVote(vote);
+        options.forEach(option -> this.dataManager.insertOption(vote.getId(), option));
+        this.repository.upsertVote(vote);
+        options.forEach(option -> this.repository.upsertOption(option, vote.getId()));
+
+        this.wizardDrafts.remove(player.getUniqueId());
+        player.closeInventory();
+        this.sendPrefixed(VotingLang.CREATED, player, b -> b.with(vote.placeholders()));
+        if (!vote.isSilent() && this.settings.announceOnCreate.get()) {
+            this.announce(vote);
+        }
+        return true;
+    }
+
+    public void cancelWizard(final Player player) {
+        this.wizardDrafts.remove(player.getUniqueId());
+        player.closeInventory();
     }
 
     private boolean requireOpen(final CommandSender sender, final Vote vote) {
@@ -1116,7 +1416,7 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     private void announceTie(final Vote vote, final VoteTally tally, final List<String> tied) {
-        if (!this.settings.notifyStaffResult.get()) {
+        if (vote.isSilent() || !this.settings.notifyStaffResult.get()) {
             return;
         }
         final String names = tied.stream()
@@ -1184,10 +1484,13 @@ public class VotingModule extends Module implements VotingProvider {
 
         final VoteRules rules = vote.getRules().copy();
         rules.setRunoffEnabled(false);
+        rules.setRecurrenceEnabled(false);
 
         final Vote runoff = Vote.create(key, vote.getDisplay() + " (runoff)", vote.getDescription(),
                 vote.getCreatorId(), vote.getCreatorName(), vote.getRules().getRunoffDurationSeconds(),
                 0, options, rules);
+        runoff.setRecurrenceCount(0);
+        runoff.setRecurrenceSeries(key);
 
         final VoteCreateEvent event = new VoteCreateEvent(runoff);
         this.plugin.getPluginManager().callEvent(event);
@@ -1200,13 +1503,15 @@ public class VotingModule extends Module implements VotingProvider {
         this.repository.upsertVote(runoff);
         options.forEach(option -> this.repository.upsertOption(option, runoff.getId()));
 
-        if (this.settings.notifyScheduled.get() || this.settings.announceOnCreate.get()) {
+        if (!runoff.isSilent() && (this.settings.notifyScheduled.get() || this.settings.announceOnCreate.get())) {
             this.announce(runoff);
         }
-        this.broadcastPrefixed(VotingLang.RESULT_RUNOFF, b -> {
-            b.with(vote.placeholders());
-            b.with(SLPlaceholders.GENERIC_TARGET, runoff::getKey);
-        });
+        if (!vote.isSilent()) {
+            this.broadcastPrefixed(VotingLang.RESULT_RUNOFF, b -> {
+                b.with(vote.placeholders());
+                b.with(SLPlaceholders.GENERIC_TARGET, runoff::getKey);
+            });
+        }
         this.dispatchRunoffCommands(runoff);
     }
 
@@ -1254,7 +1559,7 @@ public class VotingModule extends Module implements VotingProvider {
         this.dataManager.updateVote(vote);
 
         final VoteOption option = vote.getOption(outcomeKey);
-        if (this.settings.notifyStaffResult.get()) {
+        if (!vote.isSilent() && this.settings.notifyStaffResult.get()) {
             this.broadcastPrefixed(announcement, b -> {
                 b.with(vote.placeholders());
                 if (option != null) {
@@ -1273,6 +1578,84 @@ public class VotingModule extends Module implements VotingProvider {
         this.dispatchOutcome(vote, option, tally, this.commandsFor(status, outcomeKey));
 
         this.plugin.getPluginManager().callEvent(new VoteConcludedEvent(vote, outcomeKey, manual));
+
+        // Recurrence only continues a decided series: cancelled polls (quorum, staff cancel)
+        // stop the series instead of spawning a follow-up nobody asked for.
+        if (status == VoteStatus.CONCLUDED) {
+            this.maybeRecur(vote);
+        }
+    }
+
+    /**
+     * Spawns the next instance of a recurring poll.
+     * <p>
+     * The child copies the parent's options and rules (including silent) with a fresh ballot
+     * set. Runoff is switched off on the child so a recurring series cannot fork into
+     * runoff chains; recurrence itself carries over until the limit is reached.
+     */
+    private void maybeRecur(final Vote vote) {
+        if (!vote.getRules().isRecurrenceEnabled()) {
+            return;
+        }
+        final int limit = vote.getRules().getRecurrenceLimit();
+        if (limit > 0 && vote.getRecurrenceCount() >= limit) {
+            return;
+        }
+
+        final int max = this.settings.maxActiveVotes.get();
+        if (max > 0 && this.repository.getActiveCount() >= max) {
+            return;
+        }
+
+        final String series = vote.getRecurrenceSeries() != null ? vote.getRecurrenceSeries() : vote.getKey();
+        final int nextCount = vote.getRecurrenceCount() + 1;
+        String base = series + "-r" + nextCount;
+        String key = base;
+        int suffix = 2;
+        while (this.repository.containsKey(key) || this.dataManager.existsKey(key)) {
+            key = base + "-" + suffix++;
+        }
+
+        final List<VoteOption> options = new ArrayList<>();
+        for (final VoteOption source : vote.getOptionList()) {
+            final VoteOption copy = new VoteOption(source.getKey(), source.getDisplay(), source.getIcon());
+            copy.setGates(source.getGates());
+            copy.setCost(source.getCost());
+            copy.setPermission(source.getPermission());
+            copy.setRank(source.getRank());
+            copy.setWorlds(source.getWorlds());
+            copy.setMinPlaytimeHours(source.getMinPlaytimeHours());
+            options.add(copy);
+        }
+        if (options.size() < this.settings.minOptions.get()) {
+            return;
+        }
+
+        final long sourceLength = Math.max(1000L, vote.getEndDate() - vote.getStartDate());
+        final int duration = (int) Math.min(sourceLength / 1000L, Integer.MAX_VALUE);
+        final int delay = Math.max(0, vote.getRules().getRecurrenceIntervalSeconds());
+
+        final VoteRules rules = vote.getRules().copy();
+        final Vote next = Vote.create(key, vote.getDisplay(), vote.getDescription(),
+                vote.getCreatorId(), vote.getCreatorName(), duration, delay, options, rules);
+        next.setRecurrenceCount(nextCount);
+        next.setRecurrenceSeries(series);
+
+        final VoteCreateEvent event = new VoteCreateEvent(next);
+        this.plugin.getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        this.dataManager.insertVote(next);
+        options.forEach(option -> this.dataManager.insertOption(next.getId(), option));
+        this.repository.upsertVote(next);
+        options.forEach(option -> this.repository.upsertOption(option, next.getId()));
+
+        if (!next.isSilent() && delay <= 0 && this.settings.announceOnCreate.get()) {
+            // Delayed instances announce on opening via activateScheduled instead.
+            this.announce(next);
+        }
     }
 
     /**
@@ -1850,10 +2233,21 @@ public class VotingModule extends Module implements VotingProvider {
 
     // -- Notification -----------------------------------------------------------------------------
 
+    /**
+     * Automatic announcement for a newly opened poll. Silent polls never announce
+     * themselves; use {@link #broadcast(Vote)} for an explicit staff re-announce.
+     */
     public void announce(final Vote vote) {
+        if (vote.isSilent()) {
+            return;
+        }
         this.sendAnnouncement(vote);
     }
 
+    /**
+     * Explicit staff re-announce ({@code /voting broadcast}). Bypasses the silent
+     * flag: a staff member pressing the button means it now.
+     */
     public void broadcast(final Vote vote) {
         this.sendAnnouncement(vote);
     }
@@ -2084,7 +2478,8 @@ public class VotingModule extends Module implements VotingProvider {
         return new VoteHandle(vote.getId(), vote.getKey(), vote.getDisplay(), vote.getDescription(),
                 vote.getCreatorId(), vote.getCreatorName(), vote.getCreateDate(), vote.getStartDate(),
                 vote.getEndDate(), vote.getStatus().name(), vote.isOpen(), vote.getRules().allowsMultipleVotes(),
-                vote.getRules().getMaxVotes(), vote.getRules().isSecretBallot(),
+                vote.getRules().getMaxVotes(), vote.getRules().isSecretBallot(), vote.getRules().isSilent(),
+                vote.getRules().isRecurrenceEnabled(),
                 vote.getRules().getTieBreak().name(), options, vote.getOutcome(), vote.getConcludeDate());
     }
 

@@ -37,6 +37,8 @@ public class VotingCastCommandProvider extends CommandProvider<VotingModule> {
     private static final String COMMAND_NEUTRAL   = VotingCommands.NEUTRAL_NAME;
     private static final String COMMAND_MY_VOTES  = VotingCommands.MY_VOTES_NAME;
     private static final String COMMAND_HISTORY   = "history";
+    private static final String COMMAND_NOTIFY    = "notify";
+    private static final String ARGUMENT_STATE    = "state";
 
     public VotingCastCommandProvider(final VotingModule module) {
         super(module, "voting-cast");
@@ -92,6 +94,14 @@ public class VotingCastCommandProvider extends CommandProvider<VotingModule> {
                 .withPermission(VotingPerms.COMMAND_HISTORY)
                 .withRequirement(sender -> sender instanceof Player)
                 .executes((sender, arguments) -> this.module.openHistory((Player) sender) ? 1 : 0))
+                .under(COMMAND_ROOT);
+
+        this.register(COMMAND_NOTIFY, builder -> builder
+                .withFullDescription(VotingLang.COMMAND_NOTIFY_DESC.text())
+                .withPermission(VotingPerms.COMMAND_NOTIFY)
+                .withRequirement(sender -> sender instanceof Player)
+                .withOptionalArguments(CommandArgumentConstants.string(ARGUMENT_STATE, info -> List.of("on", "off")))
+                .executes(this::handleNotify))
                 .under(COMMAND_ROOT);
 
         this.registerRoot(COMMAND_ROOT, builder -> builder
@@ -224,8 +234,7 @@ public class VotingCastCommandProvider extends CommandProvider<VotingModule> {
      * {@code /yes}, {@code /no} and {@code /neutral}. These need exactly one open poll, because
      * there is no way to say which poll they mean.
      */
-    private int castBuiltIn(final CommandSender sender, final String optionKey) {
-        if (!(sender instanceof final Player player)) {
+    private int castBuiltIn(final CommandSender sender, final String optionKey) {        if (!(sender instanceof final Player player)) {
             this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
             return 0;
         }
@@ -255,5 +264,38 @@ public class VotingCastCommandProvider extends CommandProvider<VotingModule> {
         }
 
         return this.module.cast(player, sole, optionKey) ? 1 : 0;
+    }
+
+    /**
+     * {@code /voting notify [on|off]}. Bare form reports the current state;
+     * explicit form sets it. Only reminders and join-nudges are gated —
+     * open/result announcements still go to {@code notifyPermission} holders.
+     */
+    private int handleNotify(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
+            return 0;
+        }
+        final Object raw = arguments.getOrDefaultUnchecked(ARGUMENT_STATE, null);
+        if (!(raw instanceof final String stateRaw) || stateRaw.isBlank()) {
+            final boolean enabled = this.module.isReminderEnabled(player.getUniqueId());
+            this.module.sendPrefixed(VotingLang.NOTIFY_STATUS, player,
+                    b -> b.with(SLPlaceholders.GENERIC_STATE,
+                            () -> enabled ? "on" : "off"));
+            return 1;
+        }
+        final String state = stateRaw.trim().toLowerCase(java.util.Locale.ROOT);
+        if (state.equals("on") || state.equals("true") || state.equals("yes") || state.equals("1")) {
+            this.module.setReminderEnabled(player.getUniqueId(), true);
+            this.module.sendPrefixed(VotingLang.NOTIFY_ON, player);
+            return 1;
+        }
+        if (state.equals("off") || state.equals("false") || state.equals("no") || state.equals("0")) {
+            this.module.setReminderEnabled(player.getUniqueId(), false);
+            this.module.sendPrefixed(VotingLang.NOTIFY_OFF, player);
+            return 1;
+        }
+        this.module.sendPrefixed(CoreLang.COMMAND_SYNTAX_GENERIC_ERROR, sender);
+        return 0;
     }
 }

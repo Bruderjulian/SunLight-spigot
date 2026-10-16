@@ -55,6 +55,9 @@ public class Vote implements PlaceholderResolvable {
     private volatile String outcome;
     private volatile long concludeDate;
 
+    private volatile int recurrenceCount;
+    private volatile String recurrenceSeries;
+
     public Vote(final UUID id,
             final String key,
             final String display,
@@ -235,6 +238,21 @@ public class Vote implements PlaceholderResolvable {
     }
 
     /**
+     * @return whether this poll suppresses every push notification (announce, result,
+     *         reminders, join-nudge). Silent polls stay votable via GUI/commands.
+     */
+    public boolean isSilent() {
+        return this.rules.isSilent();
+    }
+
+    /**
+     * @return whether this poll spawns a follow-up instance when it concludes.
+     */
+    public boolean isRecurring() {
+        return this.rules.isRecurrenceEnabled();
+    }
+
+    /**
      * @return whether vote changes are still allowed. A poll that forbids changes is
      *         final on first cast; otherwise changes lock when little time remains.
      */
@@ -361,6 +379,23 @@ public class Vote implements PlaceholderResolvable {
 
     public long getConcludeDate() {
         return this.concludeDate;
+    }
+
+    public int getRecurrenceCount() {
+        return this.recurrenceCount;
+    }
+
+    public void setRecurrenceCount(final int recurrenceCount) {
+        this.recurrenceCount = Math.max(0, recurrenceCount);
+    }
+
+    public @Nullable String getRecurrenceSeries() {
+        return this.recurrenceSeries;
+    }
+
+    public void setRecurrenceSeries(final @Nullable String recurrenceSeries) {
+        this.recurrenceSeries = recurrenceSeries == null || recurrenceSeries.isBlank() ? null
+                : recurrenceSeries.trim().toLowerCase(Locale.ROOT);
     }
 
     @Override

@@ -81,6 +81,10 @@ public class VotingQueries {
             rules.setRunoffEnabled(readBooleanOr(resultSet, COLUMN_RULE_RUNOFF, false));
             rules.setRunoffTopN(Math.max(2, readIntOr(resultSet, COLUMN_RULE_RUNOFF_TOP, 2)));
             rules.setRunoffDurationSeconds(Math.max(1, readIntOr(resultSet, COLUMN_RULE_RUNOFF_DUR, 86400)));
+            rules.setSilent(readBooleanOr(resultSet, COLUMN_RULE_SILENT, false));
+            rules.setRecurrenceEnabled(readBooleanOr(resultSet, COLUMN_RULE_RECURRENCE, false));
+            rules.setRecurrenceIntervalSeconds(Math.max(0, readIntOr(resultSet, COLUMN_RULE_REC_INTERVAL, 3600)));
+            rules.setRecurrenceLimit(Math.max(0, readIntOr(resultSet, COLUMN_RULE_REC_LIMIT, 0)));
 
             final long createDate = resultSet.getLong(COLUMN_CREATE_DATE.getName());
             final String description = readStringOr(resultSet, COLUMN_DESCRIPTION, "");
@@ -89,7 +93,7 @@ public class VotingQueries {
                 startDate = createDate;
             }
 
-            return new Vote(
+            final Vote vote = new Vote(
                     id,
                     resultSet.getString(COLUMN_VOTE_KEY.getName()),
                     resultSet.getString(COLUMN_DISPLAY.getName()),
@@ -105,6 +109,9 @@ public class VotingQueries {
                     resultSet.getString(COLUMN_OUTCOME.getName()),
                     resultSet.getLong(COLUMN_CONCLUDE_DATE.getName())
             );
+            vote.setRecurrenceCount(readIntOr(resultSet, COLUMN_REC_COUNT, 0));
+            vote.setRecurrenceSeries(readStringOr(resultSet, COLUMN_REC_SERIES, ""));
+            return vote;
         } catch (final SQLException | IllegalArgumentException exception) {
             exception.printStackTrace();
             return null;
@@ -166,10 +173,26 @@ public class VotingQueries {
         }
     };
 
+    public static final RowMapper<VotingDataManager.NotifyPref> PREF_LOADER = resultSet -> {
+        try {
+            final UUID playerId = readUuid(resultSet, COLUMN_PREF_PLAYER);
+            if (playerId == null) {
+                return null;
+            }
+            final boolean enabled = readBooleanOr(resultSet, COLUMN_PREF_ENABLED, true);
+            return new VotingDataManager.NotifyPref(playerId, enabled);
+        } catch (final SQLException | IllegalArgumentException exception) {
+            exception.printStackTrace();
+            return null;
+        }
+    };
+
     public static final SelectStatement<Vote> SELECT_VOTE = SelectStatement.builder(VOTE_LOADER).build();
     public static final SelectStatement<VotingDataManager.OptionRow> SELECT_OPTION = SelectStatement
             .builder(OPTION_LOADER).build();
     public static final SelectStatement<VoteBallot> SELECT_BALLOT = SelectStatement.builder(BALLOT_LOADER).build();
+    public static final SelectStatement<VotingDataManager.NotifyPref> SELECT_PREF = SelectStatement
+            .builder(PREF_LOADER).build();
 
     public static final InsertStatement<Vote> INSERT_VOTE = InsertStatement.builder(Vote.class)
             .setUUID(COLUMN_VOTE_ID, Vote::getId)
@@ -211,6 +234,12 @@ public class VotingQueries {
             .setBoolean(COLUMN_RULE_RUNOFF, vote -> vote.getRules().isRunoffEnabled())
             .setInt(COLUMN_RULE_RUNOFF_TOP, vote -> vote.getRules().getRunoffTopN())
             .setInt(COLUMN_RULE_RUNOFF_DUR, vote -> vote.getRules().getRunoffDurationSeconds())
+            .setBoolean(COLUMN_RULE_SILENT, vote -> vote.getRules().isSilent())
+            .setBoolean(COLUMN_RULE_RECURRENCE, vote -> vote.getRules().isRecurrenceEnabled())
+            .setInt(COLUMN_RULE_REC_INTERVAL, vote -> vote.getRules().getRecurrenceIntervalSeconds())
+            .setInt(COLUMN_RULE_REC_LIMIT, vote -> vote.getRules().getRecurrenceLimit())
+            .setInt(COLUMN_REC_COUNT, Vote::getRecurrenceCount)
+            .setString(COLUMN_REC_SERIES, Vote::getRecurrenceSeries)
             .build();
 
     public static final UpdateStatement<Vote> UPDATE_VOTE = UpdateStatement.builder(Vote.class)
@@ -248,6 +277,12 @@ public class VotingQueries {
             .setBoolean(COLUMN_RULE_RUNOFF, vote -> vote.getRules().isRunoffEnabled())
             .setInt(COLUMN_RULE_RUNOFF_TOP, vote -> vote.getRules().getRunoffTopN())
             .setInt(COLUMN_RULE_RUNOFF_DUR, vote -> vote.getRules().getRunoffDurationSeconds())
+            .setBoolean(COLUMN_RULE_SILENT, vote -> vote.getRules().isSilent())
+            .setBoolean(COLUMN_RULE_RECURRENCE, vote -> vote.getRules().isRecurrenceEnabled())
+            .setInt(COLUMN_RULE_REC_INTERVAL, vote -> vote.getRules().getRecurrenceIntervalSeconds())
+            .setInt(COLUMN_RULE_REC_LIMIT, vote -> vote.getRules().getRecurrenceLimit())
+            .setInt(COLUMN_REC_COUNT, Vote::getRecurrenceCount)
+            .setString(COLUMN_REC_SERIES, Vote::getRecurrenceSeries)
             .build();
 
     public static final InsertStatement<VotingDataManager.OptionRow> INSERT_OPTION =
@@ -288,6 +323,17 @@ public class VotingQueries {
             .setDouble(COLUMN_BALLOT_COST, VoteBallot::costPaid)
             .setLong(COLUMN_BALLOT_DATE, VoteBallot::date)
             .build();
+
+    public static final InsertStatement<VotingDataManager.NotifyPref> INSERT_PREF =
+            InsertStatement.builder(VotingDataManager.NotifyPref.class)
+                    .setUUID(COLUMN_PREF_PLAYER, VotingDataManager.NotifyPref::playerId)
+                    .setBoolean(COLUMN_PREF_ENABLED, VotingDataManager.NotifyPref::enabled)
+                    .build();
+
+    public static final UpdateStatement<VotingDataManager.NotifyPref> UPDATE_PREF =
+            UpdateStatement.builder(VotingDataManager.NotifyPref.class)
+                    .setBoolean(COLUMN_PREF_ENABLED, VotingDataManager.NotifyPref::enabled)
+                    .build();
 
     /**
      * Reads an enum column, or {@code null} when the stored name is one this build does not know.

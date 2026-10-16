@@ -281,8 +281,9 @@ public class VotingStaffCommandProvider extends CommandProvider<VotingModule> {
             "min-playtime", "world-mode", "worlds",
             "money-mode", "min-balance", "max-balance", "over-max", "currency-per-weight", "max-money-weight",
             "weighting", "weight-source", "weight-combine", "base-weight", "max-multiplier", "max-weight",
-            "min-participants", "pass-percent", "neutral-counts", "secret",
+            "min-participants", "pass-percent", "neutral-counts", "secret", "silent",
             "tie-break", "allow-change", "change-lock",
+            "recurrence", "recurrence-interval", "recurrence-limit",
             "runoff", "runoff-top", "runoff-duration");
 
     // -- Handlers ---------------------------------------------------------------------------------
@@ -550,9 +551,19 @@ public class VotingStaffCommandProvider extends CommandProvider<VotingModule> {
                 case "pass-percent" -> rules.setPassPercent(parseNonNegativeDouble(value));
                 case "neutral-counts" -> rules.setNeutralCountsTowardTotal(parseBoolean(value));
                 case "secret" -> rules.setSecretBallot(parseBoolean(value));
+                case "silent" -> rules.setSilent(parseBoolean(value));
                 case "tie-break" -> rules.setTieBreak(enumOf(value, TieBreak.class));
                 case "allow-change" -> rules.setAllowChange(parseBoolean(value));
                 case "change-lock" -> rules.setChangeLockSeconds(parseNonNegativeInt(value));
+                case "recurrence" -> rules.setRecurrenceEnabled(parseBoolean(value));
+                case "recurrence-interval" -> {
+                    final long seconds = TimeUtil.parseDurationSeconds(value);
+                    if (seconds < 0L) {
+                        return false;
+                    }
+                    rules.setRecurrenceIntervalSeconds((int) Math.min(seconds, Integer.MAX_VALUE));
+                }
+                case "recurrence-limit" -> rules.setRecurrenceLimit(parseNonNegativeInt(value));
                 case "runoff" -> rules.setRunoffEnabled(parseBoolean(value));
                 case "runoff-top" -> rules.setRunoffTopN(Math.max(2, parseNonNegativeInt(value)));
                 case "runoff-duration" -> {

@@ -7,9 +7,11 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -78,6 +80,12 @@ public class VotingDataManager {
     public static final Column<Boolean> COLUMN_RULE_RUNOFF      = Column.booleanType("runoffEnabled").build();
     public static final Column<Integer> COLUMN_RULE_RUNOFF_TOP  = Column.intType("runoffTopN").build();
     public static final Column<Integer> COLUMN_RULE_RUNOFF_DUR  = Column.intType("runoffDuration").build();
+    public static final Column<Boolean> COLUMN_RULE_SILENT      = Column.booleanType("silent").build();
+    public static final Column<Boolean> COLUMN_RULE_RECURRENCE  = Column.booleanType("recurrenceEnabled").build();
+    public static final Column<Integer> COLUMN_RULE_REC_INTERVAL = Column.intType("recurrenceInterval").build();
+    public static final Column<Integer> COLUMN_RULE_REC_LIMIT   = Column.intType("recurrenceLimit").build();
+    public static final Column<Integer> COLUMN_REC_COUNT         = Column.intType("recurrenceCount").build();
+    public static final Column<String>  COLUMN_REC_SERIES        = Column.stringType("recurrenceSeries", 64).nullable().build();
 
     // -- vote options -----------------------------------------------------------------------------
 
@@ -104,6 +112,11 @@ public class VotingDataManager {
     public static final Column<Double> COLUMN_BALLOT_COST  = Column.doubleType("costPaid").build();
     public static final Column<Long> COLUMN_BALLOT_DATE    = Column.longType("date").build();
 
+    // -- reminder opt-outs ------------------------------------------------------------------------
+
+    public static final Column<UUID> COLUMN_PREF_PLAYER = Column.uuidType("playerId").primaryKey().build();
+    public static final Column<Boolean> COLUMN_PREF_ENABLED = Column.booleanType("enabled").build();
+
     /**
      * The option table's row shape. Options live inside a vote and are keyed by their vote's id,
      * neither of which belongs on the option model itself, so the statements are built over this
@@ -112,12 +125,20 @@ public class VotingDataManager {
     public record OptionRow(UUID optionId, UUID voteId, VoteOption option) {
     }
 
+    /**
+     * One player's reminder preference. Absent row means opted in; only opt-outs are stored
+     * in memory long-term, but every explicit choice is persisted so a relog keeps it.
+     */
+    public record NotifyPref(UUID playerId, boolean enabled) {
+    }
+
     private final DataHandler dataHandler;
     private final VotingModule module;
 
     private Table tableVotes;
     private Table tableOptions;
     private Table tableBallots;
+    private Table tablePrefs;
 
     public VotingDataManager(final DataHandler dataHandler, final VotingModule module) {
         this.dataHandler = dataHandler;
@@ -135,7 +156,9 @@ public class VotingDataManager {
                         COLUMN_RULE_W_SOURCE, COLUMN_RULE_W_COMBINE, COLUMN_RULE_BASE_W, COLUMN_RULE_MAX_MULT,
                         COLUMN_RULE_MAX_WEIGHT, COLUMN_RULE_MIN_PART, COLUMN_RULE_PASS_PCT, COLUMN_RULE_NEUTRAL,
                         COLUMN_RULE_SECRET, COLUMN_RULE_TIE_BREAK, COLUMN_RULE_ALLOW_CHANGE, COLUMN_RULE_CHANGE_LOCK,
-                        COLUMN_RULE_RUNOFF, COLUMN_RULE_RUNOFF_TOP, COLUMN_RULE_RUNOFF_DUR)
+                        COLUMN_RULE_RUNOFF, COLUMN_RULE_RUNOFF_TOP, COLUMN_RULE_RUNOFF_DUR,
+                        COLUMN_RULE_SILENT, COLUMN_RULE_RECURRENCE, COLUMN_RULE_REC_INTERVAL, COLUMN_RULE_REC_LIMIT,
+                        COLUMN_REC_COUNT, COLUMN_REC_SERIES)
                 .build();
 
         this.tableOptions = Table.builder(tablePrefix + "_vote_options")
@@ -151,9 +174,14 @@ public class VotingDataManager {
                         COLUMN_BALLOT_NAME, COLUMN_BALLOT_WEIGHT, COLUMN_BALLOT_COST, COLUMN_BALLOT_DATE)
                 .build();
 
+        this.tablePrefs = Table.builder(tablePrefix + "_notify_prefs")
+                .withColumn(COLUMN_PREF_PLAYER, COLUMN_PREF_ENABLED)
+                .build();
+
         this.dataHandler.createTable(this.tableVotes);
         this.dataHandler.createTable(this.tableOptions);
         this.dataHandler.createTable(this.tableBallots);
+        this.dataHandler.createTable(this.tablePrefs);
 
         this.dataHandler.addTableSync(this.tableVotes, this::syncVote);
         this.dataHandler.addTableSync(this.tableOptions, this::syncOption);
@@ -279,6 +307,28 @@ public class VotingDataManager {
 
     public void deleteBallots(final UUID voteId) {
         this.dataHandler.delete(this.tableBallots, Wheres.whereUUID(COLUMN_BALLOT_VOTE, o -> voteId));
+    }
+
+    public Map<UUID, Boolean> getNotifyPrefs() {
+        final List<NotifyPref> prefs = this.dataHandler.selectAny(this.tablePrefs, VotingQueries.SELECT_PREF);
+        final Map<UUID, Boolean> map = new LinkedHashMap<>();
+        for (final NotifyPref pref : prefs) {
+            if (pref != null && pref.playerId() != null) {
+                map.put(pref.playerId(), pref.enabled());
+            }
+        }
+        return map;
+    }
+
+    public void setNotifyPref(final UUID playerId, final boolean enabled) {
+        if (playerId == null) {
+            return;
+        }
+        final NotifyPref pref = new NotifyPref(playerId, enabled);
+        this.dataHandler.insert(this.tablePrefs, VotingQueries.INSERT_PREF, pref);
+        // Insert upserts on the derived PK; update as well so a non-derived stored row still flips.
+        final Wheres<NotifyPref> where = Wheres.whereUUID(COLUMN_PREF_PLAYER, o -> playerId);
+        this.dataHandler.update(this.tablePrefs, VotingQueries.UPDATE_PREF, pref, where);
     }
 
     /**

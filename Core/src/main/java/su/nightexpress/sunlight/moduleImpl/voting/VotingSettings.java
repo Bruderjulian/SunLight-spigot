@@ -16,6 +16,7 @@ import su.nightexpress.sunlight.moduleImpl.voting.model.MultiplierTable;
 import su.nightexpress.sunlight.moduleImpl.voting.model.OverMaxMode;
 import su.nightexpress.sunlight.moduleImpl.voting.model.TieBreak;
 import su.nightexpress.sunlight.moduleImpl.voting.model.VoteOption;
+import su.nightexpress.sunlight.moduleImpl.voting.model.VoteTemplate;
 import su.nightexpress.sunlight.moduleImpl.voting.model.WeightCombine;
 import su.nightexpress.sunlight.moduleImpl.voting.model.WeightSource;
 import su.nightexpress.sunlight.moduleImpl.voting.model.WorldMode;
@@ -468,11 +469,57 @@ public class VotingSettings extends AbstractConfig {
             "open a paid vote on a server that is not ready for it."
     );
 
+    // -- Visibility -------------------------------------------------------------------------------
+
+    public final ConfigProperty<Boolean> silentDefault = this.addProperty(ConfigTypes.BOOLEAN,
+            "Voting.Notify.Silent-Default",
+            false,
+            "When true, new votes suppress announcements, results and reminders.",
+            "Per-poll override: '/voting rules <poll> silent true|false'."
+    );
+
+    // -- Recurrence ---------------------------------------------------------------------------------
+
+    public final ConfigProperty<Boolean> recurrenceEnabled = this.addProperty(ConfigTypes.BOOLEAN,
+            "Voting.Recurrence.Enabled",
+            false,
+            "When true, new votes spawn a follow-up instance when they conclude.",
+            "Cancelled polls never recur. Use 0 limit for an endless series."
+    );
+
+    public final ConfigProperty<Integer> recurrenceIntervalSeconds = this.addProperty(ConfigTypes.INT,
+            "Voting.Recurrence.Interval-Seconds",
+            3600,
+            "Seconds after conclusion when the next instance opens.",
+            "Use 0 to open the next instance immediately."
+    );
+
+    public final ConfigProperty<Integer> recurrenceLimit = this.addProperty(ConfigTypes.INT,
+            "Voting.Recurrence.Limit",
+            0,
+            "How many follow-up instances one series may spawn.",
+            "Use 0 for no limit. The original poll does not count."
+    );
+
+    // -- Templates ----------------------------------------------------------------------------------
+
+    public final ConfigProperty<Boolean> templatesPlayerSilentDefault = this.addProperty(ConfigTypes.BOOLEAN,
+            "Voting.Templates.Player-Polls-Silent-Default",
+            true,
+            "When true, polls created from player templates are silent unless the template says otherwise."
+    );
+
     /**
      * Read outside the property system because it is not a single scalar: the entries are
      * permission nodes, which contain dots and would be misread as nested config sections.
      */
     private MultiplierTable multiplierTable;
+
+    /**
+     * Admin-defined safe poll shapes. Read outside the property system because the set of
+     * template ids is dynamic, like report categories.
+     */
+    private Map<String, VoteTemplate> templates = Map.of();
 
     @Override
     public void load(final FileConfig config) {
@@ -480,6 +527,8 @@ public class VotingSettings extends AbstractConfig {
         // Deliberately never written back: re-serialising would lower-case every permission and
         // rank in the file, so a reload would silently rewrite an admin's config.
         this.multiplierTable = MultiplierTable.read(config, "Voting.Weighting");
+        VoteTemplate.writeDefaults(config, "Voting.Templates.List");
+        this.templates = VoteTemplate.readAll(config, "Voting.Templates.List");
     }
 
     public MultiplierTable getMultiplierTable() {
@@ -487,5 +536,9 @@ public class VotingSettings extends AbstractConfig {
             this.multiplierTable = new MultiplierTable(Map.of(), Map.of());
         }
         return this.multiplierTable;
+    }
+
+    public Map<String, VoteTemplate> getTemplates() {
+        return this.templates == null ? Map.of() : Map.copyOf(this.templates);
     }
 }

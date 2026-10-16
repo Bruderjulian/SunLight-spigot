@@ -41,6 +41,10 @@ public class VotingPlaceholders extends SLPlaceholders {
     public static final String VOTE_OUTCOME_KEY = "%vote_outcome_key%";
     public static final String VOTE_PASS_PCT   = "%vote_pass_percent%";
     public static final String VOTE_SECRET     = "%vote_secret%";
+    public static final String VOTE_SILENT     = "%vote_silent%";
+    public static final String VOTE_RECURRING  = "%vote_recurring%";
+    public static final String VOTE_SERIES     = "%vote_series%";
+    public static final String VOTE_REC_COUNT  = "%vote_recurrence_count%";
     public static final String VOTE_TIE_BREAK  = "%vote_tie_break%";
     public static final String VOTE_OPTIONS    = "%vote_options%";
     public static final String VOTE_LEADER     = "%vote_leader%";
@@ -95,6 +99,10 @@ public class VotingPlaceholders extends SLPlaceholders {
             .with(VOTE_OUTCOME_KEY, vote -> vote.getOutcome() == null ? "" : vote.getOutcome())
             .with(VOTE_PASS_PCT, vote -> String.valueOf(vote.getRules().getPassPercent()))
             .with(VOTE_SECRET, vote -> VotingLang.STATE_YES_NO.get(vote.getRules().isSecretBallot()))
+            .with(VOTE_SILENT, vote -> VotingLang.STATE_YES_NO.get(vote.getRules().isSilent()))
+            .with(VOTE_RECURRING, vote -> VotingLang.STATE_YES_NO.get(vote.getRules().isRecurrenceEnabled()))
+            .with(VOTE_SERIES, vote -> vote.getRecurrenceSeries() == null ? "" : vote.getRecurrenceSeries())
+            .with(VOTE_REC_COUNT, vote -> String.valueOf(vote.getRecurrenceCount()))
             .with(VOTE_TIE_BREAK, vote -> vote.getRules().getTieBreak().name())
             .with(VOTE_OPTIONS, vote -> String.join(", ",
                     vote.getOptionList().stream().map(VoteOption::getDisplay).toList()))

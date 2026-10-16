@@ -107,6 +107,15 @@ public class VotingLang implements LangContainer {
     public static final TextLocale COMMAND_HISTORY_DESC = LangEntry.builder("Voting.Command.History.Desc")
             .text("Browse finished votes.");
 
+    public static final TextLocale COMMAND_NOTIFY_DESC = LangEntry.builder("Voting.Command.Notify.Desc")
+            .text("Turn vote reminders on or off for yourself.");
+
+    public static final TextLocale COMMAND_TEMPLATE_DESC = LangEntry.builder("Voting.Command.Template.Desc")
+            .text("Browse and use vote templates.");
+
+    public static final TextLocale COMMAND_WIZARD_DESC = LangEntry.builder("Voting.Command.Wizard.Desc")
+            .text("Open the guided vote creation wizard.");
+
     public static final TextLocale COMMAND_START_DESC = LangEntry.builder("Voting.Command.Start.Desc")
             .text("Open a scheduled vote early.");
 
@@ -438,6 +447,35 @@ public class VotingLang implements LangContainer {
 
     public static final MessageLocale BROADCAST = LangEntry.builder("Voting.Broadcast")
             .chatMessage(Sound.BLOCK_NOTE_BLOCK_PLING, GRAY.wrap("Re-announced " + ORANGE.wrap(VOTE_NAME) + "."));
+
+    public static final MessageLocale NOTIFY_ON = LangEntry.builder("Voting.Notify.On")
+            .chatMessage(Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
+                    GRAY.wrap("Vote reminders are now " + GREEN.wrap("on") + "."));
+
+    public static final MessageLocale NOTIFY_OFF = LangEntry.builder("Voting.Notify.Off")
+            .chatMessage(Sound.BLOCK_NOTE_BLOCK_BASS,
+                    GRAY.wrap("Vote reminders are now " + RED.wrap("off") + "."));
+
+    public static final MessageLocale NOTIFY_STATUS = LangEntry.builder("Voting.Notify.Status")
+            .chatMessage(Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
+                    GRAY.wrap("Vote reminders are currently " + ORANGE.wrap(GENERIC_STATE) + "."));
+
+    public static final MessageLocale TEMPLATE_CREATED = LangEntry.builder("Voting.Template.Created")
+            .chatMessage(Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
+                    GRAY.wrap("Opened " + ORANGE.wrap(VOTE_NAME) + " from template " + ORANGE.wrap(GENERIC_TARGET) + "."));
+
+    public static final MessageLocale ERROR_UNKNOWN_TEMPLATE = LangEntry.builder("Voting.Error.UnknownTemplate")
+            .chatMessage(Sound.ENTITY_VILLAGER_NO,
+                    GRAY.wrap("There is no vote template called " + ORANGE.wrap(GENERIC_TARGET) + "."),
+                    DARK_GRAY.wrap("Templates: " + GRAY.wrap(GENERIC_LIST)));
+
+    public static final MessageLocale ERROR_TEMPLATE_LOCKED = LangEntry.builder("Voting.Error.TemplateLocked")
+            .chatMessage(Sound.ENTITY_VILLAGER_NO,
+                    GRAY.wrap("Template " + ORANGE.wrap(GENERIC_TARGET) + " is not open to players."));
+
+    public static final MessageLocale RECURRED = LangEntry.builder("Voting.Recurred")
+            .chatMessage(Sound.BLOCK_NOTE_BLOCK_PLING,
+                    GRAY.wrap(VOTE_NAME + " continues as " + ORANGE.wrap(GENERIC_TARGET) + "."));
 
     // -- Menus -----------------------------------------------------------------------------------
 
