@@ -30,7 +30,6 @@ import su.nightexpress.sunlight.api.event.VoteCastEvent;
 import su.nightexpress.sunlight.api.event.VoteConcludedEvent;
 import su.nightexpress.sunlight.api.event.VoteCreateEvent;
 import su.nightexpress.sunlight.api.provider.VoteHandle;
-import su.nightexpress.sunlight.api.provider.VotingProvider;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -66,9 +65,7 @@ import su.nightexpress.sunlight.moduleImpl.voting.model.VoteTemplate;
 import su.nightexpress.sunlight.moduleImpl.voting.model.WeightCombine;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 
-public class VotingModule extends Module implements VotingProvider {
-
-    private static final String PLAYTIME_MODULE_ID = "playtime";
+public class VotingModule extends Module {
 
     private final VotingSettings settings;
     private final VotingDataManager dataManager;
@@ -125,7 +122,8 @@ public class VotingModule extends Module implements VotingProvider {
         this.wizardMenu = null;
     }
 
-    // -- Loading ----------------------------------------------------------------------------------
+    // -- Loading
+    // ----------------------------------------------------------------------------------
 
     private void loadMenus() {
         this.menu = new VotesMenu(this);
@@ -147,8 +145,10 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * Loads everything off-thread. Choices are indexed by vote id rather than pushed onto a poll,
-     * so a row order where a choice arrives before its poll still resolves correctly.
+     * Loads everything off-thread. Choices are indexed by vote id rather than
+     * pushed onto a poll,
+     * so a row order where a choice arrives before its poll still resolves
+     * correctly.
      */
     private void loadData() {
         this.dataLoaded = false;
@@ -218,7 +218,8 @@ public class VotingModule extends Module implements VotingProvider {
      * Re-announces every open vote to the players who have not voted in it yet.
      * Runs off-thread on its own interval; delivery hops to the main thread.
      * <p>
-     * Silent polls never remind. Players who opted out via {@code /voting notify off}
+     * Silent polls never remind. Players who opted out via
+     * {@code /voting notify off}
      * are skipped as well.
      */
     private void remindUnvoted() {
@@ -252,35 +253,12 @@ public class VotingModule extends Module implements VotingProvider {
         });
     }
 
-    public void nudgeOnJoin(final Player player) {
-        if (!this.dataLoaded || !this.settings.notifyOnJoin.get()) {
-            return;
-        }
-        if (!this.isReminderEnabled(player.getUniqueId())) {
-            return;
-        }
-        // Silent polls never nudge: they stay votable via GUI/commands but never push.
-        final List<Vote> pending = this.repository.getOpenVotes().stream()
-                .filter(vote -> !vote.isSilent())
-                .filter(vote -> !this.ballotRepository.hasVoted(vote.getId(), player.getUniqueId()))
-                .toList();
-        if (pending.isEmpty()) {
-            return;
-        }
-        final String permission = this.settings.notifyPermission.get();
-        if (permission != null && !permission.isBlank() && !player.hasPermission(permission)) {
-            return;
-        }
-        this.sendPrefixed(VotingLang.JOIN_NUDGE, player, b -> b
-                .with(SLPlaceholders.GENERIC_AMOUNT, () -> String.valueOf(pending.size()))
-                .with(SLPlaceholders.GENERIC_LIST,
-                        () -> String.join(", ", pending.stream().map(Vote::getKey).toList())));
-    }
-
-    // -- Reminder opt-out ---------------------------------------------------------------------------
+    // -- Reminder opt-out
+    // ---------------------------------------------------------------------------
 
     /**
-     * @return whether this player wants vote reminders and join-nudges. Absent row means
+     * @return whether this player wants vote reminders and join-nudges. Absent row
+     *         means
      *         opted in; only explicit opt-outs are stored.
      */
     public boolean isReminderEnabled(final UUID playerId) {
@@ -302,7 +280,8 @@ public class VotingModule extends Module implements VotingProvider {
         this.plugin.runTaskAsync(task -> this.dataManager.setNotifyPref(playerId, enabled));
     }
 
-    // -- Accessors --------------------------------------------------------------------------------
+    // -- Accessors
+    // --------------------------------------------------------------------------------
 
     public VotingSettings settings() {
         return this.settings;
@@ -324,7 +303,10 @@ public class VotingModule extends Module implements VotingProvider {
         return this.dataLoaded;
     }
 
-    /** Recomputed on demand; nothing here is worth caching against a poll that can change at any time. */
+    /**
+     * Recomputed on demand; nothing here is worth caching against a poll that can
+     * change at any time.
+     */
     public VoteTally tally(final Vote vote) {
         return new VoteTally(this.ballotRepository.getBallots(vote.getId()), vote.getRules());
     }
@@ -333,13 +315,17 @@ public class VotingModule extends Module implements VotingProvider {
         return this.repository.getVote(key);
     }
 
-    // -- Placeholders -----------------------------------------------------------------------------
+    // -- Placeholders
+    // -----------------------------------------------------------------------------
 
     @Override
     public void registerPlaceholders(final PlaceholderRegistry registry) {
-        // Counters are prefixed 'count_' for the reason the Reports module does the same: the
-        // registry resolves the longest matching key and hands the remainder on as a payload, so
-        // a key like 'voting_active' would swallow '%sunlight_voting_active_<key>%' and answer
+        // Counters are prefixed 'count_' for the reason the Reports module does the
+        // same: the
+        // registry resolves the longest matching key and hands the remainder on as a
+        // payload, so
+        // a key like 'voting_active' would swallow '%sunlight_voting_active_<key>%' and
+        // answer
         // with the global number instead of failing.
         registry.register("voting_count_active",
                 (player, payload) -> String.valueOf(this.repository.getOpenCount()));
@@ -350,7 +336,8 @@ public class VotingModule extends Module implements VotingProvider {
         registry.register("voting_count_finished",
                 (player, payload) -> String.valueOf(this.repository.getFinishedVotes().size()));
 
-        // What this player has voted on, taken from their most recent open poll — the one a
+        // What this player has voted on, taken from their most recent open poll — the
+        // one a
         // scoreboard or chat line is almost always talking about.
         registry.register("voting_name", (player, payload) -> this.latest(player, Vote::getDisplay));
         registry.register("voting_key", (player, payload) -> this.latest(player, Vote::getKey));
@@ -359,7 +346,8 @@ public class VotingModule extends Module implements VotingProvider {
         registry.register("voting_option", (player, payload) -> this.latestOptions(player));
         registry.register("voting_weight", (player, payload) -> this.latestWeight(player));
 
-        // Per-poll figures, payload = vote key. An unknown key yields "" rather than null so a
+        // Per-poll figures, payload = vote key. An unknown key yields "" rather than
+        // null so a
         // scoreboard shows a blank instead of a raw placeholder.
         registry.register("voting_time_left", (player, payload) -> this.field(payload,
                 vote -> TimeFormats.formatDuration(vote.getEndDate(), TimeFormatType.LITERAL)));
@@ -468,8 +456,10 @@ public class VotingModule extends Module implements VotingProvider {
             return VotingLang.STATE_YES_NO.get(this.isReminderEnabled(player.getUniqueId()));
         });
 
-        // Headcount per built-in choice, payload = vote key. The *_score and *_share variants
-        // carry the weighted figures, because on a weighted poll the headcount alone misleads.
+        // Headcount per built-in choice, payload = vote key. The *_score and *_share
+        // variants
+        // carry the weighted figures, because on a weighted poll the headcount alone
+        // misleads.
         registry.register("voting_option_yes", (player, payload) -> this.optionField(payload, VoteOption.YES));
         registry.register("voting_option_no", (player, payload) -> this.optionField(payload, VoteOption.NO));
         registry.register("voting_option_neutral", (player, payload) -> this.optionField(payload, VoteOption.NEUTRAL));
@@ -486,8 +476,10 @@ public class VotingModule extends Module implements VotingProvider {
         registry.register("voting_option_neutral_share",
                 (player, payload) -> this.optionShare(payload, VoteOption.NEUTRAL));
 
-        // Generic per-choice figures for custom options, payload = <voteKey>:<optionKey>.
-        // The vote is resolved by longest-prefix match so vote keys may contain underscores.
+        // Generic per-choice figures for custom options, payload =
+        // <voteKey>:<optionKey>.
+        // The vote is resolved by longest-prefix match so vote keys may contain
+        // underscores.
         registry.register("voting_option_votes", (player, payload) -> this.genericOption(payload,
                 (vote, tally, option) -> String.valueOf(tally.count(option.getKey()))));
         registry.register("voting_option_count", (player, payload) -> this.genericOption(payload,
@@ -503,8 +495,10 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * Resolves a {@code <voteKey>:<optionKey>} payload. The vote key may itself contain
-     * underscores, so the vote is matched by longest prefix: every known vote key that the
+     * Resolves a {@code <voteKey>:<optionKey>} payload. The vote key may itself
+     * contain
+     * underscores, so the vote is matched by longest prefix: every known vote key
+     * that the
      * payload starts with is a candidate and the longest one wins.
      */
     private String genericOption(final String payload,
@@ -575,9 +569,12 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * @return the open poll the player voted in most recently. The open set has no inherent
-     *         order, so "latest" is defined by the newest ballot date — reducing over the raw
-     *         collection order would make the placeholders nondeterministic with several polls.
+     * @return the open poll the player voted in most recently. The open set has no
+     *         inherent
+     *         order, so "latest" is defined by the newest ballot date — reducing
+     *         over the raw
+     *         collection order would make the placeholders nondeterministic with
+     *         several polls.
      */
     private @Nullable Vote latestVote(final Player player) {
         if (player == null) {
@@ -630,7 +627,8 @@ public class VotingModule extends Module implements VotingProvider {
         return total > 0D ? format(total) : "";
     }
 
-    // -- Creation ---------------------------------------------------------------------------------
+    // -- Creation
+    // ---------------------------------------------------------------------------------
 
     public @Nullable Vote create(final CommandSender creator, final String keyRaw, final String displayRaw,
             final int durationSeconds) {
@@ -715,7 +713,8 @@ public class VotingModule extends Module implements VotingProvider {
             options.add(new VoteOption(VoteOption.NEUTRAL, "Neutral", this.settings.iconNeutral.get()));
         }
 
-        // A poll with every built-in choice switched off still needs something to vote on. Rather
+        // A poll with every built-in choice switched off still needs something to vote
+        // on. Rather
         // than refuse the creation, fall back to a bare yes/no pair.
         if (options.isEmpty()) {
             options.add(new VoteOption(VoteOption.YES, "Yes", this.settings.iconYes.get()));
@@ -725,7 +724,8 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * @return the server-wide defaults as a fresh rule set, so editing one poll can never write
+     * @return the server-wide defaults as a fresh rule set, so editing one poll can
+     *         never write
      *         through into another poll or back into the config.
      */
     private VoteRules buildDefaultRules() {
@@ -768,7 +768,8 @@ public class VotingModule extends Module implements VotingProvider {
         return this.buildDefaultRules();
     }
 
-    // -- Choices ----------------------------------------------------------------------------------
+    // -- Choices
+    // ----------------------------------------------------------------------------------
 
     public boolean addOption(final CommandSender sender, final Vote vote, final String keyRaw,
             final String displayRaw, final String iconRaw) {
@@ -812,7 +813,8 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * @param force When true, ballots on the removed choice are moved to neutral rather than the
+     * @param force When true, ballots on the removed choice are moved to neutral
+     *              rather than the
      *              removal being refused.
      */
     public boolean removeOption(final CommandSender sender, final Vote vote, final String optionKeyRaw,
@@ -861,10 +863,13 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * Re-homes ballots onto the poll's neutral choice, refunding whatever they paid.
+     * Re-homes ballots onto the poll's neutral choice, refunding whatever they
+     * paid.
      * <p>
-     * Dropping the ballots would silently strip those players of their say, and dropping the
-     * choice without a home for them would invalidate a vote they had no way to change.
+     * Dropping the ballots would silently strip those players of their say, and
+     * dropping the
+     * choice without a home for them would invalidate a vote they had no way to
+     * change.
      */
     private void moveBallots(final Vote vote, final VoteOption removed, final List<VoteBallot> ballots) {
         if (ballots.isEmpty()) {
@@ -918,7 +923,8 @@ public class VotingModule extends Module implements VotingProvider {
                 .with(vote.placeholders())
                 .with(option.placeholders())
                 .with(SLPlaceholders.GENERIC_LIST,
-                        () -> option.getGates().stream().map(Enum::name).reduce((a, c) -> a + ", " + c).orElse("none")));
+                        () -> option.getGates().stream().map(Enum::name).reduce((a, c) -> a + ", " + c)
+                                .orElse("none")));
         return true;
     }
 
@@ -944,7 +950,8 @@ public class VotingModule extends Module implements VotingProvider {
         this.sendPrefixed(VotingLang.RULES_SET, sender, b -> b.with(vote.placeholders()));
     }
 
-    // -- Lifecycle --------------------------------------------------------------------------------
+    // -- Lifecycle
+    // --------------------------------------------------------------------------------
 
     public boolean extend(final CommandSender sender, final Vote vote, final int seconds) {
         if (!vote.isOpen() && !vote.isScheduled()) {
@@ -965,8 +972,10 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     public boolean close(final CommandSender sender, final Vote vote) {
-        // A scheduled poll has taken no votes, so there is nothing to decide: closing one
-        // early means abandoning it, which is what cancel is. Routing it here rather than
+        // A scheduled poll has taken no votes, so there is nothing to decide: closing
+        // one
+        // early means abandoning it, which is what cancel is. Routing it here rather
+        // than
         // into conclude() also avoids reporting a result for a poll that never ran.
         if (vote.isScheduled()) {
             return this.cancel(sender, vote);
@@ -984,8 +993,10 @@ public class VotingModule extends Module implements VotingProvider {
             this.sendPrefixed(VotingLang.ERROR_NOT_OPEN, sender, b -> b.with(vote.placeholders()));
             return false;
         }
-        // Deliberately not routed through conclude(): a staff member stopping a poll is not the
-        // same act as deciding it, and going through the resolver would announce a winner for a
+        // Deliberately not routed through conclude(): a staff member stopping a poll is
+        // not the
+        // same act as deciding it, and going through the resolver would announce a
+        // winner for a
         // poll somebody just decided to kill.
         this.finish(vote, null, VoteStatus.CANCELLED, true, this.tally(vote), VotingLang.RESULT_CANCELLED);
         this.sendPrefixed(VotingLang.CANCELLED, sender, b -> b.with(vote.placeholders()));
@@ -993,8 +1004,10 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     public boolean delete(final CommandSender sender, final Vote vote) {
-        // Only an open poll can still owe refunds. A concluded poll already refunded its losers
-        // in finish(), and refunding again here would pay every paid ballot a second time.
+        // Only an open poll can still owe refunds. A concluded poll already refunded
+        // its losers
+        // in finish(), and refunding again here would pay every paid ballot a second
+        // time.
         if (vote.isOpen()) {
             this.refundAll(vote);
         }
@@ -1042,7 +1055,8 @@ public class VotingModule extends Module implements VotingProvider {
 
     /**
      * Copies a poll's display, description, choices and rules under a new key.
-     * Ballots never carry over: the clone is a fresh question, not a reopened count.
+     * Ballots never carry over: the clone is a fresh question, not a reopened
+     * count.
      */
     public @Nullable Vote cloneVote(final CommandSender sender, final Vote source, final String keyRaw) {
         final String key = keyRaw == null ? "" : keyRaw.trim().toLowerCase(Locale.ROOT);
@@ -1108,7 +1122,8 @@ public class VotingModule extends Module implements VotingProvider {
         return vote;
     }
 
-    // -- Templates ----------------------------------------------------------------------------------
+    // -- Templates
+    // ----------------------------------------------------------------------------------
 
     public Map<String, VoteTemplate> getTemplates() {
         return this.settings.getTemplates();
@@ -1124,7 +1139,8 @@ public class VotingModule extends Module implements VotingProvider {
     /**
      * Opens a poll from an admin-defined template.
      * <p>
-     * Everything except the key comes from the template: options, duration and silent
+     * Everything except the key comes from the template: options, duration and
+     * silent
      * flag are locked, rules come from the server defaults. Players can never set
      * outcome commands through a template.
      *
@@ -1180,14 +1196,16 @@ public class VotingModule extends Module implements VotingProvider {
         }
 
         final VoteRules rules = this.buildDefaultRules();
-        // Template decides silent; player polls default silent unless the template opts out.
+        // Template decides silent; player polls default silent unless the template opts
+        // out.
         // Staff using templates keep the template flag as-is.
         if (sender instanceof Player && !(sender.hasPermission(VotingPerms.COMMAND_CREATE))) {
             rules.setSilent(template.isSilent() || this.settings.templatesPlayerSilentDefault.get());
         } else {
             rules.setSilent(template.isSilent());
         }
-        // Template polls never inherit recurrence: a template spawning an endless series
+        // Template polls never inherit recurrence: a template spawning an endless
+        // series
         // from one player click is a footgun, not a feature.
         rules.setRecurrenceEnabled(false);
 
@@ -1219,7 +1237,8 @@ public class VotingModule extends Module implements VotingProvider {
         return vote;
     }
 
-    // -- Wizard -------------------------------------------------------------------------------------
+    // -- Wizard
+    // -------------------------------------------------------------------------------------
 
     public VoteDraft getOrCreateDraft(final Player player) {
         return this.wizardDrafts.computeIfAbsent(player.getUniqueId(),
@@ -1239,8 +1258,10 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * Validates the draft and persists it as a real poll. The draft survives a failed
-     * attempt so the player can fix the highlighted problem instead of starting over.
+     * Validates the draft and persists it as a real poll. The draft survives a
+     * failed
+     * attempt so the player can fix the highlighted problem instead of starting
+     * over.
      *
      * @return whether a poll was created.
      */
@@ -1322,8 +1343,10 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * @return whether staff may still reconfigure the poll. Scheduled polls are editable
-     *         like open ones: they have not taken any votes yet, so nothing decided can
+     * @return whether staff may still reconfigure the poll. Scheduled polls are
+     *         editable
+     *         like open ones: they have not taken any votes yet, so nothing decided
+     *         can
      *         be rewritten by a rule change.
      */
     private boolean requireEditable(final CommandSender sender, final Vote vote) {
@@ -1335,8 +1358,10 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * Pays back one ballot. Offline players are paid by UUID rather than skipped: the ballot rows
-     * outlive the session, so "they logged off" must not mean "they lose the money". Only the
+     * Pays back one ballot. Offline players are paid by UUID rather than skipped:
+     * the ballot rows
+     * outlive the session, so "they logged off" must not mean "they lose the
+     * money". Only the
      * chat notice requires them to be online.
      */
     private void refund(final VoteBallot ballot) {
@@ -1354,7 +1379,8 @@ public class VotingModule extends Module implements VotingProvider {
     /**
      * Refunds every paid ballot in a poll.
      * <p>
-     * Somebody who paid for a vote that then never happens should get the money back, online or
+     * Somebody who paid for a vote that then never happens should get the money
+     * back, online or
      * not — the deposit goes through by UUID either way.
      */
     private void refundAll(final Vote vote) {
@@ -1364,11 +1390,14 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * Decides a poll: cancels it if the quorum was not met, otherwise picks the highest-scoring
+     * Decides a poll: cancels it if the quorum was not met, otherwise picks the
+     * highest-scoring
      * choice that reached the pass share and announces the result.
      * <p>
-     * Tied leaders are resolved by the poll's tie-break rule. A failed poll with runoffs
-     * enabled spawns a follow-up vote over its strongest choices instead of simply ending.
+     * Tied leaders are resolved by the poll's tie-break rule. A failed poll with
+     * runoffs
+     * enabled spawns a follow-up vote over its strongest choices instead of simply
+     * ending.
      */
     public void conclude(final Vote vote, final boolean manual, final CommandSender actor) {
         if (!vote.isOpen()) {
@@ -1531,16 +1560,20 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * The single place a poll stops accepting votes: refunds it when nothing won, stores the
+     * The single place a poll stops accepting votes: refunds it when nothing won,
+     * stores the
      * terminal state, announces the result and runs the matching command set.
      * <p>
-     * Whether a refund is owed is decided by the outcome rather than by the status, because a
-     * failed poll leaves the payer with nothing for their money just as a cancelled one does. A
+     * Whether a refund is owed is decided by the outcome rather than by the status,
+     * because a
+     * failed poll leaves the payer with nothing for their money just as a cancelled
+     * one does. A
      * poll that actually decided something pays out nothing back.
      */
     private void finish(final Vote vote, final @Nullable String outcomeKey, final VoteStatus status,
             final boolean manual, final VoteTally tally, final MessageLocale announcement) {
-        // Refunded before the status flips: the refund is a consequence of there being no winner,
+        // Refunded before the status flips: the refund is a consequence of there being
+        // no winner,
         // and a poll already closed is one nobody can still be charged against.
         if (outcomeKey == null) {
             this.refundAll(vote);
@@ -1552,8 +1585,10 @@ public class VotingModule extends Module implements VotingProvider {
         } else {
             vote.conclude(outcomeKey, now);
         }
-        // The vote mutated in place, so the repository's status index still points at OPEN.
-        // Without this the finished poll keeps counting as open everywhere: menus, counts,
+        // The vote mutated in place, so the repository's status index still points at
+        // OPEN.
+        // Without this the finished poll keeps counting as open everywhere: menus,
+        // counts,
         // placeholders and the creation caps.
         this.repository.applyTransition(vote);
         this.dataManager.updateVote(vote);
@@ -1579,7 +1614,8 @@ public class VotingModule extends Module implements VotingProvider {
 
         this.plugin.getPluginManager().callEvent(new VoteConcludedEvent(vote, outcomeKey, manual));
 
-        // Recurrence only continues a decided series: cancelled polls (quorum, staff cancel)
+        // Recurrence only continues a decided series: cancelled polls (quorum, staff
+        // cancel)
         // stop the series instead of spawning a follow-up nobody asked for.
         if (status == VoteStatus.CONCLUDED) {
             this.maybeRecur(vote);
@@ -1589,8 +1625,10 @@ public class VotingModule extends Module implements VotingProvider {
     /**
      * Spawns the next instance of a recurring poll.
      * <p>
-     * The child copies the parent's options and rules (including silent) with a fresh ballot
-     * set. Runoff is switched off on the child so a recurring series cannot fork into
+     * The child copies the parent's options and rules (including silent) with a
+     * fresh ballot
+     * set. Runoff is switched off on the child so a recurring series cannot fork
+     * into
      * runoff chains; recurrence itself carries over until the limit is reached.
      */
     private void maybeRecur(final Vote vote) {
@@ -1659,10 +1697,14 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * Picks the command list that matches how the poll ended. The three outcomes get three
-     * separate lists rather than a shared "no winner" one: a staff member stopping a poll and a
-     * poll nobody agreed on are different events, and a config that needs to react differently
-     * should not have to dig through {@code %vote_status%} inside one list to do it.
+     * Picks the command list that matches how the poll ended. The three outcomes
+     * get three
+     * separate lists rather than a shared "no winner" one: a staff member stopping
+     * a poll and a
+     * poll nobody agreed on are different events, and a config that needs to react
+     * differently
+     * should not have to dig through {@code %vote_status%} inside one list to do
+     * it.
      */
     private List<String> commandsFor(final VoteStatus status, final @Nullable String outcomeKey) {
         if (outcomeKey != null) {
@@ -1675,8 +1717,10 @@ public class VotingModule extends Module implements VotingProvider {
     /**
      * Runs a poll's outcome commands as the console.
      * <p>
-     * Resolution is applied per line rather than to the joined list, so that a choice display name
-     * containing a line break cannot split one configured command into two — the same trap the
+     * Resolution is applied per line rather than to the joined list, so that a
+     * choice display name
+     * containing a line break cannot split one configured command into two — the
+     * same trap the
      * Reports module guards against for its reward commands.
      */
     private void dispatchOutcome(final Vote vote, final @Nullable VoteOption option, final VoteTally tally,
@@ -1708,21 +1752,26 @@ public class VotingModule extends Module implements VotingProvider {
                 .dispatchCommand(console, command)));
     }
 
-    // -- Casting ----------------------------------------------------------------------------------
+    // -- Casting
+    // ----------------------------------------------------------------------------------
 
     /**
-     * The single funnel every voting route goes through: commands, menus and the API all land
+     * The single funnel every voting route goes through: commands, menus and the
+     * API all land
      * here, so a rule can never be enforced on one path and forgotten on another.
      *
-     * @return whether the poll was changed. A refusal has already been explained to the player.
+     * @return whether the poll was changed. A refusal has already been explained to
+     *         the player.
      */
     public boolean cast(final Player player, final Vote vote, final String optionKeyRaw) {
         if (!this.dataLoaded) {
             this.sendPrefixed(VotingLang.ERROR_DATA_NOT_LOADED, player);
             return false;
         }
-        // The menus hold the live object, so a poll deleted while a menu is open would otherwise
-        // pass the isOpen() check below on an orphan and mint ghost ballots for a poll that no
+        // The menus hold the live object, so a poll deleted while a menu is open would
+        // otherwise
+        // pass the isOpen() check below on an orphan and mint ghost ballots for a poll
+        // that no
         // longer exists.
         if (this.repository.getVote(vote.getId()) == null) {
             this.sendPrefixed(VotingLang.ERROR_UNKNOWN_VOTE, player,
@@ -1741,7 +1790,8 @@ public class VotingModule extends Module implements VotingProvider {
         final VoteOption option = vote.getOption(optionKeyRaw);
         if (option == null) {
             if (VoteOption.isBuiltInKey(optionKeyRaw)) {
-                // Same situation as /yes on a poll without yes: the owner switched the built-ins
+                // Same situation as /yes on a poll without yes: the owner switched the
+                // built-ins
                 // off, which deserves its own message rather than a generic unknown-choice one.
                 this.sendPrefixed(VotingLang.ERROR_BUILTIN_DISABLED, player, b -> b
                         .with(vote.placeholders())
@@ -1753,7 +1803,8 @@ public class VotingModule extends Module implements VotingProvider {
             return false;
         }
 
-        // Voting for the choice you already hold takes it back, which makes a click on a chosen
+        // Voting for the choice you already hold takes it back, which makes a click on
+        // a chosen
         // option a complete undo without needing a separate command.
         final VoteBallot existing = this.findBallot(vote, player, option);
         if (existing != null) {
@@ -1766,8 +1817,10 @@ public class VotingModule extends Module implements VotingProvider {
         if (!this.checkEligibility(player, vote)) {
             return false;
         }
-        // Every ballot this cast gives up is refunded first, so affordability is judged on the
-        // net cost rather than the gross: a player whose balance covers charge-minus-refund must
+        // Every ballot this cast gives up is refunded first, so affordability is judged
+        // on the
+        // net cost rather than the gross: a player whose balance covers
+        // charge-minus-refund must
         // not be refused for not covering the charge alone.
         final List<VoteBallot> replaced = this.findReplacedBallots(vote, player, option);
         if (!replaced.isEmpty() && !this.checkChangeAllowed(player, vote)) {
@@ -1796,8 +1849,10 @@ public class VotingModule extends Module implements VotingProvider {
             return false;
         }
 
-        // Refunded before the new charge lands, so the balance the charge sees already includes
-        // what the player is owed back. Charged only after the event, so a veto can never leave
+        // Refunded before the new charge lands, so the balance the charge sees already
+        // includes
+        // what the player is owed back. Charged only after the event, so a veto can
+        // never leave
         // somebody out of pocket for a vote that did not happen.
         for (final VoteBallot old : replaced) {
             this.refund(old);
@@ -1821,7 +1876,8 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * Whether this player may still change their vote. Exempt staff skip the lock like
+     * Whether this player may still change their vote. Exempt staff skip the lock
+     * like
      * every other restriction; everyone else is bound by the poll's own setting.
      */
     private boolean checkChangeAllowed(final Player player, final Vote vote) {
@@ -1840,10 +1896,13 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * Whether the module's own bypasses let this player ignore a poll's change lock.
+     * Whether the module's own bypasses let this player ignore a poll's change
+     * lock.
      * <p>
-     * Kept separate from the poll's own setting so a menu can tell "locked for everybody"
-     * apart from "locked for this poll but not for you", and show the honest hint rather
+     * Kept separate from the poll's own setting so a menu can tell "locked for
+     * everybody"
+     * apart from "locked for this poll but not for you", and show the honest hint
+     * rather
      * than advertising a click that the check above would refuse.
      */
     public boolean canChange(final Player player) {
@@ -1851,7 +1910,8 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * Runs the per-vote participation commands as the console. Unlike outcome commands,
+     * Runs the per-vote participation commands as the console. Unlike outcome
+     * commands,
      * these are about the voter rather than the result, so the player's name is
      * available to every line.
      */
@@ -1890,9 +1950,12 @@ public class VotingModule extends Module implements VotingProvider {
             return false;
         }
 
-        // Paid back before the ballot is dropped, matching the replacement path. Neither order is
-        // transactional across a crash, but money-first means a failure leaves the player still
-        // holding the vote (retryable) rather than holding neither the vote nor the money.
+        // Paid back before the ballot is dropped, matching the replacement path.
+        // Neither order is
+        // transactional across a crash, but money-first means a failure leaves the
+        // player still
+        // holding the vote (retryable) rather than holding neither the vote nor the
+        // money.
         if (ballot.costPaid() > 0D) {
             EconomyUtils.deposit(player, ballot.costPaid());
             this.sendPrefixed(VotingLang.VOTE_REFUNDED, player,
@@ -1919,10 +1982,14 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * @return every ballot this cast gives up. In a multi-vote poll nothing is replaced and the
-     *         list is empty; in a single-vote poll it is every other ballot the player holds.
-     *         Returning all of them matters because a poll tightened from multi to single can
-     *         leave a player holding several — replacing only the first would strand the rest,
+     * @return every ballot this cast gives up. In a multi-vote poll nothing is
+     *         replaced and the
+     *         list is empty; in a single-vote poll it is every other ballot the
+     *         player holds.
+     *         Returning all of them matters because a poll tightened from multi to
+     *         single can
+     *         leave a player holding several — replacing only the first would
+     *         strand the rest,
      *         still counting, in a poll that is supposed to hold one vote each.
      */
     private @NotNull List<VoteBallot> findReplacedBallots(final Vote vote, final Player player,
@@ -1936,7 +2003,8 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * The poll-level bar a voter has to clear. Exempt players and requirement bypassers skip all
+     * The poll-level bar a voter has to clear. Exempt players and requirement
+     * bypassers skip all
      * of it, so staff are never locked out of a poll they are being asked about.
      */
     private boolean checkEligibility(final Player player, final Vote vote) {
@@ -1990,9 +2058,12 @@ public class VotingModule extends Module implements VotingProvider {
     /**
      * The gates on one choice. All of them have to pass.
      *
-     * @param refundable What the player gets back from replaced ballots in the same cast. The
-     *                   affordability check is run against charge-minus-refund rather than the
-     *                   gross charge, which is the balance the player will actually end up with.
+     * @param refundable What the player gets back from replaced ballots in the same
+     *                   cast. The
+     *                   affordability check is run against charge-minus-refund
+     *                   rather than the
+     *                   gross charge, which is the balance the player will actually
+     *                   end up with.
      */
     private boolean checkOptionGate(final Player player, final Vote vote, final VoteOption option,
             final double refundable) {
@@ -2011,8 +2082,10 @@ public class VotingModule extends Module implements VotingProvider {
                         .with(option.placeholders()));
                 return false;
             }
-            // Checked against the net position after the replaced ballots are refunded, not the
-            // gross charge: refusing a player whose balance covers the difference would be wrong.
+            // Checked against the net position after the replaced ballots are refunded, not
+            // the
+            // gross charge: refusing a player whose balance covers the difference would be
+            // wrong.
             final double net = Math.max(0D, cost - Math.max(0D, refundable));
             if (net > 0D && EconomyUtils.getBalance(player) < net) {
                 this.sendPrefixed(VotingLang.ERROR_COST_FUNDS, player, b -> b
@@ -2044,8 +2117,10 @@ public class VotingModule extends Module implements VotingProvider {
             }
         }
 
-        // A choice's world gate is a plain whitelist: these are the worlds it may be picked from.
-        // The poll's own black/white switch already decides where voting happens at all, so the
+        // A choice's world gate is a plain whitelist: these are the worlds it may be
+        // picked from.
+        // The poll's own black/white switch already decides where voting happens at
+        // all, so the
         // only meaningful question a per-choice restriction can ask is "only here".
         if (option.hasGate(GateType.WORLD) && !option.getWorlds().isEmpty()
                 && !this.hasBypass(player, VotingPerms.BYPASS_WORLDS)) {
@@ -2078,8 +2153,10 @@ public class VotingModule extends Module implements VotingProvider {
         }
 
         final int max = this.settings.maxParticipatingVotes.get();
-        // Only applies to a poll this player is not already in. Counting one they have a ballot in
-        // would refuse a second choice in a multi-vote poll the moment they hit the limit, which
+        // Only applies to a poll this player is not already in. Counting one they have
+        // a ballot in
+        // would refuse a second choice in a multi-vote poll the moment they hit the
+        // limit, which
         // is not what a cap on how many polls somebody takes part in means.
         if (max > 0 && !this.ballotRepository.hasVoted(vote.getId(), player.getUniqueId())) {
             final int participating = this.ballotRepository.getParticipationCount(player.getUniqueId(),
@@ -2091,7 +2168,8 @@ public class VotingModule extends Module implements VotingProvider {
             }
         }
 
-        // Only meaningful once the poll actually allows more than one. In a single-vote poll every
+        // Only meaningful once the poll actually allows more than one. In a single-vote
+        // poll every
         // option looks full, because casting a second one replaces the first.
         if (!vote.getRules().allowsMultipleVotes()) {
             return true;
@@ -2123,7 +2201,8 @@ public class VotingModule extends Module implements VotingProvider {
 
     /**
      * @return whether the player clears a choice's permission gate. The module-wide
-     *         {@code sunlight.voting.option} wildcard covers every per-choice node, so staff
+     *         {@code sunlight.voting.option} wildcard covers every per-choice node,
+     *         so staff
      *         holding it are never locked out of a single gated choice.
      */
     private boolean hasOptionPermission(final Player player, final String node) {
@@ -2136,12 +2215,14 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * @return the player's total playtime in hours, or {@link Integer#MAX_VALUE} when the
-     *         Playtime module is not installed. Voting must not require another module to exist,
+     * @return the player's total playtime in hours, or {@link Integer#MAX_VALUE}
+     *         when the
+     *         Playtime module is not installed. Voting must not require another
+     *         module to exist,
      *         so an absent requirement is satisfied rather than failed.
      */
     private double getPlaytimeHours(final Player player) {
-        if (!this.plugin.moduleManager().isPresent(PLAYTIME_MODULE_ID)) {
+        if (!this.plugin.moduleManager().isPresent("playtime")) {
             return Integer.MAX_VALUE;
         }
         final long millis = this.plugin.playtimeProvider()
@@ -2153,8 +2234,10 @@ public class VotingModule extends Module implements VotingProvider {
     /**
      * What this player's one ballot is worth.
      * <p>
-     * The order of the two clamps is the whole point: the multiplier is capped first and the total
-     * weight second, so a player stacking several permissions under ADDITIVE cannot jump over the
+     * The order of the two clamps is the whole point: the multiplier is capped
+     * first and the total
+     * weight second, so a player stacking several permissions under ADDITIVE cannot
+     * jump over the
      * multiplier ceiling and land above the weight ceiling on the way through.
      */
     public double resolveWeight(final Player player, final Vote vote) {
@@ -2182,8 +2265,10 @@ public class VotingModule extends Module implements VotingProvider {
 
         if (rules.getWeightSource().hasPermission() && rules.getWeightSource().hasRank()
                 && rules.getWeightCombine() == WeightCombine.ADDITIVE) {
-            // Both sources report 1.0 for "matched nothing", so their bonuses are added and the
-            // base restored once. Adding the two multipliers directly would hand a free x2 to
+            // Both sources report 1.0 for "matched nothing", so their bonuses are added and
+            // the
+            // base restored once. Adding the two multipliers directly would hand a free x2
+            // to
             // everybody who matched neither.
             return (permission - 1D) + (rank - 1D) + 1D;
         }
@@ -2216,8 +2301,10 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * @return what this choice costs this player, which is zero for an ungated choice, for a
-     *         bypasser and when there is no economy to charge. Asked once to decide and once to
+     * @return what this choice costs this player, which is zero for an ungated
+     *         choice, for a
+     *         bypasser and when there is no economy to charge. Asked once to decide
+     *         and once to
      *         charge, and both go through here, so the two can never disagree.
      */
     public double resolveCost(final VoteOption option, final Player player) {
@@ -2231,7 +2318,8 @@ public class VotingModule extends Module implements VotingProvider {
         return option.getCost();
     }
 
-    // -- Notification -----------------------------------------------------------------------------
+    // -- Notification
+    // -----------------------------------------------------------------------------
 
     /**
      * Automatic announcement for a newly opened poll. Silent polls never announce
@@ -2265,7 +2353,8 @@ public class VotingModule extends Module implements VotingProvider {
         }
     }
 
-    // -- Queries for menus ------------------------------------------------------------------------
+    // -- Queries for menus
+    // ------------------------------------------------------------------------
 
     public enum Filter {
         OPEN,
@@ -2277,18 +2366,10 @@ public class VotingModule extends Module implements VotingProvider {
         return this.repository.getOpenVotes();
     }
 
-    public List<Vote> getScheduledVotes() {
-        return this.repository.getScheduledVotes();
-    }
-
     public List<Vote> getFinishedVotes() {
         final List<Vote> votes = this.repository.getFinishedVotes();
         votes.sort((first, second) -> Long.compare(second.getConcludeDate(), first.getConcludeDate()));
         return votes;
-    }
-
-    public List<Vote> getVisibleVotes(final Player player, final boolean mineOnly) {
-        return this.getVisibleVotes(player, mineOnly ? Filter.MINE : Filter.OPEN);
     }
 
     public List<Vote> getVisibleVotes(final Player player, final Filter filter) {
@@ -2308,17 +2389,10 @@ public class VotingModule extends Module implements VotingProvider {
     }
 
     /**
-     * @return the open poll a bare {@code /vote yes} should apply to, or {@code null} when the
-     *         choice is ambiguous. Never guesses: voting in the wrong poll is worse than asking.
-     */
-    public @Nullable Vote resolveSoleOpenVote() {
-        final List<Vote> open = this.repository.getOpenVotes();
-        return open.size() == 1 ? open.getFirst() : null;
-    }
-
-    /**
-     * Prints the full breakdown for somebody who asked for it. Headcount and weighted score are
-     * both shown: they answer different questions and a single blended number would hide that.
+     * Prints the full breakdown for somebody who asked for it. Headcount and
+     * weighted score are
+     * both shown: they answer different questions and a single blended number would
+     * hide that.
      * Staff always see real numbers, even for secret ballots still open.
      */
     public void showInfo(final CommandSender sender, final Vote vote) {
@@ -2358,7 +2432,8 @@ public class VotingModule extends Module implements VotingProvider {
         });
     }
 
-    // -- Menus ------------------------------------------------------------------------------------
+    // -- Menus
+    // ------------------------------------------------------------------------------------
 
     public boolean openMenu(final Player player) {
         return this.menu != null && this.menu.open(player);
@@ -2376,94 +2451,13 @@ public class VotingModule extends Module implements VotingProvider {
         return this.viewMenu != null && this.viewMenu.open(player, vote);
     }
 
-    // -- VotingProvider ---------------------------------------------------------------------------
+    // -- VotingProvider
+    // ---------------------------------------------------------------------------
 
-    /**
-     * Until the async boot load finishes the repositories hold a partial picture. API consumers
-     * get emptiness rather than half a poll list, so a scoreboard refreshing during startup does
-     * not flicker through wrong numbers.
-     */
-    private boolean isReady() {
-        return this.dataLoaded;
-    }
-
-    @Override
-    public @NotNull List<String> getOpenVoteKeys() {
-        if (!this.isReady()) {
-            return List.of();
-        }
-        return this.repository.getOpenVotes().stream().map(Vote::getKey).toList();
-    }
-
-    @Override
-    public int getOpenVoteCount() {
-        return this.isReady() ? this.repository.getOpenCount() : 0;
-    }
-
-    @Override
-    public VoteHandle getVote(final String voteKey) {
-        return this.isReady() ? this.handle(this.repository.getVote(voteKey)) : null;
-    }
-
-    @Override
     public VoteHandle getVote(final UUID voteId) {
-        return this.isReady() ? this.handle(this.repository.getVote(voteId)) : null;
+        return this.isDataLoaded() ? this.handle(this.repository.getVote(voteId)) : null;
     }
 
-    @Override
-    public int getOptionVotes(final UUID voteId, final String optionKey) {
-        return this.tallyOrEmpty(voteId).count(optionKey);
-    }
-
-    @Override
-    public double getOptionScore(final UUID voteId, final String optionKey) {
-        return this.tallyOrEmpty(voteId).score(optionKey);
-    }
-
-    @Override
-    public double getOptionShare(final UUID voteId, final String optionKey) {
-        return this.tallyOrEmpty(voteId).share(optionKey);
-    }
-
-    @Override
-    public int getParticipantCount(final UUID voteId) {
-        return this.tallyOrEmpty(voteId).getParticipantCount();
-    }
-
-    @Override
-    public boolean hasVoted(final UUID voteId, final UUID playerId) {
-        return this.isReady() && this.ballotRepository.hasVoted(voteId, playerId);
-    }
-
-    @Override
-    public @NotNull List<String> getPlayerVotes(final UUID voteId, final UUID playerId) {
-        if (!this.isReady()) {
-            return List.of();
-        }
-        return this.ballotRepository.getBallots(voteId, playerId).stream()
-                .map(VoteBallot::optionKey).toList();
-    }
-
-    @Override
-    public double getPlayerWeight(final UUID voteId, final UUID playerId, final String optionKey) {
-        if (!this.isReady()) {
-            return 0D;
-        }
-        return this.ballotRepository.getBallots(voteId, playerId).stream()
-                .filter(ballot -> ballot.optionKey().equalsIgnoreCase(optionKey))
-                .mapToDouble(VoteBallot::weight)
-                .findFirst()
-                .orElse(0D);
-    }
-
-    /**
-     * @return an empty tally for an unknown poll rather than throwing. A placeholder expansion or
-     *         a scoreboard refresh should degrade to zeroes, not take the caller down with it.
-     */
-    private VoteTally tallyOrEmpty(final UUID voteId) {
-        final Vote vote = this.repository.getVote(voteId);
-        return vote == null ? new VoteTally(List.of(), new VoteRules()) : this.tally(vote);
-    }
 
     private @Nullable VoteHandle handle(final Vote vote) {
         if (vote == null) {
@@ -2483,35 +2477,8 @@ public class VotingModule extends Module implements VotingProvider {
                 vote.getRules().getTieBreak().name(), options, vote.getOutcome(), vote.getConcludeDate());
     }
 
-    @Override
-    public @NotNull List<String> getScheduledVoteKeys() {
-        if (!this.isReady()) {
-            return List.of();
-        }
-        return this.repository.getScheduledVotes().stream().map(Vote::getKey).toList();
-    }
-
     public static String format(final double value) {
         return value == Math.rint(value) ? String.valueOf((long) value)
                 : String.format(Locale.ROOT, "%.2f", value);
-    }
-
-    /**
-     * @return a consumer that applies the module's usual placeholders to a poll, for callers that
-     *         need to build a context of their own.
-     */
-    public Consumer<PlaceholderContext.Builder> contextFor(final Vote vote, final VoteTally tally,
-            final @Nullable VoteOption option) {
-        return b -> {
-            b.with(vote.placeholders());
-            b.with(VotingPlaceholders.VOTE_TOTAL_SCORE, () -> format(tally.getTotalScore()));
-            b.with(VotingPlaceholders.VOTE_PARTICIPANTS, () -> String.valueOf(tally.getParticipantCount()));
-            if (option != null) {
-                b.with(option.placeholders());
-                b.with(VotingPlaceholders.COUNT, () -> String.valueOf(tally.count(option.getKey())));
-                b.with(VotingPlaceholders.PERCENT, () -> format(tally.share(option.getKey())));
-                b.with(VotingPlaceholders.SCORE, () -> format(tally.score(option.getKey())));
-            }
-        };
     }
 }
