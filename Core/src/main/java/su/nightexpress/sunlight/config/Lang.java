@@ -81,6 +81,21 @@ public class Lang implements LangContainer {
     public static final TextLocale PLUGIN_HELP_ENTRY = LangEntry.builder("Plugin.Help.Entry").text(
             SOFT_YELLOW.wrap("/" + GENERIC_COMMAND) + DARK_GRAY.wrap(" - ") + GRAY.wrap(GENERIC_DESCRIPTION));
 
+    public static final TextLocale COMMAND_ROOT_DESC = LangEntry.builder("Command.Root.Desc").text(
+            GRAY.wrap("Main command. Lists all available sub-commands."));
+
+    public static final TextLocale COMMAND_RELOAD_MODULE_DESC = LangEntry.builder("Command.ReloadModule.Desc").text(
+            GRAY.wrap("Reloads a single module."));
+
+    public static final TextLocale COMMAND_DUMP_DESC = LangEntry.builder("Command.Dump.Desc").text(
+            GRAY.wrap("Prints diagnostics for support."));
+
+    public static final TextLocale COMMAND_EXPORT_DESC = LangEntry.builder("Command.Export.Desc").text(
+            GRAY.wrap("Exports plugin data to a zip file."));
+
+    public static final TextLocale COMMAND_IMPORT_DESC = LangEntry.builder("Command.Import.Desc").text(
+            GRAY.wrap("Imports plugin data from a zip file and reloads."));
+
     public static final MessageLocale COST_ERROR_NOT_ENOUGH_FUNDS = LangEntry
             .builder("Generic.Cost.Error.NotEnoughFunds").chatMessage(
                     GRAY.wrap("You don't have enough funds. Required: " + WHITE.wrap(GENERIC_AMOUNT) + "."));

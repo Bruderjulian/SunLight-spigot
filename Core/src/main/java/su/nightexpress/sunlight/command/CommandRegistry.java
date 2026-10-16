@@ -32,6 +32,7 @@ import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.utils.EconomyUtils;
+import su.nightexpress.sunlight.utils.PermissionUtils;
 import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.CommandUtil;
@@ -44,7 +45,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
   private final CommandSettings settings;
 
-  private final List<CommandProvider<?>> providers;
+  private final List<AbstractCommandProvider> providers;
   private final Map<String, CommandAPICommand> commands;
 
   public CommandRegistry(final SunLightPlugin plugin) {
@@ -58,7 +59,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
   protected void onLoad() {
     this.settings.load(this.plugin.getConfig());
 
-    for (final CommandProvider<?> provider : providers) {
+    for (final AbstractCommandProvider provider : providers) {
       final String providerId = provider.getId();
       final FileConfig config = FileConfig.load(this.plugin.getDataFolder() + "/commands/",
           FileConfig.withExtension(providerId));
@@ -123,11 +124,11 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
    * @param id       The config namespace: the {@code commands/<id>.yml} file.
    * @param provider The provider.
    */
-  public void addProvider(final CommandProvider<?> provider) {
+  public void addProvider(final AbstractCommandProvider provider) {
     if (provider == null) {
-      throw new IllegalArgumentException("Module's Command Provider cant be null");
+      throw new IllegalArgumentException("Command Provider cant be null");
     }
-    for (final CommandProvider<?> entry : this.providers) {
+    for (final AbstractCommandProvider entry : this.providers) {
       if (provider.id.equals(entry.getId())) {
         throw new IllegalStateException("Command Provider '" + provider.id + "' has already been registered");
       }
@@ -135,7 +136,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     this.providers.add(provider);
   }
 
-  private CommandAPICommand buildStandalone(final CommandProvider<?> provider, final CommandProvider.Node node,
+  private CommandAPICommand buildStandalone(final AbstractCommandProvider provider, final CommandProvider.Node node,
       final FileConfig config) {
     final String nodeId = node.id();
     if (!config.contains(nodeId)) {
@@ -164,7 +165,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     return command;
   }
 
-  private CommandAPICommand buildSubCommand(final CommandProvider<?> provider, final CommandProvider.Node node,
+  private CommandAPICommand buildSubCommand(final AbstractCommandProvider provider, final CommandProvider.Node node,
       final FileConfig config) {
     final String nodeId = node.id();
     if (!config.contains(nodeId)) {
@@ -185,7 +186,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     return command;
   }
 
-  private void guard(final CommandProvider<?> provider, final String nodeId,
+  private void guard(final AbstractCommandProvider provider, final String nodeId,
       final CommandAPICommand command, final int cooldown, final double cost) {
     final CommandAPIExecutor<CommandSender, AbstractCommandSender<? extends CommandSender>> original = command
         .getExecutor();
@@ -260,19 +261,22 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
     private final CommandAPIExecutor<CommandSender, AbstractCommandSender<? extends CommandSender>> delegate;
     private final CommandSettings settings;
     private final CommandKey key;
-    private final CommandProvider<?> provider;
+    private final AbstractCommandProvider provider;
+    private final String bypassNode;
     private final int cooldown;
     private final double cost;
 
     private GuardedExecutor(
         final CommandAPIExecutor<CommandSender, AbstractCommandSender<? extends CommandSender>> delegate,
         final CommandSettings settings,
-        final CommandProvider<?> provider, final String nodeId, final int cooldown,
+        final AbstractCommandProvider provider, final String nodeId, final int cooldown,
         final double cost) {
       this.delegate = delegate;
       this.settings = settings;
       this.key = new CommandKey(provider.id, nodeId);
       this.provider = provider;
+      final String namespace = provider.permissionNamespace();
+      this.bypassNode = namespace == null ? null : "sunlight." + namespace;
       this.cooldown = cooldown;
       this.cost = cost;
     }
@@ -309,8 +313,8 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
       }
 
       if (this.settings.isCooldownsEnabled() && this.cooldown != 0
-          && !EconomyUtils.hasCooldownBypass(player, this.provider.module)) {
-        final SunUser user = this.provider.module.userManager().getOrFetch(player);
+          && !EconomyUtils.hasCooldownBypass(player, this.bypass("cooldown"))) {
+        final SunUser user = this.provider.userManager().getOrFetch(player);
         final Long expireDate = user.getCommandCooldown(this.key);
         if (expireDate != null && !TimeUtil.isPassed(expireDate)) {
           (expireDate < 0 ? Lang.COMMAND_COOLDOWN_ONE_TIME : Lang.COMMAND_COOLDOWN_DEFAULT).message()
@@ -336,7 +340,7 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
       if (player == null || !this.settings.isCostsEnabled() || this.cost <= 0D) {
         return false;
       }
-      return !EconomyUtils.hasBypass(player, this.provider.module) && EconomyBridge.api().hasVaultCurrency();
+      return !EconomyUtils.hasBypass(player, this.bypass("cost")) && EconomyBridge.api().hasVaultCurrency();
     }
 
     /**
@@ -353,9 +357,18 @@ public class CommandRegistry extends SimpleManager<SunLightPlugin> {
       }
 
       if (this.settings.isCooldownsEnabled() && this.cooldown != 0) {
-        this.provider.module.userManager().getOrFetch(player)
+        this.provider.userManager().getOrFetch(player)
             .setCommandCooldown(this.key, TimeUtil.createFutureTimestamp(this.cooldown));
       }
+    }
+
+    /**
+     * @param type {@code cost} or {@code cooldown}.
+     * @return The module-scoped bypass node, or null for plugin-level commands,
+     *         which are covered by the global bypass node alone.
+     */
+    private String bypass(final String type) {
+      return this.bypassNode == null ? null : PermissionUtils.node(this.bypassNode, "bypass." + type);
     }
   }
 

@@ -1,27 +1,17 @@
 package su.nightexpress.sunlight;
 
-import java.util.Comparator;
 import java.util.Optional;
-
-import org.bukkit.command.CommandSender;
 
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIPaperConfig;
 
-import su.nightexpress.nightcore.NightCorePlugin;
 import su.nightexpress.nightcore.NightPlugin;
-import su.nightexpress.nightcore.commands.Commands;
-import su.nightexpress.nightcore.commands.NodeUtils;
-import su.nightexpress.nightcore.commands.command.NightCommand;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.tree.CommandNode;
-import su.nightexpress.nightcore.commands.tree.ExecutableNode;
 import su.nightexpress.nightcore.config.PluginDetails;
-import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.Version;
 import su.nightexpress.sunlight.api.SunlightAPI;
 import su.nightexpress.sunlight.api.provider.*;
 import su.nightexpress.sunlight.command.CommandRegistry;
+import su.nightexpress.sunlight.command.SunlightCommandProvider;
 import su.nightexpress.sunlight.config.Config;
 import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.data.DataHandler;
@@ -65,10 +55,6 @@ import su.nightexpress.sunlight.nms.SunNMSFactory;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
-
-import static su.nightexpress.nightcore.util.Placeholders.GENERIC_DESCRIPTION;
-import static su.nightexpress.nightcore.util.Placeholders.GENERIC_ENTRY;
-import static su.nightexpress.sunlight.SLPlaceholders.*;
 
 public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
@@ -172,8 +158,9 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         }
 
         try {
+            // Registered before the registry is set up, like the module providers.
+            this.commandRegistry.addProvider(new SunlightCommandProvider(this));
             this.commandRegistry.setup();
-            this.registerCommands();
         } catch (Exception exception) {
             this.error("Command registration failed: " + exception.getMessage());
             exception.printStackTrace();
@@ -314,211 +301,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("warps", "Warps", WarpsModule::new);
     }
 
-    private void registerCommands() {
-        this.rootCommand = NightCommand.forPlugin((NightCorePlugin) this, builder -> builder
-                .withHelpCommand(false)
-                .executes((context, arguments) -> {
-                    this.sendHelp(context);
-                    return true;
-                })
-                .branch(Commands.literal("help")
-                        .description(CoreLang.COMMAND_HELP_DESC)
-                        .executes((context, arguments) -> {
-                            this.sendHelp(context);
-                            return true;
-                        }))
-                .branch(Commands.literal("reload")
-                        .description(CoreLang.COMMAND_RELOAD_DESC)
-                        .permission("sunlight.command.reload")
-                        .executes((context, arguments) -> {
-                            this.doReload(context.getSender());
-                            return true;
-                        }))
-                .branch(Commands.literal("reloadmodule")
-                        .description("Reloads a single module: /sunlight reloadmodule <id>.")
-                        .permission("sunlight.command.reload")
-                        .executes((context, arguments) -> {
-                            String moduleId = this.parseTrailingArg(arguments);
-                            if (moduleId == null || moduleId.isBlank()) {
-                                context.getSender().sendMessage("Usage: /sunlight reloadmodule <id>");
-                                return false;
-                            }
-                            boolean ok = this.moduleManager.reloadSingle(moduleId.toLowerCase(java.util.Locale.ROOT));
-                            context.getSender().sendMessage("Reload module '" + moduleId + "': " + (ok ? "OK" : "NOT FOUND"));
-                            return ok;
-                        }))
-                .branch(Commands.literal("dump")
-                        .description("Prints diagnostics for support.")
-                        .permission("sunlight.command.reload")
-                        .executes((context, arguments) -> {
-                            this.sendDump(context.getSender());
-                            return true;
-                        }))
-                .branch(Commands.literal("export")
-                        .description("Exports plugin data to a zip file.")
-                        .permission("sunlight.command.reload")
-                        .executes((context, arguments) -> {
-                            String name = this.parseTrailingArg(arguments);
-                            this.runTaskAsync(() -> this.exportData(context.getSender(), name));
-                            return true;
-                        }))
-                .branch(Commands.literal("import")
-                        .description("Imports plugin data from a zip file and reloads. Usage: /sunlight import <name>.")
-                        .permission("sunlight.command.reload")
-                        .executes((context, arguments) -> {
-                            String name = this.parseTrailingArg(arguments);
-                            if (name == null || name.isBlank()) {
-                                name = this.latestExportName();
-                                if (name == null) {
-                                    context.getSender().sendMessage("No exports found. Usage: /sunlight import <name>.");
-                                    return false;
-                                }
-                            }
-                            final String fileName = name;
-                            this.runTaskAsync(() -> this.importData(context.getSender(), fileName));
-                            return true;
-                        })));
-    }
-
-    private String parseTrailingArg(Object arguments) {
-        if (arguments == null) return null;
-        try {
-            java.lang.reflect.Method fullInput = arguments.getClass().getMethod("fullInput");
-            Object raw = fullInput.invoke(arguments);
-            if (raw instanceof String text && !text.isBlank()) {
-                String[] parts = text.trim().split("\\s+");
-                if (parts.length == 0) return null;
-                return parts[parts.length - 1];
-            }
-        } catch (Exception ignored) {
-        }
-        try {
-            java.lang.reflect.Method get = arguments.getClass().getMethod("get", String.class);
-            for (String key : new String[]{"module", "name", "id", "arg"}) {
-                try {
-                    Object value = get.invoke(arguments, key);
-                    if (value instanceof String text && !text.isBlank()) return text;
-                } catch (Exception ignored) {
-                }
-            }
-        } catch (Exception ignored) {
-        }
-        return null;
-    }
-
-    private String latestExportName() {
-        try {
-            java.nio.file.Path outDir = this.getDataFolder().toPath().resolve("exports");
-            if (!java.nio.file.Files.isDirectory(outDir)) return null;
-            try (java.util.stream.Stream<java.nio.file.Path> stream = java.nio.file.Files.list(outDir)) {
-                return stream.filter(p -> p.getFileName().toString().endsWith(".zip"))
-                    .max(java.util.Comparator.comparingLong(p -> {
-                        try { return java.nio.file.Files.getLastModifiedTime(p).toMillis(); } catch (Exception e) { return 0L; }
-                    }))
-                    .map(p -> {
-                        String name = p.getFileName().toString();
-                        return name.substring(0, name.length() - 4);
-                    }).orElse(null);
-            }
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private void sendDump(CommandSender sender) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("SunLight ").append(this.getDescription().getVersion());
-        builder.append(" | Server ").append(this.getServer().getVersion());
-        builder.append(" | Java ").append(System.getProperty("java.version"));
-        builder.append(" | Online ").append(this.getServer().getOnlinePlayers().size());
-        builder.append(" | NMS ").append(this.sunNMS == null ? "none" : this.sunNMS.getClass().getSimpleName());
-        builder.append(" | Modules ");
-        this.moduleManager.getModules().stream()
-            .sorted(java.util.Comparator.comparing(su.nightexpress.sunlight.module.Module::getId))
-            .forEach(module -> builder.append(module.getId()).append(","));
-        sender.sendMessage(builder.toString());
-        this.getLogger().info("[SunLight dump] " + builder);
-    }
-
-    private void exportData(CommandSender sender, String name) {
-        try {
-            java.nio.file.Path dataDir = this.getDataFolder().toPath();
-            java.nio.file.Path outDir = dataDir.resolve("exports");
-            java.nio.file.Files.createDirectories(outDir);
-            String fileName = (name == null || name.isBlank() ? "backup-" + System.currentTimeMillis() : name) + ".zip";
-            java.nio.file.Path out = outDir.resolve(fileName);
-            try (java.util.zip.ZipOutputStream zip = new java.util.zip.ZipOutputStream(java.nio.file.Files.newOutputStream(out))) {
-                try (java.util.stream.Stream<java.nio.file.Path> stream = java.nio.file.Files.walk(dataDir)) {
-                    for (java.nio.file.Path path : (Iterable<java.nio.file.Path>) stream::iterator) {
-                        if (java.nio.file.Files.isDirectory(path)) continue;
-                        if (path.startsWith(outDir)) continue;
-                        String entry = dataDir.relativize(path).toString().replace('\\', '/');
-                        zip.putNextEntry(new java.util.zip.ZipEntry(entry));
-                        java.nio.file.Files.copy(path, zip);
-                        zip.closeEntry();
-                    }
-                }
-            }
-            sender.sendMessage("Exported to exports/" + fileName);
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            sender.sendMessage("Export failed: " + exception.getMessage());
-        }
-    }
-
-    private void importData(CommandSender sender, String name) {
-        try {
-            java.nio.file.Path file = this.getDataFolder().toPath().resolve("exports").resolve(name.endsWith(".zip") ? name : name + ".zip");
-            if (!java.nio.file.Files.exists(file)) {
-                sender.sendMessage("Import file not found: exports/" + name);
-                return;
-            }
-            try (java.util.zip.ZipInputStream zip = new java.util.zip.ZipInputStream(java.nio.file.Files.newInputStream(file))) {
-                java.util.zip.ZipEntry entry;
-                while ((entry = zip.getNextEntry()) != null) {
-                    if (entry.isDirectory()) continue;
-                    java.nio.file.Path out = this.getDataFolder().toPath().resolve(entry.getName()).normalize();
-                    if (!out.startsWith(this.getDataFolder().toPath())) continue;
-                    java.nio.file.Files.createDirectories(out.getParent());
-                    java.nio.file.Files.copy(zip, out, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                }
-            }
-            this.runTask(task -> this.doReload(sender));
-            sender.sendMessage("Import complete, reloaded.");
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            sender.sendMessage("Import failed: " + exception.getMessage());
-        }
-    }
-
-    /**
-     * Prints the root command help. Handled explicitly (instead of relying on the
-     * hub fallback) so that both '/sunlight' and '/sunlight help' always list the
-     * available sub-commands.
-     */
-    private void sendHelp(CommandContext context) {
-        CommandSender sender = context.getSender();
-        CommandNode root = context.getRoot();
-
-        Lang.PLUGIN_HELP.message().send(sender, replacer -> replacer
-                .replace(GENERIC_NAME, this.getNameLocalized())
-                .replace(GENERIC_ENTRY, list -> {
-                    root.getChildren().stream().sorted(Comparator.comparing(CommandNode::getName)).forEach(child -> {
-                        if (!child.hasPermission(sender))
-                            return;
-                        if (!(child instanceof ExecutableNode executable))
-                            return;
-
-                        String label = root instanceof ExecutableNode hub
-                                ? (NodeUtils.formatLabel(hub, context) + " " + executable.getUsage()).trim()
-                                : (root.getName() + " " + executable.getUsage()).trim();
-
-                        list.add(Lang.PLUGIN_HELP_ENTRY.text()
-                                .replace(GENERIC_COMMAND, label)
-                                .replace(GENERIC_DESCRIPTION, executable.getDescription()));
-                    });
-                }));
-    }
 
     public DataHandler dataHandler() {
         return this.dataHandler;
@@ -695,13 +477,9 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         return this.moduleManager.getByType(InventoriesModule.class);
     }
 
-@Override
+    @Override
     public Optional<? extends PhantomsProvider> phantomsProvider() {
         return this.moduleManager.getByType(PhantomsModule.class);
     }
 
-    @Override
-    public Optional<? extends su.nightexpress.sunlight.api.provider.VotingProvider> votingProvider() {
-        return this.moduleManager.getByType(VotingModule.class);
-    }
 }
