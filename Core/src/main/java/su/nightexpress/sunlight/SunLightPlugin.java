@@ -35,6 +35,7 @@ import su.nightexpress.sunlight.moduleImpl.chat.ChatModule;
 import su.nightexpress.sunlight.moduleImpl.deathmessages.DeathMessagesModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.freeze.FreezeModule;
+import su.nightexpress.sunlight.moduleImpl.friends.FriendsModule;
 import su.nightexpress.sunlight.moduleImpl.glow.GlowModule;
 import su.nightexpress.sunlight.moduleImpl.greetings.GreetingsModule;
 import su.nightexpress.sunlight.moduleImpl.homes.HomesModule;
@@ -287,6 +288,7 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         manager.register("death_messages", "Death Messages", DeathMessagesModule::new);
         manager.register("essential", "Essential", EssentialModule::new);
         manager.register("freeze", "Freeze", FreezeModule::new);
+        manager.register("friends", "Friends", FriendsModule::new);
         manager.register("glow", "Glow", GlowModule::new);
         manager.register("greetings", "Greetings", GreetingsModule::new);
         manager.register("homes", "Homes", HomesModule::new);
@@ -562,6 +564,12 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
     public Optional<? extends FreezeProvider> freezeProvider() {
         return this.moduleManager.getByType(FreezeModule.class);
+    }
+
+    @Override
+
+    public Optional<? extends FriendsProvider> friendsProvider() {
+        return this.moduleManager.getByType(FriendsModule.class);
     }
 
     @Override

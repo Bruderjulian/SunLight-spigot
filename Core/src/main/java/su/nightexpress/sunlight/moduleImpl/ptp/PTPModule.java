@@ -157,9 +157,23 @@ public class PTPModule extends Module implements PtpProvider {
         return this.userManager.getOrFetch(player).getPropertyOrDefault(PTPProperties.TELEPORT_REQUESTS);
     }
 
-    public boolean sendRequest(Player sender, Player target, TeleportMode mode) {
+    /**
+ * Whether the two are friends according to the Friends module.
+ * <p>
+ * A soft dependency, so a player who turned teleport requests off for strangers is not also
+ * shutting out the people they already friended. Returns false when the module is disabled, which
+ * leaves this module's own toggle in charge as before.
+ */
+private boolean isFriendOf(Player sender, Player target) {
+    return this.plugin.friendsProvider()
+            .map(provider -> provider.isFriend(sender.getUniqueId(), target.getUniqueId()))
+            .orElse(false);
+}
+
+public boolean sendRequest(Player sender, Player target, TeleportMode mode) {
         // Check if 'accepter' disaled requests so request should be declined.
-        if (!this.isRequestsEnabled(target) && !sender.hasPermission(PTPPerms.BYPASS_REQUESTS_DISABLED)) {
+        if (!this.isRequestsEnabled(target) && !sender.hasPermission(PTPPerms.BYPASS_REQUESTS_DISABLED)
+                && !this.isFriendOf(sender, target)) {
             this.sendPrefixed(PTPLang.REQUEST_SEND_ERROR_DISABLED, sender,
                     builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
             return false;

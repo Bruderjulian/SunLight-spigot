@@ -5,6 +5,7 @@ import su.nightexpress.sunlight.api.provider.BackLocationProvider;
 import su.nightexpress.sunlight.api.provider.BansProvider;
 import su.nightexpress.sunlight.api.provider.ChatProvider;
 import su.nightexpress.sunlight.api.provider.EssentialProvider;
+import su.nightexpress.sunlight.api.provider.FriendsProvider;
 import su.nightexpress.sunlight.api.provider.FreezeProvider;
 import su.nightexpress.sunlight.api.provider.GlowProvider;
 import su.nightexpress.sunlight.api.provider.GreetingsProvider;
@@ -34,6 +35,10 @@ import java.util.Optional;
 public interface SunlightAPI {
 
      default Optional<? extends AfkProvider> afkProvider() {
+          return Optional.empty();
+     }
+
+     default Optional<? extends FriendsProvider> friendsProvider() {
           return Optional.empty();
      }
 

@@ -4,7 +4,7 @@
 
 **SunLight** is a modern, lightweight, all-in-one core solution featuring the essential tools every server needs. 
 
-It includes **30** fully optional and customizable modules, allowing you to select only what your server actually requires!
+It includes **31** fully optional and customizable modules, allowing you to select only what your server actually requires!
 
 ---
 
@@ -33,6 +33,7 @@ It includes **30** fully optional and customizable modules, allowing you to sele
 - **Death Messages**: Customizable death notifications based on damage or killer type with randomization support.
 - **Essential**: Provides ~35 core utility commands including flight, healing, feeding, teleportation, XP management, world/weather control, anvil and sign colours, and more.
 - **Freeze**: Freeze players in place with configurable restrictions on movement, combat, blocks, items, commands, and chat.
+- **Friends**: Add friends through a request flow with accept, decline and cancel, plus a block list. Rank-based friend and pending-request limits, per-request cooldowns, per-day and per-target caps, an offline block that also drops the friendship, three per-player privacy toggles (requests, login alerts, friend teleport), a GUI with a friend list, a per-friend options menu, a pending-requests view, a block list and a settings screen, `jump` and `msg` shortcuts, an admin command for offline pairs, friend login/logout alerts, and a PAPI placeholder set.
 - **Glow**: Give players a glowing outline in any colour, with static and animated effects. The active colour is rendered on the nametag via TAB.
 - **Greetings**: Customize rank-based join, first-join and quit messages with priority system, plus commands executed on join.
 - **Homes**: Allows players to set home points via commands or beds, featuring GUIs, guest/invite systems, and rank-based home limits.
