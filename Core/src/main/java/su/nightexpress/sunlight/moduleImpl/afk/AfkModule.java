@@ -22,6 +22,9 @@ import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.event.AfkChangeEvent;
+import su.nightexpress.sunlight.api.event.AfkEnterEvent;
+import su.nightexpress.sunlight.api.event.AfkLeaveEvent;
 import su.nightexpress.sunlight.api.provider.AfkProvider;
 import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
@@ -30,7 +33,6 @@ import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.afk.command.AfkCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.afk.core.AfkLang;
 import su.nightexpress.sunlight.moduleImpl.afk.core.AfkSettings;
-import su.nightexpress.sunlight.moduleImpl.afk.event.PlayerAfkEvent;
 import su.nightexpress.sunlight.moduleImpl.afk.listener.AfkListener;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserProperty;
@@ -190,8 +192,12 @@ public class AfkModule extends Module implements AfkProvider {
 
     public void exitAfk(final Player player, final boolean silent) {
         this.activityTracker(player).filter(ActivityTracker::isAfk).ifPresent(tracker -> {
-            this.handleAfkExit(player, tracker, silent);
-            tracker.resetCounters();
+            // Only reset the counters if the transition really happened. A listener that cancelled
+            // AfkChangeEvent leaves the player AFK, and wiping their idle time here would restart
+            // the kick timers mid-session.
+            if (this.handleAfkExit(player, tracker, silent)) {
+                tracker.resetCounters();
+            }
         });
     }
 
@@ -330,7 +336,16 @@ public class AfkModule extends Module implements AfkProvider {
         this.trackActivity(player, this.settings.getActivityPoints(ActivityType.CHAT));
     }
 
-    private void handleAfkEnter(final Player player, final ActivityTracker tracker, final boolean silent) {
+    private boolean handleAfkEnter(final Player player, final ActivityTracker tracker, final boolean silent) {
+        final int idleTime = tracker.getIdleTime();
+
+        // Fired before anything is applied, so cancelling leaves the player awake and skips every
+        // side effect below (commands, sound, broadcast, AFK session start).
+        final AfkChangeEvent changeEvent = new AfkChangeEvent(player, true);
+        this.plugin.getPluginManager().callEvent(changeEvent);
+        if (changeEvent.isCancelled())
+            return false;
+
         tracker.resetCounters();
         tracker.setAfkTimestamp();
 
@@ -342,18 +357,26 @@ public class AfkModule extends Module implements AfkProvider {
         final List<String> commands = context.apply(this.settings.afkCommands.get());
         Players.dispatchCommands(player, commands);
 
-        final PlayerAfkEvent event = new PlayerAfkEvent(player, true);
-        this.plugin.getPluginManager().callEvent(event);
-        this.plugin.getPluginManager().callEvent(new su.nightexpress.sunlight.api.event.PlayerAfkChangeEvent(player, true));
+        this.plugin.getPluginManager().callEvent(new AfkEnterEvent(player, idleTime));
 
         this.settings.soundEnter.get().play(player);
 
         if (!silent)
             this.broadcastPrefixed(AfkLang.AFK_ENTER_BROADCAST, context);
+
+        return true;
     }
 
-    private void handleAfkExit(final Player player, final ActivityTracker tracker, final boolean silent) {
+    private boolean handleAfkExit(final Player player, final ActivityTracker tracker, final boolean silent) {
         final long afkDuration = System.currentTimeMillis() - tracker.getAfkEnterTimestamp();
+
+        // Fired before anything is applied, so cancelling leaves the player AFK and skips every
+        // side effect below — notably the AFK session is not recorded and no wake-up commands run.
+        final AfkChangeEvent changeEvent = new AfkChangeEvent(player, false);
+        this.plugin.getPluginManager().callEvent(changeEvent);
+        if (changeEvent.isCancelled())
+            return false;
+
         if (afkDuration > 0L) {
             this.recordAfkSession(player, afkDuration);
         }
@@ -368,9 +391,7 @@ public class AfkModule extends Module implements AfkProvider {
         final List<String> commands = context.apply(this.settings.wakeUpCommands.get());
         Players.dispatchCommands(player, commands);
 
-        final PlayerAfkEvent event = new PlayerAfkEvent(player, false);
-        this.plugin.getPluginManager().callEvent(event);
-        this.plugin.getPluginManager().callEvent(new su.nightexpress.sunlight.api.event.PlayerAfkChangeEvent(player, false));
+        this.plugin.getPluginManager().callEvent(new AfkLeaveEvent(player, afkDuration));
 
         this.settings.soundExit.get().play(player);
 
@@ -378,6 +399,7 @@ public class AfkModule extends Module implements AfkProvider {
             this.broadcastPrefixed(AfkLang.AFK_EXIT_BROADCAST, context);
 
         tracker.resetCounters();
+        return true;
     }
 
     private void recordAfkSession(final Player player, final long durationMs) {

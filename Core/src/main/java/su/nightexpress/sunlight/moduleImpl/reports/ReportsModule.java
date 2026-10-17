@@ -19,6 +19,8 @@ import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.event.PlayerReportDeleteEvent;
 import su.nightexpress.sunlight.api.event.PlayerReportEvent;
 import su.nightexpress.sunlight.api.event.PlayerReportResolvedEvent;
+import su.nightexpress.sunlight.api.event.ReportClaimEvent;
+import su.nightexpress.sunlight.api.event.ReportReleaseEvent;
 import su.nightexpress.sunlight.api.provider.ReportHandle;
 import su.nightexpress.sunlight.api.provider.ReportsProvider;
 import su.nightexpress.sunlight.command.CommandKey;
@@ -542,6 +544,11 @@ public class ReportsModule extends Module implements ReportsProvider {
         }
 
         Report before = this.snapshot(report);
+        final ReportClaimEvent claimEvent = new ReportClaimEvent(report, staff);
+        this.plugin.getPluginManager().callEvent(claimEvent);
+        if (claimEvent.isCancelled())
+            return false;
+
         report.setStatus(ReportStatus.CLAIMED);
         report.setStaff(staffId, staff.getName());
         this.commit(report, before);
@@ -558,6 +565,11 @@ public class ReportsModule extends Module implements ReportsProvider {
         }
 
         Report before = this.snapshot(report);
+        final ReportReleaseEvent releaseEvent = new ReportReleaseEvent(report, staff);
+        this.plugin.getPluginManager().callEvent(releaseEvent);
+        if (releaseEvent.isCancelled())
+            return false;
+
         report.setStatus(ReportStatus.OPEN);
         report.setStaff(null, null);
         this.commit(report, before);

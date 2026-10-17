@@ -15,6 +15,8 @@ import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.config.Lang;
+import su.nightexpress.sunlight.api.event.BackLocationSaveEvent;
+import su.nightexpress.sunlight.api.event.PlayerBackTeleportEvent;
 import su.nightexpress.sunlight.api.provider.BackLocationProvider;
 import su.nightexpress.sunlight.api.provider.dto.BackLocationType;
 import su.nightexpress.sunlight.api.provider.dto.StoredLocationHandle;
@@ -201,6 +203,11 @@ public class BackLocationModule extends Module implements BackLocationProvider {
 
         int duration = this.getDuration(type);
 
+        final BackLocationSaveEvent event = new BackLocationSaveEvent(playerId, location, type);
+        this.plugin.getPluginManager().callEvent(event);
+        if (event.isCancelled())
+            return;
+
         StoredLocation storedLocation = new StoredLocation(world.getName(), location.getX(), location.getY(),
                 location.getZ(), duration);
         this.getLocationMap(playerId).put(type, storedLocation);
@@ -235,6 +242,11 @@ public class BackLocationModule extends Module implements BackLocationProvider {
                         .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost)));
             return false;
         }
+
+        final PlayerBackTeleportEvent event = new PlayerBackTeleportEvent(player, type, location, cost);
+        this.plugin.getPluginManager().callEvent(event);
+        if (event.isCancelled())
+            return false;
 
         TeleportContext teleportContext = TeleportContext.builder(this, player, location)
                 .withFlag(TeleportFlag.KEEP_DIRECTION)

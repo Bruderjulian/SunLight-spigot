@@ -15,6 +15,8 @@ import su.nightexpress.sunlight.config.Lang;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.event.PlayerTeleportRequestAcceptEvent;
+import su.nightexpress.sunlight.api.event.PlayerTeleportRequestDeclineEvent;
 import su.nightexpress.sunlight.api.event.PlayerTeleportRequestEvent;
 import su.nightexpress.sunlight.api.provider.PtpProvider;
 import su.nightexpress.sunlight.api.provider.dto.PtpMode;
@@ -240,6 +242,12 @@ public boolean sendRequest(Player sender, Player target, TeleportMode mode) {
             return false;
         }
 
+        final PlayerTeleportRequestAcceptEvent acceptEvent = new PlayerTeleportRequestAcceptEvent(request, player,
+                teleporter, destination, cost);
+        plugin.getPluginManager().callEvent(acceptEvent);
+        if (acceptEvent.isCancelled())
+            return false;
+
         request.setExpired();
 
         TeleportContext teleportContext = TeleportContext.builder(this, teleporter, destination)
@@ -271,6 +279,11 @@ public boolean sendRequest(Player sender, Player target, TeleportMode mode) {
             this.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, player);
             return false;
         }
+
+        final PlayerTeleportRequestDeclineEvent declineEvent = new PlayerTeleportRequestDeclineEvent(request, player, sender);
+        plugin.getPluginManager().callEvent(declineEvent);
+        if (declineEvent.isCancelled())
+            return false;
 
         request.setExpired();
 

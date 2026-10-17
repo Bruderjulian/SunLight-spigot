@@ -14,6 +14,8 @@ import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.event.KitCreateEvent;
+import su.nightexpress.sunlight.api.event.KitDeleteEvent;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.kits.command.KitsCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsLang;
@@ -234,6 +236,7 @@ public class KitsModule extends Module implements su.nightexpress.sunlight.api.p
 
         kit.write(config);
         this.addKit(kit);
+        this.plugin.getPluginManager().callEvent(new KitCreateEvent(kit));
     }
 
     public boolean giveKit(Kit kit, Player player, boolean force, boolean silent) {
@@ -326,6 +329,7 @@ public class KitsModule extends Module implements su.nightexpress.sunlight.api.p
             Files.delete(kit.getPath());
             this.plugin.runTaskAsync(() -> this.dataManager.deleteData(kit.getId()));
             this.kitByIdMap.remove(kit.getId());
+            this.plugin.getPluginManager().callEvent(new KitDeleteEvent(kit));
         } catch (IOException exception) {
             exception.printStackTrace();
         }

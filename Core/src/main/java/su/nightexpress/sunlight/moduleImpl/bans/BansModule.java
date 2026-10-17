@@ -21,6 +21,11 @@ import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.event.InetPunishEvent;
+import su.nightexpress.sunlight.api.event.PlayerKickEvent;
+import su.nightexpress.sunlight.api.event.PlayerPardonEvent;
+import su.nightexpress.sunlight.api.event.PrePunishEvent;
+import su.nightexpress.sunlight.api.event.PunishmentDeleteEvent;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -278,6 +283,7 @@ public class BansModule extends Module implements su.nightexpress.sunlight.api.p
 
     public void deletePlayerPunishment(PlayerPunishment punishment) {
         this.getPunishmentRepository(punishment).removePlayerPunishment(punishment);
+        this.plugin.getPluginManager().callEvent(new PunishmentDeleteEvent(punishment));
         this.plugin.runTaskAsync(task -> this.dataManager.deletePlayerPunishment(punishment));
     }
 
@@ -288,6 +294,7 @@ public class BansModule extends Module implements su.nightexpress.sunlight.api.p
 
     public void deleteInetPunishment(InetPunishment punishment) {
         this.getPunishmentRepository(punishment).removeInetPunishment(punishment);
+        this.plugin.getPluginManager().callEvent(new PunishmentDeleteEvent(punishment));
         this.plugin.runTaskAsync(task -> this.dataManager.deleteInetPunishment(punishment));
     }
 
@@ -490,6 +497,11 @@ public class BansModule extends Module implements su.nightexpress.sunlight.api.p
                 .with(BansPlaceholders.PUNISHMENT_WHO, () -> SLUtils.getSenderName(sender)) // old
                 .build();
 
+        final PlayerKickEvent kickEvent = new PlayerKickEvent(victim, reason, sender, silent);
+        this.plugin.getPluginManager().callEvent(kickEvent);
+        if (kickEvent.isCancelled())
+            return false;
+
         Players.kick(victim, NightMessage.parse(context.apply(String.join("\n", this.settings.disconnectScreenKick
                 .get()))));
 
@@ -591,6 +603,13 @@ public class BansModule extends Module implements su.nightexpress.sunlight.api.p
             }
         }
 
+        // Last chance for third parties to veto, after every built-in check has passed but before
+        // anything is mutated — cancelling leaves active punishments active and records nothing.
+        final PrePunishEvent preEvent = new PrePunishEvent(victim, type, reason, banTime, sender, silent);
+        this.plugin.getPluginManager().callEvent(preEvent);
+        if (preEvent.isCancelled())
+            return false;
+
         int punishments = activePunishments.size() + 1; // Count also this one.
         int maxWarns = this.settings.warnMaxAmountToReset.get();
 
@@ -673,6 +692,11 @@ public class BansModule extends Module implements su.nightexpress.sunlight.api.p
                     BansPlaceholders.GENERIC_TARGET, address::getHostAddress));
             return false;
         }
+
+        final InetPunishEvent inetEvent = new InetPunishEvent(address, reason, banTime, sender, silent);
+        this.plugin.getPluginManager().callEvent(inetEvent);
+        if (inetEvent.isCancelled())
+            return false;
 
         UUID banId = UUID.randomUUID();
         String admin = sender.getName();
@@ -787,6 +811,7 @@ public class BansModule extends Module implements su.nightexpress.sunlight.api.p
         });
 
         this.notifyPardon(activePunishments, sender, feedbackLocale, broadcastLocale, notifyLocale, silent);
+        this.plugin.getPluginManager().callEvent(new PlayerPardonEvent(user, type, activePunishments, sender, silent));
         return true;
     }
 
