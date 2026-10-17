@@ -214,6 +214,7 @@ public class GlowHandler {
     final GlowEffect effect = getEffectiveEffect(player);
     if (effect == null) {
       clearGlow(player);
+      return;
     }
 
     this.states.put(player.getUniqueId(), new GlowState(effect.getPhase(0)));
@@ -227,6 +228,7 @@ public class GlowHandler {
     }
     if (effect == null) {
       clearGlow(player);
+      return;
     }
 
     this.states.put(player.getUniqueId(), new GlowState(effect.getPhase(0)));
@@ -235,11 +237,14 @@ public class GlowHandler {
   }
 
   public void clearGlow(final Player player) {
-    if (currentEffects.remove(player.getUniqueId()) != null) {
-      this.states.remove(player.getUniqueId());
-      player.setGlowing(false);
-      this.notifyNametags(player);
+    final boolean hadEffect = this.currentEffects.remove(player.getUniqueId()) != null;
+    final boolean hadState = this.states.remove(player.getUniqueId()) != null;
+    // Nothing tracked and the player is not glowing, so there is nothing to do.
+    if (!hadEffect && !hadState && !player.isGlowing()) {
+      return;
     }
+    player.setGlowing(false);
+    this.notifyNametags(player);
   }
 
   private void tickAnimations() {
@@ -253,7 +258,7 @@ public class GlowHandler {
       final UUID playerId = entry.getKey();
       final GlowState state = entry.getValue();
       if (state == null) continue;
-      final Player player = org.bukkit.Bukkit.getPlayer(playerId);
+      final Player player = Utils.getPlayer(playerId);
       if (player == null || !player.isOnline()) {
         this.states.remove(playerId);
         this.currentEffects.remove(playerId);
