@@ -385,12 +385,6 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
 
     @Override
 
-    public Optional<? extends PlaytimeProvider> playtimeProvider() {
-        return this.moduleManager.getByType(PlaytimeModule.class);
-    }
-
-    @Override
-
     public Optional<? extends ProfilesProvider> profilesProvider() {
         return this.moduleManager.getByType(ProfilesModule.class);
     }

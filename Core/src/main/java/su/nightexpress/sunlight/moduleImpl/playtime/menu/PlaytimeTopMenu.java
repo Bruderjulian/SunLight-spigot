@@ -23,7 +23,7 @@ import su.nightexpress.nightcore.ui.inventory.viewer.ViewerContext;
 import su.nightexpress.nightcore.util.bukkit.NightItem;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.moduleImpl.playtime.PlaytimeModule;
-import su.nightexpress.sunlight.moduleImpl.playtime.PlaytimeModule.TopEntry;
+import su.nightexpress.sunlight.moduleImpl.playtime.PlaytimeTopHandler.TopEntry;
 import su.nightexpress.sunlight.moduleImpl.playtime.config.PlaytimeLang;
 import su.nightexpress.sunlight.moduleImpl.playtime.model.PlaytimePeriod;
 
@@ -96,7 +96,7 @@ public class PlaytimeTopMenu extends AbstractMenu {
         Player viewer = context.getPlayer();
         MenuViewer menuViewer = context.getViewer();
 
-        List<TopEntry> entries = new ArrayList<>(this.module.getTop(this.period));
+        List<TopEntry> entries = new ArrayList<>(this.module.topHandler.getTop(this.period));
         menuViewer.setTotalPages(Math.max(1, (entries.size() + PAGE_SIZE - 1) / PAGE_SIZE));
 
         this.addPeriodButton(list, PlaytimePeriod.ALLTIME, Material.NETHER_STAR, 1);
@@ -114,33 +114,34 @@ public class PlaytimeTopMenu extends AbstractMenu {
             }
         } else {
             list.add(MenuItem.button()
-                .defaultState(NightItem.fromType(Material.BARRIER)
-                    .setDisplayName(GRAY.wrap("No entries yet"))
-                    .setLore(List.of(GRAY.wrap("Play for a while and come back!")))
-                    .hideAllComponents())
-                .slots(22)
-                .build());
+                    .defaultState(NightItem.fromType(Material.BARRIER)
+                            .setDisplayName(GRAY.wrap("No entries yet"))
+                            .setLore(List.of(GRAY.wrap("Play for a while and come back!")))
+                            .hideAllComponents())
+                    .slots(22)
+                    .build());
         }
 
         list.add(MenuItem.button()
-            .defaultState(NightItem.fromType(Material.BOOK)
-                .setDisplayName(GOLD.wrap(PlaytimeLang.MENU_BUTTON_STATS.text()))
-                .setLore(List.of(GRAY.wrap("Back to your statistics."), "", GOLD.wrap("→ " + UNDERLINED.wrap("Click to open."))))
-                .hideAllComponents(),
-                actionContext -> {
-                    Player clicker = actionContext.getPlayer();
-                    this.module.openStatsMenu(clicker, this.module.userManager().getOrFetch(clicker));
-                })
-            .slots(40)
-            .build());
+                .defaultState(NightItem.fromType(Material.BOOK)
+                        .setDisplayName(GOLD.wrap(PlaytimeLang.MENU_BUTTON_STATS.text()))
+                        .setLore(List.of(GRAY.wrap("Back to your statistics."), "",
+                                GOLD.wrap("→ " + UNDERLINED.wrap("Click to open."))))
+                        .hideAllComponents(),
+                        actionContext -> {
+                            Player clicker = actionContext.getPlayer();
+                            this.module.openStatsMenu(clicker, this.module.userManager().getOrFetch(clicker));
+                        })
+                .slots(40)
+                .build());
 
         list.add(MenuItem.button()
-            .defaultState(NightItem.fromType(Material.BARRIER)
-                .setDisplayName(GRAY.wrap(PlaytimeLang.MENU_BUTTON_CLOSE.text()))
-                .hideAllComponents(),
-                actionContext -> actionContext.getViewer().closeMenu())
-            .slots(44)
-            .build());
+                .defaultState(NightItem.fromType(Material.BARRIER)
+                        .setDisplayName(GRAY.wrap(PlaytimeLang.MENU_BUTTON_CLOSE.text()))
+                        .hideAllComponents(),
+                        actionContext -> actionContext.getViewer().closeMenu())
+                .slots(44)
+                .build());
     }
 
     private void addPeriodButton(List<MenuItem> list, PlaytimePeriod value, Material icon, int slot) {
@@ -152,13 +153,14 @@ public class PlaytimeTopMenu extends AbstractMenu {
         lore.add(selected ? GREEN.wrap("Currently selected.") : GOLD.wrap("→ " + UNDERLINED.wrap("Click to select.")));
 
         list.add(MenuItem.button()
-            .defaultState(NightItem.fromType(icon)
-                .setDisplayName((selected ? GOLD : GRAY).wrap(label))
-                .setLore(lore)
-                .hideAllComponents(),
-                actionContext -> new PlaytimeTopMenu(this.module, value).show(this.module.plugin(), actionContext.getPlayer()))
-            .slots(slot)
-            .build());
+                .defaultState(NightItem.fromType(icon)
+                        .setDisplayName((selected ? GOLD : GRAY).wrap(label))
+                        .setLore(lore)
+                        .hideAllComponents(),
+                        actionContext -> new PlaytimeTopMenu(this.module, value).show(this.module.plugin(),
+                                actionContext.getPlayer()))
+                .slots(slot)
+                .build());
     }
 
     private MenuItem entryItem(TopEntry entry, int rank, UUID viewerId, int slot) {
@@ -179,9 +181,9 @@ public class PlaytimeTopMenu extends AbstractMenu {
         }
 
         NightItem icon = NightItem.fromType(Material.PLAYER_HEAD)
-            .setDisplayName(medal + (self ? GREEN.wrap(entry.name()) : WHITE.wrap(entry.name())))
-            .setLore(lore)
-            .hideAllComponents();
+                .setDisplayName(medal + (self ? GREEN.wrap(entry.name()) : WHITE.wrap(entry.name())))
+                .setLore(lore)
+                .hideAllComponents();
         try {
             icon.setSkullOwner(Bukkit.getOfflinePlayer(entry.id()));
         } catch (Exception ignored) {
@@ -191,7 +193,7 @@ public class PlaytimeTopMenu extends AbstractMenu {
 
     private String periodLabel(PlaytimePeriod period) {
         return period == PlaytimePeriod.ALLTIME ? "Alltime"
-            : period.name().substring(0, 1) + period.name().substring(1).toLowerCase();
+                : period.name().substring(0, 1) + period.name().substring(1).toLowerCase();
     }
 
     @Override

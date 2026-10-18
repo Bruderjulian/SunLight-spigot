@@ -16,30 +16,32 @@ public class PlaytimeListener extends AbstractListener<SunLightPlugin> {
 
     private final PlaytimeModule module;
 
-    public PlaytimeListener(SunLightPlugin plugin, PlaytimeModule module) {
+    public PlaytimeListener(final SunLightPlugin plugin, final PlaytimeModule module) {
         super(plugin);
         this.module = module;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+    public void onJoin(final PlayerJoinEvent event) {
+        final Player player = event.getPlayer();
         try {
-            SunUser user = this.module.userManager().getOrFetch(player);
-            if (user == null) return;
+            final SunUser user = this.module.userManager().getOrFetch(player);
+            if (user == null)
+                return;
             this.module.startSession(user);
-        } catch (Exception ignored) {
+        } catch (final Exception ignored) {
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
+    public void onQuit(final PlayerQuitEvent event) {
+        final Player player = event.getPlayer();
         try {
-            SunUser user = this.module.userManager().getOrFetch(player);
-            if (user == null) return;
+            final SunUser user = this.module.userManager().getOrFetch(player);
+            if (user == null)
+                return;
             user.setProperty(PlaytimeProperties.LAST_SEEN, System.currentTimeMillis());
-        } catch (Exception ignored) {
+        } catch (final Exception ignored) {
         }
     }
 }

@@ -92,81 +92,88 @@ public class PlaytimeStatsMenu extends AbstractMenu {
         SunUser user = this.module.userManager().getOrFetch(this.targetId).orElse(null);
         if (user == null) {
             list.add(MenuItem.button()
-                .defaultState(NightItem.fromType(Material.BARRIER)
-                    .setDisplayName(RED.wrap("Data unavailable"))
-                    .setLore(List.of(GRAY.wrap("This player has no stored data.")))
-                    .hideAllComponents())
-                .slots(22)
-                .build());
+                    .defaultState(NightItem.fromType(Material.BARRIER)
+                            .setDisplayName(RED.wrap("Data unavailable"))
+                            .setLore(List.of(GRAY.wrap("This player has no stored data.")))
+                            .hideAllComponents())
+                    .slots(22)
+                    .build());
             return;
         }
         this.module.ensureRollover(user);
 
         list.add(this.headItem(user, 4));
 
-        list.add(this.periodItem(Material.ENDER_EYE, 11, "Year", this.module.getEffectivePlaytime(user, PlaytimePeriod.YEAR)));
-        list.add(this.periodItem(Material.MAP, 12, "Month", this.module.getEffectivePlaytime(user, PlaytimePeriod.MONTH)));
-        list.add(this.periodItem(Material.CLOCK, 13, "Week", this.module.getEffectivePlaytime(user, PlaytimePeriod.WEEK)));
-        list.add(this.periodItem(Material.SUNFLOWER, 14, "Day", this.module.getEffectivePlaytime(user, PlaytimePeriod.DAY)));
+        list.add(this.periodItem(Material.ENDER_EYE, 11, "Year",
+                this.module.getEffectivePlaytime(user, PlaytimePeriod.YEAR)));
+        list.add(this.periodItem(Material.MAP, 12, "Month",
+                this.module.getEffectivePlaytime(user, PlaytimePeriod.MONTH)));
+        list.add(this.periodItem(Material.CLOCK, 13, "Week",
+                this.module.getEffectivePlaytime(user, PlaytimePeriod.WEEK)));
+        list.add(this.periodItem(Material.SUNFLOWER, 14, "Day",
+                this.module.getEffectivePlaytime(user, PlaytimePeriod.DAY)));
         list.add(this.sessionItem(user, 15));
 
         list.add(this.streakItem(Material.FIREWORK_STAR, 29, "Daily streak",
-            Math.max(0, user.getPropertyOrDefault(PlaytimeProperties.DAILY_STREAK)), "day"));
+                Math.max(0, user.getPropertyOrDefault(PlaytimeProperties.DAILY_STREAK)), "day"));
         list.add(this.streakItem(Material.FIREWORK_STAR, 30, "Weekly streak",
-            Math.max(0, user.getPropertyOrDefault(PlaytimeProperties.WEEKLY_STREAK)), "week"));
+                Math.max(0, user.getPropertyOrDefault(PlaytimeProperties.WEEKLY_STREAK)), "week"));
         list.add(this.milestoneItem(user, 31));
 
         list.add(this.goalItem(32, "Daily", this.module.getEffectivePlaytime(user, PlaytimePeriod.DAY),
-            this.module.getEffectiveGoalMs(user, true, false, false)));
+                this.module.milestoneHandler.getEffectiveGoalMs(user, true, false, false)));
         list.add(this.goalItem(33, "Weekly", this.module.getEffectivePlaytime(user, PlaytimePeriod.WEEK),
-            this.module.getEffectiveGoalMs(user, false, true, false)));
+                this.module.milestoneHandler.getEffectiveGoalMs(user, false, true, false)));
         list.add(this.goalItem(34, "Monthly", this.module.getEffectivePlaytime(user, PlaytimePeriod.MONTH),
-            this.module.getEffectiveGoalMs(user, false, false, true)));
+                this.module.milestoneHandler.getEffectiveGoalMs(user, false, false, true)));
 
         list.add(MenuItem.button()
-            .defaultState(NightItem.fromType(Material.GOLD_INGOT)
-                .setDisplayName(GOLD.wrap(PlaytimeLang.MENU_BUTTON_TOP.text()))
-                .setLore(List.of(GRAY.wrap("View the leaderboard."), "", GOLD.wrap("→ " + UNDERLINED.wrap("Click to open."))))
-                .hideAllComponents(),
-                actionContext -> this.module.openTopMenu(actionContext.getPlayer(), PlaytimePeriod.ALLTIME))
-            .slots(39)
-            .build());
+                .defaultState(NightItem.fromType(Material.GOLD_INGOT)
+                        .setDisplayName(GOLD.wrap(PlaytimeLang.MENU_BUTTON_TOP.text()))
+                        .setLore(List.of(GRAY.wrap("View the leaderboard."), "",
+                                GOLD.wrap("→ " + UNDERLINED.wrap("Click to open."))))
+                        .hideAllComponents(),
+                        actionContext -> this.module.openTopMenu(actionContext.getPlayer(), PlaytimePeriod.ALLTIME))
+                .slots(39)
+                .build());
 
         list.add(MenuItem.button()
-            .defaultState(NightItem.fromType(Material.SUNFLOWER)
-                .setDisplayName(GRAY.wrap("Refresh"))
-                .setLore(List.of(GRAY.wrap("Update all numbers."), "", GOLD.wrap("→ " + UNDERLINED.wrap("Click to refresh."))))
-                .hideAllComponents(),
-                actionContext -> this.module.openStatsMenu(actionContext.getPlayer(), user))
-            .slots(40)
-            .build());
+                .defaultState(NightItem.fromType(Material.SUNFLOWER)
+                        .setDisplayName(GRAY.wrap("Refresh"))
+                        .setLore(List.of(GRAY.wrap("Update all numbers."), "",
+                                GOLD.wrap("→ " + UNDERLINED.wrap("Click to refresh."))))
+                        .hideAllComponents(),
+                        actionContext -> this.module.openStatsMenu(actionContext.getPlayer(), user))
+                .slots(40)
+                .build());
 
         list.add(MenuItem.button()
-            .defaultState(NightItem.fromType(Material.BARRIER)
-                .setDisplayName(GRAY.wrap(PlaytimeLang.MENU_BUTTON_CLOSE.text()))
-                .hideAllComponents(),
-                actionContext -> actionContext.getViewer().closeMenu())
-            .slots(41)
-            .build());
+                .defaultState(NightItem.fromType(Material.BARRIER)
+                        .setDisplayName(GRAY.wrap(PlaytimeLang.MENU_BUTTON_CLOSE.text()))
+                        .hideAllComponents(),
+                        actionContext -> actionContext.getViewer().closeMenu())
+                .slots(41)
+                .build());
 
         if (!viewer.getUniqueId().equals(user.getId())) {
             list.add(MenuItem.button()
-                .defaultState(NightItem.fromType(Material.NAME_TAG)
-                    .setDisplayName(GRAY.wrap("Viewing: ") + WHITE.wrap(user.getName()))
-                    .hideAllComponents())
-                .slots(0)
-                .build());
+                    .defaultState(NightItem.fromType(Material.NAME_TAG)
+                            .setDisplayName(GRAY.wrap("Viewing: ") + WHITE.wrap(user.getName()))
+                            .hideAllComponents())
+                    .slots(0)
+                    .build());
         }
     }
 
     private MenuItem headItem(SunUser user, int slot) {
         NightItem icon = NightItem.fromType(Material.PLAYER_HEAD)
-            .setDisplayName(GOLD.wrap(user.getName()))
-            .setLore(List.of(
-                GRAY.wrap("Total: ") + WHITE.wrap(this.module.format(this.module.getEffectivePlaytime(user, PlaytimePeriod.ALLTIME))),
-                "",
-                GRAY.wrap("Session: ") + WHITE.wrap(this.module.format(this.module.getSessionPlaytime(user)))))
-            .hideAllComponents();
+                .setDisplayName(GOLD.wrap(user.getName()))
+                .setLore(List.of(
+                        GRAY.wrap("Total: ") + WHITE.wrap(
+                                this.module.format(this.module.getEffectivePlaytime(user, PlaytimePeriod.ALLTIME))),
+                        "",
+                        GRAY.wrap("Session: ") + WHITE.wrap(this.module.format(this.module.getSessionPlaytime(user)))))
+                .hideAllComponents();
         try {
             icon.setSkullOwner(Bukkit.getOfflinePlayer(user.getId()));
         } catch (Exception ignored) {
@@ -176,23 +183,23 @@ public class PlaytimeStatsMenu extends AbstractMenu {
 
     private MenuItem periodItem(Material material, int slot, String name, long ms) {
         return MenuItem.button()
-            .defaultState(NightItem.fromType(material)
-                .setDisplayName(GOLD.wrap(name))
-                .setLore(List.of(WHITE.wrap(this.module.format(ms))))
-                .hideAllComponents())
-            .slots(slot)
-            .build();
+                .defaultState(NightItem.fromType(material)
+                        .setDisplayName(GOLD.wrap(name))
+                        .setLore(List.of(WHITE.wrap(this.module.format(ms))))
+                        .hideAllComponents())
+                .slots(slot)
+                .build();
     }
 
     private MenuItem sessionItem(SunUser user, int slot) {
         long session = this.module.getSessionPlaytime(user);
         return MenuItem.button()
-            .defaultState(NightItem.fromType(Material.FEATHER)
-                .setDisplayName(GOLD.wrap("Session"))
-                .setLore(List.of(WHITE.wrap(this.module.format(session))))
-                .hideAllComponents())
-            .slots(slot)
-            .build();
+                .defaultState(NightItem.fromType(Material.FEATHER)
+                        .setDisplayName(GOLD.wrap("Session"))
+                        .setLore(List.of(WHITE.wrap(this.module.format(session))))
+                        .hideAllComponents())
+                .slots(slot)
+                .build();
     }
 
     private MenuItem streakItem(Material material, int slot, String name, int value, String unit) {
@@ -206,12 +213,12 @@ public class PlaytimeStatsMenu extends AbstractMenu {
             lore.add(GRAY.wrap("Play consecutive " + unit + "s to grow it."));
         }
         return MenuItem.button()
-            .defaultState(NightItem.fromType(material)
-                .setDisplayName(GOLD.wrap(name))
-                .setLore(lore)
-                .hideAllComponents())
-            .slots(slot)
-            .build();
+                .defaultState(NightItem.fromType(material)
+                        .setDisplayName(GOLD.wrap(name))
+                        .setLore(lore)
+                        .hideAllComponents())
+                .slots(slot)
+                .build();
     }
 
     private MenuItem goalItem(int slot, String name, long current, long goal) {
@@ -220,20 +227,21 @@ public class PlaytimeStatsMenu extends AbstractMenu {
             lore.add(SOFT_RED.wrap("No goal set"));
         } else {
             long percent = current <= 0L ? 0L : Math.min(100L, current * 100L / Math.max(1L, goal));
-            lore.add(WHITE.wrap(this.module.format(Math.max(0L, current))) + GRAY.wrap(" / ") + WHITE.wrap(this.module.format(goal)));
+            lore.add(WHITE.wrap(this.module.format(Math.max(0L, current))) + GRAY.wrap(" / ")
+                    + WHITE.wrap(this.module.format(goal)));
             lore.add(this.progressBar(percent) + GRAY.wrap(" " + percent + "%"));
         }
         return MenuItem.button()
-            .defaultState(NightItem.fromType(Material.EXPERIENCE_BOTTLE)
-                .setDisplayName(GOLD.wrap(name + " goal"))
-                .setLore(lore)
-                .hideAllComponents())
-            .slots(slot)
-            .build();
+                .defaultState(NightItem.fromType(Material.EXPERIENCE_BOTTLE)
+                        .setDisplayName(GOLD.wrap(name + " goal"))
+                        .setLore(lore)
+                        .hideAllComponents())
+                .slots(slot)
+                .build();
     }
 
     private MenuItem milestoneItem(SunUser user, int slot) {
-        Map<String, PlaytimeMilestone> all = this.module.getMilestones();
+        Map<String, PlaytimeMilestone> all = this.module.milestoneHandler.getMilestones();
         Map<String, Integer> progress = user.getPropertyOrDefault(PlaytimeProperties.MILESTONE_PROGRESS);
         long total = this.module.getEffectivePlaytime(user, PlaytimePeriod.ALLTIME);
 
@@ -241,19 +249,21 @@ public class PlaytimeStatsMenu extends AbstractMenu {
         if (all.isEmpty()) {
             lore.add(GRAY.wrap("No milestones configured."));
         } else {
-            long claimed = all.values().stream().filter(m -> !m.repeatable() && progress.getOrDefault(m.id(), 0) > 0).count();
+            long claimed = all.values().stream().filter(m -> !m.repeatable() && progress.getOrDefault(m.id(), 0) > 0)
+                    .count();
             long oneShots = all.values().stream().filter(m -> !m.repeatable()).count();
             lore.add(GRAY.wrap("Claimed: ") + WHITE.wrap(claimed + "/" + oneShots));
 
             PlaytimeMilestone next = all.values().stream()
-                .filter(m -> !m.repeatable() && progress.getOrDefault(m.id(), 0) <= 0)
-                .sorted((first, second) -> Long.compare(first.thresholdMs(), second.thresholdMs()))
-                .findFirst().orElse(null);
+                    .filter(m -> !m.repeatable() && progress.getOrDefault(m.id(), 0) <= 0)
+                    .sorted((first, second) -> Long.compare(first.thresholdMs(), second.thresholdMs()))
+                    .findFirst().orElse(null);
             if (next != null) {
                 long percent = Math.min(100L, total * 100L / Math.max(1L, next.thresholdMs()));
                 lore.add("");
                 lore.add(GRAY.wrap("Next: ") + WHITE.wrap(next.name()));
-                lore.add(WHITE.wrap(this.module.format(total)) + GRAY.wrap(" / ") + WHITE.wrap(this.module.format(next.thresholdMs())));
+                lore.add(WHITE.wrap(this.module.format(total)) + GRAY.wrap(" / ")
+                        + WHITE.wrap(this.module.format(next.thresholdMs())));
                 lore.add(this.progressBar(percent) + GRAY.wrap(" " + percent + "%"));
             } else {
                 lore.add("");
@@ -261,19 +271,21 @@ public class PlaytimeStatsMenu extends AbstractMenu {
             }
         }
         return MenuItem.button()
-            .defaultState(NightItem.fromType(Material.NETHER_STAR)
-                .setDisplayName(GOLD.wrap("Milestones"))
-                .setLore(lore)
-                .hideAllComponents())
-            .slots(slot)
-            .build();
+                .defaultState(NightItem.fromType(Material.NETHER_STAR)
+                        .setDisplayName(GOLD.wrap("Milestones"))
+                        .setLore(lore)
+                        .hideAllComponents())
+                .slots(slot)
+                .build();
     }
 
     private String progressBar(long percent) {
         int filled = (int) Math.min(20L, Math.max(0L, percent / 5L));
         StringBuilder builder = new StringBuilder();
-        for (int index = 0; index < filled; index++) builder.append("▓");
-        for (int index = filled; index < 20; index++) builder.append("░");
+        for (int index = 0; index < filled; index++)
+            builder.append("▓");
+        for (int index = filled; index < 20; index++)
+            builder.append("░");
         return GREEN.wrap(builder.substring(0, filled)) + DARK_GRAY.wrap(builder.substring(filled));
     }
 

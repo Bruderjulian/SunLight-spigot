@@ -107,7 +107,7 @@ public class PlaytimeSettings extends AbstractConfig {
             240L,
             "Reminder window for the monthly goal, in minutes.");
 
-    public void load(FileConfig config) {
+    public void load(final FileConfig config) {
         super.load(config);
     }
 
@@ -120,12 +120,12 @@ public class PlaytimeSettings extends AbstractConfig {
     }
 
     public ZoneId getZoneId() {
-        String value = this.timezone.get();
+        final String value = this.timezone.get();
         if (value == null || value.isBlank() || value.equalsIgnoreCase("system"))
             return ZoneId.systemDefault();
         try {
             return ZoneId.of(value);
-        } catch (Exception exception) {
+        } catch (final Exception exception) {
             return ZoneId.systemDefault();
         }
     }
@@ -186,7 +186,7 @@ public class PlaytimeSettings extends AbstractConfig {
         return this.goalMaxMinutes.get();
     }
 
-    private long minutesToMs(long minutes) {
+    private long minutesToMs(final long minutes) {
         return Math.max(0L, minutes) * 60_000L;
     }
 }
