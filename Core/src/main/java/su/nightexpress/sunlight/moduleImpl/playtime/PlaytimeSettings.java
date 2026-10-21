@@ -131,7 +131,7 @@ public class PlaytimeSettings extends AbstractConfig {
     }
 
     public long getTopRefreshInterval() {
-        return Math.max(20L, this.topRefreshInterval.get());
+        return Math.max(1000L, this.topRefreshInterval.get() * 50L);
     }
 
     public long getTopDbScanInterval() {

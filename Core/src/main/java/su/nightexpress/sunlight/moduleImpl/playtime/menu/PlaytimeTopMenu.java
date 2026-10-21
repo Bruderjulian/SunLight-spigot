@@ -26,6 +26,7 @@ import su.nightexpress.sunlight.moduleImpl.playtime.PlaytimeModule;
 import su.nightexpress.sunlight.moduleImpl.playtime.PlaytimeTopHandler.TopEntry;
 import su.nightexpress.sunlight.moduleImpl.playtime.config.PlaytimeLang;
 import su.nightexpress.sunlight.moduleImpl.playtime.model.PlaytimePeriod;
+import su.nightexpress.sunlight.utils.TimeUtil;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 
@@ -173,7 +174,7 @@ public class PlaytimeTopMenu extends AbstractMenu {
         boolean self = entry.id().equals(viewerId);
 
         List<String> lore = new ArrayList<>();
-        lore.add(GRAY.wrap("Playtime: ") + WHITE.wrap(this.module.format(entry.value())));
+        lore.add(GRAY.wrap("Playtime: ") + WHITE.wrap(TimeUtil.formatMillis(entry.value())));
         lore.add(GRAY.wrap("Period: ") + WHITE.wrap(this.periodLabel(this.period)));
         if (self) {
             lore.add("");

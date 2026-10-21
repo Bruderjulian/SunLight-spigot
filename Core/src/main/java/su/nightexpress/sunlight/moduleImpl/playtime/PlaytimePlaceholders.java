@@ -12,6 +12,7 @@ import su.nightexpress.sunlight.moduleImpl.playtime.PlaytimeTopHandler.TopEntry;
 import su.nightexpress.sunlight.moduleImpl.playtime.model.PlaytimeMilestone;
 import su.nightexpress.sunlight.moduleImpl.playtime.model.PlaytimePeriod;
 import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.sunlight.utils.Utils;
 
 public class PlaytimePlaceholders {
@@ -54,26 +55,27 @@ public class PlaytimePlaceholders {
     registry.register("playtime_total",
         (player, payload) -> String.valueOf(getEffectivePlaytime(player, PlaytimePeriod.ALLTIME)));
     registry.register("playtime_total_formatted",
-        (player, payload) -> module.format(getEffectivePlaytime(player, PlaytimePeriod.ALLTIME)));
+        (player, payload) -> TimeUtil.formatMillis(getEffectivePlaytime(player, PlaytimePeriod.ALLTIME)));
     registry.register("playtime_year",
         (player, payload) -> String.valueOf(getEffectivePlaytime(player, PlaytimePeriod.YEAR)));
     registry.register("playtime_year_formatted",
-        (player, payload) -> module.format(getEffectivePlaytime(player, PlaytimePeriod.YEAR)));
+        (player, payload) -> TimeUtil.formatMillis(getEffectivePlaytime(player, PlaytimePeriod.YEAR)));
     registry.register("playtime_month",
         (player, payload) -> String.valueOf(getEffectivePlaytime(player, PlaytimePeriod.MONTH)));
     registry.register("playtime_month_formatted",
-        (player, payload) -> module.format(getEffectivePlaytime(player, PlaytimePeriod.MONTH)));
+        (player, payload) -> TimeUtil.formatMillis(getEffectivePlaytime(player, PlaytimePeriod.MONTH)));
     registry.register("playtime_week",
         (player, payload) -> String.valueOf(getEffectivePlaytime(player, PlaytimePeriod.WEEK)));
     registry.register("playtime_week_formatted",
-        (player, payload) -> module.format(getEffectivePlaytime(player, PlaytimePeriod.WEEK)));
+        (player, payload) -> TimeUtil.formatMillis(getEffectivePlaytime(player, PlaytimePeriod.WEEK)));
     registry.register("playtime_day",
         (player, payload) -> String.valueOf(getEffectivePlaytime(player, PlaytimePeriod.DAY)));
     registry.register("playtime_day_formatted",
-        (player, payload) -> module.format(getEffectivePlaytime(player, PlaytimePeriod.DAY)));
-    registry.register("playtime_session", (player, payload) -> String.valueOf(getSessionPlaytime(player)));
+        (player, payload) -> TimeUtil.formatMillis(getEffectivePlaytime(player, PlaytimePeriod.DAY)));
+    registry.register("playtime_session", (player, payload) -> String.valueOf(getEffectivePlaytime(player,
+        PlaytimePeriod.SESSION)));
     registry.register("playtime_session_formatted",
-        (player, payload) -> module.format(getSessionPlaytime(player)));
+        (player, payload) -> TimeUtil.formatMillis(getEffectivePlaytime(player, PlaytimePeriod.SESSION)));
     registry.register("playtime_streak_daily", (player, payload) -> String.valueOf(getStreak(player, true)));
     registry.register("playtime_streak_weekly", (player, payload) -> String.valueOf(getStreak(player, false)));
     registry.register("playtime_goal_day", (player, payload) -> goalResponse(player, "day", payload));
@@ -139,9 +141,9 @@ public class PlaytimePlaceholders {
 
     return switch (metric == null ? "" : metric) {
       case "" -> String.valueOf(Math.max(0L, goal));
-      case "formatted" -> module.format(Math.max(0L, goal));
+      case "formatted" -> TimeUtil.formatMillis(Math.max(0L, goal));
       case "remaining" -> String.valueOf(goal <= 0L ? 0L : Math.max(0L, goal - current));
-      case "remaining_formatted" -> module.format(goal <= 0L ? 0L : Math.max(0L, goal - current));
+      case "remaining_formatted" -> TimeUtil.formatMillis(goal <= 0L ? 0L : Math.max(0L, goal - current));
       case "progress" -> String.valueOf(goal <= 0L || current <= 0L ? 0L : Math.min(100L, current * 100L / goal));
       default -> "";
     };
@@ -174,7 +176,7 @@ public class PlaytimePlaceholders {
     return switch (metric) {
       case "name" -> next.name();
       case "remaining" -> String.valueOf(Math.max(0L, next.thresholdMs() - total));
-      case "remaining_formatted" -> module.format(Math.max(0L, next.thresholdMs() - total));
+      case "remaining_formatted" -> TimeUtil.formatMillis(Math.max(0L, next.thresholdMs() - total));
       case "progress" -> String.valueOf(Math.min(100L, total * 100L / Math.max(1L, next.thresholdMs())));
       default -> "";
     };
@@ -222,7 +224,7 @@ public class PlaytimePlaceholders {
     return switch (field) {
       case "name" -> entry.name();
       case "time" -> String.valueOf(Math.max(0L, entry.value()));
-      case "formatted", "time_formatted" -> module.format(Math.max(0L, entry.value()));
+      case "formatted", "time_formatted" -> TimeUtil.formatMillis(Math.max(0L, entry.value()));
       default -> "";
     };
   }
@@ -270,22 +272,13 @@ public class PlaytimePlaceholders {
         default -> null;
       };
     } catch (final Exception exception) {
-      return formatted ? module.format(0L) : "0";
+      return formatted ? TimeUtil.formatMillis(0L) : "0";
     }
     if (next == null)
-      return formatted ? module.format(0L) : "0";
+      return formatted ? TimeUtil.formatMillis(0L) : "0";
 
     final long remaining = Math.max(0L, next.toInstant().toEpochMilli() - now.toInstant().toEpochMilli());
-    return formatted ? module.format(remaining) : String.valueOf(remaining);
-  }
-
-  private long getSessionPlaytime(final Player player) {
-    if (player == null)
-      return 0L;
-    final SunUser user = module.userManager().getOrFetch(player);
-    if (user == null)
-      return 0L;
-    return module.getSessionPlaytime(user);
+    return formatted ? TimeUtil.formatMillis(remaining) : String.valueOf(remaining);
   }
 
   private int getStreak(final Player player, final boolean daily) {

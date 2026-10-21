@@ -14,8 +14,6 @@ import org.bukkit.entity.Player;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
-import su.nightexpress.nightcore.util.time.TimeFormatType;
-import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.event.PlaytimeAdjustedEvent;
@@ -92,7 +90,6 @@ public class PlaytimeModule extends Module {
 
         this.addListener(new PlaytimeListener(this.plugin, this));
         this.addTask(this::tick, this.settings.getTickInterval());
-        this.addAsyncTask(topHandler::refreshTopCache, (int) Math.max(1L, this.settings.getTopRefreshInterval() / 20L));
 
         this.commandRegistry.addProvider(new PlaytimeCommandProvider(this));
 
@@ -134,12 +131,6 @@ public class PlaytimeModule extends Module {
 
     public PlaytimeSettings getSettings() {
         return this.settings;
-    }
-
-    public String format(final long ms) {
-        if (ms <= 0L)
-            return TimeFormats.formatAmount(0L, TimeFormatType.LITERAL);
-        return TimeFormats.formatAmount(ms, TimeFormatType.LITERAL);
     }
 
     // --- Tick ---
@@ -197,10 +188,11 @@ public class PlaytimeModule extends Module {
 
     public PeriodKeys currentKeys() {
         final long now = System.currentTimeMillis();
-        final PeriodKeys cached = this.keysCache;
-        if (cached != null && now - this.keysCacheTime < 1000L)
-            return cached;
 
+        final PeriodKeys cached = this.keysCache;
+        if (cached != null && now - this.keysCacheTime < 1000L) {
+            return cached;
+        }
         ZoneId zone = this.zoneId;
         if (zone == null) {
             zone = ZoneId.systemDefault();
@@ -273,8 +265,12 @@ public class PlaytimeModule extends Module {
     // --- Reads ---
 
     public long getEffectivePlaytime(final SunUser user, final PlaytimePeriod period) {
-        if (period == PlaytimePeriod.ALLTIME)
+        if (period == PlaytimePeriod.ALLTIME) {
             return Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.TOTAL));
+        }
+        if (period == PlaytimePeriod.SESSION) {
+            return Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.SESSION));
+        }
         final PeriodKeys keys = this.currentKeys();
         return switch (period) {
             case YEAR -> user.getPropertyOrDefault(PlaytimeProperties.YEAR_KEY) == keys.year()
@@ -293,8 +289,13 @@ public class PlaytimeModule extends Module {
         };
     }
 
-    public long getSessionPlaytime(final SunUser user) {
-        return Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.SESSION));
+    public long getEffectivePlaytime(final Player player, final PlaytimePeriod period) {
+        if (player == null)
+            return 0L;
+        final SunUser user = userManager.getOrFetch(player);
+        if (user == null)
+            return 0L;
+        return getEffectivePlaytime(user, period);
     }
 
     public void dispatchRewardCommands(final Player player, final List<String> commands) {
@@ -325,6 +326,7 @@ public class PlaytimeModule extends Module {
             case MONTH -> user.getPropertyOrDefault(PlaytimeProperties.MONTH);
             case WEEK -> user.getPropertyOrDefault(PlaytimeProperties.WEEK);
             case DAY -> user.getPropertyOrDefault(PlaytimeProperties.DAY);
+            case SESSION -> user.getPropertyOrDefault(PlaytimeProperties.SESSION);
         };
     }
 
@@ -359,8 +361,14 @@ public class PlaytimeModule extends Module {
 
     private void addBucket(final SunUser user, final PlaytimePeriod period, final long deltaMs) {
         switch (period) {
-            case ALLTIME -> user.setProperty(PlaytimeProperties.TOTAL,
-                    Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.TOTAL) + deltaMs));
+            case ALLTIME -> {
+                user.setProperty(PlaytimeProperties.TOTAL,
+                        Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.TOTAL) + deltaMs));
+            }
+            case SESSION -> {
+                user.setProperty(PlaytimeProperties.SESSION,
+                        Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.SESSION) + deltaMs));
+            }
             case YEAR -> {
                 user.setProperty(PlaytimeProperties.TOTAL,
                         Math.max(0L, user.getPropertyOrDefault(PlaytimeProperties.TOTAL) + deltaMs));
@@ -406,6 +414,7 @@ public class PlaytimeModule extends Module {
             user.setProperty(PlaytimeProperties.MONTH, value);
             user.setProperty(PlaytimeProperties.WEEK, value);
             user.setProperty(PlaytimeProperties.DAY, value);
+            user.setProperty(PlaytimeProperties.SESSION, value);
             return;
         }
         switch (period) {
@@ -414,6 +423,7 @@ public class PlaytimeModule extends Module {
             case MONTH -> user.setProperty(PlaytimeProperties.MONTH, value);
             case WEEK -> user.setProperty(PlaytimeProperties.WEEK, value);
             case DAY -> user.setProperty(PlaytimeProperties.DAY, value);
+            case SESSION -> user.setProperty(PlaytimeProperties.SESSION, value);
         }
     }
 

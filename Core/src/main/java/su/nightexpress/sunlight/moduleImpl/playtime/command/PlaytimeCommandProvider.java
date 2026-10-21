@@ -20,6 +20,7 @@ import su.nightexpress.sunlight.moduleImpl.playtime.config.PlaytimeLang;
 import su.nightexpress.sunlight.moduleImpl.playtime.config.PlaytimePerms;
 import su.nightexpress.sunlight.moduleImpl.playtime.model.PlaytimePeriod;
 import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.sunlight.utils.Utils;
 
 public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
@@ -142,7 +143,8 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
             module.sendPrefixed(PlaytimeLang.STATS_TOTAL,
                     sender, b -> b
                             .with(SLPlaceholders.GENERIC_TIME,
-                                    () -> module.format(module.getEffectivePlaytime(user, PlaytimePeriod.ALLTIME))));
+                                    () -> TimeUtil
+                                            .formatMillis(module.getEffectivePlaytime(user, PlaytimePeriod.ALLTIME))));
 
             this.sendPeriodLine(sender, "Year", module.getEffectivePlaytime(user, PlaytimePeriod.YEAR));
             this.sendPeriodLine(sender, "Month", module.getEffectivePlaytime(user, PlaytimePeriod.MONTH));
@@ -166,7 +168,7 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
     private void sendPeriodLine(final CommandSender sender, final String name, final long ms) {
         module.sendPrefixed(PlaytimeLang.STATS_PERIOD, sender, b -> b
                 .with(SLPlaceholders.GENERIC_NAME, () -> name)
-                .with(SLPlaceholders.GENERIC_TIME, () -> module.format(ms)));
+                .with(SLPlaceholders.GENERIC_TIME, () -> TimeUtil.formatMillis(ms)));
     }
 
     private int showStats(final CommandSender sender, final CommandArguments arguments) {
@@ -186,7 +188,8 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
             if (period == PlaytimePeriod.ALLTIME) {
                 module.sendPrefixed(PlaytimeLang.STATS_TOTAL, sender, b -> b
                         .with(SLPlaceholders.GENERIC_TIME,
-                                () -> module.format(module.getEffectivePlaytime(user, PlaytimePeriod.ALLTIME))));
+                                () -> TimeUtil
+                                        .formatMillis(module.getEffectivePlaytime(user, PlaytimePeriod.ALLTIME))));
                 return;
             }
 
@@ -222,7 +225,7 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
         for (int index = start; index < end; index++) {
             final TopEntry entry = entries.get(index);
             final String rank = String.valueOf(index + 1);
-            final String formatted = module.format(entry.value());
+            final String formatted = TimeUtil.formatMillis(entry.value());
             module.sendPrefixed(PlaytimeLang.TOP_ENTRY,
                     sender, b -> b
                             .with(SLPlaceholders.GENERIC_PAGE, () -> rank)
@@ -309,7 +312,7 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
 
         this.module.sendPrefixed(PlaytimeLang.GOAL_SET, sender, b -> b
                 .with(SLPlaceholders.GENERIC_NAME, () -> period.name())
-                .with(SLPlaceholders.GENERIC_TIME, () -> this.module.format(ms)));
+                .with(SLPlaceholders.GENERIC_TIME, () -> TimeUtil.formatMillis(ms)));
         return 1;
     }
 
@@ -335,8 +338,8 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
         module.sendPrefixed(PlaytimeLang.GOAL_LINE, viewer, b -> b
                 .with(SLPlaceholders.GENERIC_NAME, () -> name)
                 .with(SLPlaceholders.GENERIC_VALUE, () -> String.valueOf(percent))
-                .with(SLPlaceholders.GENERIC_CURRENT, () -> module.format(Math.max(0L, current)))
-                .with(SLPlaceholders.GENERIC_MAX, () -> module.format(goal)));
+                .with(SLPlaceholders.GENERIC_CURRENT, () -> TimeUtil.formatMillis(Math.max(0L, current)))
+                .with(SLPlaceholders.GENERIC_MAX, () -> TimeUtil.formatMillis(goal)));
     }
 
     private boolean isGoalPeriod(final PlaytimePeriod period) {
@@ -377,7 +380,7 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
             final SunUser resolved = this.module.userManager().getOrFetch(targetPlayer);
             this.module.addPlaytime(resolved, period, deltaMs);
             this.module.sendPrefixed(PlaytimeLang.ADMIN_ADDED, sender, b -> b
-                    .with(SLPlaceholders.GENERIC_TIME, () -> this.module.format(deltaMs))
+                    .with(SLPlaceholders.GENERIC_TIME, () -> TimeUtil.formatMillis(deltaMs))
                     .with(SLPlaceholders.PLAYER_NAME, resolved::getName)
                     .with(SLPlaceholders.GENERIC_NAME, () -> period.name()));
         });
@@ -406,7 +409,7 @@ public class PlaytimeCommandProvider extends CommandProvider<PlaytimeModule> {
             final SunUser resolved = this.module.userManager().getOrFetch(targetPlayer);
             this.module.setPlaytime(resolved, period, valueMs);
             this.module.sendPrefixed(PlaytimeLang.ADMIN_SET, sender, b -> b
-                    .with(SLPlaceholders.GENERIC_TIME, () -> this.module.format(valueMs))
+                    .with(SLPlaceholders.GENERIC_TIME, () -> TimeUtil.formatMillis(valueMs))
                     .with(SLPlaceholders.PLAYER_NAME, resolved::getName)
                     .with(SLPlaceholders.GENERIC_NAME, () -> period.name()));
         });

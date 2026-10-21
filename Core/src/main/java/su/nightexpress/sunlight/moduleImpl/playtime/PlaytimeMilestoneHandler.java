@@ -17,6 +17,7 @@ import su.nightexpress.sunlight.api.event.PlaytimeMilestoneEvent;
 import su.nightexpress.sunlight.moduleImpl.playtime.config.PlaytimeLang;
 import su.nightexpress.sunlight.moduleImpl.playtime.model.PlaytimeMilestone;
 import su.nightexpress.sunlight.user.SunUser;
+import su.nightexpress.sunlight.utils.TimeUtil;
 import su.nightexpress.sunlight.utils.Utils;
 
 public class PlaytimeMilestoneHandler {
@@ -212,7 +213,7 @@ public class PlaytimeMilestoneHandler {
           user.setProperty(PlaytimeProperties.REMINDED_DAY_KEY, dayKey);
           module.sendPrefixed(PlaytimeLang.REMINDER_GOAL, player, b -> b
               .with(SLPlaceholders.GENERIC_NAME, () -> "Daily")
-              .with(SLPlaceholders.GENERIC_TIME, () -> module.format(remaining)));
+              .with(SLPlaceholders.GENERIC_TIME, () -> TimeUtil.formatMillis(remaining)));
         }
       }
     }
@@ -230,7 +231,7 @@ public class PlaytimeMilestoneHandler {
           user.setProperty(PlaytimeProperties.REMINDED_WEEK_KEY, weekKey);
           module.sendPrefixed(PlaytimeLang.REMINDER_GOAL, player, b -> b
               .with(SLPlaceholders.GENERIC_NAME, () -> "Weekly")
-              .with(SLPlaceholders.GENERIC_TIME, () -> module.format(remaining)));
+              .with(SLPlaceholders.GENERIC_TIME, () -> TimeUtil.formatMillis(remaining)));
         }
       }
     }
@@ -248,7 +249,7 @@ public class PlaytimeMilestoneHandler {
           user.setProperty(PlaytimeProperties.REMINDED_MONTH_KEY, monthKey);
           module.sendPrefixed(PlaytimeLang.REMINDER_GOAL, player, b -> b
               .with(SLPlaceholders.GENERIC_NAME, () -> "Monthly")
-              .with(SLPlaceholders.GENERIC_TIME, () -> module.format(remaining)));
+              .with(SLPlaceholders.GENERIC_TIME, () -> TimeUtil.formatMillis(remaining)));
         }
       }
     }

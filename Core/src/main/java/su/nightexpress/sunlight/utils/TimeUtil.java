@@ -7,6 +7,9 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.TimeZone;
 
+import su.nightexpress.nightcore.util.time.TimeFormatType;
+import su.nightexpress.nightcore.util.time.TimeFormats;
+
 public class TimeUtil {
 
   private static TimeZone timeZone = TimeZone.getDefault();
@@ -43,15 +46,26 @@ public class TimeUtil {
     return dateTime.atZone(getZoneId()).toInstant().toEpochMilli();
   }
 
+  public static String formatMillis(final long ms) {
+    if (ms <= 0L)
+      return TimeFormats.formatAmount(0L, TimeFormatType.LITERAL);
+    return TimeFormats.formatAmount(ms, TimeFormatType.LITERAL);
+  }
+
   /**
    * Parses a duration typed by a player into seconds.
    * <p>
-   * Every configured duration in SunLight is a plain number of seconds, so that stays valid here
-   * and means nothing at all. On top of that a suffix may be used — {@code 30s}, {@code 5m},
+   * Every configured duration in SunLight is a plain number of seconds, so that
+   * stays valid here
+   * and means nothing at all. On top of that a suffix may be used — {@code 30s},
+   * {@code 5m},
    * {@code 1h}, {@code 7d} — and several may be combined as {@code 1h30m}.
    * <p>
-   * @return the duration in seconds, or {@code -1} when the input is not a duration at all. The
-   *         caller turns that into a usage message rather than a parse error, because a player
+   * 
+   * @return the duration in seconds, or {@code -1} when the input is not a
+   *         duration at all. The
+   *         caller turns that into a usage message rather than a parse error,
+   *         because a player
    *         who mistyped needs to be told what is expected.
    */
   public static long parseDurationSeconds(String input) {
@@ -108,14 +122,18 @@ public class TimeUtil {
         sawUnit = true;
       }
     } catch (ArithmeticException overflow) {
-      // A value that does not fit in a long is not a usable duration, whatever it was meant as.
-      // Without this a huge input wraps around to a small positive number and creates a
+      // A value that does not fit in a long is not a usable duration, whatever it was
+      // meant as.
+      // Without this a huge input wraps around to a small positive number and creates
+      // a
       // garbage-duration poll instead of being rejected.
       return -1L;
     }
 
-    // A trailing number with no unit, as in "1h30", is a typo rather than a bare value: mixing
-    // the two notations in one string is far more likely to be a mistake than an intention.
+    // A trailing number with no unit, as in "1h30", is a typo rather than a bare
+    // value: mixing
+    // the two notations in one string is far more likely to be a mistake than an
+    // intention.
     if (sawDigit) {
       return -1L;
     }
