@@ -1,0 +1,66 @@
+name: Documentation issue
+description: Report missing, outdated, or incorrect documentation
+title: "[Docs]: "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve the documentation!
+
+        This includes the README, config comments, in-game help/messages, and the documentation on [nightexpressdev.com](https://nightexpressdev.com/sunlight/).
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type of issue
+      options:
+        - Incorrect information
+        - Outdated information
+        - Missing information
+        - Unclear or confusing wording
+        - Typo / formatting
+        - Broken link or image
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: Link to the page, file path, module, or command help where the issue is.
+      placeholder: "https://nightexpressdev.com/sunlight/modules/homes/ or Core/src/main/resources/modules.yml"
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current content
+      description: Quote or describe what is currently written.
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested content
+      description: What should it say instead? Include exact wording if possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots or anything else that helps explain the issue.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched the existing issues and this documentation issue has not been reported yet.
+          required: true

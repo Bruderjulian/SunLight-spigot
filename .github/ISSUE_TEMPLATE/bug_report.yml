@@ -1,0 +1,159 @@
+name: Bug report
+description: Report a reproducible bug in SunLight
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!
+
+        Before opening a new issue, please:
+        - Make sure you are using the latest build and a [supported server version](https://github.com/Bruderjulian/SunLight-spigot#%EF%B8%8F-requirements).
+        - Check the [FAQ](https://nightexpressdev.com/sunlight/faq/) and search the existing issues.
+
+        Please **do not** report bugs caused by unsupported server versions, forks of SunLight, or other plugins unless you can reproduce them with only SunLight and its required dependencies installed.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the bug.
+      placeholder: When I run /home, the GUI opens but ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Exact steps that reliably reproduce the problem.
+      placeholder: |
+        1. Install SunLight and NightCore on a fresh server
+        2. Enable module ...
+        3. Run command ...
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Include any error messages or stack traces here.
+    validations:
+      required: true
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: SunLight version
+      description: The version shown in the plugin file name, `/version`, or `/sunlight version`.
+      placeholder: "4.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: server-software
+    attributes:
+      label: Server software
+      options:
+        - Paper
+        - Spigot
+        - Purpur
+        - Folia (not officially supported)
+        - Other (specify in the description)
+    validations:
+      required: true
+
+  - type: input
+    id: server-version
+    attributes:
+      label: Server version
+      description: The exact server version, not just the Minecraft version.
+      placeholder: "1.21.11 or 26.1.2"
+    validations:
+      required: true
+
+  - type: input
+    id: java-version
+    attributes:
+      label: Java version
+      placeholder: "25"
+    validations:
+      required: true
+
+  - type: input
+    id: nightcore-version
+    attributes:
+      label: NightCore version
+      description: Required dependency of SunLight.
+      placeholder: "2.16.4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: packet-library
+    attributes:
+      label: Packet library
+      description: Which packet library is installed on the server?
+      options:
+        - PacketEvents
+        - ProtocolLib
+        - Both
+        - Neither
+    validations:
+      required: true
+
+  - type: textarea
+    id: modules
+    attributes:
+      label: Affected modules
+      description: Which SunLight modules are involved? List any other plugins you tested with as well.
+      placeholder: |
+        SunLight modules: Homes, Warm Ups
+        Other plugins: PlaceholderAPI, Vault
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant configuration
+      description: Paste the relevant part of the module configuration or `modules.yml`. Remove any sensitive values first.
+      render: yaml
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack trace
+      description: |
+        Paste the full error and stack trace, or upload your `latest.log` and link it here.
+        Use a paste service (e.g. https://mclo.gs) for long logs.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I am using the latest SunLight build.
+          required: true
+        - label: I am using a supported server version listed in the README.
+          required: true
+        - label: I searched the existing issues and this bug has not been reported yet.
+          required: true
+        - label: I can reproduce this issue with only SunLight and its required dependencies installed.
+          required: false

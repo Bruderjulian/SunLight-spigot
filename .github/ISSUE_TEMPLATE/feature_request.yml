@@ -1,0 +1,80 @@
+name: Feature request
+description: Suggest a new feature, module, or improvement for SunLight
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve SunLight!
+
+        Please search the existing issues first and keep the request focused on **one** feature. Requests that fit the plugin's lightweight, modular philosophy are more likely to be considered.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of SunLight does this request relate to?
+      options:
+        - New module
+        - Existing module
+        - Commands
+        - Menus / GUI
+        - Configuration
+        - Placeholders / API
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem are you trying to solve? Describe the use case, not just the solution.
+      placeholder: On my server I need ... but currently ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe how you would like this to work, including commands, permissions, or menu behavior if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds or alternative solutions you have tried.
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Example configuration
+      description: If this is a configurable feature, show what the config could look like.
+      render: yaml
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mockups, screenshots, links, or anything else that helps explain the request.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I searched the existing issues and this feature has not been requested yet.
+          required: true
+        - label: This request is about SunLight itself, not about another plugin or server setup.
+          required: true

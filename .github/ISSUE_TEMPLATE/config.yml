@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: FAQ and known issues
+    url: https://nightexpressdev.com/sunlight/faq/
+    about: Check the FAQ before opening an issue; it covers common setup problems and incompatibilities.
+  - name: Documentation
+    url: https://nightexpressdev.com/sunlight/
+    about: Read the installation, configuration, and module documentation.
