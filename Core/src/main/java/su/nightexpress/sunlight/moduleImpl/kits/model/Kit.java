@@ -5,7 +5,7 @@ import org.bukkit.inventory.ItemStack;
 
 import su.nightexpress.nightcore.bridge.item.AdaptedItem;
 import su.nightexpress.nightcore.config.FileConfig;
-import su.nightexpress.nightcore.integration.item.impl.AdaptedVanillaStack;
+import su.nightexpress.nightcore.integration.item.ItemBridge;
 import su.nightexpress.nightcore.util.FileUtil;
 import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.bukkit.NightItem;
@@ -55,7 +55,7 @@ public class Kit implements PlaceholderResolvable {
                 if (itemStack == null || itemStack.getType().isAir())
                     continue;
 
-                AdaptedItem adaptedItem = AdaptedVanillaStack.of(itemStack);
+                AdaptedItem adaptedItem = ItemBridge.get().adaptOrDummy(itemStack);
                 itemMap.put(slot, adaptedItem);
             }
 

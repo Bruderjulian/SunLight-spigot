@@ -55,6 +55,8 @@ import su.nightexpress.sunlight.moduleImpl.warps.WarpsModule;
 import su.nightexpress.sunlight.nms.SunNMS;
 import su.nightexpress.sunlight.nms.mc_1_21_11.MC_1_21_11;
 import su.nightexpress.sunlight.nms.v26p1.NMSv26p1;
+import su.nightexpress.sunlight.nms.v26p2.NMSv26p2;
+import su.nightexpress.sunlight.nms.v26p3.NMSv26p3;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.utils.Utils;
@@ -166,7 +168,9 @@ public class SunLightPlugin extends NightPlugin implements SunlightAPI {
         try {
             this.sunNMS = switch (Version.getCurrent()) {
                 case MC_1_21_11 -> new MC_1_21_11();
-                default -> new NMSv26p1();
+                case MC_26_1, MC_26_1_1, MC_26_1_2 -> new NMSv26p1();
+                case MC_26_2 -> new NMSv26p2();
+                default -> new NMSv26p3();
             };
         } catch (Exception | NoClassDefFoundError e) {
             e.printStackTrace();

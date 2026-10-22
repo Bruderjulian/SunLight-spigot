@@ -23,7 +23,6 @@ import org.bukkit.inventory.PlayerInventory;
 
 import su.nightexpress.nightcore.NightPlugin;
 import su.nightexpress.nightcore.bridge.item.AdaptedItem;
-import su.nightexpress.nightcore.bridge.item.ItemAdapter;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.integration.item.ItemBridge;
 import su.nightexpress.nightcore.locale.LangContainer;
@@ -213,11 +212,7 @@ public class KitContentEditorMenu extends AbstractObjectMenu<KitContentEditorMen
             if (itemStack == null || itemStack.getType().isAir())
                 continue;
 
-            ItemAdapter<?> adapter = ItemBridge.adapter(itemStack).orElse(null);
-            if (adapter == null)
-                continue;
-
-            AdaptedItem adaptedItem = adapter.adapt(itemStack).orElse(null);
+            AdaptedItem adaptedItem = ItemBridge.get().adapt(itemStack).orElse(null);
             if (adaptedItem == null)
                 continue;
 
