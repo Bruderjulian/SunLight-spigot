@@ -1,16 +1,24 @@
 package su.nightexpress.sunlight.api.provider;
 
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import net.kyori.adventure.text.format.NamedTextColor;
 
 public interface GlowProvider {
 
-    boolean hasGlow(@NotNull Player player);
+    boolean isGlowEnabled(Player player);
 
-    @Nullable String getGlow(@NotNull Player player);
+    String getEffectId(Player player);
 
-    void setGlow(@NotNull Player player, @Nullable String effectId);
+    /**
+     * The colour of the phase currently shown, as a vanilla colour name.
+     *
+     * @return null when the player has no active glow.
+     */
+    String getGlowColor(Player player);
 
-    void clearGlow(@NotNull Player player);
+    void setEffect(Player player, NamedTextColor color);
+
+    void clearGlow(Player player);
+
 }

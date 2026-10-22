@@ -4,9 +4,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import su.nightexpress.nightcore.manager.AbstractListener;
+import su.nightexpress.nightcore.util.EventUtils;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.moduleImpl.vanish.config.VanishConfig;
 import su.nightexpress.sunlight.moduleImpl.vanish.config.VanishPerms;
 
 public class VanishListener extends AbstractListener<SunLightPlugin> {
@@ -33,6 +36,26 @@ public class VanishListener extends AbstractListener<SunLightPlugin> {
                 continue;
 
             player.hidePlayer(plugin, vanished);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onJoinSuppress(PlayerJoinEvent event) {
+        if (!VanishConfig.SUPPRESS_JOIN_QUIT.get())
+            return;
+
+        if (this.module.isVanished(event.getPlayer())) {
+            EventUtils.getAdapter().setJoinMessage(event, null);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onQuitSuppress(PlayerQuitEvent event) {
+        if (!VanishConfig.SUPPRESS_JOIN_QUIT.get())
+            return;
+
+        if (this.module.isVanished(event.getPlayer())) {
+            EventUtils.getAdapter().setQuitMessage(event, null);
         }
     }
 }

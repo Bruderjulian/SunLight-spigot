@@ -1,30 +1,32 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
+
 import org.bukkit.Sound;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.EntityUtil;
 import su.nightexpress.nightcore.util.Players;
-import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.GRAY;
 
-public class HatCommandProvider extends CommandProvider {
+public class HatCommandProvider extends CommandProvider<EssentialModule> {
+
+    private static final String COMMAND_HAT = "hat";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Hat.Desc").text("Put item in head.");
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("hat");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".hat";
 
     private static final MessageLocale MESSAGE_HAT_FEEDBACK = LangEntry.builder("Command.Hat.Done").chatMessage(
             Sound.ITEM_ARMOR_EQUIP_LEATHER,
@@ -34,32 +36,35 @@ public class HatCommandProvider extends CommandProvider {
             Sound.ENTITY_VILLAGER_NO,
             GRAY.wrap("You must hold an item in your hand to equip it!"));
 
-    private final EssentialModule module;
-
-    public HatCommandProvider(SunLightPlugin plugin, EssentialModule module) {
-        super(plugin);
-        this.module = module;
+    public HatCommandProvider(final EssentialModule module) {
+        super(module, "hat");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("hat", true, new String[] { "hat" }, builder -> builder
-                .playerOnly()
-                .description(DESCRIPTION)
-                .permission(PERMISSION)
-                .executes(this::equipHat));
+    public void setup() {
+        this.register(COMMAND_HAT, command -> command
+                .withFullDescription(DESCRIPTION.text())
+                .withPermission(PERMISSION)
+                .withRequirement(sender -> sender instanceof Player)
+                .executes((sender, arguments) -> {
+                    return this.equipHat(sender, arguments);
+                }));
     }
 
-    private boolean equipHat(CommandContext context, ParsedArguments arguments) {
-        Player player = context.getPlayerOrThrow();
-        ItemStack item = player.getInventory().getItemInMainHand();
-        if (item.getType().isAir()) {
-            this.module.sendPrefixed(MESSAGE_EMPTY_HAND, player);
-            return false;
+    private int equipHat(final CommandSender sender, final CommandArguments arguments) {
+        if (!(sender instanceof final Player player)) {
+            this.module.sendPrefixed(CoreLang.COMMAND_EXECUTION_PLAYER_ONLY, sender);
+            return 0;
         }
 
-        EquipmentSlot slot = EquipmentSlot.HEAD;
-        ItemStack oldItem = EntityUtil.getItemInSlot(player, EquipmentSlot.HEAD);
+        final ItemStack item = player.getInventory().getItemInMainHand();
+        if (item.getType().isAir()) {
+            this.module.sendPrefixed(MESSAGE_EMPTY_HAND, player);
+            return 0;
+        }
+
+        final EquipmentSlot slot = EquipmentSlot.HEAD;
+        final ItemStack oldItem = EntityUtil.getItemInSlot(player, EquipmentSlot.HEAD);
         player.getInventory().setItemInMainHand(null);
         player.getInventory().setItem(slot, item);
 
@@ -68,6 +73,6 @@ public class HatCommandProvider extends CommandProvider {
         }
 
         this.module.sendPrefixed(MESSAGE_HAT_FEEDBACK, player);
-        return true;
+        return 1;
     }
 }

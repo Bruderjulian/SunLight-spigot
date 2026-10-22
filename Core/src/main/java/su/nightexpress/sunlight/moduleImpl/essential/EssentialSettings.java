@@ -282,6 +282,26 @@ public class EssentialSettings extends AbstractConfig {
                                                         + GRAY.wrap("Server Time: " + SOFT_BLUE.wrap(GENERIC_GLOBAL)),
                                         DARK_GRAY.and(STRIKETHROUGH).wrap("-".repeat(32))));
 
+        public final ConfigProperty<Boolean> signColorsEnabled = this.addProperty(ConfigTypes.BOOLEAN,
+                        "Sign_Colors.Enabled",
+                        false,
+                        "Controls whether the Sign Colors feature is available to use.",
+                        "Players with '" + EssentialPerms.SIGNS_COLOR + "' permission will be able to use colors on signs.");
+
+        public final ConfigProperty<Boolean> anvilColorsEnabled = this.addProperty(ConfigTypes.BOOLEAN,
+                        "Anvil_Colors.Enabled",
+                        true,
+                        "Controls whether the Anvil Colors feature is available to use.",
+                        "Players with '" + EssentialPerms.ANVILS_COLOR + "' permission will be able to use colors on anvils.");
+
+        public boolean isSignColorsEnabled() {
+                return this.signColorsEnabled.get();
+        }
+
+        public boolean isAnvilColorsEnabled() {
+                return this.anvilColorsEnabled.get();
+        }
+
         public boolean isInvulnerabilityEnabled() {
                 return this.invulnerabilityEnabled.get();
         }

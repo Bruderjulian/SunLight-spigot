@@ -5,87 +5,156 @@ import su.nightexpress.nightcore.configuration.AbstractConfig;
 import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigType;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagRule;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagTag;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.Profile;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.RankDefinition;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
 
 import java.util.Map;
 
 public class NametagsSettings extends AbstractConfig {
 
-    private static final ConfigType<NametagRule> RULE_TYPE = ConfigType.of(
-            NametagRule::read, (config, path, value) -> value.write(config, path));
+    private static final ConfigType<RankDefinition> RANK_TYPE = ConfigType.of(
+            RankDefinition::read, (config, path, value) -> value.write(config, path));
 
-    private static final ConfigType<NametagTag> TAG_TYPE = ConfigType.of(
-            NametagTag::read, (config, path, value) -> value.write(config, path));
+    private static final ConfigType<TagDefinition> TAG_TYPE = ConfigType.of(
+            TagDefinition::read, (config, path, value) -> value.write(config, path));
+
+    private static final ConfigType<Profile> PROFILE_TYPE = ConfigType.of(
+            Profile::read, (config, path, value) -> value.write(config, path));
 
     private final ConfigProperty<Long> updateInterval = this.addProperty(ConfigTypes.LONG,
             "Nametags.Update_Interval",
             100L,
-            "Sets how often (in game ticks) all nametag teams are refreshed.",
-            "[Packet-Based, Async] [1 second = 20 ticks]");
+            "How often (in ticks) nameplates are recomputed for online players.",
+            "[1 second = 20 ticks]");
 
-    private final ConfigProperty<Boolean> tablistEnabled = this.addProperty(ConfigTypes.BOOLEAN,
-            "Nametags.Tablist.Enabled",
-            true,
-            "Sets whether the combined prefix/suffix is also applied to the tab list.",
-            "Players with an active Nick will keep their custom nick in the tab list instead.");
+    private final ConfigProperty<Long> expiryCheckInterval = this.addProperty(ConfigTypes.LONG,
+            "Nametags.Expiry_Check_Interval",
+            1200L,
+            "How often (in ticks) expired subscriptions are swept.",
+            "[1 minute = 1200 ticks]");
 
     private final ConfigProperty<Boolean> tagColorOverridesRank = this.addProperty(ConfigTypes.BOOLEAN,
             "Nametags.Tag-Color-Overrides-Rank",
             true,
-            "Sets whether a selected tag's name color takes priority over the rank color.");
+            "Whether a selected tag's name colour takes priority over the rank colour.",
+            "Glow always wins, because it tracks the player's active glow effect.");
 
-    private final ConfigProperty<Map<String, NametagRule>> rules = this.addProperty(
-            ConfigTypes.forMapWithLowerKeys(RULE_TYPE),
+    private final ConfigProperty<Boolean> useUltimateTeams = this.addProperty(ConfigTypes.BOOLEAN,
+            "Nametags.Ultimate-Teams.Enabled",
+            true,
+            "Whether to add the player's UltimateTeams team to their nameplate.",
+            "Has no effect when UltimateTeams is not installed.");
+
+    private final ConfigProperty<Boolean> useLuckPerms = this.addProperty(ConfigTypes.BOOLEAN,
+            "Nametags.Luck-Perms.Enabled",
+            true,
+            "Whether to resolve ranks from LuckPerms groups.",
+            "Falls back to the server's permission groups when LuckPerms is not installed.");
+
+    private final ConfigProperty<Boolean> resolveGlowColor = this.addProperty(ConfigTypes.BOOLEAN,
+            "Nametags.Glow-Color.Enabled",
+            true,
+            "Whether the player's glow colour is applied as the final name colour.",
+            "Requires the glow module. Tags with 'Glow' enabled keep their own colour otherwise.");
+
+    private final ConfigProperty<Map<String, RankDefinition>> ranks = this.addProperty(
+            ConfigTypes.forMapWithLowerKeys(RANK_TYPE),
             "Nametags.Ranks",
-            NametagsDefaults.getDefaultRules(),
-            "Rank-based nametag formats. The format with the highest 'Priority' the player",
-            "qualifies for is used. A rule is available when the player inherits the rank",
-            "group (permissions plugin) or has the 'nametags.rank.<id>' permission.",
+            NametagsDefaults.getDefaultRanks(),
+            "Rank based nametag formats. The available rank with the highest 'Priority' wins.",
+            "A rank matches when the player inherits one of its groups, or has 'nametags.rank.<group>'.",
             "",
             "[ SETTINGS DESCRIPTION ]",
-            "├── Priority: Highest available format wins.",
-            "├── Ranks: List of rank groups, or '*' to allow everyone.",
-            "├── Prefix/Suffix: MiniMessage text shown around the player name.",
-            "├── Color: Name color, e.g. white, red, gold, aqua.",
-            "└── Placeholders: %player_name%, %player_display_name%, %player_prefix%, %player_suffix% and PlaceholderAPI.");
+            "├── Display/Description/Icon: How the rank is shown in the admin GUI.",
+            "├── Priority: Highest matching rank wins.",
+            "├── Ranks: Rank groups to match, or '*' for everyone.",
+            "├── Default: Used when nothing else matches.",
+            "├── Prefix/Suffix: MiniMessage text placed around the player name.",
+            "├── Color: Name colour, e.g. white, red, gold, aqua or #ffaa00.",
+            "└── Placeholders: Common placeholders and PlaceholderAPI.");
 
-    private final ConfigProperty<Map<String, NametagTag>> tags = this.addProperty(
+    private final ConfigProperty<Map<String, TagDefinition>> tags = this.addProperty(
             ConfigTypes.forMapWithLowerKeys(TAG_TYPE),
             "Nametags.Tags",
             NametagsDefaults.getDefaultTags(),
-            "Per-player selectable tags. Players need the 'nametags.tag.<id>' permission.",
-            "The selected tag is combined with the rank format (rank prefix/suffix + tag prefix/suffix).",
+            "Selectable tags. A tag adds its own prefix/suffix on top of the rank format.",
             "",
             "[ SETTINGS DESCRIPTION ]",
-            "├── Display: Name shown in the '/tags' GUI.",
-            "├── Prefix/Suffix: MiniMessage text added around the rank format parts.",
-            "├── Color: Optional name color override (see 'Tag-Color-Overrides-Rank').",
-            "├── Cost: Optional economy cost to select the tag.",
-            "├── Description: Lore shown in the '/tags' GUI.",
-            "└── Permission: Optional extra permission on top of 'nametags.tag.<id>'.");
+            "├── Access-Mode: FREE, PERMISSION, PURCHASE or SUBSCRIPTION.",
+            "├── Price: Cost for PURCHASE and SUBSCRIPTION tags.",
+            "├── Price-Mode: INTERNAL (SunLight economy) or EXTERNAL (owned by another plugin).",
+            "├── Subscription-Period: WEEKLY, MONTHLY, QUARTERLY or YEARLY.",
+            "├── Permission: Extra permission on top of 'nametags.tag.<id>'.",
+            "├── Glow: Whether the glow module may colour this tag.",
+            "├── Icon: Material used in the GUI.",
+            "├── Sort-Priority: Higher sorts first in the GUI.",
+            "└── Prefix/Suffix/Color: Text and colour contributed to the nameplate.");
+
+    private final ConfigProperty<Map<String, Profile>> profiles = this.addProperty(
+            ConfigTypes.forMapWithLowerKeys(PROFILE_TYPE),
+            "Nametags.Profiles",
+            NametagsDefaults.getDefaultProfiles(),
+            "Named bundles of defaults that players can select.",
+            "",
+            "[ SETTINGS DESCRIPTION ]",
+            "├── Worlds: Worlds this profile applies to. Empty means every world.",
+            "├── Priority: Higher wins when several profiles match.",
+            "├── Rank: Forces this rank, overriding the rank resolution.",
+            "└── Tag: Forces this tag, overriding the player's own selection.");
 
     public void load(FileConfig config) {
         super.load(config);
+    }
+
+    /**
+     * Writes the current ranks, tags and profiles back to the config file.
+     * Only these three maps are written, so the generated comments for the other settings
+     * survive an admin edit from the GUI.
+     */
+    public void save(FileConfig config,
+            Map<String, RankDefinition> ranks,
+            Map<String, TagDefinition> tags,
+            Map<String, Profile> profiles
+    ) {
+        this.ranks.writeValue(config, new java.util.LinkedHashMap<>(ranks));
+        this.tags.writeValue(config, new java.util.LinkedHashMap<>(tags));
+        this.profiles.writeValue(config, new java.util.LinkedHashMap<>(profiles));
     }
 
     public long getUpdateInterval() {
         return Math.max(20L, this.updateInterval.get());
     }
 
-    public boolean isTablistEnabled() {
-        return this.tablistEnabled.get();
+    public long getExpiryCheckInterval() {
+        return Math.max(200L, this.expiryCheckInterval.get());
     }
 
     public boolean isTagColorOverridesRank() {
         return this.tagColorOverridesRank.get();
     }
 
-    public Map<String, NametagRule> getRules() {
-        return this.rules.get();
+    public boolean isUseUltimateTeams() {
+        return this.useUltimateTeams.get();
     }
 
-    public Map<String, NametagTag> getTags() {
+    public boolean isUseLuckPerms() {
+        return this.useLuckPerms.get();
+    }
+
+    public boolean isResolveGlowColor() {
+        return this.resolveGlowColor.get();
+    }
+
+    public Map<String, RankDefinition> getRanks() {
+        return this.ranks.get();
+    }
+
+    public Map<String, TagDefinition> getTags() {
         return this.tags.get();
+    }
+
+    public Map<String, Profile> getProfiles() {
+        return this.profiles.get();
     }
 }

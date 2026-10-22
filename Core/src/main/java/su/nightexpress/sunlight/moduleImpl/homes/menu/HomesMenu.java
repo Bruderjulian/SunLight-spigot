@@ -59,8 +59,8 @@ public class HomesMenu extends AbstractObjectMenu<UUID> {
 
     @Override
     public void defineDefaultLayout() {
-        this.addNextPageItem(Material.ARROW, 53);
-        this.addPreviousPageItem(Material.ARROW, 45);
+        this.addNextPageButton(53);
+        this.addPreviousPageButton(45);
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(0, 9).toArray());
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(45, 54).toArray());
     }

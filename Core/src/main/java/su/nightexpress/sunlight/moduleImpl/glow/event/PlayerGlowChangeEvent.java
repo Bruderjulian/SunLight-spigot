@@ -4,32 +4,32 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import su.nightexpress.sunlight.moduleImpl.glow.GlowEffect;
 
 public class PlayerGlowChangeEvent extends PlayerEvent implements Cancellable {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private final String oldEffect;
-    private String newEffect;
+    private final GlowEffect oldEffect;
+    private GlowEffect newEffect;
     private boolean cancelled;
 
-    public PlayerGlowChangeEvent(@NotNull Player player, @Nullable String oldEffect, @Nullable String newEffect) {
+    public PlayerGlowChangeEvent(Player player, GlowEffect oldEffect, GlowEffect newEffect) {
         super(player);
         this.oldEffect = oldEffect;
         this.newEffect = newEffect;
     }
 
-    public @Nullable String getOldEffect() {
+    public GlowEffect getOldEffect() {
         return this.oldEffect;
     }
 
-    public @Nullable String getNewEffect() {
+    public GlowEffect getNewEffect() {
         return this.newEffect;
     }
 
-    public void setNewEffect(@Nullable String newEffect) {
+    public void setNewEffect(GlowEffect newEffect) {
         this.newEffect = newEffect;
     }
 
@@ -44,11 +44,11 @@ public class PlayerGlowChangeEvent extends PlayerEvent implements Cancellable {
     }
 
     @Override
-    public @NotNull HandlerList getHandlers() {
+    public HandlerList getHandlers() {
         return HANDLERS;
     }
 
-    public static @NotNull HandlerList getHandlerList() {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 }

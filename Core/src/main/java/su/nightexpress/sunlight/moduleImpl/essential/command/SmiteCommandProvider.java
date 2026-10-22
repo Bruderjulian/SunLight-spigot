@@ -1,16 +1,15 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import org.bukkit.command.CommandSender;
+
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
@@ -19,9 +18,11 @@ import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.GRAY
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.SOFT_YELLOW;
 import static su.nightexpress.sunlight.SLPlaceholders.PLAYER_NAME;
 
-public class SmiteCommandProvider extends CommandProvider {
+public class SmiteCommandProvider extends CommandProvider<EssentialModule> {
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("smite");
+    private static final String COMMAND_SMITE = "smite";
+
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".smite";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Smite.Desc").text(
             "Smite player with lightning.");
@@ -32,35 +33,38 @@ public class SmiteCommandProvider extends CommandProvider {
     private static final MessageLocale COMMAND_SMITE_NOTIFY = LangEntry.builder("Command.Smite.Notify").chatMessage(
             GRAY.wrap("You have been smited!"));
 
-    private final EssentialModule module;
-
-    public SmiteCommandProvider(SunLightPlugin plugin, EssentialModule module) {
-        super(plugin);
-        this.module = module;
+    public SmiteCommandProvider(final EssentialModule module) {
+        super(module, "smite");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("smite", true, new String[] { "smite" }, builder -> builder
-                .description(DESCRIPTION)
-                .permission(PERMISSION)
-                .withArguments(Arguments.playerName(CommandArguments.PLAYER))
-                .withFlags(CommandArguments.FLAG_SILENT)
-                .executes(this::execute));
+    public void setup() {
+        this.register(COMMAND_SMITE, command -> command
+                .withFullDescription(DESCRIPTION.text())
+                .withPermission(PERMISSION)
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                .executes((sender, arguments) -> {
+                    return this.execute(sender, arguments);
+                }));
     }
 
-    private boolean execute(CommandContext context, ParsedArguments arguments) {
-        return this.runForOnlinePlayer(context, arguments, this.module, target -> {
-            target.getWorld().strikeLightning(target.getLocation());
+    private int execute(final CommandSender sender, final CommandArguments arguments) {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-            if (context.getSender() != target) {
-                this.module.sendPrefixed(COMMAND_SMITE_TARGET, context.getSender(), replacer -> replacer.with(
-                        CommonPlaceholders.PLAYER.resolver(target)));
+        return target.runAs(this.module, sender, PERMISSION, (user, player) -> {
+            player.getWorld().strikeLightning(player.getLocation());
+
+            if (sender != player) {
+                this.module.sendPrefixed(COMMAND_SMITE_TARGET, sender, replacer -> replacer
+                        .with(CommonPlaceholders.PLAYER.resolver(player)));
             }
-            if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                this.module.sendPrefixed(COMMAND_SMITE_NOTIFY, target);
+            if (!target.silent()) {
+                this.module.sendPrefixed(COMMAND_SMITE_NOTIFY, player);
             }
-            return true;
         });
     }
 }

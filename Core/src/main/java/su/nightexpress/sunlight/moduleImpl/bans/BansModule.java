@@ -21,7 +21,11 @@ import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.config.PermissionTree;
+import su.nightexpress.sunlight.api.event.InetPunishEvent;
+import su.nightexpress.sunlight.api.event.PlayerKickEvent;
+import su.nightexpress.sunlight.api.event.PlayerPardonEvent;
+import su.nightexpress.sunlight.api.event.PrePunishEvent;
+import su.nightexpress.sunlight.api.event.PunishmentDeleteEvent;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -30,6 +34,7 @@ import su.nightexpress.sunlight.moduleImpl.bans.config.BansLang;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansPerms;
 import su.nightexpress.sunlight.moduleImpl.bans.config.BansSettings;
 import su.nightexpress.sunlight.moduleImpl.bans.data.BansDataManager;
+import su.nightexpress.sunlight.moduleImpl.bans.event.PlayerPunishEvent;
 import su.nightexpress.sunlight.moduleImpl.bans.listener.BansListener;
 import su.nightexpress.sunlight.moduleImpl.bans.menu.HistoryMenu;
 import su.nightexpress.sunlight.moduleImpl.bans.menu.PunishmentsMenu;
@@ -44,7 +49,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class BansModule extends Module {
+public class BansModule extends Module implements su.nightexpress.sunlight.api.provider.BansProvider {
 
     private final BansSettings settings;
     private final BansDataManager dataManager;
@@ -88,6 +93,15 @@ public class BansModule extends Module {
         this.plugin.addChatHandler(EventPriority.LOWEST, this.chatHandler);
 
         this.addAsyncTask(this::savePunishments, this.settings.dataSaveInterval.get());
+
+        this.commandRegistry.addProvider(new PunishmentCommandsProvider(this));
+        this.commandRegistry.addProvider(new PardonCommandsProvider(this));
+        this.commandRegistry.addProvider(new HistoryCommandsProvider(this));
+        this.commandRegistry.addProvider(new ListCommandsProvider(this));
+
+        if (this.settings.isAltCheckerEnabled()) {
+            this.commandRegistry.addProvider(new AltsCommandProvider(this));
+        }
     }
 
     @Override
@@ -95,27 +109,6 @@ public class BansModule extends Module {
         this.plugin.removeChatHandler(this.chatHandler);
         this.clearRepositories();
         this.dataLoaded = false;
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(BansPerms.ROOT);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("bans-punish",
-                new PunishmentCommandsProvider(this.plugin, this, this.userManager), this);
-        this.commandRegistry.addProvider("bans-pardon",
-                new PardonCommandsProvider(this.plugin, this, this.userManager), this);
-        this.commandRegistry.addProvider("bans-history",
-                new HistoryCommandsProvider(this.plugin, this, this.userManager), this);
-        this.commandRegistry.addProvider("bans-list", new ListCommandsProvider(this.plugin, this), this);
-
-        if (this.settings.isAltCheckerEnabled()) {
-            this.commandRegistry.addProvider("bans-alts", new AltsCommandProvider(this.plugin, this, this.userManager),
-                    this);
-        }
     }
 
     @Override
@@ -139,10 +132,10 @@ public class BansModule extends Module {
 
     private void loadMenu() {
         this.historyMenu = new HistoryMenu(this.plugin, this);
-        this.historyMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "history.yml"));
+        this.historyMenu.load(FileConfig.load(this.getLocalUIPath(), "history.yml"));
 
         this.punishmentsMenu = new PunishmentsMenu(this.plugin, this);
-        this.punishmentsMenu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "punishments.yml"));
+        this.punishmentsMenu.load(FileConfig.load(this.getLocalUIPath(), "punishments.yml"));
     }
 
     private void loadData() {
@@ -290,6 +283,7 @@ public class BansModule extends Module {
 
     public void deletePlayerPunishment(PlayerPunishment punishment) {
         this.getPunishmentRepository(punishment).removePlayerPunishment(punishment);
+        this.plugin.getPluginManager().callEvent(new PunishmentDeleteEvent(punishment));
         this.plugin.runTaskAsync(task -> this.dataManager.deletePlayerPunishment(punishment));
     }
 
@@ -300,6 +294,7 @@ public class BansModule extends Module {
 
     public void deleteInetPunishment(InetPunishment punishment) {
         this.getPunishmentRepository(punishment).removeInetPunishment(punishment);
+        this.plugin.getPluginManager().callEvent(new PunishmentDeleteEvent(punishment));
         this.plugin.runTaskAsync(task -> this.dataManager.deleteInetPunishment(punishment));
     }
 
@@ -502,6 +497,11 @@ public class BansModule extends Module {
                 .with(BansPlaceholders.PUNISHMENT_WHO, () -> SLUtils.getSenderName(sender)) // old
                 .build();
 
+        final PlayerKickEvent kickEvent = new PlayerKickEvent(victim, reason, sender, silent);
+        this.plugin.getPluginManager().callEvent(kickEvent);
+        if (kickEvent.isCancelled())
+            return false;
+
         Players.kick(victim, NightMessage.parse(context.apply(String.join("\n", this.settings.disconnectScreenKick
                 .get()))));
 
@@ -603,6 +603,13 @@ public class BansModule extends Module {
             }
         }
 
+        // Last chance for third parties to veto, after every built-in check has passed but before
+        // anything is mutated — cancelling leaves active punishments active and records nothing.
+        final PrePunishEvent preEvent = new PrePunishEvent(victim, type, reason, banTime, sender, silent);
+        this.plugin.getPluginManager().callEvent(preEvent);
+        if (preEvent.isCancelled())
+            return false;
+
         int punishments = activePunishments.size() + 1; // Count also this one.
         int maxWarns = this.settings.warnMaxAmountToReset.get();
 
@@ -667,6 +674,9 @@ public class BansModule extends Module {
             }
         }
 
+        this.plugin.getPluginManager().callEvent(new PlayerPunishEvent(this.plugin.getServer().getPlayer(playerId),
+                victim, type, reason, sender, silent));
+
         return true;
     }
 
@@ -682,6 +692,11 @@ public class BansModule extends Module {
                     BansPlaceholders.GENERIC_TARGET, address::getHostAddress));
             return false;
         }
+
+        final InetPunishEvent inetEvent = new InetPunishEvent(address, reason, banTime, sender, silent);
+        this.plugin.getPluginManager().callEvent(inetEvent);
+        if (inetEvent.isCancelled())
+            return false;
 
         UUID banId = UUID.randomUUID();
         String admin = sender.getName();
@@ -796,6 +811,7 @@ public class BansModule extends Module {
         });
 
         this.notifyPardon(activePunishments, sender, feedbackLocale, broadcastLocale, notifyLocale, silent);
+        this.plugin.getPluginManager().callEvent(new PlayerPardonEvent(user, type, activePunishments, sender, silent));
         return true;
     }
 

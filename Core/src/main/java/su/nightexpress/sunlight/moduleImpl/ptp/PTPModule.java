@@ -2,6 +2,8 @@ package su.nightexpress.sunlight.moduleImpl.ptp;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -10,11 +12,15 @@ import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.event.PlayerTeleportRequestAcceptEvent;
+import su.nightexpress.sunlight.api.event.PlayerTeleportRequestDeclineEvent;
 import su.nightexpress.sunlight.api.event.PlayerTeleportRequestEvent;
+import su.nightexpress.sunlight.api.provider.PtpProvider;
+import su.nightexpress.sunlight.api.provider.dto.PtpMode;
+import su.nightexpress.sunlight.api.provider.dto.TeleportRequestHandle;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.ptp.command.PTPCommands;
 import su.nightexpress.sunlight.moduleImpl.ptp.config.PTPLang;
@@ -29,7 +35,7 @@ import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.util.*;
 
-public class PTPModule extends Module {
+public class PTPModule extends Module implements PtpProvider {
 
     private final TeleportManager teleportManager;
     private final PTPSettings settings;
@@ -49,6 +55,8 @@ public class PTPModule extends Module {
         UserPropertyRegistry.register(PTPProperties.TELEPORT_REQUESTS);
 
         this.addListener(new PTPListener(this.plugin, this));
+
+        this.commandRegistry.addProvider(new PTPCommands(this));
     }
 
     @Override
@@ -57,19 +65,52 @@ public class PTPModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(PTPPerms.MODULE);
-    }
-
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("ptp", new PTPCommands(this.plugin, this, this.userManager), this);
-    }
-
-    @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("ptp_requests_enabled", (player, payload) -> {
             return CoreLang.STATE_YES_NO.get(this.isRequestsEnabled(player));
         });
+    }
+
+    @Override
+    public List<TeleportRequestHandle> getPendingRequests(@NotNull UUID playerId) {
+        return this.getRequests(playerId).stream().map(PTPModule::handle).toList();
+    }
+
+    @Override
+    public TeleportRequestHandle getLatestRequest(@NotNull UUID playerId) {
+        return handle(this.getLatest(playerId));
+    }
+
+    @Override
+    public TeleportRequestHandle getRequest(@NotNull UUID playerId, @NotNull String senderName) {
+        return handle(this.getPlayerRequest(playerId, senderName));
+    }
+
+    @Override
+    public boolean sendRequest(@NotNull Player sender, @NotNull Player target, @NotNull PtpMode mode) {
+        return this.sendRequest(sender, target, mode == PtpMode.INVITE ? TeleportMode.INVITE : TeleportMode.REQUEST);
+    }
+
+    @Override
+    public boolean acceptRequest(@NotNull Player player, @Nullable String senderName) {
+        return this.accept(player, senderName);
+    }
+
+    @Override
+    public boolean declineRequest(@NotNull Player player, @Nullable String senderName) {
+        return this.decline(player, senderName);
+    }
+
+    private static TeleportRequestHandle handle(@Nullable TeleportRequest request) {
+        if (request == null)
+            return null;
+
+        return new TeleportRequestHandle(
+                request.getSenderId(),
+                request.getTargetId(),
+                request.getMode() == TeleportMode.INVITE ? PtpMode.INVITE : PtpMode.REQUEST,
+                request.getExpireDate(),
+                request.isExpired());
     }
 
     public Map<UUID, List<TeleportRequest>> getRequestsMap() {
@@ -108,17 +149,33 @@ public class PTPModule extends Module {
         this.clearRequests(player.getUniqueId());
     }
 
+    @Override
     public void clearRequests(UUID playerId) {
         this.requestsMap.remove(playerId);
     }
 
+    @Override
     public boolean isRequestsEnabled(Player player) {
         return this.userManager.getOrFetch(player).getPropertyOrDefault(PTPProperties.TELEPORT_REQUESTS);
     }
 
-    public boolean sendRequest(Player sender, Player target, TeleportMode mode) {
+    /**
+ * Whether the two are friends according to the Friends module.
+ * <p>
+ * A soft dependency, so a player who turned teleport requests off for strangers is not also
+ * shutting out the people they already friended. Returns false when the module is disabled, which
+ * leaves this module's own toggle in charge as before.
+ */
+private boolean isFriendOf(Player sender, Player target) {
+    return this.plugin.friendsProvider()
+            .map(provider -> provider.isFriend(sender.getUniqueId(), target.getUniqueId()))
+            .orElse(false);
+}
+
+public boolean sendRequest(Player sender, Player target, TeleportMode mode) {
         // Check if 'accepter' disaled requests so request should be declined.
-        if (!this.isRequestsEnabled(target) && !sender.hasPermission(PTPPerms.BYPASS_REQUESTS_DISABLED)) {
+        if (!this.isRequestsEnabled(target) && !sender.hasPermission(PTPPerms.BYPASS_REQUESTS_DISABLED)
+                && !this.isFriendOf(sender, target)) {
             this.sendPrefixed(PTPLang.REQUEST_SEND_ERROR_DISABLED, sender,
                     builder -> builder.with(CommonPlaceholders.PLAYER.resolver(target)));
             return false;
@@ -185,6 +242,12 @@ public class PTPModule extends Module {
             return false;
         }
 
+        final PlayerTeleportRequestAcceptEvent acceptEvent = new PlayerTeleportRequestAcceptEvent(request, player,
+                teleporter, destination, cost);
+        plugin.getPluginManager().callEvent(acceptEvent);
+        if (acceptEvent.isCancelled())
+            return false;
+
         request.setExpired();
 
         TeleportContext teleportContext = TeleportContext.builder(this, teleporter, destination)
@@ -216,6 +279,11 @@ public class PTPModule extends Module {
             this.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, player);
             return false;
         }
+
+        final PlayerTeleportRequestDeclineEvent declineEvent = new PlayerTeleportRequestDeclineEvent(request, player, sender);
+        plugin.getPluginManager().callEvent(declineEvent);
+        if (declineEvent.isCancelled())
+            return false;
 
         request.setExpired();
 

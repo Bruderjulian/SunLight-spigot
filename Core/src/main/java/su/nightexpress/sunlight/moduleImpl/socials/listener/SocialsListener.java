@@ -10,7 +10,10 @@ import org.bukkit.event.player.PlayerAdvancementDoneEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import su.nightexpress.nightcore.manager.AbstractListener;
+import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.event.PlayerReportEvent;
+import su.nightexpress.sunlight.moduleImpl.reports.model.Report;
 import su.nightexpress.sunlight.moduleImpl.socials.SocialsModule;
 
 public class SocialsListener extends AbstractListener<SunLightPlugin> {
@@ -50,5 +53,22 @@ public class SocialsListener extends AbstractListener<SunLightPlugin> {
         String message = PlainTextComponentSerializer.plainText().serialize(event.message());
         if (message.isBlank()) return;
         this.module.relayChat(player, message);
+    }
+
+    /**
+     * The listener lives here rather than in the reports module so that reports has no knowledge of
+     * Discord at all. It is also the first subscriber to any of SunLight's custom module events.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onReport(PlayerReportEvent event) {
+        Report report = event.getReport();
+        this.module.relayReport(
+            report.getId().toString(),
+            report.getReporterName(),
+            report.getTargetName(),
+            report.getCategoryDisplay(),
+            report.getDetails(),
+            TimeFormats.formatDateTime(report.getCreateDate())
+        );
     }
 }

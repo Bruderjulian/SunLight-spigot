@@ -9,6 +9,7 @@ import su.nightexpress.nightcore.util.LowerCase;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.sunlight.moduleImpl.texts.TextsPerms;
+import su.nightexpress.sunlight.utils.PermissionUtils;
 import su.nightexpress.sunlight.utils.Utils;
 
 import java.nio.file.Path;
@@ -44,7 +45,7 @@ public class Text {
     }
 
     public boolean hasPermission(CommandSender sender) {
-        return TextsPerms.TEXT.hasChildAccess(sender, this.id);
+        return PermissionUtils.hasChildAccess(sender, TextsPerms.TEXT, this.id);
     }
 
     public Path getFile() {
@@ -56,7 +57,7 @@ public class Text {
     }
 
     public String getPermission() {
-        return TextsPerms.TEXT.childrenNode(this.id);
+        return PermissionUtils.node(TextsPerms.TEXT, this.id);
     }
 
     public String getDescription() {

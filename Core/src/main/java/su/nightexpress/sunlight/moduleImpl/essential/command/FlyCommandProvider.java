@@ -1,44 +1,30 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import org.bukkit.Sound;
-import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import org.bukkit.Sound;
+import org.bukkit.command.CommandSender;
+
+import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
-import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
-import su.nightexpress.sunlight.user.UserManager;
 
-import java.util.Map;
-
+import static su.nightexpress.nightcore.util.Placeholders.PLAYER_DISPLAY_NAME;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.GRAY;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.WHITE;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_STATE;
-import static su.nightexpress.sunlight.SLPlaceholders.PLAYER_DISPLAY_NAME;
 
-public class FlyCommandProvider extends CommandProvider {
-
-        private static final String COMMAND_TOGGLE = "toggle";
-        private static final String COMMAND_OFF = "off";
-        private static final String COMMAND_ON = "on";
+public class FlyCommandProvider extends CommandProvider<EssentialModule> {
 
         // TODO world restrictions, tempfly
-
-        private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("fly");
-        private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("fly.others");
-        private static final Permission PERMISSION_ROOT = EssentialPerms.COMMAND.permission("fly.root");
 
         private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Fly.Root.Desc").text(
                         "Fly commands.");
@@ -59,72 +45,64 @@ public class FlyCommandProvider extends CommandProvider {
                         Sound.ITEM_FIRECHARGE_USE,
                         GRAY.wrap("Your fly has been set on " + WHITE.wrap(GENERIC_STATE) + "."));
 
-        private final EssentialModule module;
-        private final UserManager userManager;
-
-        public FlyCommandProvider(SunLightPlugin plugin, EssentialModule module, UserManager userManager) {
-                super(plugin);
-                this.module = module;
-                this.userManager = userManager;
+        public FlyCommandProvider(final EssentialModule module) {
+                super(module, "fly");
         }
 
         @Override
-        public void registerDefaults() {
-                this.registerLiteral(COMMAND_TOGGLE, true, new String[] { "fly", "togglefly" },
-                                builder -> this.buildCommand(
-                                                builder, DESCRIPTION_TOGGLE, ToggleMode.TOGGLE));
+        public void setup() {
+                this.register("toggle", command -> this.buildCommand(command,
+                                DESCRIPTION_TOGGLE, ToggleMode.TOGGLE))
+                    .under("fly");
+                this.register("on", command -> this.buildCommand(command,
+                                DESCRIPTION_ON, ToggleMode.ON))
+                    .under("fly");
+                this.register("off", command -> this.buildCommand(command,
+                                DESCRIPTION_OFF, ToggleMode.OFF))
+                    .under("fly");
 
-                this.registerLiteral(COMMAND_ON, true, new String[] { "fly-on" }, builder -> this.buildCommand(builder,
-                                DESCRIPTION_ON, ToggleMode.ON));
-
-                this.registerLiteral(COMMAND_OFF, true, new String[] { "fly-off" },
-                                builder -> this.buildCommand(builder,
-                                                DESCRIPTION_OFF, ToggleMode.OFF));
-
-                this.registerRoot("Fly", false, new String[] { "flymode" },
-                                Map.of(
-                                                COMMAND_TOGGLE, "toggle",
-                                                COMMAND_ON, "on",
-                                                COMMAND_OFF, "off"),
-                                builder -> builder.description(DESCRIPTION_ROOT).permission(PERMISSION_ROOT));
+                this.registerRoot("fly", command -> command
+                                .withFullDescription(DESCRIPTION_ROOT.text())
+                                .withPermission("sunlight.command.fly"));
         }
 
-        private void buildCommand(LiteralNodeBuilder builder, TextLocale description,
-                        ToggleMode mode) {
-                builder
-                                .description(description)
-                                .permission(PERMISSION)
-                                .withArguments(Arguments.playerName(CommandArguments.PLAYER)
-                                                .permission(PERMISSION_OTHERS).optional())
-                                .withFlags(CommandArguments.FLAG_SILENT)
-                                .executes((context, arguments) -> this.toggleFly(context, arguments, mode));
-        }
-
-        private boolean toggleFly(CommandContext context, ParsedArguments arguments,
-                        ToggleMode mode) {
-                return this.loadPlayerOrSenderAndRunInMainThread(context, arguments, this.module, this.userManager,
-                                target -> {
-                                        target.setAllowFlight(mode.apply(target.getAllowFlight()));
-
-                                        if (context.getSender() != target) {
-                                                this.module.sendPrefixed(MESSAGE_TOGGLE_FEEDBACK, context.getSender(),
-                                                                builder -> builder
-                                                                                .with(CommonPlaceholders.PLAYER
-                                                                                                .resolver(target))
-                                                                                .with(SLPlaceholders.GENERIC_STATE,
-                                                                                                () -> CoreLang.STATE_ENABLED_DISALBED
-                                                                                                                .get(target
-                                                                                                                                .getAllowFlight())));
-                                        }
-
-                                        if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                                                this.module.sendPrefixed(MESSAGE_TOGGLE_NOTIFY, target,
-                                                                builder -> builder
-                                                                                .with(SLPlaceholders.GENERIC_STATE,
-                                                                                                () -> CoreLang.STATE_ENABLED_DISALBED
-                                                                                                                .get(target
-                                                                                                                                .getAllowFlight())));
-                                        }
+        private void buildCommand(final CommandAPICommand command, final TextLocale description,
+                        final ToggleMode mode) {
+                command
+                                .withFullDescription(description.text())
+                                .withPermission("sunlight.command.fly")
+                                .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                                .executes((sender, arguments) -> {
+                                        return this.toggleFly(sender, arguments, mode);
                                 });
+        }
+
+        private int toggleFly(final CommandSender sender, final CommandArguments arguments, final ToggleMode mode) {
+                final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+                if (target == null) {
+                        this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+                        return 0;
+                }
+
+                return target.runAs(this.module, sender, "sunlight.command.fly.others", (user, player) -> {
+                        player.setAllowFlight(mode.apply(player.getAllowFlight()));
+
+                        if (sender != player) {
+                                this.module.sendPrefixed(MESSAGE_TOGGLE_FEEDBACK, sender,
+                                                builder -> builder
+                                                                .with(CommonPlaceholders.PLAYER.resolver(player))
+                                                                .with(SLPlaceholders.GENERIC_STATE,
+                                                                                () -> CoreLang.STATE_ENABLED_DISALBED
+                                                                                                .get(player.getAllowFlight())));
+                        }
+
+                        if (!target.silent()) {
+                                this.module.sendPrefixed(MESSAGE_TOGGLE_NOTIFY, player,
+                                                builder -> builder
+                                                                .with(SLPlaceholders.GENERIC_STATE,
+                                                                                () -> CoreLang.STATE_ENABLED_DISALBED
+                                                                                                .get(player.getAllowFlight())));
+                        }
+                });
         }
 }

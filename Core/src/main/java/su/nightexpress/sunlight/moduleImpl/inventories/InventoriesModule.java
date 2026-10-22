@@ -1,11 +1,11 @@
 package su.nightexpress.sunlight.moduleImpl.inventories;
 
 import su.nightexpress.nightcore.config.FileConfig;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.provider.InventoriesProvider;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.inventories.command.ContainerCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.inventories.command.EnderchestCommandsProvider;
@@ -14,7 +14,7 @@ import su.nightexpress.sunlight.moduleImpl.inventories.dialog.InventoryDialogKey
 import su.nightexpress.sunlight.moduleImpl.inventories.dialog.impl.InventoryClearDialog;
 import su.nightexpress.sunlight.nms.SunNMS;
 
-public class InventoriesModule extends Module {
+public class InventoriesModule extends Module implements InventoriesProvider {
 
     private final SunNMS internals;
 
@@ -28,6 +28,12 @@ public class InventoriesModule extends Module {
         config.initializeOptions(InventoriesSettings.class);
 
         this.dialogRegistry.register(InventoryDialogKeys.CLEAR, InventoryClearDialog::new);
+
+        if (this.internals != null) {
+            this.commandRegistry.addProvider(new ContainerCommandProvider(this));
+        }
+        this.commandRegistry.addProvider(new EnderchestCommandsProvider(this));
+        this.commandRegistry.addProvider(new InventoryCommandProvider(this));
     }
 
     @Override
@@ -36,32 +42,20 @@ public class InventoriesModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(InventoriesPerms.MODULE);
-    }
-
-    @Override
-    protected void registerCommands() {
-        if (this.internals != null) {
-            this.commandRegistry.addProvider("container",
-                    new ContainerCommandProvider(this.plugin, this, this.internals), this);
-        }
-
-        this.commandRegistry.addProvider("enderchest",
-                new EnderchestCommandsProvider(this.plugin, this, this.userManager, this.internals), this);
-        this.commandRegistry.addProvider("inventory",
-                new InventoryCommandProvider(this.plugin, this, this.userManager, this.internals), this);
-    }
-
-    @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
 
     }
 
+    public SunNMS getInternals() {
+        return this.internals;
+    }
+
+    @Override
     public boolean isClearConfirmationRequired() {
         return InventoriesSettings.CLEAR_REQUIRE_CONFIRMATION.get();
     }
 
+    @Override
     public boolean isClearConfirmSelfOnly() {
         return InventoriesSettings.CLEAR_CONFIRM_SELF_ONLY.get();
     }

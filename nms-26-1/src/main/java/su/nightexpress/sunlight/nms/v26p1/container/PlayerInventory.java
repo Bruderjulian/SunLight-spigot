@@ -8,7 +8,6 @@ import net.minecraft.world.entity.EntityEquipment;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import su.nightexpress.nightcore.util.Reflex;
-import su.nightexpress.nightcore.util.Version;
 
 public class PlayerInventory extends Inventory {
 
@@ -23,9 +22,6 @@ public class PlayerInventory extends Inventory {
     }
 
     private static EntityEquipment getEquipment(CraftPlayer craftPlayer) {
-        if (Version.isSpigot()) {
-            return (EntityEquipment) Reflex.getFieldValue(craftPlayer.getHandle(), "equipment", "m");
-        }
         return craftPlayer.getHandle().getInventory().equipment;
     }
 

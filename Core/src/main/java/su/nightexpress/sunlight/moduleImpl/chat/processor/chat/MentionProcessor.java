@@ -26,6 +26,7 @@ import su.nightexpress.sunlight.moduleImpl.chat.mention.PlayerMention;
 import su.nightexpress.sunlight.moduleImpl.chat.processor.MessageProcessor;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.UserManager;
+import su.nightexpress.sunlight.utils.PermissionUtils;
 import su.nightexpress.sunlight.utils.Utils;
 
 public class MentionProcessor implements MessageProcessor {
@@ -71,7 +72,7 @@ public class MentionProcessor implements MessageProcessor {
                 continue;
             }
 
-            if (!ChatPerms.MENTION.hasChildAccess(player, Utils.lowercase(mentionName))) {
+            if (!PermissionUtils.hasChildAccess(player, ChatPerms.MENTION, Utils.lowercase(mentionName))) {
                 appendRaw.run();
                 continue;
             }

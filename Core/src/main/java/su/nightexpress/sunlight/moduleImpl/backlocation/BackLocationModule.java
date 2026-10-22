@@ -5,6 +5,8 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
@@ -13,7 +15,11 @@ import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.config.PermissionTree;
+import su.nightexpress.sunlight.api.event.BackLocationSaveEvent;
+import su.nightexpress.sunlight.api.event.PlayerBackTeleportEvent;
+import su.nightexpress.sunlight.api.provider.BackLocationProvider;
+import su.nightexpress.sunlight.api.provider.dto.BackLocationType;
+import su.nightexpress.sunlight.api.provider.dto.StoredLocationHandle;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
@@ -29,11 +35,12 @@ import su.nightexpress.sunlight.teleport.*;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-public class BackLocationModule extends Module {
+public class BackLocationModule extends Module implements BackLocationProvider {
 
     private final TeleportManager teleportManager;
     private final BackLocationSettings settings;
@@ -51,7 +58,13 @@ public class BackLocationModule extends Module {
     protected void loadModule(FileConfig config) {
         this.settings.load(config);
         this.plugin.injectLang(BackLocationLang.class);
-        this.registerCommands();
+
+        if (this.settings.cacheTeleports.get()) {
+            this.commandRegistry.addProvider(new BackCommandProvider(this));
+        }
+        if (this.settings.cacheDeaths.get()) {
+            this.commandRegistry.addProvider(new DeathBackCommandProvider(this));
+        }
 
         this.addListener(new BackLocationListener(this.plugin, this));
     }
@@ -62,25 +75,9 @@ public class BackLocationModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(BackLocationPerms.ROOT);
-    }
-
-    @Override
 
     public String getPermissionNamespace() {
         return "backlocation";
-    }
-
-    protected void registerCommands() {
-        if (this.settings.cacheTeleports.get()) {
-            this.commandRegistry.addProvider("back", new BackCommandProvider(this.plugin, this, this.userManager),
-                    this);
-        }
-        if (this.settings.cacheDeaths.get()) {
-            this.commandRegistry.addProvider("deathback",
-                    new DeathBackCommandProvider(this.plugin, this, this.userManager), this);
-        }
     }
 
     @Override
@@ -153,6 +150,7 @@ public class BackLocationModule extends Module {
         return disabled.contains(name);
     }
 
+    @Override
     public boolean isDisabledCause(PlayerTeleportEvent.TeleportCause cause) {
         return this.settings.ignoredTeleportCauses.get().contains(cause);
     }
@@ -205,6 +203,11 @@ public class BackLocationModule extends Module {
 
         int duration = this.getDuration(type);
 
+        final BackLocationSaveEvent event = new BackLocationSaveEvent(playerId, location, type);
+        this.plugin.getPluginManager().callEvent(event);
+        if (event.isCancelled())
+            return;
+
         StoredLocation storedLocation = new StoredLocation(world.getName(), location.getX(), location.getY(),
                 location.getZ(), duration);
         this.getLocationMap(playerId).put(type, storedLocation);
@@ -240,6 +243,11 @@ public class BackLocationModule extends Module {
             return false;
         }
 
+        final PlayerBackTeleportEvent event = new PlayerBackTeleportEvent(player, type, location, cost);
+        this.plugin.getPluginManager().callEvent(event);
+        if (event.isCancelled())
+            return false;
+
         TeleportContext teleportContext = TeleportContext.builder(this, player, location)
                 .withFlag(TeleportFlag.KEEP_DIRECTION)
                 .callback(() -> {
@@ -257,5 +265,50 @@ public class BackLocationModule extends Module {
 
     public BackLocationSettings getSettings() {
         return this.settings;
+    }
+
+    @Override
+    public boolean isDisabledWorld(@NotNull String worldName, @NotNull BackLocationType type) {
+        return this.isDisabledWorld(worldName, toCoreType(type));
+    }
+
+    @Override
+    public int getDuration(@NotNull BackLocationType type) {
+        return this.getDuration(toCoreType(type));
+    }
+
+    @Override
+    public StoredLocationHandle getLocation(@NotNull UUID playerId, @NotNull BackLocationType type) {
+        return handle(toApiType(toCoreType(type)), this.getLocation(playerId, toCoreType(type)));
+    }
+
+    @Override
+    public List<StoredLocationHandle> getLocations(@NotNull UUID playerId) {
+        return this.getLocationMap(playerId).entrySet().stream()
+                .map(entry -> handle(toApiType(entry.getKey()), entry.getValue()))
+                .toList();
+    }
+
+    @Override
+    public void saveLocation(@NotNull UUID playerId, @NotNull Location location, @NotNull BackLocationType type) {
+        this.saveLocation(playerId, location, toCoreType(type));
+    }
+
+    @Override
+    public boolean teleportToLocation(@NotNull Player player, @NotNull BackLocationType type, boolean silent) {
+        return this.teleportToLocation(player, toCoreType(type), silent);
+    }
+
+    private static StoredLocationHandle handle(@NotNull BackLocationType type, @Nullable StoredLocation location) {
+        return location == null ? null : new StoredLocationHandle(type, location.getWorldName(),
+                location.getX(), location.getY(), location.getZ(), location.getExpireDate());
+    }
+
+    private static LocationType toCoreType(@NotNull BackLocationType type) {
+        return type == BackLocationType.DEATH ? LocationType.DEATH : LocationType.PREVIOUS;
+    }
+
+    private static BackLocationType toApiType(@NotNull LocationType type) {
+        return type == LocationType.DEATH ? BackLocationType.DEATH : BackLocationType.PREVIOUS;
     }
 }

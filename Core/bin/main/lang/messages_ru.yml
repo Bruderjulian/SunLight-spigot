@@ -1601,20 +1601,6 @@ RTP:
       - <output:"titles:20:80:20"><sound:"minecraft:entity.villager.no;0.8;1.0">
       - <lred><b>Телепортация не удалась</b></lred>
       - <lgray>Не удалось найти подходящее место.</lgray>
-Extras:
-  Command:
-    Chairs:
-      Desc: Включить/выключить возможность садиться на стулья.
-      Notify: '<lgray>Стулья: <lyellow>%state%</lyellow>.</lgray>'
-      Target: '<lgray>Стулья для <lyellow>%player_display_name%</lyellow>: <lyellow>%state%</lyellow>.</lgray>'
-    Sit:
-      Desc: Сесть на блок.
-      Notify: <lgray>Вы сели.</lgray>
-      Target: <lgray><lyellow>%player_name%</lyellow> посажен.</lgray>
-    ChestSort:
-      Desc: Включить/выключить автосортировку сундуков.
-      Notify: '<lgray>Сортировка сундуков: <lyellow>%state%</lyellow>.</lgray>'
-      Target: '<lgray>Сортировка сундуков для <lyellow>%player_display_name%</lyellow>: <lyellow>%state%</lyellow>.</lgray>'
 BackLocation:
   Command:
     Back:

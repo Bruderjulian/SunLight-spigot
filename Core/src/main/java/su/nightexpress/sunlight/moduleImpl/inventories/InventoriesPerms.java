@@ -1,10 +1,10 @@
 package su.nightexpress.sunlight.moduleImpl.inventories;
 
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
-
 public class InventoriesPerms {
 
-    public static final PermissionTree MODULE = Perms.detached("inventories");
-    public static final PermissionTree COMMAND = MODULE.branch("command");
+    public static final String MODULE  = "sunlight.inventories";
+    public static final String COMMAND = MODULE + ".command";
+
+    private InventoriesPerms() {
+    }
 }

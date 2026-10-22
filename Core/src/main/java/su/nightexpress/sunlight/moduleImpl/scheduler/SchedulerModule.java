@@ -6,7 +6,6 @@ import su.nightexpress.nightcore.util.Players;
 import su.nightexpress.nightcore.util.Strings;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -41,23 +40,14 @@ public class SchedulerModule extends Module {
         this.loadAnnouncers();
 
         this.getAnnouncers().forEach(announcer -> {
-            this.addAsyncTask(() -> this.broadcastAnnouncer(announcer), announcer.getInterval());
+            // Broadcasts touch Bukkit + PlaceholderAPI, both main-thread only.
+            this.addTask(() -> this.broadcastAnnouncer(announcer), announcer.getInterval());
         });
     }
 
     @Override
     protected void unloadModule() {
         this.announcerByIdMap.clear();
-    }
-
-    @Override
-    protected void registerCommands() {
-
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-
     }
 
     @Override
@@ -104,17 +94,27 @@ public class SchedulerModule extends Module {
     }
 
     public void broadcastAnnouncer(Announcer announcer) {
-        String message = announcer.selectMessage();
+        String message;
+        try {
+            message = announcer.selectMessage();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return;
+        }
         if (message == null)
             return;
 
         Utils.onlinePlayers().forEach(player -> {
-            PlaceholderContext context = PlaceholderContext.builder()
-                    .with(CommonPlaceholders.PLAYER.resolver(player))
-                    .andThen(CommonPlaceholders.forPlaceholderAPI(player))
-                    .build();
+            try {
+                PlaceholderContext context = PlaceholderContext.builder()
+                        .with(CommonPlaceholders.PLAYER.resolver(player))
+                        .andThen(CommonPlaceholders.forPlaceholderAPI(player))
+                        .build();
 
-            Players.sendMessage(player, context.apply(message));
+                Players.sendMessage(player, context.apply(message));
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
         });
     }
 }

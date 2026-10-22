@@ -1,6 +1,10 @@
 package su.nightexpress.sunlight.moduleImpl.playtime;
 
+import com.google.gson.reflect.TypeToken;
 import su.nightexpress.sunlight.user.property.UserProperty;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class PlaytimeProperties {
 
@@ -23,6 +27,8 @@ public class PlaytimeProperties {
     public static final UserProperty<Long> GOAL_DAY = UserProperty.create("playtime_goal_day", Long.class, 0L, true);
     public static final UserProperty<Long> GOAL_WEEK = UserProperty.create("playtime_goal_week", Long.class, 0L, true);
     public static final UserProperty<Long> GOAL_MONTH = UserProperty.create("playtime_goal_month", Long.class, 0L, true);
+    public static final UserProperty<Long> GOAL_YEAR = UserProperty.create("playtime_goal_year", Long.class, 0L,true);
+    public static final UserProperty<Long> GOAL_ALLTIME = UserProperty.create("playtime_goal_alltime", Long.class, 0L, true);
 
     public static final UserProperty<Long> REWARDED_DAY_KEY = UserProperty.create("playtime_rewarded_day_key", Long.class, 0L, true);
     public static final UserProperty<Long> REWARDED_WEEK_KEY = UserProperty.create("playtime_rewarded_week_key", Long.class, 0L, true);
@@ -31,4 +37,19 @@ public class PlaytimeProperties {
     public static final UserProperty<Long> REMINDED_DAY_KEY = UserProperty.create("playtime_reminded_day_key", Long.class, 0L, true);
     public static final UserProperty<Long> REMINDED_WEEK_KEY = UserProperty.create("playtime_reminded_week_key", Long.class, 0L, true);
     public static final UserProperty<Long> REMINDED_MONTH_KEY = UserProperty.create("playtime_reminded_month_key", Long.class, 0L, true);
+
+    public static final UserProperty<Long> SESSION = UserProperty.create("playtime_session", Long.class, 0L, true);
+    public static final UserProperty<Long> SESSION_START = UserProperty.create("playtime_session_start", Long.class, 0L, true);
+
+    public static final UserProperty<Map<String, Integer>> MILESTONE_PROGRESS = createMilestoneProgressProperty();
+
+    @SuppressWarnings("unchecked")
+    private static UserProperty<Map<String, Integer>> createMilestoneProgressProperty() {
+        return new UserProperty<>("playtime_milestone_progress",
+                new TypeToken<Map<String, Integer>>() {
+                }.getType(),
+                (Class<Map<String, Integer>>) (Class<?>) Map.class,
+                new HashMap<>(),
+                true);
+    }
 }

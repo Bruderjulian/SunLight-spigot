@@ -141,12 +141,12 @@ public class ChatChannel implements PlaceholderResolvable {
     }
 
     public boolean canSpeakHere(Player player) {
-        return !this.accessibility.permissionToSpeak() || ChatPerms.CHANNEL_SPEAK.hasChildAccess(player, this.id);
+        return !this.accessibility.permissionToSpeak() || ChatPerms.canSpeakInChannel(player, this.id);
     }
 
     public boolean canListenHere(Player player) {
         return !this.accessibility.permissionToListen() || this.canSpeakHere(player)
-                || ChatPerms.CHANNEL_LISTEN.hasChildAccess(player, this.id);
+                || ChatPerms.canHearChannel(player, this.id);
     }
 
     public boolean isInRadius(CommandSender recipient, Player speaker) {

@@ -11,10 +11,11 @@ import su.nightexpress.nightcore.util.*;
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
+import su.nightexpress.sunlight.api.event.KitCreateEvent;
+import su.nightexpress.sunlight.api.event.KitDeleteEvent;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.kits.command.KitsCommandProvider;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsLang;
@@ -43,7 +44,16 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class KitsModule extends Module {
+public class KitsModule extends Module implements su.nightexpress.sunlight.api.provider.KitsProvider {
+
+    @Override
+    public Set<String> getKitIdSet() {
+        try {
+            return this.kitByIdMap.keySet().stream().map(id -> id.toLowerCase(java.util.Locale.ROOT)).collect(java.util.stream.Collectors.toSet());
+        } catch (Exception exception) {
+            return Set.of();
+        }
+    }
 
     private final KitsSettings settings;
     private final KitDataManager dataManager;
@@ -87,6 +97,8 @@ public class KitsModule extends Module {
 
         this.addAsyncTask(this::saveData, this.settings.getDataSaveInterval());
         this.addAsyncTask(this::saveKits, this.settings.getKitSaveInterval());
+
+        this.commandRegistry.addProvider(new KitsCommandProvider(this));
     }
 
     @Override
@@ -98,17 +110,6 @@ public class KitsModule extends Module {
 
         this.kitByIdMap.clear();
         this.dataRepository.clear();
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(KitsPerms.ROOT);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("kits-commons", new KitsCommandProvider(this.plugin, this, this.userManager),
-                this);
     }
 
     @Override
@@ -235,6 +236,7 @@ public class KitsModule extends Module {
 
         kit.write(config);
         this.addKit(kit);
+        this.plugin.getPluginManager().callEvent(new KitCreateEvent(kit));
     }
 
     public boolean giveKit(Kit kit, Player player, boolean force, boolean silent) {
@@ -242,6 +244,16 @@ public class KitsModule extends Module {
             this.sendPrefixed(KitsLang.DATA_ERROR_NOT_LOADED, player);
             return false;
         }
+
+        // Third-party hook point.
+        su.nightexpress.sunlight.api.event.KitClaimEvent claimEvent = new su.nightexpress.sunlight.api.event.KitClaimEvent(player, kit.getId());
+        try {
+            this.plugin.getPluginManager().callEvent(claimEvent);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
+        }
+        if (claimEvent.isCancelled()) return false;
 
         // Check kit permission.
         if (!force && !kit.hasPermission(player)) {
@@ -317,6 +329,7 @@ public class KitsModule extends Module {
             Files.delete(kit.getPath());
             this.plugin.runTaskAsync(() -> this.dataManager.deleteData(kit.getId()));
             this.kitByIdMap.remove(kit.getId());
+            this.plugin.getPluginManager().callEvent(new KitDeleteEvent(kit));
         } catch (IOException exception) {
             exception.printStackTrace();
         }

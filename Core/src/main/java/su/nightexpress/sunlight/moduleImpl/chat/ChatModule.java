@@ -3,6 +3,8 @@ package su.nightexpress.sunlight.moduleImpl.chat;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import su.nightexpress.nightcore.bridge.chat.UniversalChatEvent;
 import su.nightexpress.nightcore.bridge.chat.UniversalChatEventHandler;
@@ -16,7 +18,9 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.nightcore.util.text.night.NightMessage;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.config.PermissionTree;
+import su.nightexpress.sunlight.api.provider.ChatProvider;
+import su.nightexpress.sunlight.api.provider.dto.ChatSpyType;
+import su.nightexpress.sunlight.api.provider.dto.MailHandle;
 import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
@@ -72,7 +76,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ChatModule extends Module {
+public class ChatModule extends Module implements ChatProvider {
 
     private final ChatSettings settings;
     private final ChannelRepository channelRepository;
@@ -111,6 +115,32 @@ public class ChatModule extends Module {
         this.plugin.getServer().getOnlinePlayers().forEach(this::autoJoinChannels);
 
         this.addListener(new ChatListener(this.plugin, this));
+
+        this.commandRegistry.addProvider(new ClearChatCommandProvider(this));
+
+        if (this.settings.isChannelsEnabled()) {
+            this.commandRegistry.addProvider(new ChannelCommandsProvider(this));
+        }
+
+        if (this.settings.isConversationsEnabled()) {
+            this.commandRegistry.addProvider(new ConversationCommandProvider(this));
+        }
+
+        if (this.settings.isMailEnabled()) {
+            this.commandRegistry.addProvider(new MailCommandProvider(this));
+        }
+
+        if (this.settings.isMentionsEnabled()) {
+            this.commandRegistry.addProvider(new MentionsCommandProvider(this));
+        }
+
+        if (this.settings.isRoleplayCommandEnabled()) {
+            this.commandRegistry.addProvider(new RoleplayCommands(this));
+        }
+
+        if (this.settings.isSpyEnabled()) {
+            this.commandRegistry.addProvider(new SpyCommandProvider(this));
+        }
     }
 
     @Override
@@ -140,50 +170,6 @@ public class ChatModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(PermissionTree root) {
-        // Attach channel-specific permissions.
-        this.channelRepository.getChannels().forEach(channel -> {
-            ChatPerms.CHANNEL_LISTEN.permission(channel.getId());
-            ChatPerms.CHANNEL_SPEAK.permission(channel.getId());
-        });
-
-        root.merge(ChatPerms.ROOT);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("chat-clearchat", new ClearChatCommandProvider(this.plugin, this), this);
-
-        if (this.settings.isChannelsEnabled()) {
-            this.commandRegistry.addProvider("chat-channel", new ChannelCommandsProvider(this.plugin, this), this);
-        }
-
-        if (this.settings.isConversationsEnabled()) {
-            this.commandRegistry.addProvider("chat-conversations",
-                    new ConversationCommandProvider(this.plugin, this, this.userManager), this);
-        }
-
-        if (this.settings.isMailEnabled()) {
-            this.commandRegistry.addProvider("chat-mail",
-                    new MailCommandProvider(this.plugin, this, this.userManager), this);
-        }
-
-        if (this.settings.isMentionsEnabled()) {
-            this.commandRegistry.addProvider("chat-mentions",
-                    new MentionsCommandProvider(this.plugin, this, this.userManager), this);
-        }
-
-        if (this.settings.isRoleplayCommandEnabled()) {
-            this.commandRegistry.addProvider("chat-roleplay", new RoleplayCommands(this.plugin, this), this);
-        }
-
-        if (this.settings.isSpyEnabled()) {
-            this.commandRegistry.addProvider("chat-spy", new SpyCommandProvider(this.plugin, this, this.userManager),
-                    this);
-        }
-    }
-
-    @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
         registry.register("chat_conversations_state", (player, payload) -> {
             return CoreLang.STATE_ENABLED_DISALBED.get(this.userManager.getOrFetch(player).getPropertyOrDefault(
@@ -203,9 +189,6 @@ public class ChatModule extends Module {
         UserPropertyRegistry.register(ChatProperties.MENTIONS);
 
         this.mentionsPattern = Pattern.compile(this.settings.getMentionsPattern());
-        this.settings.getCustomMentions().forEach((id, groupMention) -> {
-            ChatPerms.MENTION.permission(id);
-        });
     }
 
     private void loadConversations() {
@@ -605,10 +588,20 @@ public class ChatModule extends Module {
 
         Player online = Utils.getPlayer(recipient.id());
         if (online != null) {
-            this.sendPrivateMessage(sender, online, message);
-            return;
+            // Instant delivery as a private message. When it can not be
+            // delivered (opt-out, cancelled), fall back to stored mail so the
+            // message is never silently lost.
+            if (this.sendPrivateMessage(sender, online, message)) {
+                this.sendPrefixed(ChatLang.MAIL_SEND_SUCCESS, sender,
+                        builder -> builder.with(SLPlaceholders.GENERIC_NAME, recipient::name));
+                return;
+            }
         }
 
+        this.storeMail(sender, recipient, message);
+    }
+
+    private void storeMail(Player sender, UserInfo recipient, String message) {
         CompletableFuture.supplyAsync(() -> {
             List<MailData> inbox = this.mailDataManager.getMails(recipient.id());
             int max = this.settings.getMailMaxInbox();
@@ -629,9 +622,10 @@ public class ChatModule extends Module {
         }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
     }
 
-    public void readMails(Player player) {
+    @Override
+    public boolean readMails(Player player) {
         if (this.mailDataManager == null)
-            return;
+            return false;
 
         CompletableFuture.supplyAsync(() -> this.mailDataManager.getMails(player.getUniqueId()))
                 .thenAcceptAsync(mails -> {
@@ -642,6 +636,7 @@ public class ChatModule extends Module {
                     this.printMails(player, mails);
                     this.mailDataManager.deleteMails(player.getUniqueId());
                 }, this.plugin::runTask).whenComplete(Utils::printStacktrace);
+        return true;
     }
 
     public void clearMails(Player player) {
@@ -775,5 +770,114 @@ public class ChatModule extends Module {
 
         processors.forEach(messageProcessor -> messageProcessor.postProcess(this, context));
         return true;
+    }
+
+    @Override
+    public List<String> getChannelIds() {
+        return this.channelRepository.getChannels().stream().map(ChatChannel::getId).toList();
+    }
+
+    @Override
+    public String getChannelId(@NotNull String channelId) {
+        ChatChannel channel = this.channelRepository.getById(channelId);
+        return channel == null ? null : channel.getId();
+    }
+
+    @Override
+    public String getDefaultChannelId() {
+        ChatChannel channel = this.channelRepository.getDefaultChannel();
+        return channel == null ? null : channel.getId();
+    }
+
+    @Override
+    public String getEffectiveChannelId(@NotNull Player player, @Nullable Character prefix) {
+        ChatChannel channel = this.getEffectiveChannel(player, prefix);
+        return channel == null ? null : channel.getId();
+    }
+
+    @Override
+    public List<String> getListenableChannelIds(@NotNull Player player) {
+        return this.getChannelsAllowedToListen(player).stream().map(ChatChannel::getId).toList();
+    }
+
+    @Override
+    public boolean joinChannel(@NotNull Player player, @NotNull String channelId) {
+        ChatChannel channel = this.channelRepository.getById(channelId);
+        return channel != null && this.joinChannel(player, channel);
+    }
+
+    @Override
+    public boolean leaveChannel(@NotNull Player player, @NotNull String channelId) {
+        ChatChannel channel = this.channelRepository.getById(channelId);
+        return channel != null && this.leaveChannel(player, channel);
+    }
+
+    @Override
+    public boolean sendMail(@NotNull Player sender, @NotNull UUID recipientId, @NotNull String message) {
+        if (this.mailDataManager == null)
+            return false;
+
+        return this.userManager.getOrFetch(recipientId)
+                .map(recipient -> {
+                    this.sendMail(sender, new UserInfo(recipientId, recipient.getName()), message);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public List<MailHandle> getMails(@NotNull UUID recipientId) {
+        if (this.mailDataManager == null)
+            return List.of();
+
+        return this.mailDataManager.getMails(recipientId).stream()
+                .map(mail -> new MailHandle(mail.getId(), mail.getSenderId(), mail.getSenderName(), mail.getMessage(),
+                        mail.getDateCreated()))
+                .toList();
+    }
+
+    @Override
+    public void clearMails(@NotNull UUID playerId) {
+        Player player = Utils.getPlayer(playerId);
+        if (player != null) {
+            this.clearMails(player);
+            return;
+        }
+
+        if (this.mailDataManager != null)
+            this.mailDataManager.deleteMails(playerId);
+    }
+
+    @Override
+    public int getSpyCount(@NotNull ChatSpyType spyType) {
+        return this.getSpies(switch (spyType) {
+            case SOCIAL -> SpyType.SOCIAL;
+            case COMMAND -> SpyType.COMMAND;
+            case CHAT -> SpyType.CHAT;
+        }).size();
+    }
+
+    @Override
+    public boolean isConversationsEnabled(@NotNull UUID playerId) {
+        return this.userManager.getOrFetch(playerId)
+                .map(user -> user.getPropertyOrDefault(ChatProperties.CONVERSATIONS))
+                .orElse(true);
+    }
+
+    @Override
+    public void setConversationsEnabled(@NotNull Player player, boolean enabled) {
+        this.userManager.getOrFetch(player).setProperty(ChatProperties.CONVERSATIONS, enabled);
+    }
+
+    @Override
+    public boolean isMentionsEnabled(@NotNull UUID playerId) {
+        return this.userManager.getOrFetch(playerId)
+                .map(user -> user.getPropertyOrDefault(ChatProperties.MENTIONS))
+                .orElse(true);
+    }
+
+    @Override
+    public void setMentionsEnabled(@NotNull Player player, boolean enabled) {
+        this.userManager.getOrFetch(player).setProperty(ChatProperties.MENTIONS, enabled);
     }
 }

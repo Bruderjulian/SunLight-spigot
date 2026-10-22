@@ -31,6 +31,14 @@ public class PlaytimeSettings extends AbstractConfig {
             600L,
             "Sets how often (in game ticks) the /playtop leaderboard cache is rebuilt. [1 second = 20 ticks]");
 
+    private final ConfigProperty<Long> topDbScanInterval = this.addProperty(ConfigTypes.LONG,
+            "Playtime.Top.Database-Scan-Interval",
+            12000L,
+            "Sets how often (in game ticks) the leaderboard scans the whole database.",
+            "Live players refresh every Refresh-Interval above; offline players are merged in",
+            "at most this often, and only when the leaderboard was actually requested.",
+            "[1 second = 20 ticks, 12000 = 10 minutes]");
+
     private final ConfigProperty<Integer> goalMinMinutes = this.addProperty(ConfigTypes.INT,
             "Playtime.Goals.Override.Min-Minutes",
             1,
@@ -99,7 +107,7 @@ public class PlaytimeSettings extends AbstractConfig {
             240L,
             "Reminder window for the monthly goal, in minutes.");
 
-    public void load(FileConfig config) {
+    public void load(final FileConfig config) {
         super.load(config);
     }
 
@@ -112,18 +120,22 @@ public class PlaytimeSettings extends AbstractConfig {
     }
 
     public ZoneId getZoneId() {
-        String value = this.timezone.get();
+        final String value = this.timezone.get();
         if (value == null || value.isBlank() || value.equalsIgnoreCase("system"))
             return ZoneId.systemDefault();
         try {
             return ZoneId.of(value);
-        } catch (Exception exception) {
+        } catch (final Exception exception) {
             return ZoneId.systemDefault();
         }
     }
 
     public long getTopRefreshInterval() {
-        return Math.max(20L, this.topRefreshInterval.get());
+        return Math.max(1000L, this.topRefreshInterval.get() * 50L);
+    }
+
+    public long getTopDbScanInterval() {
+        return Math.max(600L, this.topDbScanInterval.get());
     }
 
     public long getDailyGoalMs() {
@@ -174,7 +186,7 @@ public class PlaytimeSettings extends AbstractConfig {
         return this.goalMaxMinutes.get();
     }
 
-    private long minutesToMs(long minutes) {
+    private long minutesToMs(final long minutes) {
         return Math.max(0L, minutes) * 60_000L;
     }
 }

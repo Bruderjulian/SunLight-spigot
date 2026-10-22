@@ -34,7 +34,7 @@ public class BackLocationSettings extends AbstractConfig {
             "Location.Previous.Disabled_Worlds",
             Set.of("my_custom_world"),
             "Sets worlds to where players can't teleport back to the cached location unless they have the '%s' permission."
-                    .formatted(BackLocationPerms.BYPASS_PREVIOUS_WORLDS.getName()));
+                    .formatted(BackLocationPerms.BYPASS_PREVIOUS_WORLDS));
 
     public final ConfigProperty<EnumSet<TeleportCause>> ignoredTeleportCauses = this.addProperty(
             ConfigTypes.forEnumSet(TeleportCause.class),
@@ -44,7 +44,7 @@ public class BackLocationSettings extends AbstractConfig {
             "If a teleport was caused by any of the listed reasons, the pre-teleport location won't be cached.",
             "This might be useful to prevent location cache override in special cases, such as Ender Pearl teleports.",
             "Players with the '%s' permission will bypass this setting"
-                    .formatted(BackLocationPerms.BYPASS_PREVIOUS_CAUSES.getName()),
+                    .formatted(BackLocationPerms.BYPASS_PREVIOUS_CAUSES),
             "https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/player/PlayerTeleportEvent.TeleportCause.html");
 
     public final ConfigProperty<Boolean> cacheDeaths = this.addProperty(ConfigTypes.BOOLEAN, "Location.Death.Enabled",
@@ -66,7 +66,7 @@ public class BackLocationSettings extends AbstractConfig {
             "Location.Death.Disabled_Worlds",
             Set.of("my_custom_world"),
             "Sets worlds to where players can't teleport back to the death location unless they have the '%s' permission."
-                    .formatted(BackLocationPerms.BYPASS_DEATH_WORLDS.getName()));
+                    .formatted(BackLocationPerms.BYPASS_DEATH_WORLDS));
 
     public final ConfigProperty<Double> previousCost = this.addProperty(ConfigTypes.DOUBLE, "Location.Previous.Cost",
             0D,

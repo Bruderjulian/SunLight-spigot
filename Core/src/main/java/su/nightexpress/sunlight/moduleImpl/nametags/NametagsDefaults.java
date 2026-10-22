@@ -1,9 +1,14 @@
 package su.nightexpress.sunlight.moduleImpl.nametags;
 
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagRule;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagTag;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.PriceMode;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.Profile;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.RankDefinition;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.SubscriptionPeriod;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.TagAccessMode;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,23 +16,61 @@ import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 
 public class NametagsDefaults {
 
-    public static Map<String, NametagRule> getDefaultRules() {
-        Map<String, NametagRule> map = new LinkedHashMap<>();
+    public static Map<String, RankDefinition> getDefaultRanks() {
+        Map<String, RankDefinition> map = new LinkedHashMap<>();
 
-        map.put("default", new NametagRule(1, Set.of("default"), AQUA.wrap("Member "), "", "white"));
-        map.put("admin", new NametagRule(100, Set.of("admin"), RED.wrap("Admin "), "", "white"));
-        map.put("owner", new NametagRule(10_000, Set.of("owner"), PURPLE.wrap("Owner "), "", "white"));
+        map.put("default", new RankDefinition("default", "Member", List.of(), "NAME_TAG",
+                1, Set.of("default"), AQUA.wrap("Member "), "", "white", true));
+        map.put("admin", new RankDefinition("admin", "Admin", List.of(), "NAME_TAG",
+                100, Set.of("admin"), RED.wrap("Admin "), "", "white", false));
+        map.put("owner", new RankDefinition("owner", "Owner", List.of(), "NAME_TAG",
+                10_000, Set.of("owner"), PURPLE.wrap("Owner "), "", "white", false));
 
         return map;
     }
 
-    public static Map<String, NametagTag> getDefaultTags() {
-        Map<String, NametagTag> map = new LinkedHashMap<>();
+    public static Map<String, TagDefinition> getDefaultTags() {
+        Map<String, TagDefinition> map = new LinkedHashMap<>();
 
-        map.put("dragon", new NametagTag("dragon", GREEN.wrap("Dragon"), GRAY.wrap("[" + GREEN.wrap("✦") + "] "), "", "",
-                0D, java.util.List.of(DARK_GRAY.wrap("A rare cosmetic tag.")), ""));
-        map.put("hero", new NametagTag("hero", GOLD.wrap("Hero"), GOLD.wrap("[" + YELLOW.wrap("★") + "] "), "", "",
-                0D, java.util.List.of(DARK_GRAY.wrap("Earned by the bravest.")), ""));
+        map.put("dragon", new TagDefinition("dragon",
+            GREEN.wrap("Dragon"),
+            List.of(DARK_GRAY.wrap("A rare cosmetic tag.")),
+            GRAY.wrap("[" + GREEN.wrap("✦") + "] "),
+            "",
+            "",
+            "",
+            TagAccessMode.PERMISSION,
+            PriceMode.INTERNAL,
+            0D,
+            SubscriptionPeriod.MONTHLY,
+            "DRAGON_HEAD",
+            true,
+            10
+        ));
+
+        map.put("hero", new TagDefinition("hero",
+            GOLD.wrap("Hero"),
+            List.of(DARK_GRAY.wrap("Earned by the bravest.")),
+            GOLD.wrap("[" + YELLOW.wrap("★") + "] "),
+            "",
+            "",
+            "",
+            TagAccessMode.PURCHASE,
+            PriceMode.INTERNAL,
+            1_000D,
+            SubscriptionPeriod.MONTHLY,
+            "IRON_SWORD",
+            true,
+            20
+        ));
+
+        return map;
+    }
+
+    public static Map<String, Profile> getDefaultProfiles() {
+        Map<String, Profile> map = new LinkedHashMap<>();
+
+        map.put("default", new Profile("default", "Default", List.of(), "NAME_TAG", List.of(), 0, null, null));
 
         return map;
     }

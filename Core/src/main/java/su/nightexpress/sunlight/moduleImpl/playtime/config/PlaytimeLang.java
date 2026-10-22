@@ -22,6 +22,21 @@ public class PlaytimeLang implements LangContainer {
     public static final TextLocale COMMAND_GOAL_DESC = LangEntry.builder("Command.Playtime.Goal.Desc")
         .text("View or change your playtime goals.");
 
+    public static final TextLocale COMMAND_MENU_DESC = LangEntry.builder("Command.Playtime.Menu.Desc")
+        .text("Open the playtime menu.");
+
+    public static final TextLocale COMMAND_ADMIN_ADD_DESC = LangEntry.builder("Command.Playtime.AdminAdd.Desc")
+        .text("Add playtime to a player.");
+
+    public static final TextLocale COMMAND_ADMIN_SET_DESC = LangEntry.builder("Command.Playtime.AdminSet.Desc")
+        .text("Set a player's playtime.");
+
+    public static final TextLocale COMMAND_ADMIN_RESET_DESC = LangEntry.builder("Command.Playtime.AdminReset.Desc")
+        .text("Reset a player's playtime data.");
+
+    public static final TextLocale COMMAND_ADMIN_RELOAD_DESC = LangEntry.builder("Command.Playtime.AdminReload.Desc")
+        .text("Reload the playtime module.");
+
     public static final MessageLocale STATS_HEADER = LangEntry.builder("Playtime.Stats.Header")
         .chatMessage(
             DARK_GRAY.wrap("[" + GOLD.wrap("Playtime") + "] ") + WHITE.wrap(PLAYER_NAME));
@@ -89,4 +104,45 @@ public class PlaytimeLang implements LangContainer {
     public static final MessageLocale ERROR_GOAL_NEGATIVE = LangEntry.builder("Playtime.Error.GoalNegative")
         .chatMessage(
             SOFT_RED.wrap("Minutes amount must not be negative."));
+
+    public static final MessageLocale ADMIN_ADDED = LangEntry.builder("Playtime.Admin.Added")
+        .chatMessage(
+            GREEN.wrap("Added ") + WHITE.wrap(GENERIC_TIME) + GREEN.wrap(" to ") + WHITE.wrap(PLAYER_NAME)
+                + GREEN.wrap(" (") + WHITE.wrap(GENERIC_NAME) + GREEN.wrap(")."));
+
+    public static final MessageLocale ADMIN_SET = LangEntry.builder("Playtime.Admin.Set")
+        .chatMessage(
+            GREEN.wrap("Set ") + WHITE.wrap(PLAYER_NAME) + GREEN.wrap("'s ") + WHITE.wrap(GENERIC_NAME)
+                + GREEN.wrap(" playtime to ") + WHITE.wrap(GENERIC_TIME) + GREEN.wrap("."));
+
+    public static final MessageLocale ADMIN_RESET = LangEntry.builder("Playtime.Admin.Reset")
+        .chatMessage(
+            GREEN.wrap("Reset ") + WHITE.wrap(GENERIC_NAME) + GREEN.wrap(" playtime data of ")
+                + WHITE.wrap(PLAYER_NAME) + GREEN.wrap("."));
+
+    public static final MessageLocale ADMIN_RELOADED = LangEntry.builder("Playtime.Admin.Reloaded")
+        .chatMessage(
+            GREEN.wrap("Playtime configuration reloaded."));
+
+    public static final MessageLocale MILESTONE_REWARD = LangEntry.builder("Playtime.Milestone.Reward")
+        .chatMessage(
+            GREEN.wrap("Milestone ") + WHITE.wrap(GENERIC_NAME) + GREEN.wrap(" reached — reward claimed!"));
+
+    public static final TextLocale MENU_TITLE_STATS = LangEntry.builder("Playtime.Menu.StatsTitle")
+        .text("Playtime");
+
+    public static final TextLocale MENU_TITLE_TOP = LangEntry.builder("Playtime.Menu.TopTitle")
+        .text("Playtime Top");
+
+    public static final TextLocale MENU_BUTTON_BACK = LangEntry.builder("Playtime.Menu.ButtonBack")
+        .text("Back");
+
+    public static final TextLocale MENU_BUTTON_CLOSE = LangEntry.builder("Playtime.Menu.ButtonClose")
+        .text("Close");
+
+    public static final TextLocale MENU_BUTTON_STATS = LangEntry.builder("Playtime.Menu.ButtonStats")
+        .text("My Stats");
+
+    public static final TextLocale MENU_BUTTON_TOP = LangEntry.builder("Playtime.Menu.ButtonTop")
+        .text("Leaderboard");
 }

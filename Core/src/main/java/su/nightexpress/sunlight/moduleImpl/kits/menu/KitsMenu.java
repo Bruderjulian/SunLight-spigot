@@ -108,8 +108,8 @@ public class KitsMenu extends AbstractMenu {
         this.addBackgroundItem(Material.GRAY_STAINED_GLASS_PANE, IntStream.range(0, 27).toArray());
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(27, 36).toArray());
 
-        this.addNextPageItem(Material.ARROW, 35);
-        this.addPreviousPageItem(Material.ARROW, 27);
+        this.addNextPageButton(35);
+        this.addPreviousPageButton(27);
     }
 
     @Override

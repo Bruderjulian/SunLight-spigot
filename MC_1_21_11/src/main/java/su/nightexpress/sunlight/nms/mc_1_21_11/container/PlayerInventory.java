@@ -8,7 +8,6 @@ import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftInventory;
 
 import su.nightexpress.nightcore.util.Reflex;
-import su.nightexpress.nightcore.util.Version;
 
 public class PlayerInventory extends Inventory {
 
@@ -23,17 +22,12 @@ public class PlayerInventory extends Inventory {
     }
 
     private static EntityEquipment getEquipment(CraftPlayer craftPlayer) {
-        if (Version.isSpigot()) {
-            return (EntityEquipment) Reflex.getFieldValue(craftPlayer.getHandle(), "equipment", "m");
-        }
         return craftPlayer.getHandle().getInventory().equipment;
     }
 
     private void reflectContents() {
         Inventory origin = this.player.getInventory();
-        String field = Version.isPaper() ? "items" : "k";
-
-        Reflex.setFieldValue(this, field, origin.getNonEquipmentItems());
+        Reflex.setFieldValue(this, "items", origin.getNonEquipmentItems());
     }
 
     public org.bukkit.inventory.Inventory getInventory() {

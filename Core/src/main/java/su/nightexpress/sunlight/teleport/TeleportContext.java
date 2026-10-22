@@ -79,11 +79,11 @@ public class TeleportContext {
     }
 
     public Location getDestination() {
-        return this.destination;
+        return this.destination == null ? null : this.destination.clone();
     }
 
     public void setDestination(Location destination) {
-        this.destination = destination.clone();
+        this.destination = destination == null ? null : destination.clone();
     }
 
     public EnumSet<TeleportFlag> getFlags() {
@@ -107,7 +107,7 @@ public class TeleportContext {
         Builder(Module module, Player target, Location destination) {
             this.module = module;
             this.target = target;
-            this.destination = destination.clone();
+            this.destination = destination == null ? null : destination.clone();
             this.flags = new HashSet<>();
         }
 

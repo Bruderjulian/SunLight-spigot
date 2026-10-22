@@ -1,51 +1,42 @@
 package su.nightexpress.sunlight.moduleImpl.inventories.command;
 
-import org.bukkit.Sound;
-import org.bukkit.permissions.Permission;
+import java.util.stream.Stream;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import org.bukkit.Sound;
+import org.bukkit.command.CommandSender;
+
+import dev.jorel.commandapi.executors.CommandArguments;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.EnumLocale;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.sound.VanillaSound;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.PortableContainer;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesModule;
 import su.nightexpress.sunlight.moduleImpl.inventories.InventoriesPerms;
 import su.nightexpress.sunlight.nms.SunNMS;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Stream;
-
 import static su.nightexpress.nightcore.util.Placeholders.PLAYER_DISPLAY_NAME;
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 import static su.nightexpress.sunlight.SLPlaceholders.GENERIC_TYPE;
 
-public class ContainerCommandProvider extends CommandProvider {
+public class ContainerCommandProvider extends CommandProvider<InventoriesModule> {
 
-        private static final Permission PERMISSION_ROOT = InventoriesPerms.COMMAND.permission("container.root");
-        private static final Permission PERMISSION_OTHERS = InventoriesPerms.COMMAND.permission("container.others");
-        private static final Permission PERMISSION_ANVIL = InventoriesPerms.COMMAND.permission("container.anvil");
-        private static final Permission PERMISSION_LOOM = InventoriesPerms.COMMAND.permission("container.loom");
-        private static final Permission PERMISSION_WORKBENCH = InventoriesPerms.COMMAND
-                        .permission("container.workbench");
-        private static final Permission PERMISSION_SMITHING = InventoriesPerms.COMMAND.permission("container.smithing");
-        private static final Permission PERMISSION_GRINDSTONE = InventoriesPerms.COMMAND.permission(
-                        "container.grindstone");
-        private static final Permission PERMISSION_CARTOGRAPHY = InventoriesPerms.COMMAND.permission(
-                        "container.cartography");
-        private static final Permission PERMISSION_ENCHANTING = InventoriesPerms.COMMAND.permission(
-                        "container.enchanting");
-        private static final Permission PERMISSION_STONECUTTER = InventoriesPerms.COMMAND.permission(
-                        "container.stonecutter");
+        private static final String PERMISSION_ROOT = InventoriesPerms.COMMAND + ".container.root";
+        private static final String PERMISSION_OTHERS = InventoriesPerms.COMMAND + ".container.others";
+        private static final String PERMISSION_ANVIL = InventoriesPerms.COMMAND + ".container.anvil";
+        private static final String PERMISSION_LOOM = InventoriesPerms.COMMAND + ".container.loom";
+        private static final String PERMISSION_WORKBENCH = InventoriesPerms.COMMAND + ".container.workbench";
+        private static final String PERMISSION_SMITHING = InventoriesPerms.COMMAND + ".container.smithing";
+        private static final String PERMISSION_GRINDSTONE = InventoriesPerms.COMMAND + ".container.grindstone";
+        private static final String PERMISSION_CARTOGRAPHY = InventoriesPerms.COMMAND + ".container.cartography";
+        private static final String PERMISSION_ENCHANTING = InventoriesPerms.COMMAND + ".container.enchanting";
+        private static final String PERMISSION_STONECUTTER = InventoriesPerms.COMMAND + ".container.stonecutter";
 
         private static final TextLocale DESCRIPTION_ROOT = LangEntry.builder("Command.Container.Root.Desc").text(
                         "Portable Container commands.");
@@ -59,21 +50,16 @@ public class ContainerCommandProvider extends CommandProvider {
                         .chatMessage(
                                         GRAY.wrap("You have opened " + SOFT_YELLOW.wrap("Portable " + GENERIC_TYPE)
                                                         + " for " + SOFT_YELLOW.wrap(
-                                                                        PLAYER_DISPLAY_NAME + ".")));
+                                                        PLAYER_DISPLAY_NAME + ".")));
 
         private static final EnumLocale<PortableContainer> CONTAINER_LOCALE = LangEntry.builder("MenuType").enumeration(
                         PortableContainer.class);
 
-        private final InventoriesModule module;
-        private final SunNMS nms;
-
-        public ContainerCommandProvider(SunLightPlugin plugin, InventoriesModule module, SunNMS nms) {
-                super(plugin);
-                this.module = module;
-                this.nms = nms;
+        public ContainerCommandProvider(final InventoriesModule module) {
+                super(module, "container");
         }
 
-        private Permission getPermission(PortableContainer container) {
+        private String getPermission(PortableContainer container) {
                 return switch (container) {
                         case ANVIL -> PERMISSION_ANVIL;
                         case LOOM -> PERMISSION_LOOM;
@@ -100,52 +86,55 @@ public class ContainerCommandProvider extends CommandProvider {
         }
 
         @Override
-        public void registerDefaults() {
-                Map<String, String> childrens = new HashMap<>();
-
+        public void setup() {
                 Stream.of(PortableContainer.values()).forEach(container -> {
-                        Permission permission = this.getPermission(container);
+                        String permission = this.getPermission(container);
                         String label = container.label();
 
-                        this.registerLiteral(label, true, new String[] { label }, builder -> builder
-                                        .description(DESCRIPTION_TYPE.text().replace(SLPlaceholders.GENERIC_TYPE,
-                                                        CONTAINER_LOCALE.getLocalized(
-                                                                        container)))
-                                        .permission(permission)
-                                        .withArguments(
-                                                        Arguments.playerName(CommandArguments.PLAYER)
-                                                                        .permission(PERMISSION_OTHERS).optional())
-                                        .withFlags(CommandArguments.FLAG_SILENT)
-                                        .executes((context, arguments) -> this.open(context, arguments, container)));
-
-                        childrens.put(label, label);
+                        this.register(label, command -> command
+                                        .withFullDescription(DESCRIPTION_TYPE.text().replace(SLPlaceholders.GENERIC_TYPE,
+                                                        CONTAINER_LOCALE.getLocalized(container)))
+                                        .withPermission(permission)
+                                        .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                                        .executes((sender, arguments) -> {
+                                            return this.open(sender, arguments, container);
+                                        }))
+                            .under("container");
                 });
 
-                this.registerRoot("Container", true, new String[] { "container" }, childrens, builder -> builder
-                                .description(DESCRIPTION_ROOT)
-                                .permission(PERMISSION_ROOT));
+                this.registerRoot("container", command -> command
+                                .withFullDescription(DESCRIPTION_ROOT.text())
+                                .withPermission(PERMISSION_ROOT)).aliases("containers", "portablecontainers");
         }
 
-        private boolean open(CommandContext context, ParsedArguments arguments,
-                        PortableContainer container) {
-                return this.runForOnlinePlayerOrSender(context, arguments, this.module, target -> {
-                        this.nms.openContainer(target, container);
-                        VanillaSound.of(this.getSound(container)).play(target);
+        private int open(CommandSender sender, CommandArguments arguments, PortableContainer container) {
+                final SunNMS nms = this.module.getInternals();
+                if (nms == null) {
+                        return 0;
+                }
 
-                        if (context.getSender() != target) {
-                                this.module.sendPrefixed(MESSAGE_TARGETTED, context.getSender(), builder -> builder
-                                                .with(CommonPlaceholders.PLAYER.resolver(target))
+                final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+                if (target == null) {
+                        this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+                        return 0;
+                }
+
+                return target.runAs(this.module, sender, PERMISSION_OTHERS, (user, targetPlayer) -> {
+                        nms.openContainer(targetPlayer, container);
+                        VanillaSound.of(this.getSound(container)).play(targetPlayer);
+
+                        if (sender != targetPlayer) {
+                                this.module.sendPrefixed(MESSAGE_TARGETTED, sender, builder -> builder
+                                                .with(CommonPlaceholders.PLAYER.resolver(targetPlayer))
                                                 .with(SLPlaceholders.GENERIC_TYPE,
                                                                 () -> CONTAINER_LOCALE.getLocalized(container)));
                         }
 
-                        if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                                this.module.sendPrefixed(MESSAGE_NOTIFY, target, builder -> builder
+                        if (!target.silent()) {
+                                this.module.sendPrefixed(MESSAGE_NOTIFY, targetPlayer, builder -> builder
                                                 .with(SLPlaceholders.GENERIC_TYPE,
-                                                                () -> CONTAINER_LOCALE.getLocalized(container)));
+                                                        () -> CONTAINER_LOCALE.getLocalized(container)));
                         }
-
-                        return true;
                 });
         }
 }

@@ -10,6 +10,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.MenuType;
 
+import su.nightexpress.nightcore.NightCorePlugin;
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.configuration.ConfigProperty;
 import su.nightexpress.nightcore.configuration.ConfigTypes;
@@ -93,7 +94,7 @@ public class PunishmentsMenu extends AbstractObjectMenu<PunishmentsMenu.Data> im
     }
 
     public PunishmentsMenu(SunLightPlugin plugin, BansModule module) {
-        super(MenuType.GENERIC_9X5, BLACK.wrap("[%s] List".formatted(SLPlaceholders.GENERIC_TYPE)), Data.class);
+        super((NightCorePlugin) plugin, MenuType.GENERIC_9X5, BLACK.wrap("[%s] List".formatted(SLPlaceholders.GENERIC_TYPE)), Data.class);
         this.plugin = plugin;
         this.module = module;
 
@@ -105,7 +106,7 @@ public class PunishmentsMenu extends AbstractObjectMenu<PunishmentsMenu.Data> im
     }
 
     private boolean show(Player player, PunishmentType type, SortMode mode, boolean showExpired) {
-        return this.show(this.plugin, player, new Data(type, mode, showExpired));
+        return this.show(player, new Data(type, mode, showExpired));
     }
 
     @Override
@@ -131,14 +132,14 @@ public class PunishmentsMenu extends AbstractObjectMenu<PunishmentsMenu.Data> im
 
     @Override
     public void defineDefaultLayout() {
-        this.addNextPageItem(Material.ARROW, 41);
-        this.addPreviousPageItem(Material.ARROW, 39);
+        this.addNextPageButton(41);
+        this.addPreviousPageButton(39);
 
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(0, 9).toArray());
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(36, 45).toArray());
 
-        this.addDefaultButton("sort_mode", su.nightexpress.nightcore.ui.inventory.item.MenuItem.builder()
-                .defaultState(ItemState.defaultBuilder()
+        this.addDefaultButton("sort_mode", su.nightexpress.nightcore.ui.inventory.item.MenuItem.button()
+                .defaultState(ItemState.builder()
                         .icon(NightItem.fromType(Material.COMPARATOR)
                                 .setDisplayName(GOLD.wrap("Sorting Mode"))
                                 .setLore(List.of(
@@ -161,8 +162,8 @@ public class PunishmentsMenu extends AbstractObjectMenu<PunishmentsMenu.Data> im
                 .slots(43)
                 .build());
 
-        this.addDefaultButton("show_expired", MenuItem.builder()
-                .defaultState(ItemState.defaultBuilder()
+        this.addDefaultButton("show_expired", MenuItem.button()
+                .defaultState(ItemState.builder()
                         .icon(NightItem.fromType(Material.CLOCK)
                                 .setDisplayName(YELLOW.wrap("Show Expired"))
                                 .setLore(List.of(

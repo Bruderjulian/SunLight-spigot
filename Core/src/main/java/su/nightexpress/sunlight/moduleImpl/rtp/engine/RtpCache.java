@@ -7,7 +7,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
@@ -57,7 +56,7 @@ public class RtpCache {
           continue;
         }
         if (queue.size() <= module.getSettings().getCacheRefillThreshold()) {
-          Bukkit.getScheduler().runTaskAsynchronously(module.plugin(), () -> {
+          this.module.plugin().runTaskAsync(() -> {
             refillCache(world, lookupRange, worldName);
           });
         }
@@ -65,7 +64,7 @@ public class RtpCache {
       }
     }
 
-    Bukkit.getScheduler().runTaskAsynchronously(module.plugin(), () -> {
+    this.module.plugin().runTaskAsync(() -> {
       refillCache(world, lookupRange, worldName);
     });
     return null;
@@ -100,7 +99,7 @@ public class RtpCache {
     for (final String worldName : this.locationCache.keySet()) {
       final World world = this.module.plugin().getServer().getWorld(worldName);
       if (world == null)
-        return;
+        continue;
 
       final LookupRange range = module.getEngine().getWorldRange(worldName);
       if (range != null) {

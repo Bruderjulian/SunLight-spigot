@@ -4,7 +4,7 @@
 
 **SunLight** is a modern, lightweight, all-in-one core solution featuring the essential tools every server needs. 
 
-It includes **28** fully optional and customizable modules, allowing you to select only what your server actually requires!
+It includes **31** fully optional and customizable modules, allowing you to select only what your server actually requires!
 
 ---
 
@@ -31,24 +31,29 @@ It includes **28** fully optional and customizable modules, allowing you to sele
 - **Bans**: A comprehensive punishment system (Ban, Mute, Kick, Warn) featuring cross-server DB syncing, role priority, alt-account detection, and history GUIs.
 - **Chat**: Advanced chat management with multi-channel (radius/world) settings, auto-moderation (anti-flood/caps), mentions, item showcases, and social spy.
 - **Death Messages**: Customizable death notifications based on damage or killer type with randomization support.
-- **Essential**: Provides ~35 core utility commands including flight, healing, feeding, teleportation, XP management, world/weather control, and more.
-- **Extras**: Adds immersive mechanics like sitting on furniture (chairs/slabs), automatic chest sorting, and block physics for explosions.
+- **Essential**: Provides ~35 core utility commands including flight, healing, feeding, teleportation, XP management, world/weather control, anvil and sign colours, and more.
 - **Freeze**: Freeze players in place with configurable restrictions on movement, combat, blocks, items, commands, and chat.
-- **Greetings**: Customize rank-based join and quit messages with priority system.
+- **Friends**: Add friends through a request flow with accept, decline and cancel, plus a block list. Rank-based friend and pending-request limits, per-request cooldowns, per-day and per-target caps, an offline block that also drops the friendship, three per-player privacy toggles (requests, login alerts, friend teleport), a GUI with a friend list, a per-friend options menu, a pending-requests view, a block list and a settings screen, `jump` and `msg` shortcuts, an admin command for offline pairs, friend login/logout alerts, and a PAPI placeholder set.
+- **Glow**: Give players a glowing outline in any colour, with static and animated effects. The active colour is rendered on the nametag via TAB.
+- **Greetings**: Customize rank-based join, first-join and quit messages with priority system, plus commands executed on join.
 - **Homes**: Allows players to set home points via commands or beds, featuring GUIs, guest/invite systems, and rank-based home limits.
 - **Inventories**: View and edit online/offline player inventories and Ender Chests, and access workstations like Anvils or Looms from anywhere!
 - **Items**: Modify and obtain in-game items. Edit item data in hand, including durability, model data, stack sizes, name/lore, and more!
 - **Kits**: Create unlimited item sets with a GUI editor, kit previews, cooldowns, and claim costs.
-- **Nametags**: Configure packet-based, client-side nametags with rank-based prefixes, suffixes, and colors.
+- **Links**: Manage your server's links (Discord, store, vote, map, …) from the config, a GUI editor, or commands. Each link can carry an optional command that runs when the link is opened, either from the console or as the player, and each link keeps a click counter you can review and reset in the editor. Exposed as `/links`, `/links <id>` and a command per link.
+- **Nametags**: TAB-rendered nametags with rank and team prefixes, per-player tags, purchasable and subscription tags, and named per-world profiles — all editable through GUI. Players can suppress the rank, tag, or team part of their own nametag, or reduce it to just their name.
 - **Nerf Phantoms**: Control Phantom behavior by disabling spawns, modifying damage/HP, or allowing players to personally reset their insomnia timer.
 - **Nick**: Let players set custom nicknames with length/regex/banned-word validation, color permissions, and tablist support.
 - **Player Warps**: Allow players to create warps with categories, featured slots, top used warps, and more!
 - **Player Teleports**: A player-to-player teleport request system with customizable timeouts and a toggle to block incoming requests.
 - **Random Teleport**: Randomly teleports players within world-specific coordinates, featuring chunk safety checks and automatic world redirection.
+- **Reports**: Cross-server player reports with a staff triage GUI, claim/release workflow, staff note trails, teleport-to-reporter, and a reward paid when a report is justified — whether a staff member concludes it or the reported player is punished. Groups repeat reports against one player into a case, auto-closes stale reports, has a statistics screen, and offers a guided report flow for players. Submission is guarded by a cooldown, open-report caps (per reporter and per target), a daily limit, a duplicate lock, and length limits.
 - **Scheduler**: Create custom server tasks that run in the background at specific times/intervals!
+- **Socials**: Relays in-game events to a Discord channel through DiscordSRV — joins, quits, deaths, advancements, chat, reports and punishments. Your server's actual links live in the **Links** module; this one is only the Discord bridge.
 - **Spawns**: Create unlimited spawn points with rank-based auto-teleportation on join or respawn and a GUI editor.
 - **Texts**: Maps the contents of text files to unique custom commands with MiniMessage and PlaceholderAPI support.
 - **Vanish**: Hide yourself from others with a status-persisting logout feature and a Boss Bar indicator.
+- **Voting**: Let players vote on server decisions that are open at the same time, with `/yes`, `/no` and `/neutral` shortcuts plus arbitrary extra choices. A vote can be weighted by permission, rank or balance, with hard caps so no single player can decide it, and an open vote can instead allow several choices each. Choices can be gated behind payment, a permission, a rank, a world or a playtime requirement, and a paid vote is refunded when the choice is withdrawn or the vote produces no winner. Polls can be silent (no announcements, results, reminders or join-nudges), and players can opt out of reminders and join-nudges for themselves via `/voting notify`. A poll can hide its live counts until it concludes (secret ballot), decide how a tie is broken, lock vote changes late or entirely, run open on a delay or on a schedule, recur on an interval with a spawn limit, and open a runoff over its strongest choices when nothing reaches the pass share. Each poll carries a description, and finished polls stay browsable in a history view. Staff open, close, extend, clone and rule-tune polls from commands or a GUI creation wizard, players can open polls from admin-defined templates, and results are broadcast with console commands to run on a pass, a fail, a cancellation, a runoff or each individual vote.
 - **Warm Ups**: Add preparation timers to teleports (Home, Spawn, RTP, etc.) with Boss Bar progress and movement/damage cancellation.
 - **Warps**: Create public fast-travel points with access requirements based on permissions and money costs.
 - **Worlds**: Create unlimited custom worlds with dynamic loading, GUI GameRule editing, and per-world inventory separation.
@@ -74,6 +79,9 @@ The following versions and platforms are supported:
 - [NightCore](https://nightexpressdev.com/nightcore/) - Framework **required** for the plugin to run.
 
 **Optional Plugins:**
+- [TAB](https://github.com/NEZNAMY/TAB) - **Required** for the Nametags and Glow modules. TAB is the single owner of all nametag rendering, so the modules disable themselves when it is missing.
+- [LuckPerms](https://luckperms.net/) - Resolves rank formats from permission groups. Without it, the server's own permission groups are used instead.
+- [UltimateTeams](https://spigotmc.org/resources/113209-ultimateteams/) - Adds the player's team prefix and team name colour to their nametag.
 - [PacketEvents](https://spigotmc.org/resources/80279/) - Required for some modules and features. Alternative to **ProtocolLib**.
 - [ProtocolLib](https://spigotmc.org/resources/1997/) - Required for some modules and features. Alternative to **PacketEvents**.
 - [PlaceholderAPI](https://spigotmc.org/resources/6245/) - For [global placeholders](https://nightexpressdev.com/sunlight/integrations/papi/) to use in other plugins.

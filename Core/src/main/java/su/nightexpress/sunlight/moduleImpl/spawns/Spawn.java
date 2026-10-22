@@ -13,6 +13,7 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
 import su.nightexpress.sunlight.moduleImpl.spawns.config.SpawnsPerms;
 import su.nightexpress.sunlight.moduleImpl.spawns.model.SpawnRule;
+import su.nightexpress.sunlight.utils.PermissionUtils;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -130,7 +131,7 @@ public class Spawn implements PlaceholderResolvable {
         if (!this.isPermissionRequired())
             return true;
 
-        return SpawnsPerms.SPAWN.hasChildAccess(player, this.getId());
+        return PermissionUtils.hasChildAccess(player, SpawnsPerms.SPAWN, this.getId());
     }
 
     public boolean isWorld(World world) {

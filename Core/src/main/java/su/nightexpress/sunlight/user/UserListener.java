@@ -21,19 +21,27 @@ public class UserListener extends AbstractListener<SunLightPlugin> {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        SunUser user = this.manager.getOrFetch(player);
-
-        user.setFirstTimeJoined(false);
-        user.setLastOnline(System.currentTimeMillis());
+        try {
+            SunUser user = this.manager.getOrFetch(player);
+            user.setFirstTimeJoined(false);
+            user.setLastOnline(System.currentTimeMillis());
+            user.markDirty();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     @EventHandler(priority = EventPriority.LOW)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        SunUser user = this.manager.getOrFetch(player);
-        SLUtils.getInetAddress(player).ifPresent(address -> {
-            user.setLatestAddress(address);
-            user.markDirty();
-        });
+        try {
+            SunUser user = this.manager.getOrFetch(player);
+            SLUtils.getInetAddress(player).ifPresent(address -> {
+                user.setLatestAddress(address);
+                user.markDirty();
+            });
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 }

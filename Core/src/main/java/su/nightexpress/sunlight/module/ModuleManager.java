@@ -34,16 +34,47 @@ public class ModuleManager {
   }
 
   public void clear() {
-    for (final Module module : this.byType.values()) {
-      module.shutdown();
+    for (final Module module : new ArrayList<>(this.byType.values())) {
+      try {
+        module.shutdown();
+      } catch (final Exception exception) {
+        this.plugin.error("Error while shutting down module '%s': %s".formatted(module.getId(), exception.getMessage()));
+        exception.printStackTrace();
+      }
     }
     this.byId.clear();
     this.byType.clear();
   }
 
   public void reload() {
-    for (final Module module : this.byType.values()) {
+    for (final Module module : new ArrayList<>(this.byType.values())) {
+      try {
+        module.shutdown();
+      } catch (final Exception exception) {
+        this.plugin.error("Error while shutting down module '%s' for reload: %s".formatted(module.getId(), exception.getMessage()));
+      }
+      try {
+        module.setup();
+      } catch (final Exception exception) {
+        this.plugin.error("Error while reloading module '%s': %s".formatted(module.getId(), exception.getMessage()));
+      }
+    }
+  }
+
+  public boolean reloadSingle(final String id) {
+    final Module module = this.getById(id);
+    if (module == null) return false;
+    try {
+      module.shutdown();
+    } catch (final Exception exception) {
+      this.plugin.error("Error while shutting down module '%s': %s".formatted(id, exception.getMessage()));
+    }
+    try {
       module.setup();
+      return true;
+    } catch (final Exception exception) {
+      this.plugin.error("Error while reloading module '%s': %s".formatted(id, exception.getMessage()));
+      return false;
     }
   }
 
@@ -114,9 +145,17 @@ public class ModuleManager {
         this.plugin
             .error(
                 "Fatal error when trying to load module '%s': %s".formatted(definition.id(), exception.getMessage()));
+      } catch (final RuntimeException exception) {
+        this.plugin.error(
+            "Unexpected error when trying to load module '%s': %s".formatted(definition.id(), exception.getMessage()));
+        exception.printStackTrace();
       }
     }
-    config.saveChanges();
+    try {
+      config.saveChanges();
+    } catch (final Exception exception) {
+      this.plugin.error("Could not save modules.yml: " + exception.getMessage());
+    }
   }
 
   private <T extends Module> boolean loadModule(final ModuleDefinition<T> definition)
@@ -127,23 +166,43 @@ public class ModuleManager {
       throw new ModuleLoadException("Module with such ID is already registered!");
     }
 
-    final LoadCondition condition = definition.condition().get();
+    final LoadCondition condition;
+    try {
+      condition = definition.condition().get();
+    } catch (final RuntimeException exception) {
+      throw new ModuleLoadException("Load condition check failed: " + exception.getMessage());
+    }
     if (!condition.isSuccess()) {
       this.plugin.error("Module '%s' can not be loaded: '%s'".formatted(
           definition.id(), condition.reason().orElse(null)));
       return false;
     }
 
-    final Module module = definition.factory().load(definition, this.plugin);
+    final Module module;
+    try {
+      module = definition.factory().load(definition, this.plugin);
+    } catch (final RuntimeException exception) {
+      throw new ModuleLoadException("Factory failed: " + exception.getMessage());
+    }
     if (isPresent(module.getClass())) {
-      throw new IllegalStateException("Module of such type is already registered!");
+      throw new ModuleLoadException("Module of such type is already registered!");
     }
 
     this.byId.put(module.getId(), module);
     this.byType.put(module.getClass(), module);
 
-    module.init();
-    module.setup();
+    try {
+      module.init();
+      module.setup();
+    } catch (final RuntimeException exception) {
+      this.byId.remove(module.getId());
+      this.byType.remove(module.getClass());
+      try {
+        module.shutdown();
+      } catch (final Exception ignored) {
+      }
+      throw new ModuleLoadException("Init/setup failed: " + exception.getMessage());
+    }
     return true;
   }
 

@@ -1,29 +1,27 @@
 package su.nightexpress.sunlight.moduleImpl.essential.command;
 
-import org.bukkit.inventory.Inventory;
-import org.bukkit.permissions.Permission;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
+import org.bukkit.command.CommandSender;
+import org.bukkit.inventory.Inventory;
+
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.locale.LangEntry;
 import su.nightexpress.nightcore.locale.entry.MessageLocale;
 import su.nightexpress.nightcore.locale.entry.TextLocale;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.nightcore.util.text.NightMessage;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialModule;
 import su.nightexpress.sunlight.moduleImpl.essential.EssentialPerms;
-import su.nightexpress.sunlight.moduleImpl.essential.EssentialSettings;
 
 import static su.nightexpress.nightcore.util.text.night.wrapper.TagWrappers.*;
 
-public class DisposalCommandProvider extends CommandProvider {
+public class DisposalCommandProvider extends CommandProvider<EssentialModule> {
 
-    private static final Permission PERMISSION = EssentialPerms.COMMAND.permission("disposal");
-    private static final Permission PERMISSION_OTHERS = EssentialPerms.COMMAND.permission("disposal.others");
+    private static final String PERMISSION = EssentialPerms.COMMAND + ".disposal";
+    private static final String PERMISSION_OTHERS = EssentialPerms.COMMAND + ".disposal.others";
 
     private static final TextLocale DESCRIPTION = LangEntry.builder("Command.Disposal.Desc").text(
             "Open Virtual Disposal.");
@@ -35,39 +33,41 @@ public class DisposalCommandProvider extends CommandProvider {
     private static final MessageLocale MESSAGE_NOTIFY = LangEntry.builder("Command.Disposal.Notify").chatMessage(
             GRAY.wrap("You have opened " + ORANGE.wrap("Virtual Disposal.")));
 
-    private final EssentialModule module;
-    private final EssentialSettings settings;
-
-    public DisposalCommandProvider(SunLightPlugin plugin, EssentialModule module, EssentialSettings settings) {
-        super(plugin);
-        this.module = module;
-        this.settings = settings;
+    public DisposalCommandProvider(final EssentialModule module) {
+        super(module, "disposal");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral("disposal", true, new String[] { "disposal", "trash" }, builder -> builder
-                .description(DESCRIPTION)
-                .permission(PERMISSION)
-                .withArguments(Arguments.playerName(CommandArguments.PLAYER).optional().permission(PERMISSION_OTHERS))
-                .withFlags(CommandArguments.FLAG_SILENT)
-                .executes(this::openDisposal));
+    public void setup() {
+        this.register("disposal", command -> command
+                .withFullDescription(DESCRIPTION.text())
+                .withPermission(PERMISSION)
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                .executes((sender, arguments) -> {
+                    return this.openDisposal(sender, arguments);
+                }));
     }
 
-    private boolean openDisposal(CommandContext context, ParsedArguments arguments) {
-        return this.runForOnlinePlayerOrSender(context, arguments, this.module, target -> {
-            Inventory inventory = plugin.getServer().createInventory(null, this.settings.disposalSize.get(),
-                    NightMessage.asLegacy(this.settings.disposalTitle.get()));
-            target.openInventory(inventory);
+    private int openDisposal(final CommandSender sender, final CommandArguments arguments) {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
 
-            if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                this.module.sendPrefixed(MESSAGE_NOTIFY, target);
+        return target.runAs(this.module, sender, PERMISSION_OTHERS, (user, player) -> {
+            final Inventory inventory = this.module.plugin().getServer().createInventory(null,
+                    this.module.settings().disposalSize.get(),
+                    NightMessage.asLegacy(this.module.settings().disposalTitle.get()));
+            player.openInventory(inventory);
+
+            if (!target.silent()) {
+                this.module.sendPrefixed(MESSAGE_NOTIFY, player);
             }
-            if (target != context.getSender()) {
-                this.module.sendPrefixed(MESSAGE_FEEDBACK, context.getSender(), builder -> builder.with(
-                        CommonPlaceholders.PLAYER.resolver(target)));
+            if (player != sender) {
+                this.module.sendPrefixed(MESSAGE_FEEDBACK, sender, builder -> builder.with(
+                        CommonPlaceholders.PLAYER.resolver(player)));
             }
-            return true;
         });
     }
 }

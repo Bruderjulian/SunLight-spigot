@@ -1,256 +1,458 @@
 package su.nightexpress.sunlight.moduleImpl.nametags;
 
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import su.nightexpress.nightcore.config.FileConfig;
-import su.nightexpress.nightcore.util.Players;
-import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
-import su.nightexpress.nightcore.util.placeholder.PlaceholderContext;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
 import su.nightexpress.sunlight.api.provider.NametagsProvider;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.exception.ModuleLoadException;
 import su.nightexpress.sunlight.hook.HookId;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.nametags.command.NametagsCommandProvider;
+import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang;
 import su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsPerms;
-import su.nightexpress.sunlight.moduleImpl.nametags.event.PlayerNametagChangeEvent;
-import su.nightexpress.sunlight.moduleImpl.nametags.handler.NametagPacketHandler;
-import su.nightexpress.sunlight.moduleImpl.nametags.handler.NametagPacketsHandler;
-import su.nightexpress.sunlight.moduleImpl.nametags.handler.NametagProtocolHandler;
-import su.nightexpress.sunlight.moduleImpl.nametags.listener.NametagsListener;
+import su.nightexpress.sunlight.moduleImpl.nametags.event.PlayerTagChangeEvent;
+import su.nightexpress.sunlight.moduleImpl.nametags.event.PlayerTagPurchaseEvent;
+import su.nightexpress.sunlight.moduleImpl.nametags.hook.GroupSource;
+import su.nightexpress.sunlight.moduleImpl.nametags.hook.LuckPermsGroupSource;
+import su.nightexpress.sunlight.moduleImpl.nametags.hook.PermissionGroupSource;
+import su.nightexpress.sunlight.moduleImpl.nametags.hook.TeamSource;
+import su.nightexpress.sunlight.moduleImpl.nametags.hook.UltimateTeamsSource;
+import su.nightexpress.sunlight.moduleImpl.nametags.menu.AdminMainMenu;
+import su.nightexpress.sunlight.moduleImpl.nametags.menu.ProfilesMenu;
 import su.nightexpress.sunlight.moduleImpl.nametags.menu.TagsMenu;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagRule;
-import su.nightexpress.sunlight.moduleImpl.nametags.model.NametagTag;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.NameplateVisibility;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.Profile;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.PurchaseResult;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.RankDefinition;
+import su.nightexpress.sunlight.moduleImpl.nametags.model.TagDefinition;
+import su.nightexpress.sunlight.moduleImpl.nametags.render.Nameplate;
+import su.nightexpress.sunlight.moduleImpl.nametags.render.TabNameTagBackend;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 import su.nightexpress.sunlight.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
+/**
+ * Owns the nametag feature and wires its collaborators together.
+ * <p>
+ * Requires TAB: it is the single renderer of nametags, and the module refuses
+ * to load without it rather than silently falling back to packet teams that
+ * would then fight TAB for control of the same scoreboard.
+ */
 public class NametagsModule extends Module implements NametagsProvider {
 
     private final NametagsSettings settings;
-    private final Map<UUID, NametagState> states;
-    private final Set<UUID> tablistManaged;
-
-    private NametagPacketHandler packetHandler;
+    private NametagsCatalog catalog;
+    private AccessService access;
+    private NameplateService nameplates;
+    private TabNameTagBackend backend;
     private TagsMenu menu;
+
+    private GroupSource groupSource;
+    private TeamSource teamSource;
+
+    /** Placeholder payload meaning "give me the raw id, not the display name". */
+    private static final String PAYLOAD_ID = "id";
+    /** Placeholder payload meaning "give me the display name, not the raw id". */
+    private static final String PAYLOAD_DISPLAY = "display";
 
     public NametagsModule(ModuleDefinition<NametagsModule> definition, SunLightPlugin plugin) {
         super(definition, plugin);
         this.settings = new NametagsSettings();
-        this.states = new ConcurrentHashMap<>();
-        this.tablistManaged = ConcurrentHashMap.newKeySet();
     }
 
     @Override
     protected void loadModule(FileConfig config) throws ModuleLoadException {
         this.settings.load(config);
-        this.plugin.injectLang(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.class);
-        UserPropertyRegistry.register(NametagProperties.TAG_SELECTED);
-        UserPropertyRegistry.register(NametagProperties.RANK_ENABLED);
-        UserPropertyRegistry.register(NametagProperties.TAG_ENABLED);
 
-        if (Utils.isInstalled(HookId.PACKET_EVENTS)) {
-            this.packetHandler = new NametagPacketsHandler(this.plugin);
-        } else if (Utils.isInstalled(HookId.PROTOCOL_LIB)) {
-            this.packetHandler = new NametagProtocolHandler(this.plugin);
-        } else {
-            throw new ModuleLoadException("No packet library installed. Install packetevents or ProtocolLib.");
-        }
+        this.plugin.injectLang(NametagsLang.class);
+
+        UserPropertyRegistry.register(NametagsProperties.PROFILE);
+        UserPropertyRegistry.register(NametagsProperties.RANK);
+        UserPropertyRegistry.register(NametagsProperties.TAG);
+        UserPropertyRegistry.register(NametagsProperties.GRANTS);
+        UserPropertyRegistry.register(NametagsProperties.VISIBILITY);
+
+        this.catalog = new NametagsCatalog(this.settings);
+        this.catalog.reload();
+
+        this.access = new AccessService(this.userManager);
+
+        this.backend = new TabNameTagBackend(this.plugin,
+                this::placeholderPrefix,
+                this::placeholderSuffix,
+                this::placeholderName);
+        this.backend.registerPlaceholders();
+
+        this.nameplates = new NameplateService(this, this.settings, this.catalog, this.access,
+                this.userManager, this.backend, null, null, this::resolveGlowColor);
+        this.refreshSources();
+
+        this.addListener(new NametagsListener(this.plugin, this));
+        this.addTask(this.nameplates::recomputeAll, this.settings.getUpdateInterval());
+        this.addTask(this::sweepExpired, this.settings.getExpiryCheckInterval());
 
         this.menu = new TagsMenu(this.plugin, this);
         this.menu.load(this.plugin, FileConfig.load(this.getLocalUIPath(), "tags.yml"));
 
-        this.addListener(new NametagsListener(this.plugin, this));
-        this.addTask(this::refresh, this.settings.getUpdateInterval());
+        this.plugin.runTask(() -> {
+            this.nameplates.recomputeAll();
+            this.logRenderBackend();
+        });
 
-        this.plugin.runTask(() -> Utils.onlinePlayers().forEach(player -> {
-            this.applyNametag(player);
-            this.sendAllTagsTo(player);
-        }));
+        this.commandRegistry.addProvider(new NametagsCommandProvider(this));
+    }
+
+    /**
+     * Says where the nameplates end up, because the two supported layouts need
+     * different
+     * setup and the module is otherwise silent about which one it took.
+     */
+    private void logRenderBackend() {
+        if (HookId.hasTAB()) {
+            this.plugin.debug("Nametags module ready (TAB backend active).");
+            return;
+        }
+
+        // TAB is on the proxy. TabNameTagBackend's TAB API calls all no-op here, so
+        // nothing is pushed directly; the values reach the proxy as PlaceholderAPI
+        // placeholders that TAB-Bridge forwards on request.
+        this.info("TAB is not installed on this server, so nameplates are delivered to it as "
+                + "PlaceholderAPI placeholders. Set tagprefix and tagsuffix to these in TAB's groups.yml "
+                + "and users.yml on the proxy, otherwise ranks and tags are not rendered:");
+        this.info("  tagprefix: " + papi(TabNameTagBackend.PREFIX_PLACEHOLDER));
+        this.info("  tagsuffix: " + papi(TabNameTagBackend.SUFFIX_PLACEHOLDER));
+    }
+
+    /**
+     * Rewrites one of TAB's own placeholder identifiers into its PlaceholderAPI
+     * form, which is
+     * what TAB-Bridge resolves on the backend. The two agree on the tail because
+     * the
+     * PlaceholderAPI expansion is named after this plugin.
+     */
+    private static @NotNull String papi(@NotNull String tabPlaceholder) {
+        return "%papi_" + tabPlaceholder.substring(1, tabPlaceholder.length() - 1) + "%";
     }
 
     @Override
     protected void unloadModule() {
-        this.clearVisuals();
-        this.packetHandler = null;
+        if (this.nameplates != null) {
+            this.nameplates.clear();
+        }
+        if (this.backend != null) {
+            this.backend.unregisterPlaceholders();
+        }
+        if (this.teamSource != null) {
+            this.teamSource.shutdown();
+        }
+        if (this.groupSource != null) {
+            this.groupSource.shutdown();
+        }
+        this.nameplates = null;
+        this.backend = null;
         this.menu = null;
+        this.teamSource = null;
+        this.groupSource = null;
     }
 
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(NametagsPerms.MODULE);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("nametags", new NametagsCommandProvider(this.plugin, this, this.userManager), this);
-    }
-
+    /**
+     * {@link PlaceholderRegistry} strips trailing underscore segments until it
+     * finds a registered key, so {@code nametags_tag_id} resolves to the
+     * {@code nametags_tag} handler with the payload {@code "id"} rather than to a
+     * key of its own. A new key is therefore either unique, or a suffix of an
+     * existing one and must be handled by its parent. That is why the tag, rank and
+     * profile handlers below look at the payload.
+     */
     @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
-        registry.register("nametags_prefix", (player, payload) -> {
-            return this.applyPlaceholders(player, this.computePrefix(player));
-        });
+        NameplateService nameplates = this.nameplates;
 
-        registry.register("nametags_suffix", (player, payload) -> {
-            return this.applyPlaceholders(player, this.computeSuffix(player));
-        });
-
-        registry.register("nametags_color", (player, payload) -> {
-            String color = this.computeColor(player);
-            return color == null ? "white" : color;
-        });
+        registry.register("nametags_prefix", (player, payload) -> nameplates.getPrefixFor(player.getUniqueId()));
+        registry.register("nametags_suffix", (player, payload) -> nameplates.getSuffixFor(player.getUniqueId()));
+        registry.register("nametags_color",
+                (player, payload) -> nameplates.getLastComposed(player.getUniqueId()).color());
+        registry.register("nametags_glow",
+                (player, payload) -> nameplates.getLastComposed(player.getUniqueId()).glow());
+        registry.register("nametags_formatted_name", (player, payload) -> this.formattedName(player));
+        registry.register("nametags_team", (player, payload) -> this.teamDisplay(player));
 
         registry.register("nametags_tag", (player, payload) -> {
-            NametagTag tag = this.getSelectedTag(player);
-            return tag == null || !this.hasTagPartEnabled(player) ? "" : tag.getDisplay();
+            TagDefinition tag = this.getSelectedTag(player);
+            if (tag == null)
+                return "";
+            return PAYLOAD_ID.equals(payload) ? tag.getId() : tag.getDisplay();
         });
+        registry.register("nametags_rank", (player, payload) -> {
+            String id = this.getSelectedRankId(player);
+            if (id == null || id.isEmpty())
+                return "";
+            // The bare key has always meant the id, so it is left alone for compatibility.
+            return PAYLOAD_DISPLAY.equals(payload) ? this.rankDisplay(id) : id;
+        });
+        registry.register("nametags_profile", (player, payload) -> {
+            Profile profile = this.getSelectedProfile(player);
+            if (profile == null)
+                return "";
+            return PAYLOAD_ID.equals(payload) ? profile.getId() : profile.getDisplay();
+        });
+
+        registry.register("nametags_show_all", (player, payload) -> String.valueOf(this.isNameplateVisible(player)));
+        registry.register("nametags_show_rank", (player, payload) -> String.valueOf(this.isRankVisible(player)));
+        registry.register("nametags_show_tag", (player, payload) -> String.valueOf(this.isTagVisible(player)));
+        registry.register("nametags_show_team", (player, payload) -> String.valueOf(this.isTeamVisible(player)));
+        // A profile is a source rather than a rendered part, so this reports the
+        // explicit
+        // choice and whether it is currently being rendered at all.
+        registry.register("nametags_show_profile", (player, payload) -> String
+                .valueOf(this.isNameplateVisible(player) && this.getSelectedProfile(player) != null));
+    }
+
+    /**
+     * Prefix, name and suffix as one string. The prefix already ends in the winning
+     * colourcode, so the name renders coloured, which is what makes this usable on
+     * a tab list.
+     */
+    private @NotNull String formattedName(@NotNull Player player) {
+        Nameplate nameplate = this.nameplates.getLastComposed(player.getUniqueId());
+        return nameplate.prefix() + player.getName() + nameplate.suffix();
+    }
+
+    /** The resolved team prefix, or the team display name when there is one. */
+    private @NotNull String teamDisplay(@NotNull Player player) {
+        return this.nameplates.getLastTeam(player.getUniqueId()).display();
+    }
+
+    private @NotNull String rankDisplay(@NotNull String rankId) {
+        RankDefinition rank = this.catalog.getRank(rankId);
+        return rank == null ? rankId : rank.getDisplay();
     }
 
     // -----------------------------------------------------
-    // Configuration / model accessors
+    // Sources
+    // -----------------------------------------------------
+
+    private @NotNull GroupSource resolveGroupSource() {
+        if (this.groupSource != null)
+            return this.groupSource;
+
+        if (this.settings.isUseLuckPerms()) {
+            LuckPermsGroupSource luckPerms = new LuckPermsGroupSource(this.plugin);
+            if (luckPerms.isAvailable()) {
+                this.groupSource = luckPerms;
+                this.plugin.debug("Ranks resolved from LuckPerms.");
+                return this.groupSource;
+            }
+        }
+
+        this.groupSource = new PermissionGroupSource();
+        this.plugin.debug("LuckPerms unavailable, falling back to permission groups.");
+        return this.groupSource;
+    }
+
+    private @Nullable TeamSource resolveTeamSource() {
+        if (this.teamSource != null)
+            return this.teamSource;
+        if (!this.settings.isUseUltimateTeams())
+            return null;
+
+        UltimateTeamsSource source = new UltimateTeamsSource(this.plugin);
+        if (source.isAvailable()) {
+            this.plugin.debug("UltimateTeams team prefixes enabled.");
+            this.teamSource = source;
+            return this.teamSource;
+        }
+        return null;
+    }
+
+    /**
+     * Discards the current hook sources and re-resolves them from the settings, so
+     * toggling a hook in the config takes effect on reload. Every source is cached,
+     * because its cache and its listeners must be the same instance the nameplate
+     * service reads through.
+     */
+    private void refreshSources() {
+        if (this.groupSource != null) {
+            this.groupSource.shutdown();
+            this.groupSource = null;
+        }
+        if (this.teamSource != null) {
+            this.teamSource.shutdown();
+            this.teamSource = null;
+        }
+        if (this.nameplates == null)
+            return;
+
+        GroupSource groupSource = this.resolveGroupSource();
+        TeamSource teamSource = this.resolveTeamSource();
+
+        this.nameplates.setSources(groupSource, teamSource);
+        groupSource.registerListeners(this.nameplates::recomputeAll);
+        if (teamSource != null)
+            teamSource.registerListeners(this.nameplates::recomputeAll);
+    }
+
+    /**
+     * Resolves the player's active glow colour through the API provider, so the
+     * nametags module never compiles against the glow implementation.
+     * <p>
+     * Resolved per call rather than bound once, because module load order is not
+     * guaranteed and the glow module may be disabled entirely.
+     */
+    private @Nullable String resolveGlowColor(@NotNull Player player) {
+        if (!this.settings.isResolveGlowColor())
+            return null;
+
+        return this.plugin.glowProvider()
+                .map(provider -> provider.getGlowColor(player))
+                .orElse(null);
+    }
+
+    // -----------------------------------------------------
+    // TAB placeholder suppliers
+    // -----------------------------------------------------
+
+    private @NotNull String placeholderPrefix(@NotNull java.util.UUID playerId) {
+        return this.nameplates == null ? "" : this.nameplates.getPrefixFor(playerId);
+    }
+
+    private @NotNull String placeholderSuffix(@NotNull java.util.UUID playerId) {
+        return this.nameplates == null ? "" : this.nameplates.getSuffixFor(playerId);
+    }
+
+    /**
+     * Feeds TAB's formatted-name placeholder. TAB hands us the player name
+     * alongside the UUID, so no Bukkit lookup is needed on whatever thread it
+     * refreshes on.
+     */
+    private @NotNull String placeholderName(@NotNull java.util.UUID playerId, @NotNull String playerName) {
+        if (this.nameplates == null)
+            return "";
+
+        Nameplate nameplate = this.nameplates.getLastComposed(playerId);
+        return nameplate.prefix() + playerName + nameplate.suffix();
+    }
+
+    private void sweepExpired() {
+        if (this.access == null)
+            return;
+
+        long now = System.currentTimeMillis();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            SunUser user = this.userManager.getOrFetch(player);
+            Set<String> expired = this.access.sweepExpired(user, now);
+            if (expired.isEmpty())
+                continue;
+
+            this.notifyExpired(player, expired);
+            this.nameplates.recompute(player);
+        }
+    }
+
+    private void notifyExpired(@NotNull Player player, @NotNull Set<String> tagIds) {
+        for (String tagId : tagIds) {
+            TagDefinition tag = this.catalog.getTag(tagId);
+            // A tag deleted from the config can still have a stale grant, so fall back to
+            // the id.
+            String name = tag == null ? tagId : tag.getDisplay();
+            this.sendPrefixed(NametagsLang.COMMAND_TAG_EXPIRED, player,
+                    replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, () -> name));
+        }
+    }
+
+    /**
+     * Re-reads the settings file, re-resolves the hook sources and recomputes every
+     * player.
+     */
+    public void reload() {
+        this.settings.load(this.getConfig());
+        this.catalog.reload();
+        this.refreshSources();
+        this.nameplates.clear();
+        this.nameplates.recomputeAll();
+    }
+
+    /**
+     * Persists the in-memory catalog to settings.yml and recomputes every player.
+     * Called by the admin GUI after each edit so changes survive a restart.
+     */
+    public void saveCatalog() {
+        FileConfig config = this.getConfig();
+        this.settings.save(config, this.catalog.getRanksById(), this.catalog.getTagsById(),
+                this.catalog.getProfilesById());
+        config.saveChanges();
+
+        this.settings.load(config);
+        this.catalog.reload();
+        this.nameplates.clear();
+        this.nameplates.recomputeAll();
+    }
+
+    // -----------------------------------------------------
+    // API
     // -----------------------------------------------------
 
     public NametagsSettings getSettings() {
         return this.settings;
     }
 
-    public Map<String, NametagTag> getTags() {
-        return this.settings.getTags();
+    public NametagsCatalog getCatalog() {
+        return this.catalog;
     }
 
-    public Map<String, NametagRule> getRules() {
-        return this.settings.getRules();
+    public AccessService getAccess() {
+        return this.access;
     }
 
-    public @Nullable NametagTag getTag(@Nullable String tagId) {
-        if (tagId == null || tagId.isBlank())
-            return null;
-        return this.settings.getTags().get(Utils.lowercase(tagId));
+    public NameplateService getNameplates() {
+        return this.nameplates;
     }
 
-    public @Nullable NametagRule getRankRule(@NotNull Player player) {
-        return this.settings.getRules().values().stream()
-            .filter(rule -> rule.isRankAvailable(player))
-            .max(Comparator.comparingInt(NametagRule::getPriority))
-            .orElse(null);
+    public void openTagsMenu(@NotNull Player player) {
+        if (this.menu == null) {
+            this.sendPrefixed(NametagsLang.ERROR_MENU_UNAVAILABLE, player);
+            return;
+        }
+        this.menu.open(player);
     }
 
-    // -----------------------------------------------------
-    // Nametag composition
-    // -----------------------------------------------------
-
-    public boolean hasRankPartEnabled(@NotNull Player player) {
-        return this.userOf(player).getPropertyOrDefault(NametagProperties.RANK_ENABLED);
+    public void openProfilesMenu(@NotNull Player player) {
+        new ProfilesMenu(this.plugin, this).open(player);
     }
 
-    public boolean hasTagPartEnabled(@NotNull Player player) {
-        return this.userOf(player).getPropertyOrDefault(NametagProperties.TAG_ENABLED);
-    }
-
-    public boolean hasRankPartEnabled(@NotNull SunUser user) {
-        return user.getPropertyOrDefault(NametagProperties.RANK_ENABLED);
-    }
-
-    public boolean hasTagPartEnabled(@NotNull SunUser user) {
-        return user.getPropertyOrDefault(NametagProperties.TAG_ENABLED);
+    public void openAdminMenu(@NotNull Player player) {
+        new AdminMainMenu(this.plugin, this).open(player);
     }
 
     /**
-     * Primary getter of the combined rank+tag prefix (before placeholder
-     * resolution).
+     * Buys or subscribes to a tag on the player's behalf, firing
+     * {@link PlayerTagPurchaseEvent} on success.
+     *
+     * @return {@link PurchaseResult#SUCCESS} or the reason the purchase was refused
      */
-    public @NotNull String computePrefix(@NotNull Player player) {
-        StringBuilder sb = new StringBuilder();
-        if (this.hasRankPartEnabled(player)) {
-            NametagRule rule = this.getRankRule(player);
-            if (rule != null)
-                sb.append(rule.getPrefix());
+    public @NotNull PurchaseResult purchaseTag(@NotNull Player player,
+            @NotNull TagDefinition tag) {
+        PurchaseResult result = this.access.purchase(player, tag);
+        if (!result.isSuccess())
+            return result;
+
+        boolean bypassCost = EconomyUtils.hasBypass(player, NametagsPerms.BYPASS_COST);
+
+        var grant = this.access.getGrant(this.userManager.getOrFetch(player), tag.getId());
+        if (grant != null) {
+            this.plugin.getPluginManager().callEvent(new PlayerTagPurchaseEvent(player, tag,
+                    (bypassCost || !tag.hasPrice()) ? 0D : tag.getPrice(), grant.getExpiresAt()));
         }
-        if (this.hasTagPartEnabled(player)) {
-            NametagTag tag = this.getSelectedTag(player);
-            if (tag != null)
-                sb.append(tag.getPrefix());
-        }
-        return sb.toString();
-    }
-
-    public @NotNull String computeSuffix(@NotNull Player player) {
-        StringBuilder sb = new StringBuilder();
-        if (this.hasTagPartEnabled(player)) {
-            NametagTag tag = this.getSelectedTag(player);
-            if (tag != null)
-                sb.append(tag.getSuffix());
-        }
-        if (this.hasRankPartEnabled(player)) {
-            NametagRule rule = this.getRankRule(player);
-            if (rule != null)
-                sb.append(rule.getSuffix());
-        }
-        return sb.toString();
-    }
-
-    /**
-     * Returns the effective nametag color, or {@code null} when none set.
-     */
-    public @Nullable String computeColor(@NotNull Player player) {
-        NametagTag tag = this.hasTagPartEnabled(player) ? this.getSelectedTag(player) : null;
-        String tagColor = tag == null ? null : tag.getColor();
-        String rankColor = this.hasRankPartEnabled(player) ? this.rankColorOf(player) : null;
-
-        if (this.settings.isTagColorOverridesRank())
-            return this.firstNonBlank(tagColor, rankColor);
-        return this.firstNonBlank(rankColor, tagColor);
-    }
-
-    private @Nullable String rankColorOf(@NotNull Player player) {
-        NametagRule rule = this.getRankRule(player);
-        return rule == null ? null : rule.getColor();
-    }
-
-    private @Nullable String firstNonBlank(@Nullable String primary, @Nullable String fallback) {
-        if (primary != null && !primary.isBlank())
-            return primary;
-        if (fallback != null && !fallback.isBlank())
-            return fallback;
-        return null;
-    }
-
-    // -----------------------------------------------------
-    // Tag selection
-    // -----------------------------------------------------
-
-    public boolean isTagAccessible(@NotNull Player player, @NotNull NametagTag tag) {
-        if (!NametagsPerms.hasTagAccess(player, tag.getId()))
-            return false;
-        String permission = tag.getPermission();
-        return permission == null || permission.isBlank() || player.hasPermission(permission);
-    }
-
-    public @Nullable NametagTag getSelectedTag(@NotNull Player player) {
-        SunUser user = this.userOf(player);
-        String tagId = user.getPropertyOrDefault(NametagProperties.TAG_SELECTED);
-        if (tagId == null || tagId.isBlank())
-            return null;
-        return this.settings.getTags().get(Utils.lowercase(tagId));
+        return result;
     }
 
     @Override
@@ -260,383 +462,214 @@ public class NametagsModule extends Module implements NametagsProvider {
 
     @Override
     public @Nullable String getSelectedTagId(@NotNull Player player) {
-        NametagTag tag = this.getSelectedTag(player);
+        TagDefinition tag = this.getSelectedTag(player);
         return tag == null ? null : tag.getId();
     }
 
     @Override
     public boolean selectTag(@NotNull Player player, @Nullable String tagId) {
-        SunUser user = this.userOf(player);
-        return this.selectTag(user, player, tagId);
+        return this.selectTag(this.userManager.getOrFetch(player), tagId);
     }
 
-    public boolean selectTag(@NotNull SunUser user, @NotNull Player player, @Nullable String tagId) {
-        if (tagId == null || tagId.isBlank() || "none".equalsIgnoreCase(tagId)) {
-            return this.clearTag(user, player);
-        }
-
-        String normalizedId = Utils.lowercase(tagId);
-        NametagTag tag = this.settings.getTags().get(normalizedId);
-        if (tag == null) {
-            this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.COMMAND_TAG_ERROR_INVALID,
-                    player, replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, () -> normalizedId));
+    public boolean selectTag(@NotNull SunUser user, @Nullable String tagId) {
+        Player target = user.player().orElse(null);
+        String id = tagId == null || tagId.isBlank() ? null : Utils.lowercase(tagId);
+        if (id != null && !this.catalog.hasTag(id))
             return false;
-        }
 
-        return this.changeTag(user, player, tag, false);
-    }
-
-    private boolean changeTag(@NotNull SunUser user, @NotNull Player player, @NotNull NametagTag requestedTag,
-            boolean bypassChecks) {
-        if (!bypassChecks && !this.validateTagSelection(player, requestedTag)) {
-            return false;
-        }
-
-        String oldTagId = user.getPropertyOrDefault(NametagProperties.TAG_SELECTED);
-        if (oldTagId != null && oldTagId.equalsIgnoreCase(requestedTag.getId())) {
-            return true;
-        }
-
-        PlayerNametagChangeEvent event = new PlayerNametagChangeEvent(player, oldTagId, requestedTag.getId());
-        this.plugin.getPluginManager().callEvent(event);
-        if (event.isCancelled()) {
-            return false;
-        }
-
-        String newTagId = event.getNewTagId();
-        if (newTagId == null || newTagId.isBlank()) {
-            return this.clearTag(user, player, false);
-        }
-
-        NametagTag effective = this.settings.getTags().get(Utils.lowercase(newTagId));
-        if (effective == null) {
-            return false;
-        }
-
-        if (!bypassChecks && !effective.getId().equals(requestedTag.getId())
-                && !this.validateTagSelection(player, effective)) {
-            return false;
-        }
-
-        if (!bypassChecks && effective.hasCost() && !EconomyUtils.hasBypass(player, this)) {
-            EconomyUtils.withdraw(player, effective.getCost());
-        }
-
-        user.setProperty(NametagProperties.TAG_SELECTED, effective.getId());
-        user.markDirty();
-
-        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.COMMAND_TAG_SELECTED, player,
-                replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, effective::getDisplay));
-        this.applyNametag(player);
-        return true;
-    }
-
-    private boolean validateTagSelection(@NotNull Player player, @NotNull NametagTag tag) {
-        if (!this.isTagAccessible(player, tag)) {
-            this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.COMMAND_TAG_ERROR_NO_ACCESS,
-                    player, replacer -> replacer.with(SLPlaceholders.GENERIC_NAME, tag::getDisplay));
-            return false;
-        }
-
-        if (tag.hasCost() && !EconomyUtils.hasBypass(player, this) && !EconomyUtils.canAfford(player, tag.getCost())) {
-            this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.COMMAND_TAG_ERROR_NO_EQUITY,
-                    player, replacer -> replacer
-                        .with(SLPlaceholders.GENERIC_NAME, tag::getDisplay)
-                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(tag.getCost())));
-            return false;
-        }
-
-        return true;
-    }
-
-    public boolean setTag(@NotNull SunUser user, @NotNull Player player, @Nullable String tagId) {
-        if (tagId == null || tagId.isBlank() || "none".equalsIgnoreCase(tagId)) {
-            String oldTagId = user.getPropertyOrDefault(NametagProperties.TAG_SELECTED);
-            return oldTagId == null || oldTagId.isBlank() || this.clearTag(user, player);
-        }
-
-        String normalizedId = Utils.lowercase(tagId);
-        NametagTag tag = this.settings.getTags().get(normalizedId);
-        return tag != null && this.changeTag(user, player, tag, true);
-    }
-
-    public boolean clearTag(@NotNull SunUser user, @NotNull Player player) {
-        return this.clearTag(user, player, true);
-    }
-
-    private boolean clearTag(@NotNull SunUser user, @NotNull Player player, boolean fireEvent) {
-        String oldTagId = user.getPropertyOrDefault(NametagProperties.TAG_SELECTED);
-        if (oldTagId == null || oldTagId.isBlank()) {
-            return false;
-        }
-
-        if (fireEvent) {
-            PlayerNametagChangeEvent event = new PlayerNametagChangeEvent(player, oldTagId, null);
-            this.plugin.getPluginManager().callEvent(event);
-            if (event.isCancelled()) {
-                return false;
-            }
-        }
-
-        user.removeProperty(NametagProperties.TAG_SELECTED);
-        user.markDirty();
-
-        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.COMMAND_TAG_CLEARED, player);
-        this.applyNametag(player);
-        return true;
-    }
-
-    public void setRankEnabled(@NotNull Player player, boolean enabled) {
-        SunUser user = this.userOf(player);
-        user.setProperty(NametagProperties.RANK_ENABLED, enabled);
-        user.markDirty();
-
-        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.NAMETAG_RANK_CHANGED, player,
-                replacer -> replacer.with(SLPlaceholders.GENERIC_STATE,
-                        () -> su.nightexpress.nightcore.core.config.CoreLang.STATE_ON_OFF.get(enabled)));
-        this.applyNametag(player);
-    }
-
-    public void setTagEnabled(@NotNull Player player, boolean enabled) {
-        SunUser user = this.userOf(player);
-        user.setProperty(NametagProperties.TAG_ENABLED, enabled);
-        user.markDirty();
-
-        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.NAMETAG_TAG_CHANGED, player,
-                replacer -> replacer.with(SLPlaceholders.GENERIC_STATE,
-                        () -> su.nightexpress.nightcore.core.config.CoreLang.STATE_ON_OFF.get(enabled)));
-        this.applyNametag(player);
-    }
-
-    // -----------------------------------------------------
-    // Rendering
-    // -----------------------------------------------------
-
-    public void applyNametag(@NotNull Player target) {
-        if (this.packetHandler == null)
-            return;
-
-        List<Player> viewers = snapshotViewersOf(target);
-        String prefix = this.applyPlaceholders(target, this.computePrefix(target));
-        String suffix = this.applyPlaceholders(target, this.computeSuffix(target));
-        String colorRaw = this.computeColor(target);
-
-        NametagState state = this.states.get(target.getUniqueId());
-        if (prefix.isEmpty() && suffix.isEmpty() && colorRaw == null) {
-            this.removeNametag(target);
-            return;
-        }
-
-        NamedTextColor color = NamedTextColor.NAMES.valueOr(colorRaw == null ? "white" : colorRaw, NamedTextColor.WHITE);
-
-        if (state != null && state.matches(prefix, suffix, color)) {
-            return;
-        }
-
-        if (state == null) {
-            state = new NametagState();
-            this.states.put(target.getUniqueId(), state);
-        }
-        state.update(prefix, suffix, color);
-        this.packetHandler.applyTeam(target, prefix, suffix, color, viewers);
-        this.updateTablist(target);
-    }
-
-    public void removeNametag(@NotNull Player target) {
-        NametagState state = this.states.remove(target.getUniqueId());
-        if (this.packetHandler != null && state != null) {
-            this.packetHandler.removeTeam(target, snapshotViewers());
-        }
-        this.updateTablist(target);
-    }
-
-    public void handleQuit(@NotNull Player player) {
-        NametagState state = this.states.remove(player.getUniqueId());
-        if (this.packetHandler != null && state != null) {
-            this.packetHandler.removeTeam(player, snapshotViewers());
-        }
-        this.tablistManaged.remove(player.getUniqueId());
-    }
-
-    public void handleWorldChange(@NotNull Player player, @NotNull World previousWorld) {
-        if (this.packetHandler != null) {
-            this.packetHandler.removeTeam(player, snapshotViewersInWorld(previousWorld));
-
-            World currentWorld = player.getWorld();
-            List<Player> viewer = List.of(player);
-            this.states.keySet().forEach(uuid -> {
-                if (uuid.equals(player.getUniqueId())) return;
-
-                Player target = Utils.getPlayer(uuid);
-                if (target == null || !target.isOnline() || target.getWorld().equals(currentWorld)) return;
-
-                this.packetHandler.removeTeam(target, viewer);
-            });
-        }
-
-        this.states.remove(player.getUniqueId());
-        this.applyNametag(player);
-        this.sendAllTagsTo(player);
-    }
-
-    /**
-     * (Re)sends all nametag teams to a viewer. Needed on join / world change, as
-     * team packets are client-side and a fresh client knows none of them.
-     */
-    public void sendAllTagsTo(@NotNull Player viewer) {
-        if (this.packetHandler == null || this.states.isEmpty())
-            return;
-
-        World world = viewer.getWorld();
-        List<Player> single = List.of(viewer);
-        this.states.forEach((uuid, state) -> {
-            if (uuid.equals(viewer.getUniqueId()))
-                return;
-            Player target = Utils.getPlayer(uuid);
-            if (target == null || !target.isOnline())
-                return;
-            if (!target.getWorld().equals(world))
-                return;
-            this.packetHandler.applyTeam(target, state.prefix, state.suffix, state.color, single);
-        });
-    }
-
-    private void refresh() {
-        if (this.packetHandler == null)
-            return;
-
-        List<Player> viewers = snapshotViewers();
-        if (viewers.isEmpty())
-            return;
-
-        this.states.entrySet().removeIf(entry -> {
-            UUID uuid = entry.getKey();
-            Player player = Utils.getPlayer(uuid);
-            if (player == null || !player.isOnline())
+        // Only online players can be observed by listeners, so offline edits skip the
+        // event.
+        if (target != null) {
+            String oldId = user.getPropertyOrDefault(NametagsProperties.TAG);
+            if (oldId != null && oldId.equals(id))
+                return true;
+            if (oldId == null && id == null)
                 return true;
 
-            this.applyNametag(player);
-            return false;
-        });
-    }
+            PlayerTagChangeEvent event = new PlayerTagChangeEvent(target,
+                    oldId == null || oldId.isBlank() ? null : oldId, id);
+            this.plugin.getPluginManager().callEvent(event);
+            if (event.isCancelled())
+                return false;
 
-    private void updateTablist(@NotNull Player player) {
-        if (!this.settings.isTablistEnabled()) {
-            this.restoreTablistIfManaged(player);
-            return;
-        }
-
-        if (this.plugin.nickProvider().map(provider -> provider.hasNickname(player)).orElse(false)) {
-            this.tablistManaged.remove(player.getUniqueId());
-            return;
-        }
-
-        String prefix = this.applyPlaceholders(player, this.computePrefix(player));
-        String suffix = this.applyPlaceholders(player, this.computeSuffix(player));
-        NametagState state = this.states.get(player.getUniqueId());
-
-        if (state == null) {
-            this.restoreTablistIfManaged(player);
-            return;
-        }
-
-        String combined = prefix + SLPlaceholders.PLAYER_NAME + suffix;
-        String name = PlaceholderContext.builder()
-            .with(CommonPlaceholders.PLAYER.resolver(player))
-            .andThen(SLPlaceholders.forPlaceholderAPI(player))
-            .build()
-            .apply(combined);
-        Players.setPlayerListName(player, name);
-        this.tablistManaged.add(player.getUniqueId());
-    }
-
-    private void restoreTablistIfManaged(@NotNull Player player) {
-        if (!this.tablistManaged.remove(player.getUniqueId())) return;
-        if (this.plugin.nickProvider().map(provider -> provider.hasNickname(player)).orElse(false)) return;
-
-        Players.setPlayerListName(player, player.getName());
-    }
-
-    private @NotNull String applyPlaceholders(@NotNull Player player, @NotNull String text) {
-        if (text.isEmpty())
-            return text;
-        return PlaceholderContext.builder()
-            .with(CommonPlaceholders.PLAYER.resolver(player))
-            .andThen(SLPlaceholders.forPlaceholderAPI(player))
-            .build()
-            .apply(text);
-    }
-
-    // -----------------------------------------------------
-    // Misc
-    // -----------------------------------------------------
-
-    public void openTagsMenu(@NotNull Player player) {
-        if (this.menu != null) {
-            this.menu.open(player);
-            return;
-        }
-        this.sendPrefixed(su.nightexpress.sunlight.moduleImpl.nametags.config.NametagsLang.ERROR_MENU_UNAVAILABLE, player);
-    }
-
-    public void reload() {
-        this.clearVisuals();
-        this.settings.load(this.getConfig());
-        Utils.onlinePlayers().forEach(player -> {
-            this.applyNametag(player);
-            this.sendAllTagsTo(player);
-        });
-    }
-
-    private void clearVisuals() {
-        if (this.packetHandler != null) {
-            List<Player> viewers = snapshotViewers();
-            this.states.keySet().forEach(uuid -> {
-                Player player = Utils.getPlayer(uuid);
-                if (player == null || !player.isOnline()) return;
-                this.packetHandler.removeTeam(player, viewers);
-            });
-        }
-
-        this.states.clear();
-        Utils.onlinePlayers().forEach(this::restoreTablistIfManaged);
-    }
-
-    private @NotNull SunUser userOf(@NotNull Player player) {
-        return this.userManager.getOrFetch(player);
-    }
-
-    private static @NotNull List<Player> snapshotViewers() {
-        return List.copyOf(Bukkit.getServer().getOnlinePlayers());
-    }
-
-    private static @NotNull List<Player> snapshotViewersOf(@NotNull Player target) {
-        return snapshotViewersInWorld(target.getWorld());
-    }
-
-    private static @NotNull List<Player> snapshotViewersInWorld(@NotNull World world) {
-        List<Player> viewers = new ArrayList<>();
-        for (Player viewer : Bukkit.getServer().getOnlinePlayers()) {
-            if (viewer.getWorld().equals(world)) {
-                viewers.add(viewer);
+            // A listener may rewrite the replacement, so re-validate before persisting it.
+            String replaced = event.getNewTag();
+            if (replaced == null || replaced.isBlank()) {
+                id = null;
+            } else {
+                id = Utils.lowercase(replaced);
+                if (!this.catalog.hasTag(id))
+                    return false;
             }
         }
-        return viewers;
+
+        if (id == null) {
+            user.removeProperty(NametagsProperties.TAG);
+        } else {
+            user.setProperty(NametagsProperties.TAG, id);
+        }
+        if (target != null)
+            this.nameplates.recompute(target);
+        return true;
     }
 
-    private static final class NametagState {
-        private String prefix = "";
-        private String suffix = "";
-        private NamedTextColor color = NamedTextColor.WHITE;
+    public @Nullable TagDefinition getSelectedTag(@NotNull Player player) {
+        SunUser user = this.userManager.getOrFetch(player);
+        return this.catalog.getTag(user.getPropertyOrDefault(NametagsProperties.TAG));
+    }
 
-        private boolean matches(String prefix, String suffix, NamedTextColor color) {
-            return this.prefix.equals(prefix) && this.suffix.equals(suffix) && this.color == color;
-        }
+    public @Nullable String getSelectedProfileId(@NotNull Player player) {
+        return this.userManager.getOrFetch(player).getPropertyOrDefault(NametagsProperties.PROFILE);
+    }
 
-        private void update(String prefix, String suffix, NamedTextColor color) {
-            this.prefix = prefix;
-            this.suffix = suffix;
-            this.color = color;
+    public boolean selectProfile(@NotNull Player player, @Nullable String profileId) {
+        SunUser user = this.userManager.getOrFetch(player);
+        if (profileId == null || profileId.isBlank()) {
+            user.removeProperty(NametagsProperties.PROFILE);
+            this.nameplates.recompute(player);
+            return true;
         }
+        String id = Utils.lowercase(profileId);
+        if (this.catalog.getProfile(id) == null)
+            return false;
+
+        user.setProperty(NametagsProperties.PROFILE, id);
+        this.nameplates.recompute(player);
+        return true;
+    }
+
+    public @Nullable Profile getSelectedProfile(@NotNull Player player) {
+        return this.catalog.getProfile(this.getSelectedProfileId(player));
+    }
+
+    public @Nullable String getSelectedRankId(@NotNull Player player) {
+        return this.userManager.getOrFetch(player).getPropertyOrDefault(NametagsProperties.RANK);
+    }
+
+    public boolean selectRank(@NotNull Player player, @Nullable String rankId) {
+        SunUser user = this.userManager.getOrFetch(player);
+        if (rankId == null || rankId.isBlank()) {
+            user.removeProperty(NametagsProperties.RANK);
+            this.nameplates.recompute(player);
+            return true;
+        }
+        String id = Utils.lowercase(rankId);
+        if (this.catalog.getRank(id) == null)
+            return false;
+
+        user.setProperty(NametagsProperties.RANK, id);
+        this.nameplates.recompute(player);
+        return true;
+    }
+
+    @Override
+    public boolean hasAccess(@NotNull Player player, @NotNull String tagId) {
+        TagDefinition tag = this.catalog.getTag(tagId);
+        return tag != null && this.access.hasAccess(player, tag);
+    }
+
+    @Override
+    public boolean grantTag(@NotNull Player player, @NotNull String tagId) {
+        TagDefinition tag = this.catalog.getTag(tagId);
+        if (tag == null)
+            return false;
+
+        SunUser user = this.userManager.getOrFetch(player);
+        boolean granted = this.access.grant(user, tag, System.currentTimeMillis());
+        if (granted)
+            this.nameplates.recompute(player);
+        return granted;
+    }
+
+    @Override
+    public boolean revokeTag(@NotNull Player player, @NotNull String tagId) {
+        SunUser user = this.userManager.getOrFetch(player);
+        boolean revoked = this.access.revoke(user, Utils.lowercase(tagId));
+        if (revoked)
+            this.nameplates.recompute(player);
+        return revoked;
+    }
+
+    @Override
+    public void recompute(@NotNull Player player) {
+        if (this.nameplates != null)
+            this.nameplates.recompute(player);
+    }
+
+    @Override
+    public void recomputeAll() {
+        if (this.nameplates != null)
+            this.nameplates.recomputeAll();
+    }
+
+    // -----------------------------------------------------
+    // Visibility
+    // -----------------------------------------------------
+
+    public @NotNull NameplateVisibility getVisibility(@NotNull Player player) {
+        return this.getVisibility(this.userManager.getOrFetch(player));
+    }
+
+    public @NotNull NameplateVisibility getVisibility(@NotNull SunUser user) {
+        NameplateVisibility visibility = user.getPropertyOrDefault(NametagsProperties.VISIBILITY);
+        return visibility == null ? NameplateVisibility.DEFAULT : visibility.normalize();
+    }
+
+    @Override
+    public boolean isRankVisible(@NotNull Player player) {
+        return this.getVisibility(player).wantsRank();
+    }
+
+    @Override
+    public boolean isTagVisible(@NotNull Player player) {
+        return this.getVisibility(player).wantsTag();
+    }
+
+    @Override
+    public boolean isTeamVisible(@NotNull Player player) {
+        return this.getVisibility(player).wantsTeam();
+    }
+
+    @Override
+    public boolean isNameplateVisible(@NotNull Player player) {
+        return this.getVisibility(player).showAll();
+    }
+
+    public void setVisibility(@NotNull Player player, @NotNull NameplateVisibility visibility) {
+        this.setVisibility(this.userManager.getOrFetch(player), visibility);
+    }
+
+    public void setVisibility(@NotNull SunUser user, @NotNull NameplateVisibility visibility) {
+        user.setProperty(NametagsProperties.VISIBILITY, visibility);
+        user.player().ifPresent(this.nameplates::recompute);
+    }
+
+    public @NotNull NameplateVisibility toggleRank(@NotNull Player player) {
+        return this.mutateVisibility(player, NameplateVisibility::toggleRank);
+    }
+
+    public @NotNull NameplateVisibility toggleTag(@NotNull Player player) {
+        return this.mutateVisibility(player, NameplateVisibility::toggleTag);
+    }
+
+    public @NotNull NameplateVisibility toggleTeam(@NotNull Player player) {
+        return this.mutateVisibility(player, NameplateVisibility::toggleTeam);
+    }
+
+    public @NotNull NameplateVisibility toggleAll(@NotNull Player player) {
+        return this.mutateVisibility(player, NameplateVisibility::toggleAll);
+    }
+
+    @Override
+    public void setNameplateVisible(@NotNull Player player, boolean visible) {
+        this.setVisibility(player, this.getVisibility(player).withAll(visible));
+    }
+
+    private @NotNull NameplateVisibility mutateVisibility(@NotNull Player player,
+            @NotNull Function<NameplateVisibility, NameplateVisibility> mutator) {
+        SunUser user = this.userManager.getOrFetch(player);
+        NameplateVisibility updated = mutator.apply(this.getVisibility(user));
+        this.setVisibility(user, updated);
+        return updated;
     }
 }

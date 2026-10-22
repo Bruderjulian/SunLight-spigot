@@ -78,7 +78,7 @@ public class BansSettings extends AbstractConfig {
                         "[*] To remove the limit for a specific punishment type, use -1 without a time unit.",
                         "[*] To remove all limits for a specific group, completely delete that group's section from the file",
                         "[*] To bypass all limits, give '%s' permission."
-                                        .formatted(BansPerms.BYPASS_DURATION_LIMIT.getName()),
+                                        .formatted(BansPerms.BYPASS_DURATION_LIMIT),
                         "[*] Requires %s with a compatible permissions plugin OR %s to work.".formatted(
                                         PermissionPlugins.VAULT,
                                         PermissionPlugins.LUCK_PERMS));

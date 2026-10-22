@@ -218,8 +218,8 @@ public class ChatSettings extends AbstractConfig {
                         "[>] Set 0 to disable expiry.");
 
         private final ConfigProperty<String> mailTablePrefix = this.addProperty(ConfigTypes.STRING, "Mail.Table-Prefix",
-                        "sunlight_mails",
-                        "Sets the prefix for the mail database table.",
+                        "sunlight",
+                        "Sets the prefix for the mail database table. The table is named '<prefix>_mails'.",
                         "[Case #1] Use different prefixes on different servers to isolate data from one another.",
                         "[Case #2] Use the same prefix across multiple servers to synchronize data between them.");
 

@@ -13,6 +13,7 @@ import su.nightexpress.nightcore.util.placeholder.PlaceholderResolvable;
 import su.nightexpress.nightcore.util.placeholder.PlaceholderResolver;
 import su.nightexpress.sunlight.moduleImpl.kits.KitsPlaceholders;
 import su.nightexpress.sunlight.moduleImpl.kits.config.KitsPerms;
+import su.nightexpress.sunlight.utils.PermissionUtils;
 import su.nightexpress.sunlight.utils.Utils;
 
 import java.nio.file.Path;
@@ -125,14 +126,14 @@ public class Kit implements PlaceholderResolvable {
     }
 
     public String getPermission() {
-        return KitsPerms.KIT.childrenNode(this.id);
+        return PermissionUtils.node(KitsPerms.KIT, this.id);
     }
 
     public boolean hasPermission(Player player) {
         if (!this.definition.isPermissionRequired())
             return true;
 
-        return KitsPerms.KIT.hasChildAccess(player, this.id);
+        return PermissionUtils.hasChildAccess(player, KitsPerms.KIT, this.id);
     }
 
     public boolean isCooldownExpirable() {

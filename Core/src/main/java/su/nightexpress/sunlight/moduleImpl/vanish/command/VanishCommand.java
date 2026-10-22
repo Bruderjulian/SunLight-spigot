@@ -1,69 +1,78 @@
 package su.nightexpress.sunlight.moduleImpl.vanish.command;
 
-import su.nightexpress.nightcore.commands.Arguments;
-import su.nightexpress.nightcore.commands.context.CommandContext;
-import su.nightexpress.nightcore.commands.context.ParsedArguments;
-import su.nightexpress.nightcore.core.CoreLang;
+
+import org.bukkit.command.CommandSender;
+
+import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.executors.CommandArguments;
+import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.sunlight.SLPlaceholders;
-import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.CommandArguments;
+import su.nightexpress.sunlight.command.CommandArgumentConstants;
 import su.nightexpress.sunlight.command.CommandProvider;
 import su.nightexpress.sunlight.command.mode.ToggleMode;
 import su.nightexpress.sunlight.moduleImpl.vanish.VanishModule;
 import su.nightexpress.sunlight.moduleImpl.vanish.config.VanishLang;
 import su.nightexpress.sunlight.moduleImpl.vanish.config.VanishPerms;
-import su.nightexpress.sunlight.user.UserManager;
 import su.nightexpress.sunlight.user.property.UserProperty;
 
-public class VanishCommand extends CommandProvider {
+public class VanishCommand extends CommandProvider<VanishModule> {
 
-    private static final String COMMAND_OFF = "off";
-    private static final String COMMAND_ON = "on";
+    private static final String COMMAND_ROOT = "vanish";
     private static final String COMMAND_TOGGLE = "toggle";
 
-    private final VanishModule module;
-    private final UserManager userManager;
-
-    public VanishCommand(SunLightPlugin plugin, VanishModule module, UserManager userManager) {
-        super(plugin);
-        this.module = module;
-        this.userManager = userManager;
+    public VanishCommand(final VanishModule module) {
+        super(module, "vanish");
     }
 
     @Override
-    public void registerDefaults() {
-        this.registerLiteral(COMMAND_TOGGLE, true, new String[] { "vanish" }, builder -> builder
-                .description(VanishLang.COMMAND_VANISH_DESC)
-                .permission(VanishPerms.COMMAND_VANISH)
-                .withArguments(Arguments.playerName(CommandArguments.PLAYER)
-                        .permission(VanishPerms.COMMAND_VANISH_OTHERS).optional())
-                .withFlags(CommandArguments.FLAG_SILENT)
-                .executes((context, arguments) -> this.toggleVanish(context, arguments, ToggleMode.TOGGLE)));
+    public void setup() {
+        this.register(COMMAND_TOGGLE, command -> this.buildCommand(command, ToggleMode.TOGGLE))
+                .under(COMMAND_ROOT);
+
+        this.registerRoot(COMMAND_ROOT, command -> this.buildCommand(command, ToggleMode.TOGGLE))
+                .aliases("v");
     }
 
-    private boolean toggleVanish(CommandContext context, ParsedArguments arguments, ToggleMode mode) {
-        this.loadPlayerOrSenderWithDataAndRunInMainThread(context, arguments, this.module, this.userManager,
-                (user, target) -> {
-                    UserProperty<Boolean> setting = VanishModule.VANISH;
-
-                    boolean state = mode.apply(user.getPropertyOrDefault(setting));
-                    user.setProperty(setting, state);
-                    user.markDirty();
-
-                    module.vanish(target, state);
-
-                    if (context.getSender() != target) {
-                        VanishLang.COMMAND_VANISH_TARGET.message().send(context.getSender(), replacer -> replacer
-                                .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state))
-                                .replace(SLPlaceholders.forPlayer(target)));
-                    }
-
-                    if (!context.hasFlag(CommandArguments.FLAG_SILENT)) {
-                        VanishLang.COMMAND_VANISH_NOTIFY.message().send(target, replacer -> replacer
-                                .replace(SLPlaceholders.GENERIC_STATE, CoreLang.getEnabledOrDisabled(state)));
-                    }
+    private void buildCommand(final CommandAPICommand command, final ToggleMode mode) {
+        command
+                .withFullDescription(VanishLang.COMMAND_VANISH_DESC.text())
+                .withPermission(VanishPerms.COMMAND_VANISH)
+                .withOptionalArguments(CommandArgumentConstants.targetArgument())
+                .executes((sender, arguments) -> {
+                    return this.toggleVanish(sender, arguments, mode);
                 });
+    }
 
-        return true;
+    private int toggleVanish(final CommandSender sender, final CommandArguments arguments, final ToggleMode mode) {
+        final CommandArgumentConstants.Target target = CommandArgumentConstants.target(arguments);
+        if (target == null) {
+            this.module.sendPrefixed(CoreLang.ERROR_INVALID_PLAYER, sender);
+            return 0;
+        }
+
+        return target.runAs(this.module, sender, VanishPerms.COMMAND_VANISH_OTHERS, (user, targetPlayer) -> {
+            final UserProperty<Boolean> setting = VanishModule.VANISH;
+
+            final boolean previous = user.getPropertyOrDefault(setting);
+            final boolean state = mode.apply(previous);
+            user.setProperty(setting, state);
+            user.markDirty();
+
+            module.vanish(targetPlayer, state);
+            if (state != previous) {
+                module.broadcastFake(targetPlayer, !state);
+            }
+
+            if (sender != targetPlayer) {
+                VanishLang.COMMAND_VANISH_TARGET.message().send(sender, replacer -> replacer
+                        .replace(SLPlaceholders.GENERIC_STATE, CoreLang.STATE_ENABLED_DISALBED.get(state))
+                        .replace(SLPlaceholders.forPlayer(targetPlayer)));
+            }
+
+            if (!target.silent()) {
+                VanishLang.COMMAND_VANISH_NOTIFY.message().send(targetPlayer, replacer -> replacer
+                        .replace(SLPlaceholders.GENERIC_STATE, CoreLang.STATE_ENABLED_DISALBED.get(state)));
+            }
+        });
     }
 }

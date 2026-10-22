@@ -1,20 +1,29 @@
 package su.nightexpress.sunlight.moduleImpl.playtime.config;
 
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
-
 public class PlaytimePerms {
 
-    public static final PermissionTree MODULE = Perms.detached("playtime");
-    public static final PermissionTree COMMAND = MODULE.branch("command");
+    public static final String MODULE  = "sunlight.playtime";
+    public static final String COMMAND = MODULE + ".command";
+    public static final String BYPASS  = MODULE + ".bypass";
 
-    public static final Permission COMMAND_PLAYTIME = COMMAND.permission("playtime");
-    public static final Permission COMMAND_STATS = COMMAND.permission("stats");
-    public static final Permission COMMAND_STATS_OTHERS = COMMAND.permission("stats.others");
-    public static final Permission COMMAND_TOP = COMMAND.permission("top");
-    public static final Permission COMMAND_GOAL = COMMAND.permission("goal");
-    public static final Permission COMMAND_GOAL_SET = COMMAND.permission("goal.set");
+    public static final String COMMAND_PLAYTIME        = COMMAND + ".playtime";
+    public static final String COMMAND_STATS           = COMMAND + ".stats";
+    public static final String COMMAND_STATS_OTHERS    = COMMAND + ".stats.others";
+    public static final String COMMAND_TOP             = COMMAND + ".top";
+    public static final String COMMAND_MENU            = COMMAND + ".menu";
+    public static final String COMMAND_MENU_OTHERS     = COMMAND + ".menu.others";
+    public static final String COMMAND_GOAL            = COMMAND + ".goal";
+    public static final String COMMAND_GOAL_SET        = COMMAND + ".goal.set";
+    public static final String COMMAND_GOAL_SET_OTHERS = COMMAND + ".goal.set.others";
 
-    public static final Permission ADMIN = MODULE.permission("admin");
+    public static final String COMMAND_ADMIN       = COMMAND + ".admin";
+    public static final String COMMAND_ADMIN_ADD   = COMMAND_ADMIN + ".add";
+    public static final String COMMAND_ADMIN_SET   = COMMAND_ADMIN + ".set";
+    public static final String COMMAND_ADMIN_RESET = COMMAND_ADMIN + ".reset";
+    public static final String COMMAND_ADMIN_RELOAD = COMMAND_ADMIN + ".reload";
+
+    public static final String ADMIN = MODULE + ".admin";
+
+    private PlaytimePerms() {
+    }
 }

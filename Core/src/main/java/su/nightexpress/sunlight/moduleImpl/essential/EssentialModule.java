@@ -1,21 +1,25 @@
 package su.nightexpress.sunlight.moduleImpl.essential;
 
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.core.config.CoreLang;
 import su.nightexpress.nightcore.integration.permission.PermissionBridge;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.config.PermissionTree;
+import su.nightexpress.sunlight.api.provider.EssentialProvider;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.module.ModuleDefinition;
 import su.nightexpress.sunlight.moduleImpl.essential.command.*;
+import su.nightexpress.sunlight.moduleImpl.essential.listener.ColorsListener;
 import su.nightexpress.sunlight.moduleImpl.essential.listener.GodListener;
 import su.nightexpress.sunlight.moduleImpl.essential.listener.InvulnerabilityListener;
 import su.nightexpress.sunlight.teleport.TeleportManager;
 import su.nightexpress.sunlight.user.property.UserProperty;
 import su.nightexpress.sunlight.user.property.UserPropertyRegistry;
 
-public class EssentialModule extends Module {
+public class EssentialModule extends Module implements EssentialProvider {
 
     public static final UserProperty<Boolean> GOD = UserProperty.create("god", Boolean.class, false, true);
 
@@ -28,11 +32,51 @@ public class EssentialModule extends Module {
         this.settings = new EssentialSettings();
     }
 
+    public EssentialSettings settings() {
+        return this.settings;
+    }
+
+    public TeleportManager teleportManager() {
+        return this.teleportManager;
+    }
+
     @Override
     protected void loadModule(FileConfig config) {
         this.plugin.injectLang(EssentialLang.class);
         this.settings.load(config);
-        this.registerCommands();
+
+        if (this.settings.isInvulnerabilityEnabled()) {
+            this.commandRegistry.addProvider(new InvulnerabilityCommandProvider(this));
+        }
+        if (PermissionBridge.hasProvider()) {
+            this.commandRegistry.addProvider(new StaffCommandProvider(this));
+        }
+
+        this.commandRegistry.addProvider(new BroadcastCommandProvider(this));
+        this.commandRegistry.addProvider(new CondenseCommandProvider(this));
+        this.commandRegistry.addProvider(new DimensionCommandProvider(this));
+        this.commandRegistry.addProvider(new DisposalCommandProvider(this));
+        this.commandRegistry.addProvider(new EnchantCommandsProvider(this));
+        this.commandRegistry.addProvider(new ExperienceCommandsProvider(this));
+        this.commandRegistry.addProvider(new FlyCommandProvider(this));
+        this.commandRegistry.addProvider(new FlySpeedCommandProvider(this));
+        this.commandRegistry.addProvider(new FoodLevelCommandProvider(this));
+        this.commandRegistry.addProvider(new GamemodeCommandProvider(this));
+        if (this.settings.isGodEnabled()) {
+            this.commandRegistry.addProvider(new GodCommandProvider(this));
+        }
+        this.commandRegistry.addProvider(new HatCommandProvider(this));
+        this.commandRegistry.addProvider(new HealthCommandProvider(this));
+        this.commandRegistry.addProvider(new NearCommandProvider(this));
+        this.commandRegistry.addProvider(new PlayerInfoCommandProvider(this));
+        this.commandRegistry.addProvider(new SudoCommandProvider(this));
+        this.commandRegistry.addProvider(new JumpCommandProvider(this));
+        this.commandRegistry.addProvider(new SkullCommandProvider(this));
+        this.commandRegistry.addProvider(new SmiteCommandProvider(this));
+        this.commandRegistry.addProvider(new SpeedCommandProvider(this));
+        this.commandRegistry.addProvider(new SuicideCommandProvider(this));
+        this.commandRegistry.addProvider(new TeleportCommandsProvider(this));
+        this.commandRegistry.addProvider(new TimeCommandProvider(this));
 
         if (this.settings.isGodEnabled()) {
             UserPropertyRegistry.register(GOD);
@@ -42,6 +86,10 @@ public class EssentialModule extends Module {
         if (this.settings.isInvulnerabilityEnabled()) {
             this.addListener(new InvulnerabilityListener(this.plugin, this, this.settings));
         }
+
+        if (this.settings.isSignColorsEnabled() || this.settings.isAnvilColorsEnabled()) {
+            this.addListener(new ColorsListener(this.plugin, this));
+        }
     }
 
     @Override
@@ -50,61 +98,37 @@ public class EssentialModule extends Module {
     }
 
     @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(EssentialPerms.MODULE);
+    public boolean isGodEnabled() {
+        return this.settings.isGodEnabled();
     }
 
-    protected void registerCommands() {
-        if (this.settings.isInvulnerabilityEnabled()) {
-            this.commandRegistry.addProvider("ess-invulnerability",
-                    new InvulnerabilityCommandProvider(this.plugin, this, this.settings, this.userManager), this);
-        }
-        if (PermissionBridge.hasProvider()) {
-            this.commandRegistry.addProvider("staff", new StaffCommandProvider(this.plugin, this, this.settings), this);
-        }
+    @Override
+    public boolean isInvulnerabilityEnabled() {
+        return this.settings.isInvulnerabilityEnabled();
+    }
 
-        this.commandRegistry.addProvider("broadcast",
-                new BroadcastCommandProvider(this.plugin, this.settings.broadcastFormat.get()), this);
-        this.commandRegistry.addProvider("condense", new CondenseCommandProvider(this.plugin, this), this);
-        this.commandRegistry.addProvider("dimension",
-                new DimensionCommandProvider(this.plugin, this, this.userManager, this.teleportManager), this);
-        this.commandRegistry.addProvider("disposal", new DisposalCommandProvider(this.plugin, this, this.settings),
-                this);
-        this.commandRegistry.addProvider("enchant", new EnchantCommandsProvider(this.plugin, this, this.userManager),
-                this);
-        this.commandRegistry.addProvider("experience",
-                new ExperienceCommandsProvider(this.plugin, this, this.userManager), this);
-        this.commandRegistry.addProvider("fly", new FlyCommandProvider(this.plugin, this, this.userManager), this);
-        this.commandRegistry.addProvider("flyspeed", new FlySpeedCommandProvider(this.plugin, this, this.userManager),
-                this);
-        this.commandRegistry.addProvider("foodlevel",
-                new FoodLevelCommandProvider(this.plugin, this, this.settings, this.userManager), this);
-        this.commandRegistry.addProvider("gamemode", new GamemodeCommandProvider(this.plugin, this, this.userManager),
-                this);
-        if (this.settings.isGodEnabled()) {
-            this.commandRegistry.addProvider("god", new GodCommandProvider(this.plugin, this, this.userManager), this);
-        }
-        this.commandRegistry.addProvider("hat", new HatCommandProvider(this.plugin, this), this);
-        this.commandRegistry.addProvider("health",
-                new HealthCommandProvider(this.plugin, this, this.settings, this.userManager), this);
-        this.commandRegistry.addProvider("near",
-                new NearCommandProvider(this.plugin, this, this.settings, this.userManager), this);
-        this.commandRegistry.addProvider("playerinfo",
-                new PlayerInfoCommandProvider(this.plugin, this, this.settings, this.userManager), this);
-        this.commandRegistry.addProvider("skull", new SkullCommandProvider(this.plugin, this), this);
-        this.commandRegistry.addProvider("smite", new SmiteCommandProvider(this.plugin, this), this);
-        this.commandRegistry.addProvider("speed", new SpeedCommandProvider(this.plugin, this, this.userManager), this);
-        this.commandRegistry.addProvider("suicide", new SuicideCommandProvider(this.plugin, this), this);
-        this.commandRegistry.addProvider("teleport",
-                new TeleportCommandsProvider(this.plugin, this, this.userManager, this.teleportManager), this);
-        this.commandRegistry.addProvider("time", new TimeCommandProvider(this.plugin, this, this.settings), this);
+    @Override
+    public boolean isGod(@NotNull Player player) {
+        if (!this.settings.isGodEnabled())
+            return false;
+
+        return this.userManager.getOrFetch(player).getPropertyOrDefault(GOD);
+    }
+
+    @Override
+    public void setGod(@NotNull Player player, boolean god) {
+        if (!this.settings.isGodEnabled())
+            return;
+
+        this.userManager.getOrFetch(player).setProperty(GOD, god);
     }
 
     @Override
     public void registerPlaceholders(PlaceholderRegistry registry) {
         if (this.settings.isGodEnabled()) {
             registry.register("essential_god_state", (player, payload) -> {
-                return CoreLang.STATE_ENABLED_DISALBED.get(this.userManager.getOrFetch(player).getPropertyOrDefault(GOD));
+                return CoreLang.STATE_ENABLED_DISALBED
+                        .get(this.userManager.getOrFetch(player).getPropertyOrDefault(GOD));
             });
 
             registry.register("essential_god_bool", (player, payload) -> {

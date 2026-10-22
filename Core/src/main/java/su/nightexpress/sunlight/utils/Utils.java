@@ -47,9 +47,16 @@ public class Utils {
     return str == null ? null : str.toLowerCase(Locale.ROOT);
   }
 
+  public static List<String> lowercaseAll(List<String> list) {
+    if (list == null) {
+      return List.of();
+    }
+    return list.stream().map(Utils::lowercase).toList();
+  }
+
   public static <T extends Enum<T>> T enumValueOf(String str, Class<T> type) {
     try {
-      return str == null ? null : Enum.valueOf(type, str.toUpperCase());
+      return str == null ? null : Enum.valueOf(type, str.toUpperCase(Locale.ROOT));
     } catch (Exception exception) {
       return null;
     }
@@ -57,7 +64,7 @@ public class Utils {
 
   public static <T extends Enum<T>> Optional<T> enumOptionalValueOf(String str, Class<T> type) {
     try {
-      return str == null ? Optional.empty() : Optional.of(Enum.valueOf(type, str.toUpperCase()));
+      return str == null ? Optional.empty() : Optional.of(Enum.valueOf(type, str.toUpperCase(Locale.ROOT)));
     } catch (Exception exception) {
       return Optional.empty();
     }
@@ -75,6 +82,13 @@ public class Utils {
         .sorted(Comparator.comparingInt(Enum::ordinal))
         .map(Object::toString)
         .toList();
+  }
+
+  public static String[] getEnumNamesArray(Class<? extends Enum<?>> type) {
+    return Stream.of(type.getEnumConstants())
+        .sorted(Comparator.comparingInt(Enum::ordinal))
+        .map(Object::toString)
+        .toArray(String[]::new);
   }
 
   public static Player getPlayer(String name) {

@@ -36,7 +36,6 @@ import su.nightexpress.nightcore.util.geodata.pos.ExactPos;
 import su.nightexpress.nightcore.util.placeholder.CommonPlaceholders;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -69,7 +68,16 @@ import su.nightexpress.sunlight.teleport.TeleportType;
 import su.nightexpress.sunlight.utils.EconomyUtils;
 import su.nightexpress.sunlight.utils.Utils;
 
-public class HomesModule extends Module {
+public class HomesModule extends Module implements su.nightexpress.sunlight.api.provider.HomesProvider {
+
+    @Override
+    public Set<String> getHomeIds(UUID playerId) {
+        try {
+            return this.getHomes(playerId).stream().map(home -> home.getId().toLowerCase(java.util.Locale.ROOT)).collect(Collectors.toSet());
+        } catch (Exception exception) {
+            return Set.of();
+        }
+    }
 
     private final TeleportManager teleportManager;
     private final HomeDataManager dataManager;
@@ -103,6 +111,9 @@ public class HomesModule extends Module {
         this.addListener(new HomeListener(this.plugin, this));
 
         this.addAsyncTask(this::saveHomes, this.settings.getDataSaveInterval());
+
+        this.commandRegistry.addProvider(new HomeCommonCommandProvider(this));
+        this.commandRegistry.addProvider(new HomeAdminCommandProvider(this));
     }
 
     @Override
@@ -113,20 +124,6 @@ public class HomesModule extends Module {
         this.homesMenu = null;
 
         this.repository.clear();
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(HomesPerms.ROOT);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("homes-common",
-                new HomeCommonCommandProvider(this.plugin, this, this.userManager), this);
-
-        this.commandRegistry.addProvider("homes-admin",
-                new HomeAdminCommandProvider(this.plugin, this, this.userManager), this);
     }
 
     @Override
@@ -431,6 +428,7 @@ public class HomesModule extends Module {
 
         if (currentHome == null) {
             Home created = this.createHome(id, UserInfo.of(player), location);
+            if (created == null) return false;
             if (chargeCreation)
                 EconomyUtils.withdraw(player, creationCost);
             if (this.countHomes(player) == 0) {
@@ -446,6 +444,14 @@ public class HomesModule extends Module {
     }
 
     public Home createHome(String id, UserInfo owner, Location location) {
+        su.nightexpress.sunlight.api.event.HomeCreateEvent event = new su.nightexpress.sunlight.api.event.HomeCreateEvent(owner.id(), id, location);
+        try {
+            this.plugin.getPluginManager().callEvent(event);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return null;
+        }
+        if (event.isCancelled()) return null;
         Home home = Home.createDefault(id, owner, this.settings.getDefaultIconId(), location.getWorld(), ExactPos.from(
                 location));
         home.activate();

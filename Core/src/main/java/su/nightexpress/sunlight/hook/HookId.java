@@ -10,6 +10,14 @@ public class HookId {
     public static final String WORLD_GUARD = "WorldGuard";
     public static final String GRIEF_PREVENTION = "GriefPrevention";
 
+    public static final String TAB = "TAB";
+    public static final String TAB_BRIDGE = "TAB-Bridge";
+    public static final String ULTIMATE_TEAMS = "UltimateTeams";
+    public static final String LUCKPERMS = "LuckPerms";
+
+    public static final String PVP_MANAGER = "PvPManager";
+    public static final String COMBAT_LOG_X = "CombatLogX";
+
     public static boolean hasDiscordSRV() {
         return Utils.isInstalled(DISCORD_SRV);
     }
@@ -20,5 +28,34 @@ public class HookId {
 
     public static boolean hasGriefPrevention() {
         return Utils.isInstalled(GRIEF_PREVENTION);
+    }
+
+    public static boolean hasTAB() {
+        return Utils.isLoaded(TAB);
+    }
+
+    /**
+     * Whether TAB-Bridge is present, which means TAB is rendering nametags on the proxy
+     * rather than here. The two are mutually exclusive in practice: Bridge only does
+     * anything when there is a TAB on the proxy to talk to.
+     */
+    public static boolean hasTabBridge() {
+        return Utils.isLoaded(TAB_BRIDGE);
+    }
+
+    public static boolean hasUltimateTeams() {
+        return Utils.isLoaded(ULTIMATE_TEAMS);
+    }
+
+    public static boolean hasLuckPerms() {
+        return Utils.isLoaded(LUCKPERMS);
+    }
+
+    public static boolean hasPvPManager() {
+        return Utils.isLoaded(PVP_MANAGER);
+    }
+
+    public static boolean hasCombatLogX() {
+        return Utils.isLoaded(COMBAT_LOG_X);
     }
 }

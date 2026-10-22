@@ -19,6 +19,12 @@ public class VanishLang implements LangContainer {
             LIGHT_GRAY.wrap("Vanish has been set on " + LIGHT_YELLOW.wrap(GENERIC_STATE) + "."));
 
     public static final MessageLocale COMMAND_VANISH_TARGET = LangEntry.builder("Command.Vanish.Target").chatMessage(
-            LIGHT_GRAY.wrap("Set Vanish on " + LIGHT_YELLOW.wrap(GENERIC_STATE) + " for "
-                    + LIGHT_YELLOW.wrap(PLAYER_DISPLAY_NAME) + "."));
+        LIGHT_GRAY.wrap("Set Vanish on " + LIGHT_YELLOW.wrap(GENERIC_STATE) + " for "
+                + LIGHT_YELLOW.wrap(PLAYER_DISPLAY_NAME) + "."));
+
+    public static final TextLocale FAKE_JOIN = LangEntry.builder("Vanish.Fake.Join")
+        .text(LIGHT_YELLOW.wrap(PLAYER_DISPLAY_NAME) + LIGHT_GRAY.wrap(" joined the game"));
+
+    public static final TextLocale FAKE_LEAVE = LangEntry.builder("Vanish.Fake.Leave")
+        .text(LIGHT_YELLOW.wrap(PLAYER_DISPLAY_NAME) + LIGHT_GRAY.wrap(" left the game"));
 }

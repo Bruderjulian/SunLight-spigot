@@ -12,7 +12,6 @@ import su.nightexpress.nightcore.util.text.tag.TagPool;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.api.provider.NickProvider;
 import su.nightexpress.sunlight.command.CommandKey;
-import su.nightexpress.sunlight.config.PermissionTree;
 import su.nightexpress.sunlight.hook.placeholder.PlaceholderRegistry;
 import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.SunLightPlugin;
@@ -37,7 +36,7 @@ public class NickModule extends Module implements NickProvider {
     private static final String LEGACY_TABLIST_KEY = "Nick.Apply_To_Tablist";
 
     private static final String COOLDOWN_PROVIDER = "nickname";
-    private static final String COOLDOWN_NODE = "module_change";
+    private static final String COOLDOWN_NODE = "change";
 
     public static final CommandKey CHANGE_COOLDOWN_KEY = new CommandKey(COOLDOWN_PROVIDER, COOLDOWN_NODE);
 
@@ -58,29 +57,18 @@ public class NickModule extends Module implements NickProvider {
 
         this.addListener(new NickListener(this.plugin, this));
 
-        // Re-apply nicknames to players that are already online (e.g. after a plugin reload).
+        // Re-apply nicknames to players that are already online (e.g. after a plugin
+        // reload).
         Players.getOnline().forEach(this::applyNickname);
+
+        this.commandRegistry.addProvider(new NickCommandProvider(this));
     }
 
     @Override
     protected void unloadModule() {
-        // Reset player names so a nick does not leak after the module is disabled/reloaded.
-        Players.getOnline().forEach(player -> {
-            Players.setDisplayName(player, (NightComponent) null);
-            if (NickConfig.APPLY_TO_TABLIST.get()) {
-                Players.setPlayerListName(player, (NightComponent) null);
-            }
-        });
-    }
-
-    @Override
-    protected void registerPermissions(PermissionTree root) {
-        root.merge(NickPerms.MODULE);
-    }
-
-    @Override
-    protected void registerCommands() {
-        this.commandRegistry.addProvider("nickname", new NickCommandProvider(this.plugin, this, this.userManager), this);
+        // Reset player names so a nick does not leak after the module is
+        // disabled/reloaded.
+        Players.getOnline().forEach(this::resetNickname);
     }
 
     @Override
@@ -101,10 +89,13 @@ public class NickModule extends Module implements NickProvider {
     }
 
     private void migrateLegacyEssentialSettings(FileConfig config) {
-        if (config.contains("Nick.Length.Min")) return;
+        if (config.contains("Nick.Length.Min"))
+            return;
 
-        FileConfig essentialConfig = FileConfig.load(this.path.getParent().resolve("essential").toString(), "settings.yml");
-        if (!essentialConfig.contains("Nick.Length.Min")) return;
+        FileConfig essentialConfig = FileConfig.load(this.path.getParent().resolve("essential").toString(),
+                "settings.yml");
+        if (!essentialConfig.contains("Nick.Length.Min"))
+            return;
 
         config.set("Nick.Length.Min", essentialConfig.getInt("Nick.Length.Min"));
         config.set("Nick.Length.Max", essentialConfig.getInt("Nick.Length.Max"));
@@ -130,10 +121,13 @@ public class NickModule extends Module implements NickProvider {
      * error message is sent to the {@code sender} and {@code null} is returned.
      *
      * @param sender    Sender that receives error messages.
-     * @param authority Player whose permissions are checked for bypasses and colors;
-     *                  {@code null} means a trusted sender (e.g. console) that bypasses
+     * @param authority Player whose permissions are checked for bypasses and
+     *                  colors;
+     *                  {@code null} means a trusted sender (e.g. console) that
+     *                  bypasses
      *                  every restriction and may use colors.
-     * @param owner     Player the nickname belongs to (excluded from the impersonation
+     * @param owner     Player the nickname belongs to (excluded from the
+     *                  impersonation
      *                  check); may be {@code null}.
      * @param input     Raw nickname input.
      * @return The sanitized nickname to store, or {@code null} when rejected.
@@ -250,7 +244,8 @@ public class NickModule extends Module implements NickProvider {
      *
      * @param user     The user to modify.
      * @param nickname The new nickname, or {@code null} to clear.
-     * @return {@code true} if something changed and was applied, {@code false} when the
+     * @return {@code true} if something changed and was applied, {@code false} when
+     *         the
      *         change was a no-op or was cancelled by {@link PlayerNickChangeEvent}.
      */
     public boolean setNickname(@NotNull SunUser user, @Nullable String nickname) {
@@ -312,10 +307,21 @@ public class NickModule extends Module implements NickProvider {
                 Players.setPlayerListName(player, nickname);
             }
         } else {
-            Players.setDisplayName(player, (NightComponent) null);
-            if (NickConfig.APPLY_TO_TABLIST.get()) {
-                Players.setPlayerListName(player, (NightComponent) null);
-            }
+            this.resetNickname(player);
+        }
+    }
+
+    /**
+     * Restores the default names of the given {@code player}, so no nickname is
+     * left behind.
+     */
+    private void resetNickname(@NotNull Player player) {
+        Players.setDisplayName(player, (NightComponent) null);
+        if (NickConfig.APPLY_TO_TABLIST.get()) {
+            // Unlike the display name, the tab list name cannot be reset with 'null',
+            // because the bridge API requires a non-null component. The real name is
+            // equivalent to the default tab list entry.
+            Players.setPlayerListName(player, player.getName());
         }
     }
 }

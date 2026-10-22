@@ -294,8 +294,8 @@ public class KitSettingsEditorMenu extends AbstractObjectMenu<Kit> implements La
 
     @Override
     public void onPrepare(ViewerContext context, InventoryView view, Inventory inventory, List<MenuItem> items) {
-        items.add(MenuItem.builder()
-                .defaultState(ItemState.defaultBuilder()
+        items.add(MenuItem.button()
+                .defaultState(ItemState.builder()
                         .icon(this.getObject(context).definition().getIcon().localized(ICON_ICON))
                         .displayModifier((viewerContext, item) -> item.replace(builder -> builder.with(GENERIC_STATE,
                                 () -> CoreLang.STATE_ENABLED_DISALBED.get(this.iconMode))))

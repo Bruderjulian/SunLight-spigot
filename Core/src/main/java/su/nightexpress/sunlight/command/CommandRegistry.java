@@ -3,318 +3,435 @@ package su.nightexpress.sunlight.command;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginIdentifiableCommand;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
 
-import su.nightexpress.nightcore.commands.Commands;
-import su.nightexpress.nightcore.commands.NodeExecutor;
-import su.nightexpress.nightcore.commands.builder.LiteralNodeBuilder;
-import su.nightexpress.nightcore.commands.command.NightCommand;
-import su.nightexpress.nightcore.commands.tree.LiteralNode;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+
+import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.CommandAPIExecutor;
+import dev.jorel.commandapi.commandsenders.AbstractCommandSender;
+import dev.jorel.commandapi.executors.ExecutionInfo;
+
 import su.nightexpress.nightcore.config.FileConfig;
 import su.nightexpress.nightcore.integration.currency.EconomyBridge;
 import su.nightexpress.nightcore.manager.SimpleManager;
-import su.nightexpress.nightcore.util.CommandUtil;
-import su.nightexpress.sunlight.utils.Utils;
 import su.nightexpress.nightcore.util.time.TimeFormatType;
 import su.nightexpress.nightcore.util.time.TimeFormats;
 import su.nightexpress.sunlight.SLPlaceholders;
 import su.nightexpress.sunlight.SunLightPlugin;
-import su.nightexpress.sunlight.command.definitions.HubDefinition;
-import su.nightexpress.sunlight.command.definitions.LiteralDefinition;
 import su.nightexpress.sunlight.config.Lang;
-import su.nightexpress.sunlight.module.Module;
 import su.nightexpress.sunlight.user.SunUser;
 import su.nightexpress.sunlight.utils.EconomyUtils;
+import su.nightexpress.sunlight.utils.PermissionUtils;
 import su.nightexpress.sunlight.utils.TimeUtil;
+import su.nightexpress.sunlight.utils.Utils;
+import su.nightexpress.nightcore.util.CommandUtil;
 
 public class CommandRegistry extends SimpleManager<SunLightPlugin> {
 
-    private final CommandSettings settings;
+  private static final int SUCCESS = 1;
+  private static final int FAILURE = 0;
+  private static final String[] EMPTY = new String[0];
 
-    private final Map<String, CommandProvider> providers;
-    private final Map<String, Module> providerModules;
-    private final Set<NightCommand> commands;
+  private final CommandSettings settings;
 
-    public CommandRegistry(SunLightPlugin plugin) {
-        super(plugin);
-        this.settings = new CommandSettings();
-        this.providers = new LinkedHashMap<>();
-        this.providerModules = new HashMap<>();
-        this.commands = new HashSet<>();
-    }
+  private final List<AbstractCommandProvider> providers;
+  private final Map<String, CommandAPICommand> commands;
 
-    @Override
-    protected void onLoad() {
-        this.settings.load(this.plugin.getConfig());
-        this.registerCommands();
-    }
+  public CommandRegistry(final SunLightPlugin plugin) {
+    super(plugin);
+    this.settings = new CommandSettings();
+    this.providers = new ArrayList<>();
+    this.commands = new HashMap<>();
+  }
 
-    @Override
-    protected void onShutdown() {
-        this.commands.forEach(NightCommand::unregister);
-        this.commands.clear();
-        this.providers.clear();
-        this.providerModules.clear();
-    }
+  @Override
+  protected void onLoad() {
+    this.settings.load(this.plugin.getConfig());
 
-    public void addProvider(String id, CommandProvider provider) {
-        this.addProvider(id, provider, null);
-    }
+    for (final AbstractCommandProvider provider : providers) {
+      final String providerId = provider.getId();
+      final FileConfig config = FileConfig.load(this.plugin.getDataFolder() + "/commands/",
+          FileConfig.withExtension(providerId));
 
-    public void addProvider(String id, CommandProvider provider, Module module) {
-        String key = Utils.lowercase(id);
-        this.providers.put(key, provider);
+      this.plugin.injectLang(provider);
+      provider.setup();
 
-        if (module != null) {
-            this.providerModules.put(key, module);
+      // Hub roots first, so their subcommands can be attached before anything is
+      // registered.
+      final Map<String, CommandAPICommand> roots = new LinkedHashMap<>();
+      for (final CommandProvider.Node node : provider.getNodes()) {
+        if (!node.isRoot()) {
+          continue;
         }
+
+        final CommandAPICommand root = this.buildStandalone(provider, node, config);
+        if (root != null) {
+          roots.put(node.id(), root);
+        }
+      }
+      for (final CommandProvider.Node node : provider.getNodes()) {
+        if (node.isRoot()) {
+          continue;
+        }
+
+        if (node.roots().isEmpty()) {
+          // Never nested, so this node is a command of its own.
+          this.register(this.buildStandalone(provider, node, config));
+          continue;
+        }
+
+        for (final String rootId : node.roots()) {
+          final CommandAPICommand root = roots.get(rootId);
+          if (root == null) {
+            // The root is disabled or unknown; the node stays unavailable rather than
+            // silently leaking out as a global command.
+            this.plugin.warn("Command '%s' of '%s' is attached to the unknown root '%s'."
+                .formatted(node.id(), providerId, rootId));
+            break;
+          }
+          final CommandAPICommand sub = this.buildSubCommand(provider, node, config);
+          if (sub != null) {
+            root.withSubcommand(sub);
+          }
+        }
+      }
+      roots.values().forEach(this::register);
+      config.saveChanges();
+    }
+  }
+
+  @Override
+  protected void onShutdown() {
+    this.commands.forEach((id, cmd) -> CommandAPI.unregister(id, true));
+    this.commands.clear();
+    this.providers.clear();
+  }
+
+  /**
+   * Registers a provider under an explicit config id.
+   *
+   * @param id       The config namespace: the {@code commands/<id>.yml} file.
+   * @param provider The provider.
+   */
+  public void addProvider(final AbstractCommandProvider provider) {
+    if (provider == null) {
+      throw new IllegalArgumentException("Command Provider cant be null");
+    }
+    for (final AbstractCommandProvider entry : this.providers) {
+      if (provider.id.equals(entry.getId())) {
+        throw new IllegalStateException("Command Provider '" + provider.id + "' has already been registered");
+      }
+    }
+    this.providers.add(provider);
+  }
+
+  private CommandAPICommand buildStandalone(final AbstractCommandProvider provider, final CommandProvider.Node node,
+      final FileConfig config) {
+    final String nodeId = node.id();
+    if (!config.contains(nodeId)) {
+      config.set(nodeId + ".enabled", true);
+      config.setStringArray(nodeId + ".aliases", node.aliases().toArray(EMPTY));
+      config.set(nodeId + ".cooldown", 0);
+      config.set(nodeId + ".cost", 0);
+    } else if (!config.getBoolean(nodeId + ".enabled", true)) {
+      return null;
     }
 
-    private void registerCommands() {
-        this.providers.forEach((providerId, provider) -> {
-            FileConfig config = FileConfig.load(this.plugin.getDataFolder() + "/commands/",
-                    FileConfig.withExtension(providerId));
+    String[] aliases = readAliases(config, nodeId + ".aliases");
+    if (aliases.length == 0) {
+      aliases = node.aliases().toArray(EMPTY);
+    }
 
-            this.plugin.injectLang(provider); // Register and load command's locales.
+    final CommandAPICommand command = new CommandAPICommand(aliases.length == 0 ? nodeId : aliases[0]);
+    node.builder().accept(command);
+    if (aliases.length > 1) {
+      command.withAliases(Arrays.copyOfRange(aliases, 1, aliases.length));
+    }
+    config.setStringArray(nodeId + ".aliases", aliases);
 
-            provider.registerDefaults();
-            provider.load(config);
+    this.guard(provider, nodeId, command, config.getInt(nodeId + ".cooldown", 0),
+        config.getDouble(nodeId + ".cost", 0));
+    return command;
+  }
 
-            Module module = this.providerModules.get(providerId);
+  private CommandAPICommand buildSubCommand(final AbstractCommandProvider provider, final CommandProvider.Node node,
+      final FileConfig config) {
+    final String nodeId = node.id();
+    if (!config.contains(nodeId)) {
+      config.set(nodeId + ".enabled", true);
+      config.set(nodeId + ".cooldown", 0);
+      config.set(nodeId + ".cost", 0);
+    } else if (!config.getBoolean(nodeId + ".enabled", true)) {
+      return null;
+    }
 
-            provider.getLiteralBuilders().forEach((nodeId, consumer) -> {
-                LiteralDefinition literalDefinition = provider.getLiteralDefinitions().get(nodeId);
-                if (literalDefinition == null || !literalDefinition.enabled())
-                    return;
+    // Subcommands are reached under their node id, so aliases and standalone cost
+    // handling do not apply to them.
+    final CommandAPICommand command = new CommandAPICommand(nodeId);
+    node.builder().accept(command);
 
-                String[] aliases = sanitizeAliases(literalDefinition.aliases());
-                if (aliases.length == 0) {
-                    this.plugin.warn("Command node '" + nodeId + "' in '" + providerId
-                            + ".yml' was skipped: no valid aliases configured.");
-                    return;
-                }
+    this.guard(provider, nodeId, command, config.getInt(nodeId + ".cooldown", 0),
+        config.getDouble(nodeId + ".cost", 0));
+    return command;
+  }
 
-                this.register(NightCommand.literal(this.plugin, aliases, builder -> {
-                    consumer.accept(builder);
+  private void guard(final AbstractCommandProvider provider, final String nodeId,
+      final CommandAPICommand command, final int cooldown, final double cost) {
+    final CommandAPIExecutor<CommandSender, AbstractCommandSender<? extends CommandSender>> original = command
+        .getExecutor();
+    if (original == null || !original.hasAnyExecutors()) {
+      return;
+    }
+    command.setExecutor(new GuardedExecutor(original, this.settings, provider, nodeId, cooldown, cost));
+  }
 
-                    if (this.settings.isCostsEnabled()) {
-                        this.wrapExecutorWithCost(providerId, nodeId, literalDefinition, builder, module);
-                    }
+  private void register(final CommandAPICommand command) {
+    if (command == null) {
+      return;
+    }
 
-                    if (this.settings.isCooldownsEnabled()) {
-                        this.wrapExecutorWithCooldown(providerId, nodeId, literalDefinition, builder, module);
-                    }
-                }));
-            });
+    final String name = command.getName();
+    if (command.getAliases() != null) {
+      for (final String alias : command.getAliases()) {
+        this.unregisterConflict(alias, true);
+        if (this.settings.isConflictUnregisterEnabled()) {
+          this.unregisterConflict(alias, false);
+        }
+      }
+    }
+    this.unregisterConflict(name, true);
+    if (this.settings.isConflictUnregisterEnabled()) {
+      this.unregisterConflict(name, false);
+    }
+    try {
+      CommandAPI.unregister(name, true);
+      command.register("sunlight");
+    } catch (final Exception e) {
+      this.plugin.warn("Failed to register command '/%s': %s".formatted(name, e.getMessage()));
+      e.printStackTrace();
+      return;
+    }
 
-            provider.getRootBuilders().forEach((rootId, rootBuilder) -> {
-                HubDefinition rootDefinition = provider.getRootDefinitions().get(rootId);
-                if (rootDefinition == null || !rootDefinition.enabled())
-                    return;
+    final CommandAPICommand previous = this.commands.put(name, command);
+    if (previous != null) {
+      this.plugin.warn("Command '/%s' is declared more than once; the last declaration wins."
+          .formatted(name));
+    }
+  }
 
-                String[] aliases = sanitizeAliases(rootDefinition.aliases());
-                if (aliases.length == 0) {
-                    this.plugin.warn("Root command '" + rootDefinition.name() + "' in '" + providerId
-                            + ".yml' was skipped: no valid aliases configured.");
-                    return;
-                }
+  private String[] readAliases(final FileConfig config, final String path) {
+    final Object raw = config.get(path, EMPTY);
 
-                List<LiteralNode> childrens = new ArrayList<>();
+    final Stream<String> aliases;
+    if (raw instanceof final List<?> list) {
+      aliases = list.stream().map(entry -> entry == null ? "" : entry.toString());
+    } else if (raw instanceof final String string) {
+      String cleaned = string.trim();
+      if (cleaned.startsWith("[") && cleaned.endsWith("]") && cleaned.length() >= 2) {
+        cleaned = cleaned.substring(1, cleaned.length() - 1);
+      }
+      aliases = Arrays.stream(cleaned.split(","));
+    } else {
+      return EMPTY;
+    }
+    return aliases.filter(alias -> alias != null && !alias.isBlank())
+        .map(String::trim)
+        .filter(alias -> !isListArtifact(alias))
+        .toArray(String[]::new);
+  }
 
-                provider.getLiteralBuilders().forEach((nodeId, consumer) -> {
-                    String alias = rootDefinition.childrenAliases().get(nodeId);
-                    if (alias == null || alias.isBlank())
-                        return;
+  private static boolean isListArtifact(final String alias) {
+    return alias.equals("[]") || alias.equals("[") || alias.equals("]");
+  }
 
-                    childrens.add(Commands.literal(alias, consumer));
-                });
+  private static final class GuardedExecutor
+      extends CommandAPIExecutor<CommandSender, AbstractCommandSender<? extends CommandSender>> {
 
-                if (childrens.isEmpty()) {
-                    this.plugin.warn("Root command '" + rootDefinition.name()
-                            + "' was not registered due to no sub-commands available.");
-                    return;
-                }
+    private final CommandAPIExecutor<CommandSender, AbstractCommandSender<? extends CommandSender>> delegate;
+    private final CommandSettings settings;
+    private final CommandKey key;
+    private final AbstractCommandProvider provider;
+    private final String bypassNode;
+    private final int cooldown;
+    private final double cost;
 
-                this.register(NightCommand.hub(this.plugin, aliases, builder -> {
-                    rootBuilder.accept(builder);
-                    builder.localized(rootDefinition.name());
-                    builder.branch(childrens.toArray(new LiteralNode[0]));
-                }));
-            });
+    private GuardedExecutor(
+        final CommandAPIExecutor<CommandSender, AbstractCommandSender<? extends CommandSender>> delegate,
+        final CommandSettings settings,
+        final AbstractCommandProvider provider, final String nodeId, final int cooldown,
+        final double cost) {
+      this.delegate = delegate;
+      this.settings = settings;
+      this.key = new CommandKey(provider.id, nodeId);
+      this.provider = provider;
+      final String namespace = provider.permissionNamespace();
+      this.bypassNode = namespace == null ? null : "sunlight." + namespace;
+      this.cooldown = cooldown;
+      this.cost = cost;
+    }
 
-            config.saveChanges();
-        });
+    @Override
+    public boolean hasAnyExecutors() {
+      return true;
+    }
+
+    @Override
+    public int execute(final ExecutionInfo<CommandSender, AbstractCommandSender<? extends CommandSender>> info)
+        throws CommandSyntaxException {
+      final Player player = info.sender() instanceof final Player p ? p : null;
+      if (!this.check(info, player)) {
+        return FAILURE;
+      }
+
+      final int result = this.delegate.execute(info);
+      if (result < SUCCESS) {
+        return FAILURE;
+      }
+
+      this.settle(info, player);
+      return SUCCESS;
     }
 
     /**
-     * Drops blank entries so an empty/blank alias can never be registered as a
-     * (phantom) Bukkit command. Empty arrays would also make NightCore throw.
+     * @return {@code true} when the command may run.
      */
-    private static String[] sanitizeAliases(String[] aliases) {
-        if (aliases == null)
-            return new String[0];
+    private boolean check(final ExecutionInfo<CommandSender, AbstractCommandSender<? extends CommandSender>> info,
+        final Player player) {
+      if (player == null) {
+        return true;
+      }
 
-        return Arrays.stream(aliases).filter(alias -> alias != null && !alias.isBlank()).toArray(String[]::new);
-    }
-
-    private void register(NightCommand command) {
-        // Always replace server built-in (vanilla/bukkit) commands, otherwise Bukkit
-        // registers
-        // ours with the fallback prefix (sunlight:label) and command.register() returns
-        // false.
-        this.unregisterConflicts(command, true);
-
-        if (this.settings.isConflictUnregisterEnabled()) {
-            this.unregisterConflicts(command, false);
+      if (this.settings.isCooldownsEnabled() && this.cooldown != 0
+          && !EconomyUtils.hasCooldownBypass(player, this.bypass("cooldown"))) {
+        final SunUser user = this.provider.userManager().getOrFetch(player);
+        final Long expireDate = user.getCommandCooldown(this.key);
+        if (expireDate != null && !TimeUtil.isPassed(expireDate)) {
+          (expireDate < 0 ? Lang.COMMAND_COOLDOWN_ONE_TIME : Lang.COMMAND_COOLDOWN_DEFAULT).message()
+              .sendWith(player, replacer -> replacer
+                  .with(SLPlaceholders.GENERIC_TIME,
+                      () -> TimeFormats.formatDuration(expireDate, TimeFormatType.LITERAL))
+                  .with(SLPlaceholders.GENERIC_COMMAND, () -> "/" + info.args().fullInput()));
+          return false;
         }
+      }
 
-        if (!command.register()) {
-            this.plugin.warn("Command '" + command.getName() + "' (aliases: " + command.getAliases()
-                    + ") was not registered with the passed in label, which indicates the SunLight's fallback prefix was used one or more times. "
-                    + "This usually means that another plugin has a command with the same label. "
-                    + "Enable 'Commands.Conflict-Unregister' in the config to let SunLight replace conflicting commands, "
-                    + "or change the command's aliases in 'plugins/SunLight/commands/' configs.");
-        }
+      if (this.mustCharge(player) && !EconomyUtils.canAfford(player, this.cost)) {
+        Lang.COMMAND_COST_ERROR.message().sendWith(player, replacer -> replacer
+            .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(this.cost))
+            .with(SLPlaceholders.GENERIC_COMMAND, () -> "/" + info.args().fullInput()));
+        return false;
+      }
 
-        this.commands.add(command);
+      return true;
     }
 
-    public Set<CommandProvider> getProviders() {
-        return new HashSet<>(this.providers.values());
+    private boolean mustCharge(final Player player) {
+      if (player == null || !this.settings.isCostsEnabled() || this.cost <= 0D) {
+        return false;
+      }
+      return !EconomyUtils.hasBypass(player, this.bypass("cost")) && EconomyBridge.api().hasVaultCurrency();
     }
 
-    private void wrapExecutorWithCost(String providerId, String nodeId, LiteralDefinition definition,
-            LiteralNodeBuilder builder, Module module) {
-        NodeExecutor executor = builder.getExecutor(); // Original executor set by the provider implementation.
+    /**
+     * Charges the cost and starts the cooldown after a successful run.
+     */
+    private void settle(final ExecutionInfo<CommandSender, AbstractCommandSender<? extends CommandSender>> info,
+        final Player player) {
+      if (player == null) {
+        return;
+      }
 
-        double cost = definition.cost();
+      if (this.mustCharge(player)) {
+        EconomyUtils.withdraw(player, this.cost);
+      }
 
-        builder.executes((context, arguments) -> {
-            Player player = context.getPlayer();
-
-            boolean charge = cost > 0D && player != null && !EconomyUtils.hasBypass(player, module)
-                    && EconomyBridge.api().hasVaultCurrency();
-
-            if (charge && !EconomyUtils.canAfford(player, cost)) {
-                Lang.COMMAND_COST_ERROR.message().sendWith(player, replacer -> replacer
-                        .with(SLPlaceholders.GENERIC_AMOUNT, () -> EconomyUtils.format(cost))
-                        .with(SLPlaceholders.GENERIC_COMMAND, () -> "/" + context.getInput()));
-                return false;
-            }
-
-            boolean result = executor.run(context, arguments);
-            if (result && charge) {
-                EconomyUtils.withdraw(player, cost);
-            }
-
-            return result;
-        });
+      if (this.settings.isCooldownsEnabled() && this.cooldown != 0) {
+        this.provider.userManager().getOrFetch(player)
+            .setCommandCooldown(this.key, TimeUtil.createFutureTimestamp(this.cooldown));
+      }
     }
 
-    private void wrapExecutorWithCooldown(String providerId, String nodeId, LiteralDefinition definition,
-            LiteralNodeBuilder builder, Module module) {
-        NodeExecutor executor = builder.getExecutor(); // Original executor set by the provider implementation.
+    /**
+     * @param type {@code cost} or {@code cooldown}.
+     * @return The module-scoped bypass node, or null for plugin-level commands,
+     *         which are covered by the global bypass node alone.
+     */
+    private String bypass(final String type) {
+      return this.bypassNode == null ? null : PermissionUtils.node(this.bypassNode, "bypass." + type);
+    }
+  }
 
-        int cooldown = definition.cooldown();
+  /**
+   * Drops commands that would otherwise shadow SunLight's alternative.
+   *
+   * @param vanillaOnly When true, leave third-party plugin commands alone; they
+   *                    are only
+   *                    removed when {@code Commands.Conflict-Unregister.Enabled}
+   *                    is on.
+   */
+  private void unregisterConflict(final String alias, final boolean vanillaOnly) {
+    CommandUtil.getCommand(alias).ifPresent(other -> {
+      // Skip our own commands, e.g. on a reload.
+      if (other instanceof final PluginIdentifiableCommand identifiable
+          && identifiable.getPlugin().getName().equalsIgnoreCase(this.plugin.getName())) {
+        return;
+      }
 
-        builder.executes((context, arguments) -> {
-            Player player = context.getPlayer();
-            SunUser user = player == null ? null : this.plugin.userManager().getOrFetch(player);
-            CommandKey key = new CommandKey(providerId, nodeId);
+      final String owner = getCommandOwner(other);
+      final boolean isVanilla = owner.equalsIgnoreCase("Vanilla") || owner.equalsIgnoreCase("Bukkit")
+          || owner.equalsIgnoreCase("Unknown") || owner.equalsIgnoreCase("Minecraft");
 
-            if (cooldown != 0 && user != null && !EconomyUtils.hasCooldownBypass(player, module)) {
-                Long expireDate = user.getCommandCooldown(key);
-                if (expireDate != null && !TimeUtil.isPassed(expireDate)) {
-                    (expireDate < 0 ? Lang.COMMAND_COOLDOWN_ONE_TIME : Lang.COMMAND_COOLDOWN_DEFAULT).message()
-                            .sendWith(player, replacer -> replacer
-                                    .with(SLPlaceholders.GENERIC_TIME,
-                                            () -> TimeFormats.formatDuration(expireDate, TimeFormatType.LITERAL))
-                                    .with(SLPlaceholders.GENERIC_COMMAND, () -> "/" + context.getInput()));
-                    return false;
-                }
-            }
+      if (vanillaOnly && !isVanilla) {
+        return;
+      }
+      if (this.settings.getConflictUnregisterBlacklist().contains(Utils.lowercase(owner))) {
+        return;
+      }
 
-            boolean result = executor.run(context, arguments);
-            if (result && cooldown != 0 && user != null) {
-                long expireDate = TimeUtil.createFutureTimestamp(cooldown);
+      if (CommandUtil.unregister(other)) {
+        this.plugin.info("Unregistered conflicting '%s' (%s) command in favor of SunLight's alternative."
+            .formatted(other.getName(), owner));
+      } else {
+        this.plugin.warn(
+            "Could not unregister conflicting command '%s' (%s) in favor of SunLight's alternative."
+                .formatted(other.getName(), owner));
+      }
+    });
+  }
 
-                user.setCommandCooldown(key, expireDate);
-            }
-
-            return result;
-        });
+  private static String getCommandOwner(final Command command) {
+    if (command instanceof final PluginIdentifiableCommand identifiable) {
+      return identifiable.getPlugin().getName();
     }
 
-    private void unregisterConflicts(NightCommand command, boolean vanillaOnly) {
-        Set<String> aliases = new HashSet<>(command.getAliases());
-        aliases.add(command.getName());
+    if (command instanceof final BukkitCommand bukkitCommand) {
+      final String permission = bukkitCommand.getPermission();
+      if (permission != null && (permission.startsWith("minecraft") || permission.startsWith("bukkit"))) {
+        return "Vanilla";
+      }
 
-        aliases.forEach(alias -> {
-            CommandUtil.getCommand(alias).ifPresent(other -> {
-                // Skip our own commands (e.g. re-registration on reload).
-                if (other instanceof PluginIdentifiableCommand identifiableCommand
-                        && identifiableCommand.getPlugin().getName().equalsIgnoreCase(this.plugin.getName())) {
-                    return;
-                }
+      // Paper wraps vanilla (Brigadier) commands; they are not
+      // PluginIdentifiableCommand.
+      final String className = command.getClass().getName().toLowerCase();
+      if (className.contains("vanilla") || className.contains("minecraft") || className.contains("mojang")
+          || className.contains("brigadier")) {
+        return "Vanilla";
+      }
 
-                String owner = getCommandOwner(other);
-                boolean isVanilla = owner.equalsIgnoreCase("Vanilla") || owner.equalsIgnoreCase("Bukkit")
-                        || owner.equalsIgnoreCase("Unknown") || owner.equalsIgnoreCase("Minecraft");
-
-                // When vanillaOnly, leave third-party plugin commands alone.
-                // They are handled only when 'Commands.Conflict-Unregister.Enabled' is true.
-                if (vanillaOnly && !isVanilla) {
-                    return;
-                }
-
-                if (this.settings.getConflictUnregisterBlacklist().contains(Utils.lowercase(owner))) {
-                    return;
-                }
-
-                boolean result = CommandUtil.unregister(other);
-                if (result) {
-                    this.plugin.info("Unregistered conflicting '%s' (%s) command in favor of SunLight's alternative."
-                            .formatted(other.getName(), owner));
-                } else {
-                    this.plugin.warn(
-                            "Could not unregister conflicting command '%s' (%s) in favor of SunLight's alternative."
-                                    .formatted(other.getName(), owner));
-                }
-            });
-        });
+      return "Bukkit";
     }
 
-    private static String getCommandOwner(Command command) {
-        if (command instanceof PluginIdentifiableCommand identifiableCommand) {
-            return identifiableCommand.getPlugin().getName();
-        }
-
-        if (command instanceof BukkitCommand bukkitCommand) {
-            String permission = bukkitCommand.getPermission();
-            if (permission != null && (permission.startsWith("minecraft") || permission.startsWith("bukkit"))) {
-                return "Vanilla";
-            }
-
-            // Paper wraps vanilla (brigadier) commands, they are not
-            // PluginIdentifiableCommand.
-            String className = command.getClass().getName().toLowerCase();
-            if (className.contains("vanilla") || className.contains("minecraft") || className.contains("mojang")
-                    || className.contains("brigadier")) {
-                return "Vanilla";
-            }
-
-            return "Bukkit";
-        }
-
-        return "Unknown";
-    }
+    return "Unknown";
+  }
 }

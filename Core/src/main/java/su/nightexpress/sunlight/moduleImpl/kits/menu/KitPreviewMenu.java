@@ -55,7 +55,7 @@ public class KitPreviewMenu extends AbstractObjectMenu<Kit> {
         this.addBackgroundItem(Material.GRAY_STAINED_GLASS_PANE, IntStream.range(5, 9).toArray());
         this.addBackgroundItem(Material.BLACK_STAINED_GLASS_PANE, IntStream.range(9, 18).toArray());
 
-        this.addDefaultButton("return", MenuItem.builder()
+        this.addDefaultButton("return", MenuItem.button()
                 .defaultState(NightItem.fromType(Material.ARROW).setDisplayName(WHITE.wrap("Back to Kits")),
                         context -> {
                             this.module.openKitsMenu(context.getPlayer());

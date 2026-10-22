@@ -1,17 +1,16 @@
 package su.nightexpress.sunlight.moduleImpl.vanish.config;
 
-import org.bukkit.permissions.Permission;
-import su.nightexpress.sunlight.config.PermissionTree;
-import su.nightexpress.sunlight.config.Perms;
-
 public class VanishPerms {
 
-    public static final PermissionTree MODULE = Perms.detached("vanish");
-    public static final PermissionTree COMMAND = MODULE.branch("command");
-    public static final PermissionTree BYPASS = MODULE.branch("bypass");
+    public static final String MODULE  = "sunlight.vanish";
+    public static final String COMMAND = MODULE + ".command";
+    public static final String BYPASS  = MODULE + ".bypass";
 
-    public static final Permission COMMAND_VANISH = COMMAND.permission("vanish");
-    public static final Permission COMMAND_VANISH_OTHERS = COMMAND.permission("vanish.others");
+    public static final String COMMAND_VANISH         = COMMAND + ".vanish";
+    public static final String COMMAND_VANISH_OTHERS  = COMMAND + ".vanish.others";
 
-    public static final Permission BYPASS_SEE = BYPASS.permission("see");
+    public static final String BYPASS_SEE = BYPASS + ".see";
+
+    private VanishPerms() {
+    }
 }
