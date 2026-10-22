@@ -32,10 +32,21 @@ jobs:
       - name: Build
         run: ./gradlew build --no-daemon
 
+      - name: Resolve built jar
+        id: jar
+        run: |
+          set -- target/*.jar
+          if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
+            echo "::error::Expected exactly one jar in target/, found $#"
+            exit 1
+          fi
+          echo "path=$1" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$1" .jar)" >> "$GITHUB_OUTPUT"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v6
         with:
-          name: SunLight
-          path: target/*.jar
+          name: ${{ steps.jar.outputs.name }}
+          path: ${{ steps.jar.outputs.path }}
           if-no-files-found: error
           retention-days: 4
