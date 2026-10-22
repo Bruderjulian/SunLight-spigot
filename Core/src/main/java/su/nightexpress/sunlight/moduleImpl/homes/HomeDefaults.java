@@ -4,7 +4,7 @@ import org.bukkit.Tag;
 import org.bukkit.inventory.ItemStack;
 
 import su.nightexpress.nightcore.bridge.item.AdaptedItem;
-import su.nightexpress.nightcore.integration.item.impl.AdaptedVanillaStack;
+import su.nightexpress.nightcore.integration.item.ItemBridge;
 import su.nightexpress.nightcore.util.BukkitThing;
 
 import java.util.HashMap;
@@ -21,7 +21,7 @@ public class HomeDefaults {
         Map<String, AdaptedItem> map = new HashMap<>();
 
         Tag.BEDS.getValues().forEach(material -> {
-            map.put(BukkitThing.getValue(material), AdaptedVanillaStack.of(new ItemStack(material)));
+            map.put(BukkitThing.getValue(material), ItemBridge.get().adaptOrDummy(new ItemStack(material)));
         });
 
         return map;
